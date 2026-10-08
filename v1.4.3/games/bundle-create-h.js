@@ -87,22 +87,30 @@ var cv=document.getElementById("pCanvas"),ctx=cv.getContext("2d");
 var state={top:"THE PROPAGANDA FACTORY",head:"EAT THE RICH",bot:"MT CSTW DOT COM",style:0};
 var W=1080,H=1350;
 
-function wrap(text,maxW,base){
+/* BUTTER PASS (2026-10-07): serif opt-in for headline type. Visual-only. */
+var PF_SERIF='Georgia,"Times New Roman",serif';
+function trackC(text,cx,cy,ls){var chs=String(text).split(""),ws=[],tot=0,i,w;
+  for(i=0;i<chs.length;i++){w=ctx.measureText(chs[i]).width;ws.push(w);tot+=w;}
+  tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=ctx.textAlign;ctx.textAlign="left";
+  for(i=0;i<chs.length;i++){ctx.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}ctx.textAlign=pa;}
+function wrap(text,maxW,base,serif){
   var words=text.toUpperCase().split(/\\s+/),lines=[],line="";
+  var setF=function(sz){ctx.font=(serif?("bold "+sz+"px "+PF_SERIF):(sz+"px 'Arial Black',Arial,sans-serif"));};
   words.forEach(function(w){
     var t=line?line+" "+w:w;
+    setF(base);
     if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else{line=t;}
   });
   if(line)lines.push(line);
   var size=base;
-  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  setF(size);
   lines.forEach(function(l){ if(ctx.measureText(l).width>maxW){ var s=Math.floor(size*maxW/ctx.measureText(l).width); if(s<size)size=s; }});
   if(size<40)size=40;
   return {lines:lines,size:size};
 }
-function centerBlock(lines,size,y,lh,color){
+function centerBlock(lines,size,y,lh,color,serif){
   ctx.fillStyle=color;ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.font=size+"px 'Arial Black',Arial,sans-serif";
+  ctx.font=(serif?("bold "+size+"px "+PF_SERIF):(size+"px 'Arial Black',Arial,sans-serif"));
   lines.forEach(function(l,i){ctx.fillText(l,540,y+i*lh);});
   return y+lines.length*lh;
 }
@@ -136,39 +144,39 @@ function watermark(){
 function draw(){
   var s=state.style;
   ctx.textAlign="center";ctx.textBaseline="middle";
-  if(s===0){ /* THE CALL — cream, red headline */
+  if(s===0){ /* THE CALL — cream, red serif headline */
     ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(RED,6,60);
-    ctx.fillStyle=RED;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
-    ctx.fillStyle=BLACK;ctx.fillRect(80,230,920,6);
-    var t=wrap(state.head,860,170);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED);
-    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
-    ctx.fillStyle=CREAM;ctx.fillRect(0,H-220,W,220);ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
-    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+    ctx.fillStyle=RED;ctx.font="700 44px Arial,sans-serif";trackC(state.top,540,170,10);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,232,920,4);
+    var t=wrap(state.head,860,170,true);var y=centerBlock(t.lines,t.size,640,t.size*1.12,RED,true);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,8);
+    ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
+    ctx.fillStyle=CREAM;ctx.font="bold 56px "+PF_SERIF;ctx.fillText(state.bot,540,H-110);
   }else if(s===1){ /* WANTED — black, cream/red */
     ctx.fillStyle=BLACK;ctx.fillRect(0,0,W,H);border(RED,26,26);border(CREAM,6,60);
-    ctx.fillStyle=CREAM;ctx.font="150px 'Arial Black',Arial,sans-serif";ctx.fillText("WANTED",540,190);
-    ctx.fillStyle=RED;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,300);
-    var t=wrap(state.head,860,150);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM);
-    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,8);
-    ctx.fillStyle=CREAM;ctx.font="52px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-150);
+    ctx.fillStyle=CREAM;ctx.font="bold 150px "+PF_SERIF;ctx.fillText("WANTED",540,190);
+    ctx.fillStyle=RED;ctx.font="700 44px Arial,sans-serif";trackC(state.top,540,300,8);
+    var t=wrap(state.head,860,150,true);centerBlock(t.lines,t.size,700,t.size*1.12,CREAM,true);
+    ctx.fillStyle=RED;ctx.fillRect(80,H-280,920,6);
+    ctx.fillStyle=CREAM;ctx.font="bold 52px "+PF_SERIF;ctx.fillText(state.bot,540,H-150);
   }else if(s===2){ /* RED WAVE — red bg */
     ctx.fillStyle=RED;ctx.fillRect(0,0,W,H);border(BLACK,26,26);border(CREAM,6,60);
-    ctx.fillStyle=BLACK;ctx.font="64px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,170);
-    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM);
+    ctx.fillStyle=BLACK;ctx.font="700 44px Arial,sans-serif";trackC(state.top,540,170,10);
+    var t=wrap(state.head,860,170,true);centerBlock(t.lines,t.size,640,t.size*1.12,CREAM,true);
     ctx.fillStyle=BLACK;ctx.fillRect(0,H-220,W,220);
-    ctx.fillStyle=CREAM;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-110);
+    ctx.fillStyle=CREAM;ctx.font="bold 56px "+PF_SERIF;ctx.fillText(state.bot,540,H-110);
   }else{ /* STRIKE — diagonal stripes */
     ctx.fillStyle=CREAM;ctx.fillRect(0,0,W,H);
     ctx.save();ctx.beginPath();ctx.rect(0,0,W,300);ctx.clip();
     for(var i=-8;i<24;i++){ctx.fillStyle=i%2?BLACK:RED;ctx.save();ctx.translate(i*90,0);ctx.rotate(-0.5);ctx.fillRect(0,-200,45,700);ctx.restore();}
     ctx.restore();
-    ctx.fillStyle=CREAM;ctx.font="72px 'Arial Black',Arial,sans-serif";
+    ctx.fillStyle=CREAM;ctx.font="bold 76px "+PF_SERIF;
     ctx.save();ctx.shadowColor=BLACK;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;ctx.fillText("STRIKE!",540,150);ctx.restore();
     border(BLACK,26,26);
-    ctx.fillStyle=BLACK;ctx.font="60px 'Arial Black',Arial,sans-serif";ctx.fillText(state.top,540,420);
-    var t=wrap(state.head,860,170);centerBlock(t.lines,t.size,760,t.size*1.12,RED);
-    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,10);
-    ctx.fillStyle=BLACK;ctx.font="56px 'Arial Black',Arial,sans-serif";ctx.fillText(state.bot,540,H-130);
+    ctx.fillStyle=BLACK;ctx.font="700 40px Arial,sans-serif";trackC(state.top,540,420,8);
+    var t=wrap(state.head,860,170,true);centerBlock(t.lines,t.size,760,t.size*1.12,RED,true);
+    ctx.fillStyle=BLACK;ctx.fillRect(80,H-260,920,8);
+    ctx.fillStyle=BLACK;ctx.font="bold 56px "+PF_SERIF;ctx.fillText(state.bot,540,H-130);
   }
   watermark();
 }

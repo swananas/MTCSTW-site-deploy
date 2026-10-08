@@ -124,7 +124,7 @@
          encoded link deep-links straight into the cell join (?cell= +
          ?ref=), firing the existing recruit bounty on join. */
       '<div class="c-wvar" style="margin:0.8rem 0;padding:0.7rem;border:2px dashed #c1121f;">'+
-      '<div style="font-size:0.75rem;letter-spacing:0.18em;color:#c1121f;font-weight:900;margin-bottom:0.4rem;">POSTER VARIANT</div>'+
+      '<div style="font-size:0.75rem;letter-spacing:0.18em;color:#e5383b;font-weight:900;margin-bottom:0.4rem;">POSTER VARIANT</div>'+
       '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="standard" checked style="margin-right:0.5rem;">STANDARD WAR CARD</label>'+
       '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="cell" style="margin-right:0.5rem;">BUILD A CELL &mdash; recruit poster with your cell invite link</label></div>'+
       '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+

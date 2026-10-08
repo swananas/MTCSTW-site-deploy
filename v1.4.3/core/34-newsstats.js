@@ -370,7 +370,7 @@
         'padding:8px 10px;background:#0d0d0d;border-top:2px solid #c1121f}' +
         '.pf-ns-fig{font:900 20px Arial,sans-serif;color:#f5ead6;white-space:nowrap}' +
         '.pf-ns-body{min-width:0}' +
-        '.pf-ns-label{font:700 11px Arial,sans-serif;color:#c1121f;letter-spacing:1px}' +
+        '.pf-ns-label{font:700 11px Arial,sans-serif;color:#e5383b;letter-spacing:1px}' +
         '.pf-ns-src{display:block;font:10px Arial,sans-serif;color:#8a8a8a;margin-top:2px}';
       document.head.appendChild(st);
     } catch (e) {}

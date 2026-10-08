@@ -91,7 +91,7 @@ function mcCss(){
     +'.mc-sortbar{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}'
     +'.mc-sortlabel{font:bold 11px monospace;letter-spacing:1px;color:#e8b64c}'
     +'.mc-tbadge{display:inline-block;background:#222;border:1px solid #555;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:3px 8px;margin:0 0 6px}'
-    +'.mc-xp{font:bold 11px monospace;color:#c1121f;letter-spacing:1px;margin:6px 0 2px}'
+    +'.mc-xp{font:bold 11px monospace;color:#e5383b;letter-spacing:1px;margin:6px 0 2px}'
     +'.mc-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px}'
     +'.mc-tlink{font:bold 11px monospace;color:#fff;text-decoration:underline}'
     +'.mc-youin{font:bold 12px monospace;color:#27ae60;letter-spacing:1px;margin:8px 0 2px}'
@@ -185,7 +185,7 @@ function mcHero(){
     mission:'Pick your fight. Impact first.',
     sub:'Every mobilization, deadline, and briefing — ranked by what moves the needle.'})+'</div>';
   return '<div class="mc-hero"><div style="border-top:4px solid #c1121f;background:#0a0a0a;padding:14px 16px;">'
-    +'<div style="color:#c1121f;font-weight:900;font-size:12px;letter-spacing:2px;">WAR CALENDAR</div>'
+    +'<div style="color:#e5383b;font-weight:900;font-size:12px;letter-spacing:2px;">WAR CALENDAR</div>'
     +'<div style="color:#fff;font-weight:900;font-size:18px;">Pick your fight. Impact first.</div></div></div>';
 }
 /* ---------- P8 social proof: real counts render, anything else is suppressed ---------- */

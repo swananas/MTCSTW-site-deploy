@@ -14,7 +14,7 @@
 '<div id="pf-guess" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
 '  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9673; GUESS THE CREATOR &#9673;</div>\n' +
 '  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n' +
-'  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n' +
+'  <div id="pf-guess-streak" style="font-size:0.85rem;color:#e5383b;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n' +
 '  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n' +
 '  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n' +
 '  <div id="pf-guess-body"></div>\n' +
@@ -68,7 +68,7 @@
 '    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
 '  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n' +
 '    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n' +
-'    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n' +
+'    var h="<div style=\'letter-spacing:0.2em;color:#e5383b;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n' +
 '    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n' +
 '    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n' +
 '      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n' +
@@ -123,14 +123,14 @@
 '        var nx=PFw.infightNext();\n' +
 '        if(nx&&nx.a&&nx.b){\n' +
 '          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
-'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
-'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#e5383b;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#e5383b;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
 '            +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Think you know the roster? Put XP where your mouth is.</div>"\n' +
 '            +"<button id=\'pf-guess-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
 '        }\n' +
 '      }\n' +
 '    }catch(e){}\n' +
-'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>FINAL SCORE</div>"\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\'>FINAL SCORE</div>"\n' +
 '      +"<div style=\'font-size:2.4rem;font-weight:900;margin:0.4rem 0;\'>"+score+"/5</div>"\n' +
 '      +"<div style=\'font-size:0.95rem;color:#b8ab8e;margin-bottom:1rem;\'>"+verdict+"</div>"+studyHtml\n' +
 '      +"<div style=\'margin-top:1rem;\'><button id=\'pf-guess-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE SCORE CARD</button></div>"\n' +
@@ -150,7 +150,7 @@
 '  }\n' +
 '  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
 '  paintStreak();loadStats(paintStats);loadLb(paintLb);\n' +
-'  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
+'  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#e5383b;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
 '})();\n' +
 '<\/script>\n' +
 '</div>\n' +

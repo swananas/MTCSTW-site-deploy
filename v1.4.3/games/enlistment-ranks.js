@@ -43,7 +43,7 @@
 #pf-ranks .u-state.lock{color:#777}
 #pf-ranks .u-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 16px;cursor:pointer;text-transform:uppercase;white-space:nowrap;margin:2px}
 #pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}
-#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
+#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#e5383b;text-transform:uppercase;text-align:center;margin:16px 0 8px}
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 #pf-ranks #uWall{scroll-margin-top:140px}
 #pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase;text-decoration:none;display:inline-block}
@@ -55,7 +55,7 @@
 /* PLAY 7 (2026-10-06): weekly FAN FAVORITE honorific card — pure display,
    votes never become XP. Kill: ?pf_off=fan-favorite. */
 #pf-ranks .u-fanfav{width:100%;background:#1a1a1a;border:3px solid #c1121f;padding:10px;margin-bottom:4px;text-align:center}
-#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#c1121f;text-transform:uppercase}
+#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#e5383b;text-transform:uppercase}
 #pf-ranks .u-ffname{font-family:'Arial Black',Arial,sans-serif;font-size:20px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin:4px 0}
 #pf-ranks .u-ffsub{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
 /* ---------- PRESTIGE ---------- */
@@ -71,7 +71,7 @@
 #pf-ranks .p-reqt{font-size:13px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase;margin-bottom:6px}
 #pf-ranks .p-reqd{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.5}
 #pf-ranks .p-reqd .yes{color:#4caf50;font-weight:bold}
-#pf-ranks .p-reqd .no{color:#c1121f;font-weight:bold}
+#pf-ranks .p-reqd .no{color:#e5383b;font-weight:bold}
 #pf-ranks .p-bar{height:10px;background:#2a2a2a;border:1px solid #555;margin:6px 0}
 #pf-ranks .p-bar i{display:block;height:100%;background:#ff5a00;width:0;transition:width .4s}
 #pf-ranks .p-benefits{background:#141414;border:1px dashed #555;padding:10px 12px;margin:12px 0;text-align:left}
@@ -79,7 +79,7 @@
 #pf-ranks .p-benefits b{color:#ff5a00}
 #pf-ranks .p-btn{background:#ff5a00;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:3px;padding:14px 40px;cursor:pointer;text-transform:uppercase;margin-top:8px}
 #pf-ranks .p-btn:disabled{background:#333;color:#777;cursor:default}
-#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#c1121f;margin-top:10px;line-height:1.5}
+#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#e5383b;margin-top:10px;line-height:1.5}
 #pf-ranks .p-max{font-family:Arial,sans-serif;font-size:14px;color:#ff5a00;letter-spacing:2px;text-transform:uppercase;padding:16px}
 </style>
 

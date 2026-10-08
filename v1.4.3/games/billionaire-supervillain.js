@@ -20,7 +20,7 @@
 #pf-billionaire .bv-reveal{background:#1a1a1a;border-left:6px solid #c1121f;padding:16px;text-align:left;margin:0 0 12px}
 #pf-billionaire .bv-verdict{font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
 #pf-billionaire .bv-verdict.right{color:#7bc96f}
-#pf-billionaire .bv-verdict.wrong{color:#c1121f}
+#pf-billionaire .bv-verdict.wrong{color:#e5383b}
 #pf-billionaire .bv-who{font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#f5ead6;margin:0 0 6px}
 #pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
 #pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}

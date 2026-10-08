@@ -170,13 +170,13 @@
         '.ac-kind{font-size:11px;color:#b8ab8e;line-height:1.6;margin:6px 0}',
         '.ac-miles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}',
         '@media (max-width:640px){.ac-miles{grid-template-columns:1fr}}',
-        '.ac-miles-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:4px 0 2px}',
+        '.ac-miles-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#e5383b;margin:4px 0 2px}',
         '.ac-mile{border:1px solid #2a2a2a;border-radius:8px;background:#0d0d0d;padding:10px}',
         '.ac-mile.ac-earned{border-color:#c1121f}',
         '.ac-mile-name{font-weight:900;font-size:11px;letter-spacing:2px;color:#e8b923}',
         '.ac-mile-line{font-size:11px;color:#c9bfa8;margin-top:4px;line-height:1.5}',
         '.ac-mile-lock,.ac-mile-go{font-size:11px;color:#b8ab8e;margin-top:6px}',
-        '.ac-arc-k,.ac-league-k,.ac-cells-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#c1121f;margin:14px 0 8px}',
+        '.ac-arc-k,.ac-league-k,.ac-cells-k{font-weight:900;font-size:11px;letter-spacing:3px;color:#e5383b;margin:14px 0 8px}',
         '.ac-course{margin-bottom:12px}',
         '.ac-course-head{display:flex;gap:12px;align-items:center;margin-bottom:8px}',
         '.ac-lesson{margin:8px 0}',
@@ -644,7 +644,7 @@
       }
       if(C.completed&&C.completed_at){
         h+='<div style="border:2px solid #c1121f;background:#140808;padding:.7rem;margin:.6rem 0;text-align:center">'
-          +'<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
+          +'<div style="color:#e5383b;font-weight:900;letter-spacing:.14em;font-size:.85rem">&#9733; CERTIFICATE &#9733;</div>'
           +'<div style="color:#f5f0e1;font-size:.8rem;margin-top:.25rem">'+esc(C.title)+' &mdash; earned by '+esc(id.callsign||'callsign')+(C.completed_at?' on '+esc(fmtDate(C.completed_at)):"")+'</div>'
           /* Brand-integration (2026-10-06): academy → cells. */
           +'<div style="margin-top:.5rem"><a href="/cells" style="color:#e8b923;font-weight:800;font-size:.8rem;letter-spacing:.1em;text-decoration:none">&#9733; TAKE THIS TO YOUR CELL &rarr;</a></div></div>';

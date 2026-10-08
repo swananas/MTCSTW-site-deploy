@@ -27,7 +27,7 @@
 #pf-bracket .b-pick.picked .b-seed,#pf-bracket .b-pick.picked .b-blurb{color:#fff}
 #pf-bracket .b-pick.dead{opacity:.45;cursor:default}
 #pf-bracket .b-pick.winner{outline:3px solid #ff5a00}
-#pf-bracket .b-vs{display:flex;align-items:center;justify-content:center;color:#c1121f;font-size:18px;padding:0 4px;min-width:44px}
+#pf-bracket .b-vs{display:flex;align-items:center;justify-content:center;color:#e5383b;font-size:18px;padding:0 4px;min-width:44px}
 #pf-bracket .b-note{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-top:10px}
 #pf-bracket .b-locked{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;background:#1a1a1a;border:2px dashed #555;padding:12px;margin:10px 0;text-transform:uppercase;letter-spacing:1px}
 #pf-bracket .b-champ{background:#c1121f;color:#fff;padding:22px;margin-top:18px;text-transform:uppercase;letter-spacing:2px}
@@ -41,17 +41,17 @@
 #pf-bracket .b-oracle{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin:4px 0 10px}
 #pf-bracket .b-oracle b{color:#ff5a00}
 #pf-bracket .b-feedwrap{margin:14px 0 4px;border:2px dashed #c1121f;padding:10px 12px;background:#141414;max-height:190px;overflow-y:auto;text-align:left}
-#pf-bracket .b-feedtitle{font-size:13px;letter-spacing:3px;color:#c1121f;margin-bottom:8px;text-align:center}
+#pf-bracket .b-feedtitle{font-size:13px;letter-spacing:3px;color:#e5383b;margin-bottom:8px;text-align:center}
 #pf-bracket .b-feeditem{font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;margin:7px 0;line-height:1.45}
 #pf-bracket .b-feeditem .b-fname{color:#f5ead6;font-weight:700}
 #pf-bracket .b-feeditem .b-fworth{color:#ff5a00;font-weight:700}
-#pf-bracket .b-feedround{font-size:11px;letter-spacing:2px;color:#c1121f;margin:10px 0 2px;text-transform:uppercase}
+#pf-bracket .b-feedround{font-size:11px;letter-spacing:2px;color:#e5383b;margin:10px 0 2px;text-transform:uppercase}
 #pf-bracket .b-pick .b-worth{display:block;font-size:11px;letter-spacing:1px;color:#ff5a00;margin-top:5px;font-family:Arial,sans-serif}
 #pf-bracket button.b-pick:hover .b-worth{color:#fff}
 #pf-bracket .b-pick.picked .b-worth{color:#fff}
 #pf-bracket .b-pick.upset{outline:2px dashed #ff5a00;outline-offset:-2px}
 #pf-bracket .b-pick.b-exec{position:relative;animation:bshred .5s 1.15s ease-in forwards}
-#pf-bracket .b-pick.b-exec::after{content:"LIQUIDATED";position:absolute;top:50%;left:50%;color:#c1121f;border:3px solid #c1121f;background:rgba(13,13,13,.88);padding:4px 10px;font-size:14px;letter-spacing:2px;white-space:nowrap;opacity:0;animation:bstamp .35s .15s ease-out forwards;z-index:2}
+#pf-bracket .b-pick.b-exec::after{content:"LIQUIDATED";position:absolute;top:50%;left:50%;color:#e5383b;border:3px solid #c1121f;background:rgba(13,13,13,.88);padding:4px 10px;font-size:14px;letter-spacing:2px;white-space:nowrap;opacity:0;animation:bstamp .35s .15s ease-out forwards;z-index:2}
 @keyframes bstamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.6)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
 @keyframes bshred{to{opacity:0;transform:translateY(26px) skewX(-8deg)}}
 #pf-bracket .b-confetti{position:absolute;top:-10px;width:9px;height:13px;z-index:6;pointer-events:none;animation:bfall linear forwards}

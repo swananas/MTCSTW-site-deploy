@@ -54,7 +54,7 @@
   function err(m) { try { if (PF && PF.error) PF.error('townreport', m); } catch (e) {} }
 
   /* Light paper palette (matches the dossier builder; CEO: clean, light). */
-  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
     HAIR = '#e7e1d0', DASH = '#d8d2bd', GOLD = '#a67c00', FIELD = '#f4f1e6';
   var BACKEND = window.PF_BACKEND_URL;
   var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
@@ -161,14 +161,14 @@
       + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
   }
   function labelHTML(t, max) {
-    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin:16px 0 6px;">'
       + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
   }
   function divider() {
     return '<div style="border-top:2px dashed ' + DASH + ';margin:18px 0;"></div>';
   }
   function badge(t) {
-    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED_TX + ';border:2px solid ' + RED
       + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">' + esc(t) + '</div>';
   }
   function staleBadge(st) {
@@ -193,13 +193,13 @@
   function renderFeedPage() {
     host.innerHTML = shell(
       '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
       + '<div style="font-size:26px;font-weight:900;margin-bottom:8px;">Hyperlocal is movement gold.</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Take your town\u2019s data. Add what you\u2019ve seen. Publish the page.<br>The numbers stay locked — your words sit beside them, clearly yours.</div>'
       + '<div style="margin-top:16px;"><a href="/town-report?new=1" style="' + btnStyle(true) + 'text-decoration:none;display:inline-block;">WRITE YOUR TOWN\u2019S REPORT</a></div>'
       + '</div>'
       + divider()
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div>'
       + '<div id="pf-tr-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed\u2026</div>'
     );
     var list = host.querySelector('#pf-tr-feedlist');
@@ -213,13 +213,13 @@
         var hl = (r.highlight_headlines && r.highlight_headlines[0]) || '';
         html += '<a href="/town-report?id=' + esc(r.id) + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
           + ';border-radius:3px;padding:16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';text-align:left;">'
-          + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: ' + esc(r.zip5) + '</div>'
+          + '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: ' + esc(r.zip5) + '</div>'
           + '<div style="font-size:18px;font-weight:900;line-height:1.35;">' + esc(r.title) + '</div>'
           + '<div style="font-size:13px;color:' + MUTED + ';margin-top:6px;">' + esc(r.coarse_area) + ' · by <strong style="color:' + INK + ';">' + esc(r.author_callsign) + '</strong>'
           + (r.created_at ? ' · ' + esc(chiDate(r.created_at)) : '') + '</div>'
           + (hl ? '<div style="font-size:14px;margin-top:8px;line-height:1.5;border-left:3px solid ' + RED + ';padding-left:10px;"><strong>' + esc(hl) + '</strong></div>' : '')
           + '<div style="font-size:13px;margin-top:8px;line-height:1.55;color:' + MUTED + ';">' + esc(r.excerpt) + '\u2026</div>'
-          + '<div style="font-size:12px;color:' + RED + ';font-weight:800;margin-top:8px;">READ THE REPORT \u2192</div>'
+          + '<div style="font-size:12px;color:' + RED_TX + ';font-weight:800;margin-top:8px;">READ THE REPORT \u2192</div>'
           + '</a>';
       });
       html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;margin-top:8px;line-height:1.6;">'
@@ -237,7 +237,7 @@
     build.zip = (/^\d{5}$/.test(pre)) ? pre : '';
     host.innerHTML = shell(
       '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
       + '<div style="font-size:24px;font-weight:900;margin-bottom:8px;">BUILD THE REPORT</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Your zip pulls the town data. You pick the cards to highlight,<br>then add what you\u2019ve seen. Publish the page.</div>'
       + '</div>'
@@ -253,7 +253,7 @@
       + ' style="width:150px;background:#fff;border:2px solid ' + INK + ';color:' + INK + ';border-radius:3px;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;">'
       + '<button id="pf-tr-go" type="button" style="' + btnStyle(true) + '">SEE MY TOWN\u2019S DATA</button></div>'
       + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-top:10px;line-height:1.6;">Coarse only — your zip never leaves the county bucket.<br>No addresses, no names of private individuals.</div>'
-      + '<div id="pf-tr-err" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>'
+      + '<div id="pf-tr-err" style="text-align:center;color:' + RED_TX + ';font-size:14px;margin-top:10px;"></div>'
       + '<div id="pf-tr-data"></div>';
     var input = el.querySelector('#pf-tr-zip');
     var go = function () {
@@ -276,14 +276,14 @@
     box.innerHTML = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:18px;">Pulling your town\u2019s data\u2026</div>';
     api('town_power', { zip: zip }, function (r) {
       if (!r || r.ok !== true || !r.geo_live) {
-        box.innerHTML = '<div style="text-align:center;color:' + RED + ';font-size:14px;padding:14px;">Couldn\u2019t load this town — try another ZIP.</div>';
+        box.innerHTML = '<div style="text-align:center;color:' + RED_TX + ';font-size:14px;padding:14px;">Couldn\u2019t load this town — try another ZIP.</div>';
         err('town_power failed for zip ' + zip);
         return;
       }
       build.town = r;
       try { history.replaceState(null, '', '/town-report?new=1&zip=' + encodeURIComponent(zip)); } catch (e) {}
       box.innerHTML = '<div style="text-align:center;font-size:13px;color:' + GOLD + ';font-weight:800;letter-spacing:1px;margin:14px 0 10px;">YOUR AREA: ' + esc(String(r.area.coarse_area || '').toUpperCase()) + '</div>'
-        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>'
         + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-bottom:12px;">Check the cards you want to highlight on your report.</div>'
         + renderCardChecks(r)
         + '<div style="text-align:center;margin-top:18px;"><button id="pf-tr-next" type="button" style="' + btnStyle(true) + '">ADD YOUR CONTEXT \u2192</button></div>';
@@ -360,14 +360,14 @@
     var area = (snapshot && snapshot.area) || {};
     var html = '<div style="' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 14px;">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div>'
       + '<div style="font-size:30px;font-weight:900;letter-spacing:1px;">THIS IS MY TOWN: ' + esc(zip) + '</div>'
       + '<div style="font-size:24px;font-weight:900;line-height:1.3;margin-top:10px;">' + esc(doc.title) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">' + esc(doc.author_callsign || 'YOU') + '</strong>'
       + (area.coarse_area ? ' · ' + esc(area.coarse_area) : '')
       + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
       + '</div>'
-      + '<div style="font-size:12px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';
+      + '<div style="font-size:12px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';
     var keys = (doc.highlights && doc.highlights.length ? doc.highlights : Object.keys(CARD_LABELS));
     keys.forEach(function (k) {
       var c = (snapshot && snapshot.cards && snapshot.cards[k]) || {};
@@ -381,7 +381,7 @@
       }
       html += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed ' + DASH + ';">' + sourceLine(c.source) + '</div></div>';
     });
-    html += '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I\u2019VE SEEN — USER CONTENT</div>'
+    html += '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I\u2019VE SEEN — USER CONTENT</div>'
       + '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
       + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · A NEIGHBOR\u2019S WORDS</div>'
       + '<div style="font-size:15px;line-height:1.65;white-space:pre-line;">' + esc(doc.story) + '</div></div>';
@@ -499,7 +499,7 @@
     api('town_report_get', { id: id }, function (j) {
       if (!j || !j.ok) {
         host.innerHTML = shell('<div style="text-align:center;padding:30px 10px;color:' + MUTED + ';font-size:15px;">No report at that address. '
-          + '<a href="/town-report" style="color:' + RED + ';font-weight:800;">Read the feed \u2192</a></div>');
+          + '<a href="/town-report" style="color:' + RED_TX + ';font-weight:800;">Read the feed \u2192</a></div>');
         return;
       }
       host.innerHTML = shell(renderPublished(j, j.town_snapshot, false));

@@ -19,7 +19,7 @@
 <style>
 .pf-arc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:6px 0 14px}
 @media(min-width:760px){.pf-arc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.pf-arc-lede{font:700 11px Arial,sans-serif;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin:2px 0 12px;text-align:center}
+.pf-arc-lede{font:700 11px Arial,sans-serif;letter-spacing:3px;color:#e5383b;text-transform:uppercase;margin:2px 0 12px;text-align:center}
 .pf-arc-card{margin:0 !important;height:100%;display:flex;flex-direction:column}
 .pf-arc-card .pf-pat-intel-head{display:flex;align-items:center;gap:8px}
 .pf-arc-art{font-size:24px;line-height:1;flex:0 0 auto}

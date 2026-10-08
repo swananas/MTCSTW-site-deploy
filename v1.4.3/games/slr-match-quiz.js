@@ -65,7 +65,7 @@
 '  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
 '  function renderStart(){\n' +
 '    var st=getStreak();\n' +
-'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\'>DAILY MATCHUP</div>"\n' +
 '      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n' +
 '        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
 '      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n' +
@@ -80,12 +80,12 @@
 '  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n' +
 '  function renderCompact(){\n' +
 '    var st=getStreak();\n' +
-'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\'>DAILY MATCHUP</div>"\n' +
 '      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n' +
 '        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
 '      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n' +
 '      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>"\n' +
-'      +"<div style=\'margin-top:0.8rem;font-size:0.85rem;\'><a href=\'/sick-left-radicals\' style=\'color:#c1121f;font-weight:700;text-decoration:none;\'>or meet all 62 fighters \\u2192</a></div>"\n' +
+'      +"<div style=\'margin-top:0.8rem;font-size:0.85rem;\'><a href=\'/sick-left-radicals\' style=\'color:#e5383b;font-weight:700;text-decoration:none;\'>or meet all 62 fighters \\u2192</a></div>"\n' +
 '    body.innerHTML=h;\n' +
 '    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
 '      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n' +
@@ -124,19 +124,19 @@
 '          var myIn=null,mi,ms2;\n' +
 '          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n' +
 '          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
-'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
-'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#e5383b;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#e5383b;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
 '            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n' +
 '              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n' +
 '            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
 '        }\n' +
 '      }\n' +
 '    }catch(e){}\n' +
-'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\'>YOUR ARCHETYPE</div>"\n' +
 '      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n' +
 '      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n' +
 '      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
-'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
+'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
 '      +recruitHtml\n' +
 '      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
 '      +"<div style=\'margin-top:0.6rem;\'><button id=\'pf-mq-story\' style=\'padding:0.7rem 1.6rem;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE TO STORY (9:16)</button></div>"\n' +
@@ -166,7 +166,7 @@
 '      if(!rslug)continue;\n' +
 '      recruitHtml+="<a href=\'/?creator="+encodeURIComponent(rslug)+"\' style=\'display:inline-block;margin:0.25rem;padding:0.7rem 1.6rem;background:#c1121f;color:#f5f0e1;font-weight:800;letter-spacing:0.1em;font-size:0.9rem;text-decoration:none;font-family:inherit;\'>RECRUIT UNDER "+esc(String(rs.label||rslug).toUpperCase())+" \\u2192</a>";}\n' +
 '    if(recruitHtml){recruitHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.9rem;\'>"\n' +
-'      +"<div style=\'font-size:0.9rem;font-weight:900;letter-spacing:0.12em;color:#c1121f;\'>RECRUIT UNDER YOUR MATCH</div>"\n' +
+'      +"<div style=\'font-size:0.9rem;font-weight:900;letter-spacing:0.12em;color:#e5383b;\'>RECRUIT UNDER YOUR MATCH</div>"\n' +
 '      +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin:0.4rem 0 0.8rem;\'>Enlist in their name and muster the tribe.</div>"\n' +
 '      +recruitHtml+"</div>";}\n' +
 '    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n' +

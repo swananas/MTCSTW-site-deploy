@@ -12,7 +12,7 @@
   if (!PF || PF.skip('slr-roster')) { return; }
   if (!PF.slrReady) { PF.error('slr-roster', 'slr-db not loaded'); return; }
 
-  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
   /* R3 (2026-10-04): no vote chip for Jeanine Pirreaux Comedy (do-not-touch).
      FUND_SKIP_SLUGS-style exclusion on the roster card vote CTA. */
   var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
@@ -59,11 +59,11 @@
          PF.creatorStats.paint(); the snapshot followers_display stays as
          pre-live fallback text only. */
       + '<span data-pf-fc="' + esc(m.slug) + '" style="font-size:1.3rem;font-weight:900;color:' + RED + ';">' + esc(m.followers_display) + '</span>'
-      + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED + ';font-weight:700;">NEW</span>' : '') + '</span>'
+      + '<span style="font-size:0.75rem;color:' + MUTED + ';letter-spacing:0.08em;">FOLLOWERS' + (m.is_new ? ' · <span style="color:' + RED_TX + ';font-weight:700;">NEW</span>' : '') + '</span>'
       + '</div>'
       + '<div data-eff-score="' + esc(m.slug) + '" style="font-size:0.8rem;color:' + MUTED + ';">Propaganda score <strong style="color:' + CREAM + ';">' + m.propaganda_score.toFixed(1) + '/10</strong></div>'
       + '<a href="' + esc(m.catalog_path) + '" style="margin-top:auto;padding-top:0.6rem;display:block;text-align:center;background:' + RED + ';color:#fff;font-weight:900;letter-spacing:0.14em;font-size:0.85rem;padding:0.65rem;text-decoration:none;">VIEW PROFILE →</a>'
-      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>' : '')
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<a href="/#pf-vote?for=' + esc(m.slug) + '" style="margin-top:0.5rem;display:block;text-align:center;border:2px solid ' + RED + ';color:' + RED_TX + ';font-weight:900;letter-spacing:0.14em;font-size:0.8rem;padding:0.55rem;text-decoration:none;">VOTE FOR ' + esc(m.name) + ' &rarr;</a>' : '')
       + '</div></div>';
   }
 
@@ -71,7 +71,7 @@
     var order = shuffle(members);
     root.innerHTML =
       '<div style="max-width:1200px;margin:0 auto;padding:2rem 1rem;box-sizing:border-box;">'
-      + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
+      + '<div style="text-align:center;margin-bottom:0.4rem;font-size:0.8rem;letter-spacing:0.3em;color:' + RED_TX + ';font-weight:700;">THE PROPAGANDA FACTORY</div>'
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2.2rem;font-weight:900;letter-spacing:0.06em;margin:0 0 0.4rem;font-family:\'Helvetica Neue\',Arial,sans-serif;">SICK LEFT RADICALS</h1>'
       /* Unified stats (2026-10-05): header count/total are painted live by
          PF.creatorStats.paint() (data-pf-fc-count / data-pf-fc-total); the
@@ -88,7 +88,7 @@
       + order.map(cardHTML).join('')
       + '</div>'
       + '<div class="pf-slr-empty" style="display:none;text-align:center;color:' + MUTED + ';padding:3rem 1rem;font-size:1.05rem;">No comrades match that search. Try another name.</div>'
-      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED_TX + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
       + '</div>';
     var input = root.querySelector('#pf-slr-search');
     var cards = root.querySelectorAll('.pf-slr-card');
@@ -145,7 +145,7 @@
            when we own an explicit mount block. */
         if (el) {
           el.innerHTML = '<div style="max-width:640px;margin:2rem auto;text-align:center;color:' + CREAM + ';font-family:Arial,sans-serif;">'
-            + '<div style="font-weight:900;color:' + RED + ';">ROSTER OFFLINE</div>'
+            + '<div style="font-weight:900;color:' + RED_TX + ';">ROSTER OFFLINE</div>'
             + '<div style="color:' + MUTED + ';font-size:0.9rem;margin-top:0.5rem;">The roster database could not be reached. Reload to retry.</div></div>';
         }
         return;
@@ -393,7 +393,7 @@
     var h = '<div style="' + wrap + '">';
     if (state.mode === 'live') {
       var r = state.race;
-      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT RACE &mdash; LIVE</div>'
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED_TX + ';font-weight:700;">RECRUIT RACE &mdash; LIVE</div>'
         + '<div style="font-size:1.7rem;font-weight:900;letter-spacing:0.04em;margin:0.3rem 0;">' + esc(r.name) + '</div>'
         + '<div style="color:' + MUTED + ';font-size:0.95rem;">ENDS IN <b style="color:' + CREAM + ';">' + esc(rrFmtLeft(r.seconds_left)) + '</b>'
         + ' &middot; ' + Number(state.total || 0) + ' recruits counted</div>';
@@ -411,7 +411,7 @@
           h += '<div style="display:flex;justify-content:space-between;padding:0.45rem 0.7rem;'
             + (i % 2 ? 'background:#0a0a0a;' : '') + '">'
             + '<span>' + medal + '<b style="color:' + CREAM + ';">' + esc(String(row.callsign).toUpperCase()) + '</b></span>'
-            + '<span style="color:' + RED + ';font-weight:900;">' + Number(row.recruits) + ' RECRUITS</span></div>';
+            + '<span style="color:' + RED_TX + ';font-weight:900;">' + Number(row.recruits) + ' RECRUITS</span></div>';
         }
         h += '</div>';
       } else {
@@ -420,7 +420,7 @@
       h += '<div style="color:' + MUTED + ';font-size:0.8rem;margin-top:0.9rem;">Recruits count once they claim a callsign and complete one Daily Orders mission.</div>';
     } else if (state.mode === 'champion') {
       var ch = state.champ;
-      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT CHAMPION</div>'
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED_TX + ';font-weight:700;">RECRUIT CHAMPION</div>'
         + '<div style="font-size:1.7rem;font-weight:900;margin:0.3rem 0;">' + esc(String(ch.winner).toUpperCase()) + '</div>'
         + '<div style="color:' + MUTED + ';font-size:0.95rem;">' + Number(ch.recruits || 0) + ' recruits &middot; ' + esc(ch.race_name || '') + '</div>'
         + '<div style="margin-top:1rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;">'
@@ -428,7 +428,7 @@
         + '<button id="pf-rr-save" style="background:transparent;color:' + CREAM + ';font-weight:900;letter-spacing:0.1em;padding:0.7rem 1.4rem;border:2px solid ' + RED + ';cursor:pointer;">SAVE POSTER</button>'
         + '</div>';
     } else {
-      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED + ';font-weight:700;">RECRUIT RACES</div>'
+      h += '<div style="font-size:0.75rem;letter-spacing:0.3em;color:' + RED_TX + ';font-weight:700;">RECRUIT RACES</div>'
         + '<div style="font-size:1.3rem;font-weight:900;margin:0.3rem 0;">THE NEXT RACE IS BEING PLANNED</div>'
         + '<div style="color:' + MUTED + ';font-size:0.9rem;">Rally your cell &mdash; the leaderboard goes live here when the next race starts.</div>';
     }

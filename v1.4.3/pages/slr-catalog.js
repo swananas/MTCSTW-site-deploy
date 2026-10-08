@@ -13,7 +13,7 @@
   if (!PF || PF.skip('slr-catalog')) { return; }
   if (!PF.slrReady) { PF.error('slr-catalog', 'slr-db not loaded'); return; }
 
-  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
   /* R3 (2026-10-04): no vote chip for Jeanine Pirreaux Comedy (do-not-touch).
      FUND_SKIP_SLUGS-style exclusion on the vote CTA. */
   var VOTE_SKIP_SLUGS = ['jeanine-pirreaux-comedy'];
@@ -122,7 +122,7 @@
         n = Math.round(Number(n) || 0);
         if (n > 0) pc = ' <span style="color:' + MUTED + ';font-weight:400;font-size:0.85em;">· ' + esc(fmtCount(n)) + '</span>';
       } catch (e_pc) {}
-      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a>' + pc + '</li>';
+      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED_TX + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a>' + pc + '</li>';
     }).join('');
 
     /* 3 related creators: nearest scores, deterministic-ish pick */
@@ -140,7 +140,7 @@
       + img
       + '<h1 style="text-align:center;color:' + CREAM + ';font-size:2rem;font-weight:900;margin:1.4rem 0 0.2rem;">' + esc(m.name) + '</h1>'
       + (handleBits.length ? '<div style="text-align:center;color:' + MUTED + ';font-size:0.9rem;margin-bottom:0.6rem;">' + esc(handleBits.join(' · ')) + '</div>' : '')
-      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
+      + '<div data-eff-score="' + esc(m.slug) + '" style="text-align:center;margin-bottom:0.4rem;font-size:1.05rem;color:' + CREAM + ';">Propaganda Score: <strong style="color:' + RED_TX + ';">' + m.propaganda_score.toFixed(1) + '/10</strong>'
       + (m.score_provisional ? ' <span style="font-size:0.7rem;color:' + MUTED + ';">(provisional)</span>' : '') + '</div>'
       /* R31: aggregate reputation line — filled by repLine() below. */
       + '<div id="pf-repline" style="text-align:center;margin-bottom:0.4rem;font-size:0.95rem;color:' + MUTED + ';min-height:0;"></div>'
@@ -152,8 +152,8 @@
       /* Unified stats (2026-10-05): data-pf-fc is painted live by
          PF.creatorStats.paint(); the snapshot followers_display stays as
          pre-live fallback text only. */
-      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
-      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
+      + '<div style="text-align:center;margin-bottom:1.6rem;font-size:1.1rem;"><strong data-pf-fc="' + esc(m.slug) + '" style="color:' + RED_TX + ';">' + esc(m.followers_display) + '</strong> <span style="color:' + MUTED + ';font-size:0.85rem;letter-spacing:0.1em;">FOLLOWERS</span></div>'
+      + (VOTE_SKIP_SLUGS.indexOf(m.slug) === -1 ? '<div style="text-align:center;margin:0 0 1.6rem;"><a href="/#pf-vote?for=' + esc(m.slug) + '" style="display:inline-block;border:2px solid ' + RED + ';color:' + RED_TX + ';font-weight:900;letter-spacing:0.14em;font-size:0.9rem;text-decoration:none;padding:0.7rem 1.6rem;">VOTE FOR ' + esc(m.name) + ' &rarr;</a></div>' : '')
       /* QW-7 (2026-10-05, fixed Psych pre-ship): CTA routes catalog visitors
          to the /create feed. The feed has NO creator filter, so the label
          promises only the feed itself — no creator-specific delivery claim.
@@ -163,12 +163,7 @@
       + (offer ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">What they offer</h2><ul style="padding-left:1.2rem;margin:0;">' + offer + '</ul>' : '')
       + (links ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Find them here</h2><ul style="list-style:none;padding:0;margin:0;">' + links + '</ul>' : '')
       + (strengths ? '<h2 style="color:' + RED + ';font-size:1.25rem;font-weight:900;letter-spacing:0.04em;margin:2rem 0 0.8rem;">Key strengths</h2><ul style="padding-left:1.2rem;margin:0;">' + strengths + '</ul>' : '')
-      /* Roster Beat Pages (2026-10-05): "THEIR FIGHT" mount. pages/creator-beat.js
-         fills it from the public beat_get read; the mount is removed entirely
-         when the beat is hidden, has no data, or the read fails. Never renders
-         an empty section. */
-      + '<div id="pf-beat" data-beat-slug="' + esc(m.slug) + '"></div>'
-      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
+      + '<div style="text-align:center;margin-top:2.5rem;"><a href="/creator-onboard" style="color:' + RED_TX + ';font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid ' + RED + ';">WANT IN? JOIN THE SICK LEFT RADICALS →</a></div>'
       + fundBlock(m, RED, CREAM, MUTED)
       + (related ? '<h2 style="color:' + MUTED + ';font-size:1rem;font-weight:700;letter-spacing:0.1em;margin:2.5rem 0 0.8rem;">RELATED CREATORS</h2><div style="display:flex;flex-direction:column;gap:0.5rem;">' + related + '</div>' : '')
       + nextFighter(m, all)
@@ -222,7 +217,7 @@
       if(s.parentNode) s.parentNode.removeChild(s);
       try{
         if(j&&j.ok&&Number(j.net)>0){
-          host.innerHTML='BACKED BY <strong style="color:#c1121f;">'+Number(j.net)+'</strong> FIGHTERS';
+          host.innerHTML='BACKED BY <strong style="color:#e5383b;">'+Number(j.net)+'</strong> FIGHTERS';
         }
       }catch(e2){}
     }

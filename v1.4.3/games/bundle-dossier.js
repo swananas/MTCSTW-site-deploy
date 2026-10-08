@@ -41,7 +41,7 @@
   window.pfDossierDone = true;
 
   /* Light receipt-paper palette (matches the Receipt; CEO: clean, light). */
-  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
     HAIR = '#e7e1d0', DASH = '#d8d2bd', MONO = "'SF Mono',Menlo,Consolas,monospace";
   var BACKEND = window.PF_BACKEND_URL;
   var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
@@ -132,8 +132,7 @@
   function sectionCard(title, inner, stamp) {
     return '<details open style="background:' + PAPER + ';border:1px solid ' + HAIR
       + ';border-radius:3px;margin:0 0 10px;overflow:hidden;">'
-      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED
-      + ';border-bottom:2px dashed ' + DASH + ';outline:none;">\u25b8 ' + esc(title) + '</summary>'
+      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED_TX + ';border-bottom:2px dashed ' + DASH + ';outline:none;">\u25b8 ' + esc(title) + '</summary>'
       + '<div style="padding:14px 16px;">' + inner
       + (stamp ? '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
         + '<div>SOURCE: ' + esc(stamp.source || '') + '</div>'
@@ -150,7 +149,7 @@
       + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
   }
   function labelHTML(t, max) {
-    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin:16px 0 6px;">'
       + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
   }
   function divider() {
@@ -164,7 +163,7 @@
     var sub = office + (r.state ? ' · ' + r.state : '') + (r.party ? ' · ' + r.party : '');
     var html = '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-top:4px solid ' + RED
       + ';border-radius:3px;padding:20px 18px;margin-bottom:12px;' + FONT + 'color:' + INK + ';">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">SOURCED DATA — FROM THE RECEIPT · NOT EDITABLE</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">SOURCED DATA — FROM THE RECEIPT · NOT EDITABLE</div>'
       + '<div style="font-size:24px;font-weight:900;">' + esc(r.display_name) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin:4px 0 12px;">' + esc(sub) + '</div>'
       + '<div style="border-top:2px dashed ' + DASH + ';padding-top:12px;">';
@@ -174,7 +173,7 @@
         + esc(h.total_raised_display) + '</div>';
     }
     if (h.top_industries && h.top_industries.length) {
-      html += '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:800;margin:12px 0 4px;">TOP INDUSTRIES</div>';
+      html += '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:800;margin:12px 0 4px;">TOP INDUSTRIES</div>';
       h.top_industries.forEach(function (t) {
         html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed ' + DASH + ';font-size:13px;">'
           + '<span>' + esc(t.industry) + ' <span style="color:' + MUTED + ';">(est.)</span></span>'
@@ -212,7 +211,7 @@
   function builderShell(host) {
     host.innerHTML = '<div class="pf-dossier-build" style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">USER-GENERATED DOSSIERS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">USER-GENERATED DOSSIERS</div>'
       + '<div style="font-size:24px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;">BUILD THE DOSSIER</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Pick a Receipt. Add your context. Publish the page.<br>Sourced numbers stay locked — your words sit beside them, clearly yours.</div>'
       + '</div>'
@@ -223,7 +222,7 @@
   }
 
   function stepBadge(n, label) {
-    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED_TX + ';border:2px solid ' + RED
       + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">STEP ' + n + ' · ' + esc(label) + '</div>';
   }
 
@@ -239,7 +238,7 @@
       + '<input id="pf-dsurl" type="text" autocomplete="off" placeholder="mtcstw.com/receipt/bernie-sanders" aria-label="Receipt URL" style="' + inputStyle() + '">'
       + '<div style="text-align:center;margin-top:14px;">'
       + '<button id="pf-dsgo" type="button" style="' + btnStyle(true) + '">START THE DOSSIER</button></div>'
-      + '<div id="pf-dserr" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>';
+      + '<div id="pf-dserr" style="text-align:center;color:' + RED_TX + ';font-size:14px;margin-top:10px;"></div>';
     host.innerHTML = html;
     wireStep1(host);
   }
@@ -440,7 +439,7 @@
     var polSlug = doc.pol_slug || slugify(doc.pol_name || '');
     var html = '<div style="' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 14px;">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">USER-GENERATED DOSSIER</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">USER-GENERATED DOSSIER</div>'
       + '<div style="font-size:26px;font-weight:900;line-height:1.25;">' + esc(doc.title) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">'
       + esc(doc.callsign) + '</strong>' + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
@@ -448,7 +447,7 @@
       + (receipt ? renderSourceHeadline(receipt)
         : '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:18px;margin-bottom:12px;text-align:center;color:' + MUTED + ';font-size:14px;">'
           + 'The source Receipt is unavailable right now — the user\u2019s context below is still theirs.</div>')
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">USER CONTEXT — ANNOTATIONS, NOT SOURCED DATA</div>';
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">USER CONTEXT — ANNOTATIONS, NOT SOURCED DATA</div>';
     html += '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
       + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · WHY THIS MATTERS</div>'
       + '<div style="font-size:15px;line-height:1.65;">' + esc(doc.why) + '</div></div>';
@@ -487,7 +486,7 @@
       if (!j || !j.ok || !j.dossier) {
         host.innerHTML = '<div style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK
           + ';text-align:center;padding:30px 10px;">No dossier at that address. '
-          + '<a href="/dossier" style="color:' + RED + ';font-weight:800;">Build one →</a></div>';
+          + '<a href="/dossier" style="color:' + RED_TX + ';font-weight:800;">Build one →</a></div>';
         return;
       }
       var doc = j.dossier;
@@ -505,7 +504,7 @@
   /* ---------------------------------------------------------------- */
   function renderFeed(host) {
     host.innerHTML = '<div style="max-width:680px;margin:0 auto 30px;' + FONT + 'color:' + INK + ';">'
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED DOSSIERS</div>'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED DOSSIERS</div>'
       + '<div id="pf-dossier-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed…</div></div>';
     var list = host.querySelector('#pf-dossier-feedlist');
     api('dossier_feed', {}, function (j) {
@@ -548,41 +547,75 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    /* Light paper: cream card on a soft field. */
+    /* ---- butter: editorial paper (factgen standard, light variant) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btInk='#1a1814', btM='#8a8474', btF='#a89a7d';
     x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    var btVg = x.createRadialGradient(W/2, H*0.42, H*0.18, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(60,40,20,0.14)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
     x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeStyle = btR; x.lineWidth = 8; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 1.5;
     x.strokeRect(100, 100, W - 200, H - 200);
-    x.setLineDash([]);
     x.textAlign = 'center';
     var y = 210;
-    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
-    x.fillText('★ USER-GENERATED DOSSIER ★', W / 2, y); y += 70;
-    x.fillStyle = '#1a1814'; x.font = '900 58px "Arial Black",Arial,sans-serif';
+    /* kicker: letterspaced red */
+    x.fillStyle = btR; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    x.fillText('USER-GENERATED DOSSIER', W / 2, y);
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 52;
+    x.strokeStyle = 'rgba(193,18,31,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 72;
+    /* title: monumental serif, ink */
+    x.fillStyle = btInk; x.font = '900 60px Georgia,"Times New Roman",serif';
     wrap(x, String(doc.title || '').toUpperCase(), W - 260).slice(0, 3).forEach(function (l) {
-      x.fillText(l, W / 2, y); y += 70;
+      x.fillText(l, W / 2, y); y += 74;
     });
-    y += 20;
-    x.fillStyle = '#8a8474'; x.font = '700 34px Arial,sans-serif';
+    y += 16;
+    x.fillStyle = btM; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     x.fillText('ON ' + String(doc.pol_name || '').toUpperCase() + '  ·  BY ' + String(doc.callsign || '').toUpperCase(), W / 2, y);
-    y += 80;
-    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 60;
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y += 76;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W/2 - 190, y); x.lineTo(W/2 - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(W/2 + 26, y); x.lineTo(W/2 + 190, y); x.stroke();
+    x.save(); x.translate(W/2, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 68;
     /* The user's top annotation — clearly user content. */
-    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    x.fillStyle = btInk; x.font = 'italic 700 44px Georgia,serif';
     wrap(x, '“' + String(doc.share_line || doc.why || '').slice(0, 220) + '”', W - 280).slice(0, 5).forEach(function (l) {
       x.fillText(l, W / 2, y); y += 60;
     });
     y += 40;
-    x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 30px Georgia,serif';
     x.fillText('— a movement annotation, not sourced data', W / 2, y);
-    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
-    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
-    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 165);
-    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 235;
+    x.strokeStyle = 'rgba(193,18,31,0.4)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 62;
+    x.fillStyle = btR; x.font = '900 56px Arial,sans-serif';
+    try { x.letterSpacing = '6px'; } catch (e5) {}
+    x.fillText('JOIN THE FIGHT.', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 62;
+    x.fillStyle = btInk; x.font = '900 42px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    x.fillStyle = btM; x.font = '400 28px Arial,sans-serif';
     x.fillText('mtcstw.com/dossier/' + slugify(doc.slug), W / 2, H - 105);
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
   function shareDossier(doc) {

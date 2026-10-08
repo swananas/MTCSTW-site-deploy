@@ -25,6 +25,7 @@
      Know Your Enemy (intel) moved here 2026-10-03 from the homepage.
      Ally Organizations (nonprofits) appended 2026-10-05. */
   var ORDER = [
+    ['action-center', 'pf-ov-action-center'],
     ['civic', 'pf-ov-civic'],
     ['legislation', 'pf-ov-legislation'],
     /* 2026-10-05 (fe/predict-share-call): Call the Shot prediction section —

@@ -214,7 +214,6 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
-<<<<<<< HEAD
   'core/27-freshness.js',
   /* PLAY 6 (UX Combination Plays Wave 2, 2026-10-06): YOUR WAR CHEST — the
      unified money view (personal balance, bounty earnings + surge, liberty
@@ -257,9 +256,6 @@ var CORE_FILES = [
      bundle-footer-chrome (crossnav precedent). Last: touches only the nav
      list, no consumer deps. Kill: ?pf_off=42-mobile-nav-trim. */
   'core/42-mobile-nav-trim.js'
-=======
-  'core/27-freshness.js'
->>>>>>> fe/teardown-cells
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

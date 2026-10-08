@@ -319,7 +319,6 @@ function runModule(file, opts) {
   else no('tab mode', '#phq-money not appended');
 })();
 
-<<<<<<< HEAD
 /* PHQ + money_page_url set: redirect card (BLOSSOM M1 2026-10-06: the
    money suite's canonical URL is /follow-the-money) */
 (function () {
@@ -329,36 +328,6 @@ function runModule(file, opts) {
   var hasLink = card && (card.innerHTML || '').indexOf('/follow-the-money') !== -1;
   if (hasLink) ok('cutover: redirect card links /follow-the-money');
   else no('redirect card', 'missing or no link');
-=======
-/* PHQ + money_page_url set: money tab becomes a rail link (Blossom M4 —
-   the "money war room moved" redirect card is gone) */
-(function () {
-  var doc = makeDom();
-  doc._reg('pf-political-hq', doc.createElement('div'));
-  var nav = doc.createElement('nav');
-  nav.id = 'pf-hq-subnav';
-  ['action', 'money'].forEach(function (id) {
-    var b = doc.createElement('button');
-    b.className = 'pf-hq-tab';
-    b.setAttribute('data-hub', id);
-    b.textContent = id === 'money' ? 'FOLLOW THE MONEY' : id.toUpperCase();
-    nav.appendChild(b);
-  });
-  doc._reg('pf-hq-subnav', nav);
-  var r = runModuleOnDoc(MP_MOD, doc, { config: { money_page_url: '/follow-the-money' } });
-  var link = doc.querySelector('#pf-hq-subnav a[data-hub="money"]');
-  var btnLeft = doc.querySelector('#pf-hq-subnav .pf-hq-tab[data-hub="money"]');
-  if (link && link.href === '/follow-the-money') ok('cutover: money tab is a rail link to /follow-the-money');
-  else no('cutover rail link', 'anchor missing or wrong href');
-  if (link && link.textContent === 'FOLLOW THE MONEY') ok('cutover: rail link keeps the tab label');
-  else no('cutover rail label', 'wrong text');
-  if (!btnLeft) ok('cutover: money button replaced, no duplicate tab');
-  else no('cutover duplicate', 'button still present');
-  var host = doc.getElementById('pf-political-hq');
-  var cardHtml = (host.children || []).map(function (c) { return c.innerHTML || ''; }).join('');
-  if (cardHtml.indexOf('money war room moved') === -1) ok('cutover: no redirect card copy mounted');
-  else no('cutover card copy', 'still mounted');
->>>>>>> fe/blossom-craft
 })();
 
 /* trades: honest empty state, no endpoint needed */

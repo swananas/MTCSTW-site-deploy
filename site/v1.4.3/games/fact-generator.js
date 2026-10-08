@@ -457,4 +457,39 @@
 </script>
 </div>
 </template>`);
+
+  /* ---- self-mount (2026-10-08): the template was staged but never
+     instantiated — the UI existed in the bundle but rendered nowhere.
+     Mount into the #pf-factgen shell mount when present (the dedicated
+     /fact-generator route), else into #pf-create on /create, else main.
+     Follows the phq-hubs.js importNode + execScripts pattern. */
+  try {
+    if (!document.getElementById('pf-factgen-mounted')) {
+      var path = (window.location && window.location.pathname) || '';
+      var onFactGen = path.indexOf('/fact-generator') === 0;
+      var onCreate = path.indexOf('/create') === 0;
+      if (onFactGen || onCreate) {
+        var host = document.getElementById('pf-factgen') ||
+                   document.getElementById('pf-create') ||
+                   document.getElementById('main');
+        var tpl = document.getElementById('pf-ov-factgen');
+        if (host && tpl && tpl.content) {
+          var frag = document.importNode(tpl.content, true);
+          var wrap = document.createElement('div');
+          wrap.id = 'pf-factgen-mounted';
+          wrap.appendChild(frag);
+          /* On /create, place after existing tools; on /fact-generator
+             the shell mount is empty so append is correct. */
+          host.appendChild(wrap);
+          /* Execute the inner script (importNode clones don't run). */
+          var scripts = wrap.querySelectorAll('script');
+          for (var si = 0; si < scripts.length; si++) {
+            try { (0, eval)(scripts[si].textContent); }
+            catch (e) { try { if (PF && PF.error) PF.error('fact-generator', 'mount script failed: ' + (e && e.message || e)); } catch (e2) {} }
+            scripts[si].remove();
+          }
+        }
+      }
+    }
+  } catch (e) { try { if (PF && PF.error) PF.error('fact-generator', 'mount failed: ' + (e && e.message || e)); } catch (e2) {} }
 })();

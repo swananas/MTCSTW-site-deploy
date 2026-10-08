@@ -1,0 +1,87 @@
+/* 43-butter-polish.css | PF v1.4.3 | BUTTER PASS 2026-10-08
+   Premium, editorial, smooth, restrained.
+   Mobile-first polish + cross-route visual consistency. */
+
+/* ============ TYPOGRAPHY RHYTHM ============ */
+.pf-silo h1, .pf-silo h2 { letter-spacing:-0.01em; line-height:1.15; }
+.pf-silo h3, .pf-silo h4 { letter-spacing:0.02em; line-height:1.25; }
+.pf-silo p { line-height:1.6; }
+
+/* ============ CARD CONSISTENCY ============ */
+.pf-card, .pf-silo .card {
+  border-radius:8px;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.pf-card:hover, .pf-silo .card:hover {
+  transform:translateY(-2px);
+}
+
+/* ============ BUTTON BUTTER ============ */
+.pf-btn, .c-btn, .cs-betbtn, button.pf-cta {
+  transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+  will-change:transform;
+}
+.pf-btn:active, .c-btn:active, button.pf-cta:active {
+  transform:scale(.97);
+}
+
+/* ============ MOBILE POLISH (375px/390px) ============ */
+@media (max-width:480px) {
+  /* Prevent horizontal overflow */
+  .pf-silo { overflow-x:hidden; }
+
+  /* Tighter card padding on small screens */
+  .pf-card, .pf-silo .card { padding:14px 12px; }
+
+  /* Ensure touch targets are 44px minimum */
+  .pf-btn, .c-btn, button.pf-cta { min-height:44px; }
+
+  /* Grid: single column on very small screens */
+  .pf-grid-2 { grid-template-columns:1fr !important; }
+
+  /* Prevent text overlap in tight spaces */
+  .pf-silo h1 { font-size:clamp(24px, 7vw, 32px); }
+  .pf-silo h2 { font-size:clamp(20px, 5.5vw, 26px); }
+
+  /* Action rows: ensure buttons don't crowd */
+  .pf-actions, .pf-silo .actions {
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .pf-actions > *, .pf-silo .actions > * {
+    flex:1 1 auto; min-width:0;
+  }
+}
+
+/* ============ TABLET (481-768px) ============ */
+@media (min-width:481px) and (max-width:768px) {
+  .pf-grid-2 { grid-template-columns:1fr 1fr; gap:14px; }
+}
+
+/* ============ LOADING STATES ============ */
+.pf-skeleton {
+  background:linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+  background-size:200% 100%;
+  animation:pf-shimmer 1.5s infinite;
+  border-radius:4px;
+}
+@keyframes pf-shimmer {
+  0% { background-position:200% 0; }
+  100% { background-position:-200% 0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .pf-skeleton { animation:none; }
+  .pf-card:hover { transform:none; }
+  .pf-btn:active { transform:none; }
+}
+
+/* ============ SMOOTH SCROLL MARGIN ============ */
+.pf-silo section[id], .pf-silo div[id] {
+  scroll-margin-top:70px;
+}
+
+/* ============ FOCUS VISIBILITY ============ */
+.pf-silo a:focus-visible,
+.pf-silo button:focus-visible {
+  outline:2px solid var(--pf-gold, #e8b923);
+  outline-offset:2px;
+}

@@ -73,7 +73,14 @@ ROUTES = {
         "desc": "Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.",
         "mounts": ["pf-create"],
         "core": "bundle-core-slr.js",
-        "games": ["games/bundle-create-h.js", "games/bundle-create.js"],
+        "games": ["games/bundle-create-h.js", "games/bundle-create.js", "games/bundle-factgen-mount.js"],
+    },
+    "/fact-generator": {
+        "title": "Fact Generator — Type a Claim. We Find the Receipts.",
+        "desc": "Type a claim, get sourced facts from live government data, share as a PFN poster. Every figure carries its citation.",
+        "mounts": ["pf-factgen"],
+        "core": "bundle-core.js",
+        "games": ["games/bundle-create.js", "games/bundle-factgen-mount.js"],
     },
     "/arcade": {
         "title": "The Arcade — Play. Earn. Spread.",

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fact Generator — Type a Claim. We Find the Receipts.</title>
+<meta name="description" content="Type a claim, get sourced facts from live government data, share as a PFN poster. Every figure carries its citation.">
+<meta property="og:title" content="Fact Generator — Type a Claim. We Find the Receipts.">
+<meta property="og:description" content="Type a claim, get sourced facts from live government data, share as a PFN poster. Every figure carries its citation.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/fact-generator">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fact Generator — Type a Claim. We Find the Receipts.">
+<meta name="twitter:description" content="Type a claim, get sourced facts from live government data, share as a PFN poster. Every figure carries its citation.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #pf-boot{min-height:100vh;}
+  .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}
+  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
+  .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
+  .pf-topbar-nav::-webkit-scrollbar{display:none;}
+  .pf-topbar-nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
+  .pf-topbar-nav a:hover{color:#e5383b;}
+  .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+  #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}
+  #pf-topbar-search:hover{border-color:#c1121f;color:#fff;}
+  #pf-topbar-search svg{width:18px;height:18px;display:block;}
+  #pf-topbar-user{flex:0 0 auto;min-width:0;display:flex;}
+  #pf-topbar-panel{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}
+  #pf-topbar-panel[hidden]{display:none;}
+  .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
+  .pf-skip-link:focus{left:0;}
+</style>
+<script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
+<script>(function(){
+  try{
+    var cur = window.__PF_BUILD; if(!cur) return;
+    if(sessionStorage.getItem('pf_upd_'+cur)) return; // already handled this build
+    fetch('/version.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
+      if(v && v.build && v.build!==cur){
+        sessionStorage.setItem('pf_upd_'+v.build,'1');
+        var done=function(){ location.reload(); };
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistrations().then(function(rs){
+            return Promise.all(rs.map(function(r){return r.unregister();}));
+          }).then(function(){
+            if(window.caches){ return caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }); }
+          }).then(done).catch(done);
+        } else done();
+      }
+    }).catch(function(){});
+    // Aggressive SW update check
+    if('serviceWorker' in navigator){ navigator.serviceWorker.ready.then(function(r){ try{ r.update(); }catch(e){} }); }
+  }catch(e){}
+})();</script>
+</head>
+<body>
+<a href="#main" class="pf-skip-link">Skip to main content</a>
+<div id="pf-boot">
+<header class="pf-topbar">
+  <a href="/" class="pf-topbar-brand">MTCSTW</a>
+  <nav class="pf-topbar-nav" aria-label="Main">
+    <a href="/arcade">ARCADE</a>
+    <a href="/cells">CELLS</a>
+    <a href="/create">CREATE</a>
+    <a href="/sick-left-radicals">RADICALS</a>
+    <a href="/money">MONEY</a>
+  </nav>
+  <div class="pf-topbar-right">
+    <button id="pf-topbar-search" type="button" aria-label="Search the site"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
+    <div id="pf-topbar-user"></div>
+  </div>
+  <div id="pf-topbar-panel" hidden></div>
+</header>
+<main id="main">
+  <div id="pf-factgen"></div>
+</main>
+</div>
+<script>
+(function(){
+  var BASE='/v1.4.3/';
+  var CORE='bundle-core.js';
+  var GAMES=["games/bundle-create.js", "games/bundle-factgen-mount.js"];
+  var PAGES='pages/bundle-pages.js';
+  var PWA='pwa/install.js';
+  var KARL='core/bundle-karl-companion.js';
+  function pfSkip(n){
+    try{
+      var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
+      var m=location.search.match(/[?&]pf_off=([^&]+)/);
+      if(m)d=d.concat(decodeURIComponent(m[1]).split(','));
+      return d.indexOf(n)!==-1;
+    }catch(e){return false;}
+  }
+  function load(src,async){
+    return new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src=src;s.async=!!async;
+      s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
+      document.head.appendChild(s);
+    });
+  }
+  function skeleton(host){
+    if(pfSkip('butter-p0')||!host)return;
+    if(host.children.length>0)return;
+    host.insertAdjacentHTML('afterbegin',
+      '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
+      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
+    var obs=new MutationObserver(function(){
+      try{
+        var sk=host.querySelector('#pf-skeleton');
+        if(sk&&host.textContent.replace(/\s+/g,'').length>0){sk.remove();obs.disconnect();}
+      }catch(e){}
+    });
+    try{obs.observe(host,{childList:true,subtree:true});}catch(e){}
+    setTimeout(function(){try{var sk=host.querySelector('#pf-skeleton');if(sk)sk.remove();obs.disconnect();}catch(e){}},25000);
+  }
+  // Paint skeletons immediately
+  skeleton(document.getElementById("pf-factgen"));
+  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
+  (async function(){
+    await load(BASE+'core/'+CORE,false);
+    load(BASE+PWA,true); // async, guarded internally
+    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
+    await load(BASE+PAGES,false);
+    // Karl companion: lazy after idle
+    function goKarl(){
+      if(pfSkip('karl-companion'))return;
+      load(BASE+KARL,true);
+    }
+    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
+    else{setTimeout(goKarl,4000);}
+    // Trigger mount
+    try{
+      if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
+    }catch(e){}
+    console.log('[PF] Pages shell loaded: /fact-generator');
+  })();
+})();
+</script>
+</body>
+</html>

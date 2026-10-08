@@ -250,6 +250,10 @@
     '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}',
     '.pf-kc-btn:active{transform:scale(.96)}',
     '.pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}',
+    /* BUTTER MOBILE (2026-10-08): compact launcher on small screens — the
+       full pill overlapped card action rows. Smaller footprint, safe margin
+       above the bottom bar, never covers interactive content. */
+    '@media(max-width:480px){.pf-kc-btn{right:12px;bottom:88px;padding:11px 15px;font-size:12px;letter-spacing:1px;min-height:44px;gap:7px;box-shadow:0 6px 20px rgba(193,18,31,.4),0 2px 8px rgba(0,0,0,.5)}}',
     /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
        on the homepage the floating launcher waits until the visitor scrolls
        past the hero (or has a callsign), so nothing competes with the claim

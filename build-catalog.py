@@ -39,6 +39,26 @@ NAV = '''<nav class="pf-shell-nav" aria-label="Main">
     <a href="/money">MONEY</a>
   </nav>'''
 
+# CROSS-POLLINATION (2026-10-08): every catalog page cross-links into the
+# factory. Static HTML — no JS bundle needed, keeps pages fast.
+XPOLL = '''<h2>EXPLORE THE FACTORY</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:0 0 1rem;">
+    <a href="/arcade" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">ARCADE</span><br><span style="color:%s;font-size:.68rem;">Play. Earn. Spread.</span></a>
+    <a href="/cells" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">CELLS</span><br><span style="color:%s;font-size:.68rem;">Find your squad.</span></a>
+    <a href="/create" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">CREATE</span><br><span style="color:%s;font-size:.68rem;">Make propaganda.</span></a>
+    <a href="/economy" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">ECONOMY</span><br><span style="color:%s;font-size:.68rem;">Follow the money.</span></a>
+    <a href="/peoples-cpi" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">PEOPLE'S CPI</span><br><span style="color:%s;font-size:.68rem;">Report prices.</span></a>
+    <a href="/call-it" style="display:block;text-align:center;border:1px solid #2a2a2a;padding:.9rem .4rem;text-decoration:none;background:#111;"><span style="color:#fff;font-weight:800;font-size:.82rem;letter-spacing:.08em;">CALL IT</span><br><span style="color:%s;font-size:.68rem;">Predict. Win.</span></a>
+  </div>
+  <div style="text-align:center;margin:1.4rem 0 .4rem;">
+    <span style="font-size:.72rem;letter-spacing:.24em;color:%s;font-weight:800;">SPREAD THIS RADICAL</span><br>
+    <div style="margin-top:.7rem;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;">
+      <a href="https://www.facebook.com/sharer/sharer.php?u={PAGE_URL}" target="_blank" rel="noopener" style="border:1px solid %s;color:#fff;text-decoration:none;font-weight:800;font-size:.78rem;letter-spacing:.1em;padding:.7rem 1.2rem;">FACEBOOK</a>
+      <a href="https://twitter.com/intent/tweet?url={PAGE_URL}&text={PAGE_TEXT}" target="_blank" rel="noopener" style="border:1px solid %s;color:#fff;text-decoration:none;font-weight:800;font-size:.78rem;letter-spacing:.1em;padding:.7rem 1.2rem;">X</a>
+      <a href="https://bsky.app/intent/compose?text={PAGE_TEXT}+{PAGE_URL}" target="_blank" rel="noopener" style="border:1px solid %s;color:#fff;text-decoration:none;font-weight:800;font-size:.78rem;letter-spacing:.1em;padding:.7rem 1.2rem;">BLUESKY</a>
+    </div>
+  </div>'''
+
 def page(m):
     slug = m['slug']; name = m['name']
     score = m.get('propaganda_score')
@@ -153,6 +173,7 @@ def page(m):
   <div class="cta-row">
     <a href="/sick-left-radicals" style="display:inline-block;border:2px solid %s;color:#fff;font-weight:800;letter-spacing:.14em;font-size:.9rem;text-decoration:none;padding:.85rem 2.2rem;">&larr; FULL ROSTER</a>
   </div>
+  %s
   <div class="foot"><b>JOIN THE FIGHT.</b> — MTCSTW.COM</div>
 </div>
 </body>
@@ -166,6 +187,9 @@ def page(m):
         NAV,
         RED, img, esc(name), plat_line, handle_line, score_html,
         paras(m.get('bio')), strengths_html, offer_html, links_html, RED,
+        ((XPOLL % (MUTED, MUTED, MUTED, MUTED, MUTED, MUTED, MUTED, RED, RED, RED))
+            .replace('{PAGE_URL}', 'https://www.mtcstw.com/' + esc(slug))
+            .replace('{PAGE_TEXT}', esc(name) + ' — Sick Left Radical. JOIN THE FIGHT.')),
     )
 
 def main():

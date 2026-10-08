@@ -771,6 +771,13 @@
   }
   function _shareImage(cv, filename, title, gameId, opts) {
     opts = opts || {};
+    /* Fix Pod #3 (2026-10-05): kit SHARE/SAVE bypass. The Economy Desk
+       signed 0 XP for the campaign-kit share path, so callers pass
+       {noCredit:true} and creditShare is skipped entirely: no
+       pf-share-image event fires, no once-per-day local credit is marked,
+       and nothing mirrors to the backend. Without the flag the existing
+       once-per-day leg is unchanged. */
+    var markShare = opts.noCredit ? function () {} : function () { creditShare(gameId, 'share'); };
     var format = opts.format || 'image/png';
     var quality = (opts.quality == null) ? 0.92 : opts.quality;
     try{
@@ -794,11 +801,11 @@
             function () { creditShare(gameId, 'share'); toast('Shared. Go spread the word.'); },
             function (err) {
               if (err && err.name === 'AbortError') { toast('Share cancelled.'); }
-              else { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+              else { markShare(); downloadBlob(blob, filename); toast('Image downloaded.'); }
             });
-        } catch (e) { creditShare(gameId, 'share'); downloadBlob(blob, filename); toast('Image downloaded.'); }
+        } catch (e) { markShare(); downloadBlob(blob, filename); toast('Image downloaded.'); }
       } else {
-        creditShare(gameId, 'share');
+        markShare();
         downloadBlob(blob, filename);
         toast(isIOS() ? 'Image downloaded \u2014 open it, tap Share, then Save Image for Photos.'
                       : 'Image downloaded.');
@@ -812,6 +819,8 @@
   }
   function _saveImage(cv, filename, gameId, opts) {
     opts = opts || {};
+    /* Fix Pod #3 (2026-10-05): kit SHARE/SAVE bypass — see _shareImage. */
+    var markSave = opts.noCredit ? function () {} : function () { creditShare(gameId, 'save'); };
     var format = opts.format || 'image/png';
     var quality = (opts.quality == null) ? 0.92 : opts.quality;
     try { cv = stampCallsign(cv) || cv; } catch (e) {}
@@ -825,7 +834,7 @@
         if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             navigator.share({ files: [file], title: 'Save to Photos' }).then(
-              function () { creditShare(gameId, 'save'); toast('Saved. Check your Photos.'); },
+              function () { markSave(); toast('Saved. Check your Photos.'); },
               function (err) {
                 if (!(err && err.name === 'AbortError')) toast('Save cancelled \u2014 try again.');
               });
@@ -836,12 +845,12 @@
         try {
           var url = URL.createObjectURL(blob);
           window.open(url, '_blank');
-          creditShare(gameId, 'save');
+          markSave();
           toast('Long-press the image \u2192 Save to Photos.');
         } catch (e) { toast('Save failed \u2014 try again.'); }
         return;
       }
-      creditShare(gameId, 'save');
+      markSave();
       downloadBlob(blob, filename);
       toast('Image saved to your phone.');
     }, opts); /* H3 (2026-10-04): forward format/quality — canvasBlob defaults to PNG otherwise, but the File above is typed from opts.format. */

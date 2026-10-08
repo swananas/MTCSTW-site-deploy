@@ -152,6 +152,9 @@ function runScenario(opts) {
   function fakeBackend(action) {
     if (action === 'pressure_list') return opts.list;
     if (action === 'pressure_get') return opts.get;
+    /* campaign-share-kits: the kit section mounts async off campaign_kit_get.
+       Scenarios that don't pass `kit` keep the FORGING placeholder. */
+    if (action === 'campaign_kit_get') return opts.kit === undefined ? { ok: true, kit: null } : opts.kit;
     if (action === 'rep_contact_history') return { ok: false, err: 'no log' };
     return { ok: true };
   }
@@ -249,7 +252,22 @@ function runScenario(opts) {
     shareCalls: shareCalls, copiedFallback: copiedFallback,
     html: function () { return xCivic.innerHTML; },
     doc: sandbox.document,
-    tick: function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    tick: function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); },
+    /* Poll until pred() is true (async JSONP chains) — avoids fixed-tick flakes. */
+    waitFor: function (pred, ms) {
+      var budget = ms || 3000, self = this;
+      return new Promise(function (resolve, reject) {
+        function poll() {
+          var okp = false;
+          try { okp = !!pred(); } catch (e) { okp = false; }
+          if (okp) { resolve(true); return; }
+          budget -= 25;
+          if (budget <= 0) { resolve(false); return; }
+          setTimeout(poll, 25);
+        }
+        poll();
+      });
+    }
   };
 }
 
@@ -260,8 +278,7 @@ var CAMPAIGN = {
   ends_at: new Date(Date.now() + 5 * 864e5).toISOString(),
   days_remaining: 5, participant_count: 1234, call_count: 567
 };
-var DETAIL = {
-  ok: true,
+var DETAIL = {  ok: true,
   campaign: {
     id: 'pc-hr14-2025', title: 'Stop the Oligarch Power Grab',
     script: SCRIPT_TXT,
@@ -275,16 +292,27 @@ var DETAIL = {
   }
 };
 
+/* Minimal kit so the SHARE KIT section mounts in scenario A (the call
+   script now lives there, displayed once, labeled CALL SCRIPT). */
+var KIT_MIN = {
+  target: { title: 'Stop the Oligarch Power Grab', target: 'U.S. SENATE' },
+  captions: { punchy: 'Punchy caption.', informative: 'Informative caption.' }
+};
+
 (async function main() {
   /* ---------- Scenario A: happy path ---------- */
   var postResp = { ok: true };
   var A = runScenario({
     list: { ok: true, campaigns: [CAMPAIGN] },
     get: DETAIL,
+    kit: { ok: true, kit: KIT_MIN },
     post: function () { return postResp; },
     withShare: true
   });
   await A.tick(50);
+  /* The kit section mounts off a third JSONP round (campaign_kit_get) —
+     wait for the script card before asserting card markup. */
+  await A.waitFor(function () { return A.html().indexOf('data-pc-kit-scriptcopy') >= 0; });
   var h = A.html();
   ok('card renders title', h.indexOf('Stop the Oligarch Power Grab') >= 0);
   ok('bill label shown, URL stripped from label',
@@ -302,13 +330,16 @@ var DETAIL = {
   ok('display phone keeps original formatting', h.indexOf('(202) 555-0114') >= 0);
   ok('party/state badge R · LA', h.indexOf('R \u00b7 LA') >= 0);
   ok('LOG CALL button per member', (h.match(/data-pc-log="pc-hr14-2025\|/g) || []).length === 2);
-  ok('COPY SCRIPT button present', h.indexOf('data-pc-copy="pc-hr14-2025"') >= 0);
+  /* campaign-share-kits: the call script moved into the SHARE KIT section
+     (one card, labeled CALL SCRIPT). */
+  ok('CALL SCRIPT card present in kit section', h.indexOf('data-pc-kit-scriptcopy="pc-hr14-2025"') >= 0);
+  ok('kit section mounted (SHARE KIT header)', h.indexOf('SHARE KIT') >= 0);
   ok('backend script text is HTML-escaped (stored XSS)',
     h.indexOf('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;') >= 0);
   ok('script visible in card body', h.indexOf('Vote YES on H.R. 14') >= 0);
 
   /* copy button -> clipboard path */
-  var copyBtns = A.doc.querySelectorAll('[data-pc-copy]');
+  var copyBtns = A.doc.querySelectorAll('[data-pc-kit-scriptcopy]');
   ok('copy button stub found', copyBtns.length === 1);
   copyBtns[0].click();
   await A.tick(20);
@@ -397,11 +428,13 @@ var DETAIL = {
   var F = runScenario({
     list: { ok: true, campaigns: [CAMPAIGN] },
     get: DETAIL,
+    kit: { ok: true, kit: KIT_MIN },
     post: function () { return { ok: true }; },
     clipboardReject: true
   });
   await F.tick(50);
-  var copyF = F.doc.querySelectorAll('[data-pc-copy]');
+  await F.waitFor(function () { return F.html().indexOf('data-pc-kit-scriptcopy') >= 0; });
+  var copyF = F.doc.querySelectorAll('[data-pc-kit-scriptcopy]');
   copyF[0].click();
   await F.tick(30);
   ok('clipboard denial falls back to execCommand path',

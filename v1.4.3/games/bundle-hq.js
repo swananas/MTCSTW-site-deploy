@@ -1068,9 +1068,13 @@ function pcPaintCard(cid,j){
     return;
   }
   PC_SCRIPT[cid]=c.script||"";
-  var h='<div class="pf-mt"><div class="x-note"><b>Call script</b></div>'
-    +'<div class="x-note" style="white-space:pre-wrap">'+esc(c.script||"")+'</div>'
-    +'<button class="c-btn cp-mbtn" data-pc-copy="'+esc(cid)+'">COPY SCRIPT</button></div>';
+  /* 2026-10-05 (wave campaign-share-kits FE): the call script now lives in
+     the SHARE KIT section (displayed once, labeled CALL SCRIPT). The kit
+     container paints first with a FORGING placeholder; pcPaintKit fills it
+     when campaign_kit_get resolves. kit:null or a down wire keeps the
+     placeholder — never blank, never broken. */
+  var h='<div class="pf-mt" data-pc-kit="'+esc(cid)+'">'
+    +'<div class="c-load">SHARE KIT \u2014 FORGING&hellip;</div></div>';
   var ms=c.target_members||[];
   if(ms.length){
     h+='<div class="x-note pf-mt"><b>Targets \u2014 tap to call:</b></div>';
@@ -1090,19 +1094,25 @@ function pcPaintCard(cid,j){
     }
   }
   body.innerHTML=h;
+  /* The kit section mounts async (campaign_kit_get); targets bind here. */
+  pcPaintKit(cid);
   /* Per-card bindings happen here, not in bind(): pressure_get resolves
      after bind() already ran, so bind-on-paint is the only correct spot. */
-  var bb=body.querySelectorAll("[data-pc-copy]");
-  for(var b2=0;b2<bb.length;b2++){ (function(btn){ btn.onclick=function(){
-    pcCopyText(PC_SCRIPT[btn.getAttribute("data-pc-copy")]||"",btn,"Script copied. Go make the call.");
-  }; })(bb[b2]); }
   var lb=body.querySelectorAll("[data-pc-log]");
   for(var l2=0;l2<lb.length;l2++){ (function(btn){ btn.onclick=function(){
     var v=btn.getAttribute("data-pc-log"), pi=v.indexOf("|");
     var cid2=v.slice(0,pi), mname=v.slice(pi+1);
+    if(btn.disabled) return;
     btn.disabled=true;
     /* Extended rep_contact POST: the backend accepts an optional campaign
-       param, passed here so the call is attributed to the campaign. */
+       param, passed here so the call is attributed to the campaign.
+       2026-10-05 (Economy Desk XP table, row 4): EXACTLY ONE rep_contact
+       POST per user-confirmed contact — the backend ledger key embeds
+       Date.now() and is NOT idempotent, so there is no auto-retry on
+       timeout. The button stays disabled after the first success; on
+       failure it re-enables for a manual retry (the 2/day server cap is
+       fail-closed). No kit-side XP grant — the +25 XP rides the existing
+       rep_contact leg. */
     post("rep","r_action","rep_contact",{callsign:ident().callsign,rep_name:mname,method:"call",script_used:"pressure:"+cid2,campaign:cid2},function(j){
       /* 2026-10-05 (P2 F2-TOAST): a campaign call is a rep contact — it
          feeds Civic Duty. Record first so the toast shows the new count. */
@@ -1118,8 +1128,7 @@ function pcPaintCard(cid,j){
           btn.parentNode.insertBefore(tb,btn.nextSibling); } }catch(e2){} }
       /* 2/day cap: the backend surfaces the 'cap' code, routed through the
          shared friendly-copy mapper (resets at midnight Chicago). */
-      else { toast(PF.errCopy(j,"Log failed.")); }
-      btn.disabled=false;
+      else { toast(PF.errCopy(j,"Log failed.")); btn.disabled=false; }
     });
   }; })(lb[l2]); }
 }
@@ -1146,6 +1155,219 @@ function pcShare(cid){
      fallback — same two-tier pattern as do-meter/fan-vote text shares. */
   if(navigator.share){ try{ navigator.share({title:title,text:text}).catch(function(){}); return; }catch(e){} }
   pcCopyText(text,null,"Share text copied. Spread it.");
+}
+/* ============ CAMPAIGN SHARE KITS (2026-10-05, wave campaign-share-kits FE)
+   Per-campaign SHARE KIT: 3 posters (target reuses the phq-pressure painter,
+   bill + urgency come from v1.4.3/core/share-image-phq-kits.js), 2
+   copy-paste captions, 1 call script. Fetched via campaign_kit_get (same
+   JSONP api() pattern as the pressure UI). kit:null or a down wire keeps
+   the FORGING placeholder — never blank, never broken.
+   BACKEND CONTRACT (be/campaign-share-kits, src/campaign_kits.js
+   generateKitAssets — the BE shape is also baked into the v83 seed rows,
+   so the FE reads exactly these keys, never the stale kit.target /
+   kit.bill / kit.urgency / kit.captions shape):
+     kit.poster_target  {title, target, demand, signatures, signaturesGoal}
+     kit.poster_bill    {billNo, billTitle, status, stuckAt, sourceUrl,
+                         sourceDate, generated_at}
+     kit.poster_urgency {title, daysRemaining, endsAt, participantCount,
+                         targetBill, generated_at}
+     kit.caption_punchy (string, <=240 chars)
+     kit.caption_info   (string, 2-3 sentences)
+     kit.call_script    (verbatim script; fallback for the CALL SCRIPT card
+                         when pressure_get has not resolved)
+   SHARE/SAVE ride PF.PHQShare -> PFShare.shareImage/saveImage with
+   {noCredit:true}, so the callsign-claim gate and the idempotent stamp ride
+   along, but creditShare is BYPASSED: no pf-share-image event fires, no
+   +1/day XP, no backend mirror — the Economy Desk signed 0 XP for the kit
+   SHARE/SAVE path (2026-10-05). CORRECTION 2026-10-05 (Fix Pod #3): the
+   original comment's "zero-ledger leg / zero new code" claim was FALSE —
+   the unguarded path DID route through creditShare -> pf-share-image ->
+   the +1/day backend-mirrored award. The bypass makes the 0-XP signature
+   real. Nothing auto-publishes; SHARE and SAVE are explicit taps. Caption
+   copy and admin refresh grant no XP.
+   REFRESH KIT is admin-only (sessionStorage 'pf_admin_secret', the same key
+   the vault uses) and writes on the X-Admin-Secret rail. */
+var PC_KIT={};
+function pcIsAdmin(){
+  try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; }
+}
+function pcAdminPost(action,params,cb){
+  var sec=""; try{ sec=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  if(!sec){ done({ok:false,err:"Vault is locked."}); return; }
+  var body=Object.assign({type:"pressure",pr_action:action},params||{});
+  try{
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":sec},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ done(j); })
+      .catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
+function pcKitPosters(kit){
+  /* Map the backend kit contract to painter payloads. Missing posters are
+     omitted — never invented. Backend contract (be/campaign-share-kits,
+     src/campaign_kits.js generateKitAssets; mirrored in the v83 seed rows):
+       kit.poster_target  -> {title, target, demand, signatures,
+         signaturesGoal} (phq-pressure; callCount is painter-ignored)
+       kit.poster_bill    -> {billNo, billTitle, status, stuckAt, sourceUrl,
+         sourceDate} (phq-bill; the painter's generatedAt field is mapped
+         from the backend's generated_at — the BE key shape is never
+         renamed here)
+       kit.poster_urgency -> {title, daysRemaining, endsAt, participantCount,
+         targetBill} (phq-urgency; generatedAt from generated_at)
+     The FE reads exactly these keys. The stale kit.target / kit.bill /
+     kit.urgency / kit.captions shape is NOT consumed — see the key-drift
+     guard in tests/share-kits.verify.js. */
+  var out=[];
+  var t=(kit&&kit.poster_target)||null;
+  if(t&&(t.title||t.target)){
+    out.push({id:"phq-pressure",label:"TARGET",data:{title:t.title,target:t.target,demand:t.demand,
+      signatures:t.signatures,signaturesGoal:t.signaturesGoal}});
+  }
+  var b=(kit&&kit.poster_bill)||null;
+  if(b&&(b.billNo||b.billTitle)){
+    out.push({id:"phq-bill",label:"THE BILL",data:{billNo:b.billNo,billTitle:b.billTitle,status:b.status,
+      stuckAt:b.stuckAt,sourceUrl:b.sourceUrl,sourceDate:b.sourceDate,generatedAt:b.generated_at}});
+  }
+  var u=(kit&&kit.poster_urgency)||null;
+  if(u&&(u.title||u.daysRemaining!=null)){
+    out.push({id:"phq-urgency",label:"THE CLOCK",data:{title:u.title,daysRemaining:u.daysRemaining,endsAt:u.endsAt,
+      participantCount:u.participantCount,targetBill:u.targetBill,generatedAt:u.generated_at}});
+  }
+  return out;
+}
+function pcKitCaptions(kit){
+  /* Backend contract: kit.caption_punchy (string, <=240 chars) and
+     kit.caption_info (string, 2-3 sentences) — flat keys, not a nested
+     captions object. */
+  var out=[], p=(kit&&kit.caption_punchy)||"", inf=(kit&&kit.caption_info)||"";
+  if(p) out.push({label:"PUNCHY CAPTION",text:String(p)});
+  if(inf) out.push({label:"INFORMATIVE CAPTION",text:String(inf)});
+  return out;
+}
+function pcPaintKit(cid){
+  var body=pcFindBody(cid); if(!body) return;
+  var holder=null, nodes=body.querySelectorAll("[data-pc-kit]");
+  for(var i=0;i<nodes.length;i++){
+    if(nodes[i].getAttribute("data-pc-kit")===cid){ holder=nodes[i]; break; }
+  }
+  if(!holder) return;
+  api("campaign_kit_get",{id:cid},function(j){
+    /* kit:null or a down wire -> the FORGING placeholder stands. Never
+       blank, never broken; the next card paint retries. */
+    if(!(j&&j.ok&&j.kit)) return;
+    try{ pcRenderKit(holder,cid,j.kit); }catch(e){
+      holder.innerHTML='<div class="c-load">SHARE KIT \u2014 FORGING&hellip;</div>';
+    }
+  });
+}
+function pcPaintPreviews(holder,posters){
+  /* Previews via PF.PHQShare.paint — degrades to a note when the phq-share
+     module hasn't merged yet or a painter fails. */
+  var PHQ=null;
+  try{ PHQ=(window.PF&&window.PF.PHQShare)||null; }catch(e){}
+  for(var i=0;i<posters.length;i++){ (function(p){
+    var found=null, nn=holder.querySelectorAll("[data-pc-preview]");
+    for(var k=0;k<nn.length;k++){ if(nn[k].getAttribute("data-pc-preview")===p.id){ found=nn[k]; break; } }
+    var note=null, n2=holder.querySelectorAll("[data-pc-preview-note]");
+    for(var k2=0;k2<n2.length;k2++){ if(n2[k2].getAttribute("data-pc-preview-note")===p.id){ note=n2[k2]; break; } }
+    function noteIt(t){ if(note) note.textContent=t; }
+    if(!found) return;
+    if(!PHQ||typeof PHQ.paint!=="function"){ noteIt("Preview unavailable \u2014 SHARE/SAVE still forge the full poster."); return; }
+    var cv=null;
+    try{ cv=PHQ.paint(p.id,p.data); }catch(e){ cv=null; }
+    if(!cv){ noteIt("Preview failed \u2014 SHARE/SAVE still work."); return; }
+    try{
+      var x=found.getContext("2d");
+      if(x) x.drawImage(cv,0,0,found.width,found.height);
+      else noteIt("Preview unavailable.");
+    }catch(e2){ noteIt("Preview unavailable."); }
+  })(posters[i]); }
+}
+function pcKitPosterGo(cid,pid,kind){
+  var rec=PC_KIT[cid]||null, list=rec?rec.posters:[], p=null;
+  for(var i=0;i<list.length;i++){ if(list[i].id===pid){ p=list[i]; break; } }
+  if(!p){ toast("Poster unavailable."); return; }
+  var PHQ=null;
+  try{ PHQ=(window.PF&&window.PF.PHQShare)||null; }catch(e){}
+  if(!PHQ||typeof PHQ[kind]!=="function"){ toast("Share posters are still deploying \u2014 check back shortly."); return; }
+  var ok2=false;
+  /* Fix Pod #3 (2026-10-05): {noCredit:true} bypasses creditShare —
+     kit SHARE/SAVE fires no pf-share-image event, grants 0 XP, mirrors
+     nothing. The callsign-claim gate and idempotent stamp still ride
+     along. */
+  try{ ok2=PHQ[kind](pid,p.data,{title:(PC_TITLE[cid]||"Pressure campaign"),noCredit:true}); }catch(e){ ok2=false; }
+  if(!ok2) toast("Poster failed \u2014 try again.");
+}
+function pcRenderKit(holder,cid,kit){
+  var posters=pcKitPosters(kit), captions=pcKitCaptions(kit);
+  PC_KIT[cid]={posters:posters,captions:captions,script:String(PC_SCRIPT[cid]||(kit&&kit.call_script)||"")};
+  var h='<div class="x-pane pf-mt"><h4>SHARE KIT</h4>'
+    +'<div class="c-tag">Weapons-grade posters and copy. Take them to the timeline.</div>';
+  for(var i=0;i<posters.length;i++){
+    var p=posters[i];
+    h+='<div class="cp-mission" style="margin-top:8px">'
+      +'<div class="cp-mtext">'+esc(p.label)+'</div>'
+      +'<canvas data-pc-preview="'+esc(p.id)+'" width="360" height="450" style="max-width:100%;height:auto;border:1px solid #c1121f"></canvas>'
+      +'<div class="x-note" data-pc-preview-note="'+esc(p.id)+'"></div>'
+      +'<button class="c-btn cp-mbtn" data-pc-kit-share="'+esc(p.id)+'">SHARE</button> '
+      +'<button class="c-btn cp-mbtn" data-pc-kit-save="'+esc(p.id)+'">SAVE</button></div>';
+  }
+  for(var ci=0;ci<captions.length;ci++){
+    var cc=captions[ci];
+    h+='<div class="cp-mission" style="margin-top:8px"><div class="cp-mtext">'+esc(cc.label)+'</div>'
+      +'<div class="x-note" style="white-space:pre-wrap">'+esc(cc.text)+'</div>'
+      +'<div class="x-note">'+String(cc.text).length+' characters</div>'
+      +'<button class="c-btn cp-mbtn" data-pc-capcopy="'+ci+'">COPY</button></div>';
+  }
+  /* The campaign's script, displayed once, labeled CALL SCRIPT. Source:
+     pressure_get (PC_SCRIPT) when it has resolved, else the kit's verbatim
+     call_script from campaign_kit_get — every BE-emitted kit key is
+     consumed somewhere in this section. */
+  h+='<div class="cp-mission" style="margin-top:8px"><div class="cp-mtext">CALL SCRIPT</div>'
+    +'<div class="x-note" style="white-space:pre-wrap">'+esc(PC_KIT[cid].script)+'</div>'
+    +'<button class="c-btn cp-mbtn" data-pc-kit-scriptcopy="'+esc(cid)+'">COPY SCRIPT</button></div>';
+  /* Admin-only: rides the X-Admin-Secret rail; grants no XP. */
+  if(pcIsAdmin()){
+    h+='<button class="c-btn cp-mbtn" data-pc-kit-refresh="'+esc(cid)+'">REFRESH KIT</button>';
+  }
+  h+='</div>';
+  holder.innerHTML=h;
+  pcPaintPreviews(holder,posters);
+  /* Bind-on-paint: this HTML arrives after bind() already ran. */
+  for(var s2=0;s2<posters.length;s2++){ (function(pp){
+    var sh=holder.querySelectorAll("[data-pc-kit-share]");
+    for(var a=0;a<sh.length;a++){ if(sh[a].getAttribute("data-pc-kit-share")===pp.id){
+      (function(b){ b.onclick=function(){ pcKitPosterGo(cid,pp.id,"share"); }; })(sh[a]); } }
+    var sv=holder.querySelectorAll("[data-pc-kit-save]");
+    for(var v=0;v<sv.length;v++){ if(sv[v].getAttribute("data-pc-kit-save")===pp.id){
+      (function(b){ b.onclick=function(){ pcKitPosterGo(cid,pp.id,"save"); }; })(sv[v]); } }
+  })(posters[s2]); }
+  var capBtns=holder.querySelectorAll("[data-pc-capcopy]");
+  for(var cb=0;cb<capBtns.length;cb++){ (function(btn){
+    btn.onclick=function(){
+      var idx=Number(btn.getAttribute("data-pc-capcopy"));
+      var rec=((PC_KIT[cid]||{}).captions||[])[idx];
+      pcCopyText(rec?rec.text:"",btn,"Caption copied. Paste it anywhere.");
+    };
+  })(capBtns[cb]); }
+  var scb=holder.querySelectorAll("[data-pc-kit-scriptcopy]");
+  for(var q=0;q<scb.length;q++){ (function(btn){
+    btn.onclick=function(){
+      pcCopyText(((PC_KIT[cid]||{}).script||""),btn,"Script copied. Go make the call.");
+    };
+  })(scb[q]); }
+  var rfb=holder.querySelectorAll("[data-pc-kit-refresh]");
+  for(var r2=0;r2<rfb.length;r2++){ (function(btn){
+    btn.onclick=function(){
+      btn.disabled=true;
+      pcAdminPost("campaign_kit_refresh",{id:cid},function(j){
+        btn.disabled=false;
+        if(j&&j.ok&&j.kit){ pcRenderKit(holder,cid,j.kit); toast("Share kit refreshed."); }
+        else { toast(PF.errCopy(j,"Refresh failed.")); }
+      });
+    };
+  })(rfb[r2]); }
 }
 function pressureBind(qsa){
   if(!(PC_LIST&&PC_LIST.length)) return;

@@ -197,10 +197,12 @@
     } catch (e) {}
     return false;
   }
+  var stepNum = 0;
   function stepRow(n, title, sub, btnLabel, btnId) {
     var done = stepsDone[n];
+    stepNum++;
     return '<div data-op-step="' + n + '" class="pf-op-step' + (done ? ' is-done' : '') + '">' +
-      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
+      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : stepNum) + '</div>' +
       '<div class="pf-op-step-main"><div class="pf-op-step-title">' + esc(title) + '</div>' +
       '<div class="pf-op-step-sub">' + esc(sub) + '</div></div>' +
       (done ? '' : '<button type="button" id="' + btnId + '" class="pf-op-step-btn">' + esc(btnLabel) + '</button>') +
@@ -224,6 +226,7 @@
       '<div class="pf-op-cl-head">&#9873; YOUR FIRST MOVES</div>' +
       '<button type="button" id="pf-op-cl-x" class="pf-op-cl-x" aria-label="Dismiss checklist">&times;</button>' +
       '</div>' +
+      (stepNum = 0, '') +
       stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight') +
       (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim')) +
       stepRow('mission', 'RUN YOUR FIRST MISSION', 'One vote. Sixty seconds.', 'FIRE →', 'pf-op-cl-mission');

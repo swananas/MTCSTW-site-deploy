@@ -1,13 +1,14 @@
 /* core/07-slr-db.js  |  PF v1.4.2 | Master SLR database.
    The 62-member snapshot is generated into 07-slr-db-data.js (from
-   src/data/slr-master-db.json). M34 (2026-10-03): the snapshot ships INSIDE
-   the core bundle only on roster pages (core/bundle-core-slr.js); the slim
-   core/bundle-core.js omits it. When the snapshot is present it is applied
-   SYNCHRONOUSLY, so PF.ROSTER, PF.slrAll() and PF.slrMember() are populated
-   before any game silo runs — no async race for the synchronous consumers.
-   When it is absent, PF.ensureSLRDB() injects the pinned data script on
-   first need (promise-cached, concurrent calls deduped, 15s backstop, JSON
-   fallback, resolves to [] on failure so consumers degrade gracefully).
+   src/data/slr-master-db.json). M35 (2026-10-05) perf split: the snapshot
+   ships as its own lazily-loaded chunk, core/bundle-slr-data.js (minified,
+   ~40KB gzip) — it is in NO blocking bundle. When the chunk has already
+   landed it is applied SYNCHRONOUSLY, so PF.ROSTER, PF.slrAll() and
+   PF.slrMember() are populated before any game silo runs — no async race
+   for the synchronous consumers. Otherwise PF.ensureSLRDB() injects the
+   pinned chunk on first need (promise-cached, concurrent calls deduped,
+   15s backstop, JSON fallback, resolves to [] on failure so consumers
+   degrade gracefully).
    PF.slrReady is a lazy getter over ensureSLRDB(), so existing
    PF.slrReady.then(...) consumers work on both core variants unchanged.
    API: PF.slrReady (promise), PF.ensureSLRDB(), PF.slrAll(), PF.slrMember(slug),
@@ -75,16 +76,19 @@
       });
   }
 
-  /* Synchronous fast path (unchanged): on bundle-core-slr pages the snapshot
-     rode in with the bundle — apply before any game silo runs. */
+  /* Synchronous fast path: if the lazy data chunk (or an in-bundle snapshot)
+     already set window.PF_SLR_DB_SNAPSHOT, apply before any game silo runs. */
   var snap = window.PF_SLR_DB_SNAPSHOT;
   if (snap && apply(snap)) {
     PF.log('slr-db', 'snapshot applied: ' + MEMBERS.length + ' members');
   }
 
   /* ---- Lazy load (M34): PF.ensureSLRDB() ----
-     Injects the pinned core/07-slr-db-data.js script exactly once and applies
-     it. Concurrent callers share one promise; the 15s backstop plus the JSON
+     Injects the pinned core/bundle-slr-data.js chunk exactly once and
+     applies it. M35 (2026-10-05) perf split: the chunk is the terser-
+     minified SLR snapshot (~40KB gzip, under the 120KB cap) — the raw
+     07-slr-db-data.js no longer ships inside any blocking bundle.
+     Concurrent callers share one promise; the 15s backstop plus the JSON
      fallback mean a failed load resolves to [] instead of hanging — every
      consumer already degrades on an empty roster.
      AUTO-UPDATE (2026-10-07): before touching the bundled snapshot, try the
@@ -120,8 +124,8 @@
   }
   function dataUrl() {
     var b = ownBase();
-    return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js');
+    return (b ? b + '/v1.4.3/core/bundle-slr-data.js'
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/bundle-slr-data.js');
   }
   PF.ensureSLRDB = function () {
     var s0 = window.PF_SLR_DB_SNAPSHOT;

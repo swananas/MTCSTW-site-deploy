@@ -10,11 +10,15 @@
  *
  * BUNDLES (2026-10-03): one per page/destination after the homepage
  * slimming (see pages/home-v2.js ORDER + pages/page-mount.js PAGE_ORDERS).
- * Homepage = bundle-sec1 in the critical path + bundle-home lazy-loaded
- * as ONE bundle for the PLAY/BELONG/CREATE/FUND/ACT/PROOF sections.
- * Dedicated pages (/arcade, /cells, /create, /bank, /economy, /war-chest,
- * /ventures, /events, /war-report, SLR roster/catalog) fetch only the
- * bundle(s) they mount. /political-hq fetches bundle-hq.
+ * Homepage = bundle-sec1 in the critical path + bundle-home / bundle-home2
+ * lazy-loaded as TWO bundles for the PLAY/BELONG/CREATE/FUND/ACT/PROOF
+ * sections (M35 perf split 2026-10-05: bundle-home breached the 120KB cap;
+ * PLAY+BELONG stay in bundle-home, CREATE+FUND+ACT+PROOF moved to
+ * bundle-home2; each section anchor names its own bundle via
+ * pages/home-v2.js SECTIONS). Dedicated pages (/arcade, /cells, /create,
+ * /bank, /economy, /war-chest, /ventures, /events, /war-report, SLR
+ * roster/catalog) fetch only the bundle(s) they mount. /political-hq fetches
+ * bundle-hq.
  * Cache win: change one widget → only its page bundle invalidates.
  *
  * Minification: terser (node_modules) with --compress --mangle. Falls back
@@ -125,8 +129,6 @@ var SECTIONS = {
        check-in for manually-posted group missions (ACT section). */
     'fb-missions.js',
     'fan-vote.js',
-    /* W5-11 Blackout Op (2026-10-04): siren countdown + debrief reveal. */
-    'blackout.js',
     /* W5-6 Hall of Proof (2026-10-04): public winners wall, PROOF section. */
     'hall-of-proof.js',
     /* Wave 3 files (registered by Wave 5C integration 2026-10-04 to unblock
@@ -158,8 +160,9 @@ var SECTIONS = {
      a handful of its games. These three slim bundles re-list silos that
      also live in bundle-home; the loader's JS_GAMES map fetches the slim
      bundle INSTEAD of bundle-home on those pages, so no page ever loads the
-     same silo twice. bundle-home stays intact as the homepage's single lazy
-     bundle for PLAY/BELONG/CREATE/FUND/ACT/PROOF (zero homepage change).
+     same silo twice. bundle-home / bundle-home2 stay the homepage's lazy
+     bundles for PLAY/BELONG and CREATE/FUND/ACT/PROOF (zero homepage change
+     besides the split).
      The uniqueness check below skips these bundles on purpose. */
   'bundle-arcade-h': [
     /* /arcade — the 5 arcade games that lived in bundle-home. */

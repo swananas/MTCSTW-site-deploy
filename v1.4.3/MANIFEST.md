@@ -17,9 +17,14 @@ Composition as of 2026-10-05 (generated — do not hand-edit this list):
   xpledger, notify, flow, seo, campaign-data, nuke-strip, footer,
   crossnav, nextop, allfronts, routemarch, squadjoin, rites,
   first-minute, commend, oparc, read-xp — plus 22-dead-drop)
-- `core/bundle-core-slr` (roster pages): bundle-core + the SLR snapshot
+- `core/bundle-core-slr` (roster pages): the slim core composition under a
+  stable filename (M35 perf split 2026-10-05: the SLR snapshot moved to the
+  lazily-loaded `core/bundle-slr-data.js` chunk; the loader kicks
+  PF.ensureSLRDB() after the blocking bundles)
+- `core/bundle-slr-data` (lazy chunk): the minified 62-member SLR snapshot
 - `pages/bundle-pages`, `core/bundle-footer-chrome`: see bundle-core.js
 - Page/section bundles in `build/bundle.js`: bundle-sec1, bundle-home,
+  bundle-home2 (M35 perf split 2026-10-05: CREATE/FUND/ACT/PROOF),
   bundle-arcade(-h), bundle-cells(-h), bundle-create(-h), bundle-bank,
   bundle-economy, bundle-warchest, bundle-ventures, bundle-events,
   bundle-warreport, bundle-userdash, bundle-roster, bundle-hq, bundle-hq-deep

@@ -6,17 +6,19 @@
  * is behavior-identical (order preserved) and cuts initial requests 23 -> 4.
  *
  * M34 (2026-10-03): core/07-slr-db-data.js (173KB raw, 41.6KB gzip — 71% of
- * the old bundle-core) NO LONGER ships in core/bundle-core.js. It lives in
- * core/bundle-core-slr.js instead: the identical core composition plus the
- * snapshot in the same position. The footer loader
- * (loader/footer_v143_final.html) picks bundle-core-slr.js on pages that
- * mount roster consumers (homepage, /arcade, /create, Creator HQ, SLR
- * roster/catalog) and the slim bundle-core.js everywhere else (/bank,
- * /economy, /war-chest, /ventures, /events, /war-report, /political-hq,
- * /cells never read the DB). Synchronous PF.ROSTER / PF.slrAll() consumers
- * keep working unchanged on SLR pages; on slim-core pages the DB loads on
- * demand via PF.ensureSLRDB() (core/07-slr-db.js) — promise-cached, deduped,
- * fails gracefully to [].
+ * the old bundle-core) NO LONGER ships in core/bundle-core.js.
+ * M35 (2026-10-05) perf split: the snapshot no longer rides in
+ * core/bundle-core-slr.js either — it ships as its own lazily-loaded chunk,
+ * core/bundle-slr-data.js (minified, ~40KB gzip, under the 120KB cap), so
+ * the homepage blocking set (core + sec1 + css) lands under the 220KB
+ * budget. bundle-core-slr.js keeps its name (the footer loader
+ * (loader/footer_v143_final.html) picks it on pages that mount roster
+ * consumers: homepage, /arcade, /create, Creator HQ, SLR roster/catalog)
+ * but is now the slim core composition; the loader kicks
+ * PF.ensureSLRDB() right after the blocking bundles so the data chunk
+ * starts loading immediately (async, non-blocking) and every roster
+ * consumer — all async-safe via PF.slrReady / PF.ensureSLRDB() — resolves
+ * before the lazy section bundles execute.
  *
  * SAFETY:
  * - 07-slr-db.js ownBase() matches 'bundle-core' in script src — also matches
@@ -28,7 +30,7 @@
  *
  * Usage: node build/bundle-core.js [--debug]
  * Output: v1.4.3/core/bundle-core.js, v1.4.3/core/bundle-core-slr.js,
- *         v1.4.3/pages/bundle-pages.js
+ *         v1.4.3/core/bundle-slr-data.js, v1.4.3/pages/bundle-pages.js
  */
 'use strict';
 var fs = require('fs');

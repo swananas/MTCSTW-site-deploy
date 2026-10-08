@@ -152,6 +152,23 @@
       }
       var root = el || mountTakeover();
       render(root, members);
+      /* AUTO-UPDATE (2026-10-07): re-render when live master DB arrives. */
+      try {
+        document.addEventListener('pf-slr-live', function onLive() {
+          try {
+            var fresh = PF.slrAll ? PF.slrAll() : null;
+            if (fresh && fresh.length) {
+              render(root, fresh);
+              PF.log('slr-roster', 're-rendered with live data (' + fresh.length + ' members)');
+              try {
+                if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+                  try { PF.creatorStats.paint(root); } catch (e_lp) {}
+                });
+              } catch (e_lp2) {}
+            }
+          } catch (e_lr) {}
+        });
+      } catch (e_ll) {}
       /* Unified stats (2026-10-05): paint live per-creator + network counts
          over the snapshot fallback text. Fail-soft inside the helper. */
       try {

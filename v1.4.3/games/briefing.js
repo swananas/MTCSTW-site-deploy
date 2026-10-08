@@ -547,8 +547,10 @@ function render(){
   /* ---------- 2. URGENT ---------- */
   var urg=[];
   if(streakRisk){
-    urg.push({t:"STREAK AT RISK",d:"Your "+streakN+"-day streak dies in "+streakHrs+". Check in or lose it.",
-      btn:"SAVE STREAK",go:"pf-dopa"});
+    /* Cohesion §5 copy standard (Psych, binding): streaks never feel like
+       punishment — no "dies", no "or lose it" threat framing. */
+    urg.push({t:"YOUR RUN IS STILL STANDING",d:"Your "+streakN+"-day run is still standing \u2014 "+streakHrs+" left today. One check-in keeps it rolling.",
+      btn:"KEEP IT ROLLING",go:"pf-dopa"});
   }
   try{
     if(LOOT&&LOOT.can_claim) urg.push({t:"LOOT CRATE READY",d:"Today's crate is unopened. Something's inside.",

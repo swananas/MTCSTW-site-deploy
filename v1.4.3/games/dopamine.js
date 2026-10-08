@@ -684,24 +684,81 @@ function shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
     var g=c.getContext("2d");
-    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
-    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
-    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
-    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,300);
-    g.fillStyle="#f5ead6"; g.font="bold 88px monospace";
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    g.fillStyle="#0e0d0c"; g.fillRect(0,0,1080,1080);
+    g.save(); g.globalAlpha=0.032; g.strokeStyle="#ffffff"; g.lineWidth=1;
+    for(var btD=-1080; btD<2160; btD+=26){
+      g.beginPath(); g.moveTo(btD,0); g.lineTo(btD+1080,1080); g.stroke();
+    }
+    g.restore();
+    var btVg=g.createRadialGradient(540,432,173,540,540,918);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    g.fillStyle=btVg; g.fillRect(0,0,1080,1080);
+    var btBar=g.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    g.fillStyle=btBar; g.fillRect(0,0,1080,10);
+    g.save(); g.globalAlpha=0.05; g.fillStyle=btC;
+    g.font="900 620px Arial,sans-serif"; g.textAlign="center";
+    g.fillText("★",540,648); g.restore();
+    /* rarity frame keeps the pull's color identity */
+    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=10; g.strokeRect(28,28,1024,1024);
+    g.strokeStyle="rgba(242,236,220,0.25)"; g.lineWidth=2; g.strokeRect(52,52,976,976);
+    g.textAlign="center";
+    /* rarity label: letterspaced */
+    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="700 44px Arial,sans-serif";
+    try{ g.letterSpacing="10px"; }catch(e9){}
+    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,220);
+    try{ g.letterSpacing="0px"; }catch(e8){}
+    g.strokeStyle="rgba(201,162,39,0.5)"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(430,258); g.lineTo(650,258); g.stroke();
+    /* reward: monumental serif */
+    g.fillStyle=btC; g.font='900 84px Georgia,"Times New Roman",serif';
     var lb=String((reward&&reward.label)||"SUPPLY DROP").toUpperCase().slice(0,22);
-    g.fillText(lb,540,470);
+    g.fillText(lb,540,400);
     if(reward&&reward.xp){
-      g.fillStyle="#e8b10c"; g.font="bold 72px monospace";
-      g.fillText("+"+Number(reward.xp)+" XP",540,600);
+      /* red diamond rule */
+      g.strokeStyle=btR; g.lineWidth=2;
+      g.beginPath(); g.moveTo(390,470); g.lineTo(514,470); g.stroke();
+      g.beginPath(); g.moveTo(566,470); g.lineTo(690,470); g.stroke();
+      g.save(); g.translate(540,470); g.rotate(Math.PI/4);
+      g.fillStyle=btR; g.fillRect(-8,-8,16,16); g.restore();
+      /* the figure: gold gradient, drop shadow */
+      g.font='900 96px Georgia,"Times New Roman",serif';
+      var btFig="+"+Number(reward.xp)+" XP";
+      g.fillStyle="rgba(0,0,0,0.55)";
+      g.fillText(btFig,545,617);
+      var btGg=g.createLinearGradient(0,520,0,610);
+      btGg.addColorStop(0,"#f0d060"); btGg.addColorStop(1,"#8a6d1c");
+      g.fillStyle=btGg;
+      g.fillText(btFig,540,610);
     }
     var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
-    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
-    if(cs) g.fillText("PULLED BY "+cs,540,700);
-    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
-    g.fillText("JOIN THE FIGHT.",540,840);
-    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
-    g.fillText("MTCSTW.COM",540,940);
+    g.fillStyle=btM; g.font="700 36px Arial,sans-serif";
+    try{ g.letterSpacing="6px"; }catch(e7){}
+    if(cs) g.fillText("PULLED BY "+cs,540,710);
+    try{ g.letterSpacing="0px"; }catch(e6){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=830;
+    g.strokeStyle="rgba(201,162,39,0.45)"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(140,fy); g.lineTo(940,fy); g.stroke();
+    fy+=56;
+    g.font="900 42px Arial,sans-serif"; g.fillStyle=btC;
+    try{ g.letterSpacing="8px"; }catch(e5){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=g.measureText(btCta).width;
+    g.fillText(btCta,540,fy);
+    g.fillStyle=btR; g.fillText(".",540+btCtaW/2-4,fy);
+    try{ g.letterSpacing="0px"; }catch(e4){}
+    fy+=50;
+    g.fillStyle=btR; g.font="900 30px Arial,sans-serif";
+    try{ g.letterSpacing="10px"; }catch(e3){}
+    g.fillText("MTCSTW.COM",540,fy);
+    try{ g.letterSpacing="0px"; }catch(e10){}
+    var btBar2=g.createLinearGradient(0,1070,0,1080);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    g.fillStyle=btBar2; g.fillRect(0,1070,1080,10);
     try{ if(window.PFShare&&window.PFShare.stampCallsign) c=window.PFShare.stampCallsign(c)||c; }catch(e2){}
     var filename="loot-pull-"+Date.now()+".png";
     /* A completed share counts as content shared (feeds the combo meter)

@@ -139,3 +139,47 @@
    the action. Voice: flat, factual, no hype. */
 .pf-pat-proof{font-size:12px;color:#8a8a8a;margin:6px 0 0;line-height:1.5}
 .pf-pat-proof b{color:#fff}
+
+/* ============================================================================
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Brand pattern butter: CTA-family micro-interactions (the two red buttons
+   get the 1px-lift + glow treatment), intel-card hover depth, fluid display
+   figures, and gold focus rings across P3/P6. CTA discipline, rogue-verb
+   map, and red-button rules above are untouched — every rule below is NEW.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+/* ---- P1: fluid mission line, balanced measure ---- */
+.pf-pat-hero-mission{font-size:clamp(1.25rem,4.5vw,1.75rem);text-wrap:balance;}
+/* ---- P2: intel card — subtle depth on hover, never loud ---- */
+.pf-pat-intel{transition:border-color .18s ease,box-shadow .18s ease;}
+.pf-pat-intel:hover{border-color:#c1121f;box-shadow:0 4px 18px rgba(0,0,0,.5);}
+/* ---- P3: CTA family — alive but restrained ---- */
+.pf-pat-join,.pf-pat-deploy-red{
+  transition:background .18s ease,transform .12s ease,box-shadow .18s ease,color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-pat-join:hover,.pf-pat-deploy-red:hover{
+  transform:translateY(-1px); box-shadow:0 8px 24px rgba(193,18,31,.35);
+}
+.pf-pat-join:active,.pf-pat-deploy-red:active{
+  transform:translateY(1px); box-shadow:none;
+}
+.pf-pat-deploy{transition:color .18s ease;}
+.pf-pat-report{transition:color .18s ease,text-decoration-color .18s ease;}
+/* ---- P4: fluid data figure ---- */
+.pf-pat-data-fig{font-size:clamp(2.25rem,9vw,2.75rem);}
+/* ---- P6: action bar — smooth taps + gold focus ---- */
+.pf-pat-actions a{transition:color .18s ease,background .18s ease;-webkit-tap-highlight-color:transparent;}
+.pf-pat-actions a:active{background:rgba(193,18,31,.12);}
+.pf-pat-actions a:focus-visible,.pf-pat-join:focus-visible,.pf-pat-deploy-red:focus-visible,
+.pf-pat-report:focus-visible,.pf-pat-textlink:focus-visible{
+  outline:2px solid #e8b923; outline-offset:2px;
+}
+/* ---- P5: ring rows stay crisp ---- */
+.pf-pat-ring{-webkit-tap-highlight-color:transparent;}
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion:reduce){
+  .pf-pat-join,.pf-pat-deploy-red,.pf-pat-intel,.pf-pat-actions a{transition:none;}
+}

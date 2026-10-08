@@ -550,49 +550,93 @@
     var area = (snap.area && snap.area.coarse_area) || '';
     var hl = (doc.highlights || [])[0];
     var card = (hl && snap.cards && snap.cards[hl]) || {};
-    /* Light paper. */
+    /* ---- butter: editorial paper (factgen standard, light variant) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btInk='#1a1814', btM='#8a8474', btF='#a89a7d';
     x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    var btVg = x.createRadialGradient(W/2, H*0.42, H*0.18, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(60,40,20,0.14)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
     x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeStyle = btR; x.lineWidth = 8; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 1.5;
     x.strokeRect(100, 100, W - 200, H - 200);
-    x.setLineDash([]);
     x.textAlign = 'center';
     var y = 210;
-    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced red */
+    x.fillStyle = btR; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('\u2605 MY TOWN REPORT \u2605', W / 2, y); y += 78;
-    x.fillStyle = '#1a1814'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 52;
+    x.strokeStyle = 'rgba(193,18,31,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 72;
+    /* title: monumental serif, ink */
+    x.fillStyle = btInk; x.font = '900 62px Georgia,"Times New Roman",serif';
     wrap(x, 'THIS IS MY TOWN: ' + zip, W - 260).slice(0, 2).forEach(function (l) {
-      x.fillText(l, W / 2, y); y += 74;
+      x.fillText(l, W / 2, y); y += 76;
     });
-    y += 6;
-    x.fillStyle = '#8a8474'; x.font = '700 32px Arial,sans-serif';
+    y += 12;
+    x.fillStyle = btM; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     wrap(x, String(area).toUpperCase() + (doc.author_callsign ? '  ·  BY ' + String(doc.author_callsign).toUpperCase() : ''), W - 280)
       .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    try { x.letterSpacing = '0px'; } catch (e4) {}
     y += 30;
-    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 56;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W/2 - 190, y); x.lineTo(W/2 - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(W/2 + 26, y); x.lineTo(W/2 + 190, y); x.stroke();
+    x.save(); x.translate(W/2, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 68;
     /* The user's highlight — a sourced number, clearly the town data. */
     if (card.live && card.headline) {
-      x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
-      x.fillText(String(card.headline).slice(0, 40), W / 2, y); y += 54;
-      x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
-      x.fillText(String(CARD_LABELS[hl] || hl || '').toUpperCase().slice(0, 60), W / 2, y); y += 66;
+      /* the figure: monumental red gradient, drop shadow */
+      x.font = '900 84px Georgia,"Times New Roman",serif';
+      var btFig = String(card.headline).slice(0, 40);
+      x.fillStyle = 'rgba(0,0,0,0.25)';
+      x.fillText(btFig, W/2 + 4, y + 5);
+      var btFg2 = x.createLinearGradient(0, y - 84, 0, y);
+      btFg2.addColorStop(0, '#e63946'); btFg2.addColorStop(1, btRD);
+      x.fillStyle = btFg2;
+      x.fillText(btFig, W / 2, y); y += 58;
+      x.fillStyle = btM; x.font = '700 28px Arial,sans-serif';
+      try { x.letterSpacing = '4px'; } catch (e5) {}
+      x.fillText(String(CARD_LABELS[hl] || hl || '').toUpperCase().slice(0, 60), W / 2, y);
+      try { x.letterSpacing = '0px'; } catch (e6) {}
+      y += 70;
     }
     /* The user's title — clearly user content. */
-    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    x.fillStyle = btInk; x.font = 'italic 700 44px Georgia,serif';
     wrap(x, '\u201C' + String(doc.title || '').slice(0, 160) + '\u201D', W - 280).slice(0, 4).forEach(function (l) {
       x.fillText(l, W / 2, y); y += 60;
     });
     y += 30;
-    x.fillStyle = '#8a8474'; x.font = '700 28px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 28px Georgia,serif';
     x.fillText('\u2014 a neighbor\u2019s words, not the newsroom', W / 2, y);
-    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
-    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
-    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 165);
-    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 235;
+    x.strokeStyle = 'rgba(193,18,31,0.4)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 62;
+    x.fillStyle = btR; x.font = '900 56px Arial,sans-serif';
+    try { x.letterSpacing = '6px'; } catch (e7) {}
+    x.fillText('JOIN THE FIGHT.', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    fy += 62;
+    x.fillStyle = btInk; x.font = '900 42px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e9) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e10) {}
+    x.fillStyle = btM; x.font = '400 28px Arial,sans-serif';
     x.fillText('mtcstw.com/town-report?id=' + String(doc.id || '').slice(0, 40), W / 2, H - 105);
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 

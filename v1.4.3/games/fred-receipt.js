@@ -246,48 +246,102 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 92;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 110;
     x.textAlign = 'center';
-    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('CHECK THE RECEIPTS \u00B7 TWO NUMBERS, TWO METHODS', cx, y); y += 70;
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 36;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 70;
     /* official panel (left) */
     x.textAlign = 'left';
     x.fillStyle = '#10141a'; x.fillRect(60, y, 460, 300);
-    x.fillStyle = '#9fc0e8'; x.font = '900 26px Arial,sans-serif';
+    x.strokeStyle = 'rgba(159,192,232,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(60, y, 460, 300);
+    x.fillStyle = '#9fc0e8'; x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     x.fillText('OFFICIAL', 90, y + 44);
-    x.fillStyle = '#cfe0f5'; x.font = '900 72px Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    x.fillStyle = '#cfe0f5'; x.font = '900 70px Georgia,"Times New Roman",serif';
     x.fillText(off.fig || '—', 90, y + 140);
-    x.fillStyle = '#8a8271'; x.font = '400 22px Arial,sans-serif';
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 22px Georgia,serif';
     var ol = wrapText(x, off.cite || '', 400);
     for (var i = 0; i < ol.length && i < 3; i++) x.fillText(ol[i], 90, y + 180 + i * 30);
     /* people's panel (right) */
     x.fillStyle = '#1a100d'; x.fillRect(560, y, 460, 300);
-    x.fillStyle = '#f0a080'; x.font = '900 26px Arial,sans-serif';
+    x.strokeStyle = 'rgba(240,160,128,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(560, y, 460, 300);
+    x.fillStyle = '#f0a080'; x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e5) {}
     x.fillText('PEOPLE\u2019S', 590, y + 44);
-    x.fillStyle = '#f5cfae'; x.font = '900 72px Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    x.fillStyle = '#f5cfae'; x.font = '900 70px Georgia,"Times New Roman",serif';
     x.fillText(ppl.fig || '—', 590, y + 140);
-    x.fillStyle = '#8a8271'; x.font = '400 22px Arial,sans-serif';
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 22px Georgia,serif';
     var pl2 = wrapText(x, ppl.src || '', 400);
     for (var p2 = 0; p2 < pl2.length && p2 < 3; p2++) x.fillText(pl2[p2], 590, y + 180 + p2 * 30);
     y += 350;
     /* gap line + methodology */
     x.textAlign = 'center';
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    x.fillStyle = btC; x.font = 'italic 700 34px Georgia,serif';
     var gl = wrapText(x, gapText || '', W - 140);
-    for (var g2 = 0; g2 < gl.length && g2 < 3; g2++) { x.fillText(gl[g2], cx, y); y += 44; }
-    y += 16;
-    x.fillStyle = '#8a8271'; x.font = 'italic 400 24px Arial,sans-serif';
+    for (var g2 = 0; g2 < gl.length && g2 < 3; g2++) { x.fillText(gl[g2], cx, y); y += 46; }
+    y += 14;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx - 22, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 22, y); x.lineTo(cx + 150, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-7, -7, 14, 14); x.restore();
+    y += 44;
+    x.fillStyle = btM; x.font = 'italic 400 24px Georgia,serif';
     var ml = wrapText(x, GAP_METHOD, W - 140);
     for (var m2 = 0; m2 < ml.length && m2 < 4; m2++) { x.fillText(ml[m2], cx, y); y += 32; }
-    y += 40;
-    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
-    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 80;
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 58;
-    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', cx, y);
+    y += 30;
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e7) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e9) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e10) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 

@@ -204,63 +204,96 @@ function dl(url,name){
   var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },600);
 }
 
+/* BUTTER PASS (2026-10-07): editorial paint kit shared by the enlistment
+   painters. Visual-only — callsign slicing, dates, share plumbing untouched. */
+function butterGround900(x){
+  var bg=x.createLinearGradient(0,0,0,1200);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  x.fillStyle=bg;x.fillRect(0,0,900,1200);
+  var vg=x.createRadialGradient(450,400,80,450,600,760);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  x.fillStyle=vg;x.fillRect(0,0,900,1200);
+  var rh=x.createLinearGradient(0,0,900,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh;x.fillRect(72,34,756,5);
+  x.strokeStyle="#33302a";x.lineWidth=2;x.strokeRect(60,56,780,1088);
+}
+function butterGround1080(x){
+  var bg=x.createLinearGradient(0,0,0,1350);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  x.fillStyle=bg;x.fillRect(0,0,1080,1350);
+  var vg=x.createRadialGradient(540,440,90,540,675,830);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  x.fillStyle=vg;x.fillRect(0,0,1080,1350);
+  var rh=x.createLinearGradient(0,0,1080,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh;x.fillRect(90,40,900,6);
+  x.strokeStyle="#33302a";x.lineWidth=2;x.strokeRect(56,64,968,1222);
+}
+function butterTrack(x,t,cx,cy,ls){var chs=String(t).split(""),ws=[],tot=0,i,w;
+  for(i=0;i<chs.length;i++){w=x.measureText(chs[i]).width;ws.push(w);tot+=w;}
+  tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=x.textAlign;x.textAlign="left";
+  for(i=0;i<chs.length;i++){x.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}x.textAlign=pa;}
+var SERIF='Georgia,"Times New Roman",serif';
 function drawCert(cs){
   var c=mkCanvas(900,1200), x=c.getContext("2d");
-  x.fillStyle="#0d0d0d"; x.fillRect(0,0,900,1200);
-  x.strokeStyle="#c1121f"; x.lineWidth=12; x.strokeRect(30,30,840,1140);
-  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(60,60,780,1080);
+  butterGround900(x);
   x.textAlign="center";
-  x.fillStyle="#c1121f"; x.font="900 64px 'Arial Black',Arial,sans-serif";
-  x.fillText("ENLISTMENT",450,220); x.fillText("PAPERS",450,300);
-  x.fillStyle="#f5ead6"; x.font="28px Arial,sans-serif";
-  x.fillText("THE PROPAGANDA FACTORY",450,380);
-  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
-  x.fillText("This certifies that",450,480);
-  x.fillStyle="#f5ead6"; x.font="900 64px 'Arial Black',Arial,sans-serif";
-  x.fillText((cs||"RECRUIT").slice(0,16),450,600);
-  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
-  x.fillText("has enlisted in the",450,680);
-  x.fillStyle="#c1121f"; x.font="900 40px 'Arial Black',Arial,sans-serif";
-  x.fillText("SICK LEFT RADICALS",450,740);
-  x.fillStyle="#c9bfa8"; x.font="22px Arial,sans-serif";
-  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,830);
-  x.fillText("Rank: RECRUIT",450,880);
-  x.strokeStyle="#c1121f"; x.lineWidth=2;
-  x.beginPath(); x.moveTo(250,1000); x.lineTo(650,1000); x.stroke();
-  x.fillStyle="#f5ead6"; x.font="20px Arial,sans-serif";
-  x.fillText("MTCSTW — NETWORK COMMAND",450,1040);
-  x.fillStyle="#c1121f"; x.font="900 26px 'Arial Black',Arial,sans-serif";
-  x.fillText("JOIN THE FIGHT.",450,1095);
+  x.fillStyle="#c9bfa8"; x.font="700 26px Arial,sans-serif";
+  butterTrack(x,"THE PROPAGANDA FACTORY",450,150,9);
+  x.fillStyle="#c1121f"; x.font="bold 72px "+SERIF;
+  x.fillText("ENLISTMENT",450,290); x.fillText("PAPERS",450,378);
+  x.strokeStyle="#c1121f"; x.lineWidth=3;
+  x.beginPath(); x.moveTo(330,420); x.lineTo(570,420); x.stroke();
+  x.fillStyle="#c9bfa8"; x.font="italic 400 30px "+SERIF;
+  x.fillText("This certifies that",450,500);
+  x.fillStyle="#f5ead6"; x.font="bold 68px "+SERIF;
+  x.fillText((cs||"RECRUIT").slice(0,16),450,620);
+  x.fillStyle="#c9bfa8"; x.font="italic 400 30px "+SERIF;
+  x.fillText("has enlisted in the",450,700);
+  x.fillStyle="#c1121f"; x.font="bold 44px "+SERIF;
+  x.fillText("SICK LEFT RADICALS",450,766);
+  x.fillStyle="#8a8271"; x.font="400 26px Arial,sans-serif";
+  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,850);
+  x.fillStyle="#c9bfa8"; x.font="700 28px Arial,sans-serif";
+  butterTrack(x,"RANK: RECRUIT",450,900,6);
+  x.strokeStyle="#5a5344"; x.lineWidth=2;
+  x.beginPath(); x.moveTo(250,990); x.lineTo(650,990); x.stroke();
+  x.fillStyle="#c9bfa8"; x.font="700 22px Arial,sans-serif";
+  butterTrack(x,"MTCSTW \u2014 NETWORK COMMAND",450,1030,5);
+  x.fillStyle="#c1121f"; x.font="900 30px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT.",450,1090);
   return c.toDataURL("image/png");
 }
 function drawPoster(n,cs){
   var c=mkCanvas(1080,1350), x=c.getContext("2d");
-  x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);
-  x.strokeStyle="#c1121f"; x.lineWidth=20; x.strokeRect(40,40,1000,1270);
+  butterGround1080(x);
   x.textAlign="center";
   var name=(cs||"AGITATOR").slice(0,18);
   if(n===0){
-    x.font="900 118px 'Arial Black',Arial,sans-serif";
+    x.font="bold 112px "+SERIF;
     x.fillStyle="#c1121f"; x.fillText("AGITATE",540,480);
     x.fillStyle="#f5ead6"; x.fillText("EDUCATE",540,640);
     x.fillStyle="#c1121f"; x.fillText("ORGANIZE",540,800);
   } else if(n===1){
-    x.font="900 96px 'Arial Black',Arial,sans-serif";
+    x.font="bold 90px "+SERIF;
     x.fillStyle="#f5ead6"; x.fillText("ANOTHER BRICK",540,420);
     x.fillText("IN THEIR WALL.",540,545);
     x.fillStyle="#c1121f"; x.fillText("WE'RE TAKING",540,720);
     x.fillText("IT APART.",540,845);
   } else {
-    x.fillStyle="#c1121f"; x.font="900 150px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#c1121f"; x.font="bold 148px "+SERIF;
     x.fillText("8M+",540,450);
-    x.fillStyle="#f5ead6"; x.font="900 84px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#f5ead6"; x.font="bold 80px "+SERIF;
     x.fillText("NETWORK",540,585); x.fillText("REACH",540,695);
-    x.fillStyle="#c9bfa8"; x.font="36px Arial,sans-serif";
+    x.fillStyle="#c9bfa8"; x.font="italic 400 38px "+SERIF;
     x.fillText("You are the media now.",540,820);
   }
-  x.fillStyle="#c1121f"; x.fillRect(140,1060,800,6);
-  x.fillStyle="#f5ead6"; x.font="900 44px 'Arial Black',Arial,sans-serif";
-  x.fillText(name+" — AGITATOR CLASS",540,1150);
+  var rh2=x.createLinearGradient(0,0,1080,0);
+  rh2.addColorStop(0,"rgba(193,18,31,0)");rh2.addColorStop(0.5,"#c1121f");rh2.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh2; x.fillRect(140,1060,800,5);
+  x.fillStyle="#f5ead6"; x.font="700 42px Arial,sans-serif";
+  butterTrack(x,name+" \u2014 AGITATOR CLASS",540,1150,6);
   x.fillStyle="#c1121f"; x.font="900 32px 'Arial Black',Arial,sans-serif";
   x.fillText("JOIN THE FIGHT AT MTCSTW.COM",540,1215);
   return c.toDataURL("image/png");
@@ -270,13 +303,13 @@ function drawFrame(){
   x.clearRect(0,0,512,512);
   x.strokeStyle="#c1121f"; x.lineWidth=26;
   x.beginPath(); x.arc(256,256,228,0,Math.PI*2); x.stroke();
-  x.strokeStyle="#ff5a00"; x.lineWidth=8;
+  x.strokeStyle="#e8b923"; x.lineWidth=8;
   x.beginPath(); x.arc(256,256,198,0,Math.PI*2); x.stroke();
   x.textAlign="center";
-  x.fillStyle="#c1121f"; x.font="900 46px 'Arial Black',Arial,sans-serif";
+  x.fillStyle="#c1121f"; x.font="bold 46px "+SERIF;
   x.fillText("SLR",256,62);
-  x.fillStyle="#f5ead6"; x.font="900 40px 'Arial Black',Arial,sans-serif";
-  x.fillText("OPERATIVE",256,482);
+  x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
+  butterTrack(x,"OPERATIVE",256,482,8);
   return c.toDataURL("image/png");
 }
 function doUnlock(id,cs){

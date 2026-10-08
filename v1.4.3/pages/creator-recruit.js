@@ -130,22 +130,44 @@
       x.font = font; x.fillStyle = fill; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
       x.fillText(t, W / 2, y);
     }
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = RED; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = CREAM; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btG = '#c9a227';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, RED); btBar.addColorStop(1, '#7d0b16');
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = CREAM;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
 
-    var y = 150;
-    center('\u2605 THE PROPAGANDA FACTORY \u2605', y, '700 34px Arial,sans-serif', CREAM);
-    y += 64;
-    center('SICK LEFT RADICALS', y, '700 30px Arial,sans-serif', RED);
-    y += 62;
+    var y = 140;
+    /* kicker: letterspaced gold */
+    x.save();
+    try { x.letterSpacing = '10px'; } catch (e) {}
+    center('THE PROPAGANDA FACTORY', y, '700 27px Arial,sans-serif', btG);
+    x.restore(); y += 40;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 66;
+    x.save();
+    try { x.letterSpacing = '8px'; } catch (e2) {}
+    center('SICK LEFT RADICALS', y, '700 28px Arial,sans-serif', RED);
+    x.restore(); y += 72;
 
     /* Creator name, red bold, up to 2 lines with auto-shrink so long names
        stay inside the frame instead of overflowing. */
     var nameUpper = String(member.name || 'A COMRADE').toUpperCase();
     var nameSize = 72, nameF = '', nameLines = [], nlh = 84;
     while (nameSize >= 44) {
-      nameF = '900 ' + nameSize + 'px "Arial Black",Arial,sans-serif';
+      nameF = '900 ' + nameSize + 'px Georgia,"Times New Roman",serif';
       nlh = Math.round(nameSize * 1.18);
       x.font = nameF;
       nameLines = wrap(x, nameUpper, W - 170, 2);
@@ -177,7 +199,7 @@
       } catch (e) { drawMonogram(); }
     } else { drawMonogram(); }
     function drawMonogram() {
-      x.fillStyle = RED; x.font = '900 ' + Math.round(PS * 0.38) + 'px "Arial Black",Arial,sans-serif';
+      x.fillStyle = RED; x.font = '900 ' + Math.round(PS * 0.38) + 'px Georgia,"Times New Roman",serif';
       x.textAlign = 'center'; x.textBaseline = 'middle';
       x.fillText(initials(member.name), W / 2, py + PS / 2);
       x.textBaseline = 'alphabetic';
@@ -190,29 +212,51 @@
     var labelF = '700 28px Arial,sans-serif';
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     var score = Number(member.propaganda_score || 0).toFixed(1) + '/10';
+    /* score: letterspaced label + monumental gold figure */
     x.font = labelF; x.fillStyle = MUTED;
-    var label = 'PROPAGANDA SCORE: ';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
+    var label = 'PROPAGANDA SCORE ';
     var lw = x.measureText(label).width;
-    var valF = '900 52px "Arial Black",Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    var valF = '900 56px Georgia,"Times New Roman",serif';
     x.font = valF;
     var vw = x.measureText(score).width;
     x.font = labelF; x.fillStyle = MUTED;
+    try { x.letterSpacing = '4px'; } catch (e5) {}
     x.fillText(label, W / 2 - (lw + vw) / 2 + lw / 2, y);
-    x.font = valF; x.fillStyle = RED;
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    x.font = valF;
+    var btGg = x.createLinearGradient(0, y - 56, 0, y);
+    btGg.addColorStop(0, '#f0d060'); btGg.addColorStop(1, '#8a6d1c');
+    x.fillStyle = btGg;
     x.fillText(score, W / 2 - (lw + vw) / 2 + lw + vw / 2, y + 6);
 
+    x.save();
+    try { x.letterSpacing = '4px'; } catch (e7) {}
     center(String(member.followers_display || '').toUpperCase() + ' FOLLOWERS', H - 304,
-      '900 42px "Arial Black",Arial,sans-serif', RED);
+      '900 40px Georgia,"Times New Roman",serif', RED);
+    x.restore();
 
-    /* Red bold CTA, then MTCSTW.COM branding. */
-    var cta = 'JOIN THE FIGHT.';
-    var ctaF = '900 40px "Arial Black",Arial,sans-serif';
-    x.font = ctaF;
-    var tw = x.measureText(cta).width + 110;
-    x.fillStyle = RED;
-    x.fillRect(W / 2 - tw / 2, H - 268, tw, 84);
-    center(cta, H - 214, ctaF, '#ffffff');
-    center('MTCSTW.COM', H - 128, '900 46px "Arial Black",Arial,sans-serif', RED);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 268;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(W - 120, fy); x.stroke();
+    fy += 58;
+    x.font = '900 40px Arial,sans-serif'; x.fillStyle = CREAM;
+    try { x.letterSpacing = '8px'; } catch (e8) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, W / 2, fy);
+    x.fillStyle = RED; x.fillText('.', W / 2 + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e9) {}
+    fy += 52;
+    x.fillStyle = RED; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e10) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e11) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, RED);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 

@@ -272,20 +272,31 @@
       var W=1080,H=1350,canvas=document.createElement('canvas');
       canvas.width=W;canvas.height=H;
       var x=canvas.getContext('2d');
-      x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
-      x.strokeStyle='#c1121f';x.lineWidth=14;x.strokeRect(28,28,W-56,H-56);
-      x.lineWidth=3;x.strokeRect(58,58,W-116,H-116);
+      /* BUTTER PASS (2026-10-07): editorial ground, visual-only. */
+      var vbg=x.createLinearGradient(0,0,0,H);
+      vbg.addColorStop(0,'#131316');vbg.addColorStop(0.5,'#0a0a0c');vbg.addColorStop(1,'#060607');
+      x.fillStyle=vbg;x.fillRect(0,0,W,H);
+      var vvg=x.createRadialGradient(W/2,H*0.3,90,W/2,H/2,H*0.62);
+      vvg.addColorStop(0,'rgba(245,234,214,0.035)');vvg.addColorStop(1,'rgba(0,0,0,0.32)');
+      x.fillStyle=vvg;x.fillRect(0,0,W,H);
+      var vrh=x.createLinearGradient(0,0,W,0);
+      vrh.addColorStop(0,'rgba(193,18,31,0)');vrh.addColorStop(0.5,'#c1121f');vrh.addColorStop(1,'rgba(193,18,31,0)');
+      x.fillStyle=vrh;x.fillRect(W*0.08,52,W*0.84,5);
+      x.strokeStyle='#33302a';x.lineWidth=2;x.strokeRect(58,72,W-116,H-144);
       var cx=W/2;
-      function ct(t,y,size,color,weight,ls){
+      /* BUTTER PASS: ct() paints serif headlines by default; pass serif=0
+         for letterspaced sans authority labels. */
+      function ct(t,y,size,color,weight,ls,serif){
         x.fillStyle=color;
-        x.font=weight+' '+size+'px "Arial Black",Arial,sans-serif';
+        x.font=(serif===0)?(weight+' '+size+'px Arial,sans-serif'):('bold '+size+'px Georgia,"Times New Roman",serif');
         x.textAlign='center';x.textBaseline='middle';
         try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
         x.fillText(t,cx,y);
         try{ x.letterSpacing='0px'; }catch(e){}
       }
       function wrap(t,maxW,size){
-        x.font='900 '+size+'px "Arial Black",Arial,sans-serif';
+        /* measure in the serif headline family so paint matches measure */
+        x.font='bold '+size+'px Georgia,"Times New Roman",serif';
         var words=String(t).split(' '),lines=[],cur='',i,trial;
         for(i=0;i<words.length;i++){
           trial=cur?cur+' '+words[i]:words[i];
@@ -295,8 +306,8 @@
         if(cur)lines.push(cur);
         return lines;
       }
-      ct('\\u2605 FAN VOTE \\u2605',150,54,'#c1121f','900',6);
-      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',228,34,'#f5ead6','900',8);
+      ct('\\u2605 FAN VOTE \\u2605',150,50,'#c1121f','700',8,0);
+      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',226,32,'#c9bfa8','700',10,0);
       /* Adaptive name size: shrink until the name fits maxLines. */
       var hasImg=!!VOTE_IMGS[c.slug];
       var maxLines=hasImg?2:3, nsize=72, lines=wrap(c.name.toUpperCase(),W-240,nsize), i;
@@ -316,14 +327,14 @@
           y=280+S+64;
         } else { y=372; }
         var ty=y+Math.round(lh/2);
-        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2); ty+=lh; }
+        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2,1); ty+=lh; }
         ty+=22;
-        ct('PROPAGANDIST OF THE WEEK',ty,40,'#c1121f','900',5); ty+=70;
-        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }
+        ct('PROPAGANDIST OF THE WEEK',ty,36,'#c1121f','700',7,0); ty+=70;
+        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,30,'#b8ab8e','700',5,0); ty+=62; }
         var footY=Math.min(Math.max(ty+44,H-200),H-128);
-        ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
-        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);
-        ct('VOTING ENDS SUNDAY',footY+102,24,'#b8ab8e','700',4);
+        ct('MTCSTW.COM',footY,40,'#f5ead6','700',10,0);
+        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4,0);
+        ct('VOTING ENDS SUNDAY',footY+102,22,'#8a8271','700',6,0);
         resolve(canvas);
       }
       if(hasImg){

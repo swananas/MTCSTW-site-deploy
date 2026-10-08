@@ -719,27 +719,45 @@ function renderPatrons(){
     if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
   });
 }
-/* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
+/* Boost share card: 1080x1350 propaganda card for cross-platform pumping.
+   BUTTER PASS (2026-10-07): editorial restyle, visual-only — data fields
+   (b.signal, b.tipped, signalRate(), entry.name) and share plumbing untouched. */
 function drawBoostCard(){
   var b=boostRec(); if(!b) return null;
   var entry=rosterBySlug(b.creator)||{name:b.creator};
   var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
   var ctx=cv.getContext("2d");
-  ctx.fillStyle="#0d0d0d"; ctx.fillRect(0,0,1080,1350);
-  ctx.fillStyle="#c1121f"; ctx.fillRect(0,0,1080,26); ctx.fillRect(0,1324,1080,26);
-  ctx.textAlign="center"; ctx.fillStyle="#f5f0e1";
-  ctx.font="bold 64px Arial"; ctx.fillText("I BOOSTED",540,220);
-  ctx.fillStyle="#ff5a00"; ctx.font="bold 88px Arial";
-  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,340+i*100); });
-  ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
-  ctx.fillText(b.signal+" SIGNAL",540,640);
-  ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
-  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,730);
-  ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
-  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
-  ctx.fillStyle="#c1121f"; ctx.font="bold 44px Arial";
-  ctx.fillText("MTCSTW.COM",540,1180);
-  ctx.font="bold 40px Arial";
+  /* ink-black editorial ground */
+  var bg=ctx.createLinearGradient(0,0,0,1350);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+  var vg=ctx.createRadialGradient(540,440,90,540,675,830);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  ctx.fillStyle=vg;ctx.fillRect(0,0,1080,1350);
+  var rh=ctx.createLinearGradient(0,0,1080,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  ctx.fillStyle=rh;ctx.fillRect(90,26,900,6);ctx.fillRect(90,1318,900,6);
+  ctx.strokeStyle="#33302a";ctx.lineWidth=2;ctx.strokeRect(52,64,976,1222);
+  function tracked(t,cx,cy,ls){var chs=String(t).split(""),ws=[],tot=0,i,w;
+    for(i=0;i<chs.length;i++){w=ctx.measureText(chs[i]).width;ws.push(w);tot+=w;}
+    tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=ctx.textAlign;ctx.textAlign="left";
+    for(i=0;i<chs.length;i++){ctx.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}ctx.textAlign=pa;}
+  ctx.textAlign="center";ctx.fillStyle="#c9bfa8";
+  ctx.font="700 30px Arial,sans-serif";
+  tracked("\u2605 DAILY ORDERS \u2605",540,150,8);
+  ctx.fillStyle="#f5ead6";ctx.font="700 40px Arial,sans-serif";
+  tracked("I BOOSTED",540,240,14);
+  ctx.fillStyle="#c1121f";ctx.font="bold 84px Georgia,'Times New Roman',serif";
+  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,352+i*96); });
+  ctx.fillStyle="#f5ead6";ctx.font="bold 110px Georgia,'Times New Roman',serif";
+  ctx.fillText(b.signal+" SIGNAL",540,652);
+  ctx.font="700 34px Arial,sans-serif";ctx.fillStyle="#e8b923";
+  tracked(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,736,4);
+  ctx.fillStyle="#c9bfa8";ctx.font="italic 400 36px Georgia,'Times New Roman',serif";
+  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,890+i*54); });
+  ctx.fillStyle="#f5ead6";ctx.font="700 36px Arial,sans-serif";
+  tracked("MTCSTW.COM",540,1180,12);
+  ctx.fillStyle="#c1121f";ctx.font="bold 40px Arial";
   ctx.fillText("JOIN THE FIGHT.",540,1236);
   return cv;
 }

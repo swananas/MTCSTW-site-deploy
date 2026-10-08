@@ -141,35 +141,89 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 110;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 120;
     x.textAlign = 'center';
-    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('YOUR MONEY, EXPLAINED \u00B7 FRED', cx, y); y += 90;
-    x.fillStyle = '#f5ead6'; x.font = '900 64px Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 40;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 84;
+    /* headline: monumental serif */
+    x.fillStyle = btC; x.font = '900 62px Georgia,"Times New Roman",serif';
     var fl = wrapText(x, (j.figure && j.figure.headline) || '', W - 140);
     for (var i = 0; i < fl.length && i < 3; i++) { x.fillText(fl[i], cx, y); y += 74; }
-    y += 30;
-    /* takeaway: beat 4, first sentence */
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(cx - 190, y); x.lineTo(cx - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 26, y); x.lineTo(cx + 190, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-8, -8, 16, 16); x.restore();
+    y += 62;
+    /* takeaway: beat 4, first sentence — quiet serif */
     var b4 = '';
     (j.beats || []).forEach(function (b) { if (b.n === 4) b4 = b.text; });
     b4 = String(b4).split(/\. /)[0] + '.';
-    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 32px Georgia,serif';
     var tl = wrapText(x, b4, W - 160);
-    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 42; }
-    y += 40;
-    x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 44; }
+    y += 36;
+    /* source citation: hairline box with the real figure citation */
+    x.font = '700 22px Arial,sans-serif';
+    try { x.letterSpacing = '3px'; } catch (e3) {}
     var cite = (j.figure && j.figure.citation) || '';
-    var cl = wrapText(x, cite, W - 160);
-    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, y); y += 32; }
-    y += 24;
-    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
-    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 90;
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 58;
-    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', cx, y);
+    var cl = wrapText(x, cite, W - 220);
+    var srcH = Math.min(cl.length, 2) * 34 + 44;
+    var sy = y;
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(cx - (W - 200)/2, sy, W - 200, srcH);
+    x.fillStyle = btC;
+    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, sy + 40 + c2 * 34); }
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y = sy + srcH + 44;
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e5) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 

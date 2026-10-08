@@ -702,6 +702,15 @@ function drawRecruitPoster(c){
     return lines.slice(0,maxLines||2);
   }
   x.fillStyle=pal.bg; x.fillRect(0,0,W,H);
+  /* ---- butter: pinstripe + vignette over the cell palette ---- */
+  x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+  for(var btD=-H; btD<W+H; btD+=26){
+    x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+  }
+  x.restore();
+  var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+  btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.45)");
+  x.fillStyle=btVg; x.fillRect(0,0,W,H);
   /* Prestige frame (G9): prestiged cells get an outer band in the derived
      primary, over the standard double frame. */
   var pr=(c&&c.prestige)||null,
@@ -710,50 +719,81 @@ function drawRecruitPoster(c){
   x.strokeStyle=pal.primary; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
   x.strokeStyle=pal.cream; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
   var y=118;
-  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif",pal.primary); y+=76;
-  var nameF='900 82px "Arial Black",Arial,sans-serif';
+  /* kicker: letterspaced */
+  x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+  center("THE PROPAGANDA FACTORY",y,"700 30px Arial,sans-serif",pal.primary);
+  x.restore(); y+=58;
+  x.strokeStyle=pal.primary; x.globalAlpha=0.5; x.lineWidth=1;
+  x.beginPath(); x.moveTo(430,y); x.lineTo(650,y); x.stroke();
+  x.globalAlpha=1; y+=66;
+  /* cell name: monumental serif in the cell's primary */
+  var nameF='900 82px Georgia,"Times New Roman",serif';
   wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
-    center(l,y,nameF,pal.primary); y+=96; });
-  y+=18;
+    center(l,y,nameF,pal.primary); y+=98; });
+  y+=14;
   /* VERIFIED check (G9): verified cells carry the mark on the poster. */
   if(c&&c.verified){
-    var vt="\u2713 VERIFIED";
-    x.font="700 34px Arial,sans-serif";
-    var vw=x.measureText(vt).width+64;
+    var vt="✓ VERIFIED";
+    x.font="700 32px Arial,sans-serif";
+    try{ x.letterSpacing="4px"; }catch(e){}
+    var vw=x.measureText(vt).width+72;
+    try{ x.letterSpacing="0px"; }catch(e){}
     x.fillStyle=pal.bg; x.fillRect(W/2-vw/2,y-44,vw,64);
-    x.strokeStyle=pal.primary; x.lineWidth=4; x.strokeRect(W/2-vw/2,y-44,vw,64);
-    center(vt,y,"700 34px Arial,sans-serif",pal.primary); y+=72;
+    x.strokeStyle=pal.primary; x.lineWidth=3; x.strokeRect(W/2-vw/2,y-44,vw,64);
+    x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+    center(vt,y,"700 32px Arial,sans-serif",pal.primary);
+    x.restore(); y+=72;
   }
-  var tagF="700 34px Arial,sans-serif";
-  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
-    center(l,y,tagF,pal.cream); y+=48; });
+  var tagF='italic 400 34px Georgia,"Times New Roman",serif';
+  wrapLines("Five callsigns. One streak. Nobody left behind.",tagF,W-190,2).forEach(function(l){
+    center(l,y,tagF,pal.cream); y+=50; });
   var streak=Number(c.streak)||0;
   y+=26;
-  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',pal.primary); y+=74;
+  x.save(); try{ x.letterSpacing="3px"; }catch(e){}
+  center("⚡ "+streak+"-DAY STREAK ⚡",y,"700 36px Arial,sans-serif",pal.primary);
+  x.restore(); y+=74;
   /* Prestige tier banner (G9). */
   if(pTier){
-    center("\u25C6 "+pTier+" \u25C6",y,"700 34px Arial,sans-serif",pal.primary); y+=56;
+    x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+    center("◆ "+pTier+" ◆",y,"700 32px Arial,sans-serif",pal.primary);
+    x.restore(); y+=56;
   }
-  center("INVITE CODE",y,"700 30px Arial,sans-serif",pal.muted); y+=16;
+  x.save(); try{ x.letterSpacing="6px"; }catch(e){}
+  center("INVITE CODE",y,"700 28px Arial,sans-serif",pal.muted);
+  x.restore(); y+=18;
   var code=String(c.invite_code||"").toUpperCase()||"???";
-  x.strokeStyle=pal.primary; x.lineWidth=6;
+  x.strokeStyle=pal.primary; x.lineWidth=4;
   x.strokeRect(W/2-280,y,560,150);
   x.fillStyle=pal.box; x.fillRect(W/2-280,y,560,150);
-  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',pal.primary);
+  center(code,y+106,'900 92px Georgia,"Times New Roman",serif',pal.primary);
   y+=150+52;
-  var lnF="400 34px Arial,sans-serif";
+  var lnF='400 32px Georgia,"Times New Roman",serif';
   wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,pal.muted); y+=50; });
+    center(l,y,lnF,pal.muted); y+=48; });
   wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,pal.muted); y+=50; });
-  y+=44;
+    center(l,y,lnF,pal.muted); y+=48; });
+  y+=40;
+  /* CTA plate: letterspaced cream on the cell's primary */
   var cta="JOIN MY CELL";
-  x.font='900 44px "Arial Black",Arial,sans-serif';
-  var tw=x.measureText(cta).width+110;
+  x.font="900 40px Arial,sans-serif";
+  try{ x.letterSpacing="4px"; }catch(e){}
+  var tw=x.measureText(cta).width+120;
+  try{ x.letterSpacing="0px"; }catch(e){}
   x.fillStyle=pal.primary; x.fillRect(W/2-tw/2,y-58,tw,94);
-  center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
-  y=H-160;
-  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',pal.primary);
+  x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+  center(cta,y+6,"900 40px Arial,sans-serif","#ffffff");
+  x.restore();
+  /* butter footer: hairline + CTA standard in the cell palette */
+  y=H-168;
+  x.strokeStyle=pal.primary; x.globalAlpha=0.55; x.lineWidth=1;
+  x.beginPath(); x.moveTo(140,y); x.lineTo(940,y); x.stroke();
+  x.globalAlpha=1; y+=54;
+  x.save(); try{ x.letterSpacing="6px"; }catch(e){}
+  center("JOIN THE FIGHT.",y,"900 38px Arial,sans-serif",pal.primary);
+  x.restore(); y+=52;
+  x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+  center("MTCSTW.COM",y,"900 30px Arial,sans-serif",pal.primary);
+  x.restore();
   return cv;
 }
 function renderCell(el,s){

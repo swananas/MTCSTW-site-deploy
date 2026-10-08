@@ -170,15 +170,33 @@
     cv.width = W; cv.height = H;
     return cv;
   }
+  /* BUTTER PASS (2026-10-07): editorial ground — ink-black gradient,
+     soft top-light vignette, red gradient hairline. Visual-only. */
+  var BUTTER_SERIF = 'Georgia,"Times New Roman",serif';
+  function butterRedHair(x, y, inset, hgt) {
+    var rg = x.createLinearGradient(0, 0, W, 0);
+    rg.addColorStop(0, 'rgba(193,18,31,0)'); rg.addColorStop(0.5, '#c1121f'); rg.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rg; x.fillRect(inset || 86, y, W - 2 * (inset || 86), hgt || 5);
+  }
   function base(x) {
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    var vg = x.createRadialGradient(W / 2, H * 0.3, 90, W / 2, H / 2, H * 0.62);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0, 0, W, H);
+    butterRedHair(x, 32, 86, 5);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(52, 52, W - 104, H - 104);
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
   }
   function kicker(x) {
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, 160);
+    /* letterspaced authority masthead with flanking red diamonds */
+    x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
+    var tw = spaced(x, 'THE PROPAGANDA FACTORY', W / 2, 140, 10);
+    x.fillStyle = '#c1121f';
+    [[W / 2 - tw / 2 - 48, 140], [W / 2 + tw / 2 + 48, 140]].forEach(function (pp) {
+      x.save(); x.translate(pp[0], pp[1] - 9); x.rotate(Math.PI / 4); x.fillRect(-7, -7, 14, 14); x.restore();
+    });
   }
   /* Manual letterspacing (canvas letterSpacing isn't universal): draws each
      char centered as a whole, returns total width for the rule lines. */
@@ -195,23 +213,31 @@
   function badge(x, text, y, color, px) {
     x.fillStyle = color || '#f5ead6';
     x.font = '700 ' + (px || 40) + 'px Arial,sans-serif';
-    var tw = spaced(x, text, W / 2, y, 6);
+    var tw = spaced(x, text, W / 2, y, 8);
     x.fillStyle = '#c1121f';
-    x.fillRect(W / 2 - tw / 2 - 20, y - 58, tw + 40, 3);
-    x.fillRect(W / 2 - tw / 2 - 20, y + 24, tw + 40, 3);
+    x.fillRect(W / 2 - tw / 2 - 22, y - 58, tw + 44, 3);
+    x.fillRect(W / 2 - tw / 2 - 22, y + 24, tw + 44, 3);
   }
   /* Shrink-to-fit for single-line display type: steps down from base px to
      min px until the text fits maxW. */
+  /* BUTTER PASS: fitFont paints display type in the serif headline
+     family (900-weight calls); 400/700-weight calls stay tracked sans. */
   function fitFont(x, text, basePx, minPx, maxW, weight) {
-    var s = basePx;
-    var fam = (weight || '900') + ' ' + s + 'px "Arial Black",Arial,sans-serif';
-    x.font = fam;
+    var s = basePx, w = weight || '900';
+    var serif = /^9/.test(w);
+    var setF = function (sz) {
+      x.font = serif ? ('bold ' + sz + 'px ' + BUTTER_SERIF)
+                     : (w + ' ' + sz + 'px Arial,sans-serif');
+    };
+    setF(s);
     while (s > minPx && x.measureText(text).width > maxW) {
       s -= 4;
-      x.font = (weight || '900') + ' ' + s + 'px "Arial Black",Arial,sans-serif';
+      setF(s);
     }
     return s;
   }
+  /* serif headline setter for direct (non-fit) hero lines */
+  function headFont(x, px) { x.font = 'bold ' + px + 'px ' + BUTTER_SERIF; }
   /* Callsign strip. Returns the next y (unchanged when skipped). Paints
      nothing when no callsign is claimed — never a blank stamp. */
   function csLine(cv, x, y, cs) {
@@ -241,15 +267,18 @@
      variant (white on red button) per the standing CTA standard. */
   function bottomStack(x, ctaMode) {
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText(DEEP, W / 2, H - 128);
+    var fg = x.createLinearGradient(0, 0, W, 0);
+    fg.addColorStop(0, 'rgba(201,191,168,0)'); fg.addColorStop(0.5, '#5a5344'); fg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = fg; x.fillRect(172, H - 208, W - 344, 2);
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    spaced(x, DEEP, W / 2, H - 158, 8);
     if (ctaMode === 'cell') {
       button(x, 'JOIN MY CELL / BUILD YOUR CELL', H - 84, 42);
     } else {
       x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
       x.fillText('JOIN THE FIGHT.', W / 2, H - 84);
     }
-    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillStyle = '#8a8271'; x.font = '400 28px Arial,sans-serif';
     x.fillText(dateStr(), W / 2, H - 48);
   }
   function monDate(ws) {
@@ -439,10 +468,10 @@
     var y = 396;
     x.fillStyle = '#c1121f';
     var tlh = 84;
-    x.font = '900 76px "Arial Black",Arial,sans-serif';
+    headFont(x, 76);
     var tl = wrap(x, String(d.title || 'UNTITLED CAMPAIGN').toUpperCase(), 910);
     if (tl.length > 2) { /* shrink 76 -> 64 before truncating (spec §5.4) */
-      x.font = '900 64px "Arial Black",Arial,sans-serif'; tlh = 74;
+      headFont(x, 64); tlh = 74;
       tl = wrap(x, String(d.title || 'UNTITLED CAMPAIGN').toUpperCase(), 910);
     }
     tl = tl.slice(0, 3);
@@ -482,7 +511,7 @@
       correct ? '#c1121f' : '#c9bfa8', 40);
     var cs = callsignOf();
     var y = 420;
-    x.fillStyle = '#f5ead6'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 64);
     wrap(x, String(d.statement || '—').toUpperCase(), 910).slice(0, 3)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 76; });
     /* Verdict stamp — the thumb-stopping headline of the card. */
@@ -529,7 +558,7 @@
     badge(x, 'MY CALL: LOCKED IN', 280, '#c1121f', 40);
     var cs = callsignOf();
     var y = 420;
-    x.fillStyle = '#f5ead6'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 64);
     wrap(x, String(d.billTitle || d.billId || '—').toUpperCase(), 910).slice(0, 3)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 76; });
     /* The call stamp — same rotated treatment as the resolution verdict. */
@@ -573,13 +602,13 @@
     var name = String(d.name || '—').toUpperCase();
     var sub = '(' + String(d.state || '—').toUpperCase() + '-' + String(d.party || '—').toUpperCase() + ')';
     var y = 420;
-    x.fillStyle = '#f5ead6'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 64);
     wrap(x, name + ' ' + sub, 910).slice(0, 2)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 76; });
     /* The grade — biggest element on the card. F/D red, C gold, B/A cream. */
     var g = String(d.grade || '—').toUpperCase().charAt(0);
     var gc = (g === 'F' || g === 'D') ? '#c1121f' : (g === 'C' ? '#e8b923' : (g === 'B' || g === 'A' ? '#f5ead6' : '#c9bfa8'));
-    x.fillStyle = gc; x.font = '900 220px "Arial Black",Arial,sans-serif';
+    x.fillStyle = gc; headFont(x, 220);
     var pb = x.textBaseline; x.textBaseline = 'middle';
     x.fillText(g, W / 2, 700);
     x.textBaseline = pb;
@@ -629,10 +658,10 @@
     base(x); kicker(x);
     badge(x, 'CELL COMPETITION \u2014 WEEK OF ' + monDate(d.weekStart), 280, '#f5ead6', 36);
     var cs = callsignOf();
-    x.fillStyle = '#c1121f'; x.font = '900 120px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#c1121f'; headFont(x, 120);
     x.fillText('VICTORY', W / 2, 400);
     var y = 540;
-    x.fillStyle = '#f5ead6'; x.font = '900 72px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 72);
     wrap(x, String(d.cellName || 'UNNAMED CELL').toUpperCase(), 910).slice(0, 2)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 84; });
     if (d.verified) {
@@ -720,7 +749,7 @@
     if (sameDay) {
       /* Same-day registration: no deadline — never fake urgency. */
       x.fillStyle = '#c1121f';
-      x.font = '900 120px "Arial Black",Arial,sans-serif';
+      headFont(x, 120);
       x.fillText('NO DEADLINE', W / 2, y); y += 140;
       x.fillStyle = '#f5ead6'; x.font = '700 52px Arial,sans-serif';
       wrap(x, 'REGISTER AT THE POLLS IN ' + sName, 910).slice(0, 2)
@@ -728,7 +757,7 @@
       y += 24;
     } else if (dl === 0) {
       x.fillStyle = '#c1121f';
-      x.font = '900 170px "Arial Black",Arial,sans-serif';
+      headFont(x, 170);
       x.fillText('TODAY', W / 2, y); y += 190;
       x.fillStyle = '#f5ead6'; x.font = '700 52px Arial,sans-serif';
       wrap(x, 'LAST DAY TO REGISTER IN ' + sName, 910).slice(0, 2)
@@ -736,9 +765,9 @@
       y += 24;
     } else if (dl !== null && dl > 0) {
       x.fillStyle = '#c1121f';
-      x.font = '900 300px "Arial Black",Arial,sans-serif';
+      headFont(x, 300);
       x.fillText(String(dl), W / 2, y); y += 320;
-      x.fillStyle = '#f5ead6'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+      x.fillStyle = '#f5ead6'; headFont(x, 84);
       x.fillText(dl === 1 ? 'DAY LEFT' : 'DAYS LEFT', W / 2, y); y += 110;
       x.font = '700 52px Arial,sans-serif';
       wrap(x, 'TO REGISTER IN ' + sName, 910).slice(0, 2)
@@ -747,7 +776,7 @@
     } else {
       /* Missing deadline data: honest degrade, nothing invented. */
       x.fillStyle = '#e8b923';
-      x.font = '900 84px "Arial Black",Arial,sans-serif';
+      headFont(x, 84);
       wrap(x, 'CHECK YOUR DEADLINE', 910).slice(0, 2)
         .forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
       x.fillStyle = '#f5ead6'; x.font = '700 48px Arial,sans-serif';
@@ -850,7 +879,7 @@
     base(x); kicker(x);
     badge(x, 'VOTER PLEDGE', 280, '#f5ead6', 40);
     x.textAlign = 'center';
-    x.fillStyle = '#c1121f'; x.font = '900 118px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#c1121f'; headFont(x, 118);
     x.fillText("I'M IN.", W / 2, 424);
     fitFont(x, st, 84, 44, 920, '900');
     x.fillStyle = '#f5ead6';
@@ -858,19 +887,19 @@
     var y = 668;
     if (left === 'sameday') {
       /* Same-day registration state: the correct variant, never fake urgency. */
-      x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+      x.fillStyle = '#c1121f'; headFont(x, 62);
       x.fillText('REGISTER AT THE POLLS', W / 2, y); y += 84;
       x.fillStyle = '#f5ead6'; x.font = '700 42px Arial,sans-serif';
       var sdl = wrap(x, 'SAME-DAY REGISTRATION IN ' + st, 920).slice(0, 2);
       for (var si = 0; si < sdl.length; si++) { x.fillText(sdl[si], W / 2, y); y += 56; }
     } else if (left === 0) {
-      x.fillStyle = '#c1121f'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+      x.fillStyle = '#c1121f'; headFont(x, 56);
       var tdl = wrap(x, 'TODAY IS THE LAST DAY TO REGISTER', 920).slice(0, 2);
       for (var ti = 0; ti < tdl.length; ti++) { x.fillText(tdl[ti], W / 2, y); y += 68; }
     } else {
-      x.fillStyle = '#f5ead6'; x.font = '900 54px "Arial Black",Arial,sans-serif';
+      x.fillStyle = '#f5ead6'; headFont(x, 54);
       x.fillText('REGISTER BY ' + pledgeFmtLong(d.deadline), W / 2, y); y += 78;
-      x.fillStyle = '#c1121f'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+      x.fillStyle = '#c1121f'; headFont(x, 64);
       x.fillText(left + (left === 1 ? ' DAY LEFT' : ' DAYS LEFT'), W / 2, y); y += 86;
     }
     var reg = pledgeShortUrl(d.registerUrl);
@@ -907,7 +936,7 @@
     var cs = callsignOf();
     var head = (String(d.state || '').toUpperCase()
       + ' \u2014 ' + String(d.office || '').toUpperCase().replace(/^U\.S\.\s*/, '')).trim();
-    x.fillStyle = '#f5ead6'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 56);
     var y = 400;
     wrap(x, head === '\u2014' ? '—' : head, 910).slice(0, 2)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 68; });
@@ -1020,7 +1049,7 @@
     x.fillStyle = '#c1121f'; x.beginPath(); x.arc(W / 2, y, mr, 0, Math.PI * 2); x.fill();
     x.strokeStyle = '#f5ead6'; x.lineWidth = 4;
     x.beginPath(); x.arc(W / 2, y, mr - 6, 0, Math.PI * 2); x.stroke();
-    x.fillStyle = '#f5ead6'; x.font = '900 60px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 60);
     var tb = x.textBaseline; x.textBaseline = 'middle';
     x.fillText(initialsOf(d.name), W / 2, y + 3);
     x.textBaseline = tb;
@@ -1216,7 +1245,7 @@
     badge(x, 'POLL RESULTS', 280, '#f5ead6', 40);
     var cs = callsignOf();
     var y = 420;
-    x.fillStyle = '#f5ead6'; x.font = '900 56px "Arial Black",Arial,sans-serif'; x.textAlign = 'center';
+    x.fillStyle = '#f5ead6'; headFont(x, 56); x.textAlign = 'center';
     wrap(x, String(d.question == null ? '—' : d.question).toUpperCase(), 910).slice(0, 3)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 66; });
     y = Math.max(640, y + 20);
@@ -1308,7 +1337,7 @@
     var cs = callsignOf();
     var y = 430;
     x.fillStyle = '#c1121f'; x.textAlign = 'center';
-    x.font = '900 96px "Arial Black",Arial,sans-serif';
+    headFont(x, 96);
     wrap(x, String(d.name == null ? '—' : d.name).toUpperCase(), 910).slice(0, 2)
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 104; });
     y += 10;
@@ -1423,21 +1452,21 @@
       .forEach(function (l) { x.fillText(l, W / 2, y); y += 96; });
     /* net worth — the headline number */
     y = Math.max(620, y + 8);
-    x.fillStyle = '#f5ead6'; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText('NET WORTH', W / 2, y); y += 64;
+    x.fillStyle = '#c9bfa8'; x.font = '700 40px Arial,sans-serif';
+    spaced(x, 'NET WORTH', W / 2, y, 10); y += 64;
     x.fillStyle = '#e8b923';
     fitFont(x, ledgerMoneyB(d.netWorthB), 120, 60, 910);
     x.fillText(ledgerMoneyB(d.netWorthB), W / 2, y); y += 38;
     x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
     x.fillText('FORBES ' + ledgerDate(d.netWorthAsOf) + ' SNAPSHOT', W / 2, y); y += 54;
     /* vs */
-    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#c1121f'; headFont(x, 44);
     x.fillText('VS.', W / 2, y); y += 56;
     /* political spending */
     var spend = (d.spending == null) ? null : Number(d.spending);
     if (spend != null && isFinite(spend)) {
-      x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
-      x.fillText('SPENT ON FEDERAL ELECTIONS', W / 2, y); y += 58;
+      x.fillStyle = '#c9bfa8'; x.font = '700 36px Arial,sans-serif';
+      spaced(x, 'SPENT ON FEDERAL ELECTIONS', W / 2, y, 8); y += 58;
       x.fillStyle = '#f5ead6';
       fitFont(x, ledgerMoney(spend), 96, 48, 910);
       x.fillText(ledgerMoney(spend), W / 2, y); y += 38;
@@ -1538,12 +1567,12 @@
     x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
     x.fillText('STOCK BUYBACKS', lx, y);
     x.fillText('INCOME TAXES PAID', rx, y); y += 76;
-    x.font = '900 76px "Arial Black",Arial,sans-serif';
+    headFont(x, 76);
     var bb = moneyB(d.buybacks), tp = moneyB(d.taxPaid);
-    if (bb.length > 8) { x.font = '900 60px "Arial Black",Arial,sans-serif'; }
+    if (bb.length > 8) { headFont(x, 60); }
     x.fillStyle = '#f5ead6'; x.fillText(bb, lx, y);
-    x.font = '900 76px "Arial Black",Arial,sans-serif';
-    if (tp.length > 8) { x.font = '900 60px "Arial Black",Arial,sans-serif'; }
+    headFont(x, 76);
+    if (tp.length > 8) { headFont(x, 60); }
     x.fillStyle = '#c1121f'; x.fillText(tp, rx, y);
     y += 40;
     x.fillStyle = '#8a8272'; x.font = '400 26px Arial,sans-serif';
@@ -1666,14 +1695,14 @@
        render '—', never a guess. */
     var dr = (d.daysRemaining == null || d.daysRemaining === '') ? '—'
       : fmtNum(Math.max(0, parseInt(d.daysRemaining, 10) || 0));
-    x.fillStyle = '#c1121f'; x.font = '900 260px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#c1121f'; headFont(x, 260);
     var pb = x.textBaseline; x.textBaseline = 'middle';
     x.fillText(dr, W / 2, 500);
     x.textBaseline = pb;
     x.fillStyle = '#f5ead6'; x.font = '700 56px Arial,sans-serif';
     x.fillText('DAYS LEFT', W / 2, 640);
     var y = 740;
-    x.fillStyle = '#f5ead6'; x.font = '900 60px "Arial Black",Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; headFont(x, 60);
     wrap(x, String(d.title == null || d.title === '' ? '—' : d.title).toUpperCase(), 910)
       .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 72; });
     y = Math.max(880, y + 10);

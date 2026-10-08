@@ -159,12 +159,24 @@
     try { if (document.getElementById('pf-enlisted')) { settle(cs, 'card'); return; } } catch (e3) {}
 
     /* Short-screen safety: shrink the card below 640px viewport height so
-       the CTAs stay reachable. Injected once. */
+       the CTAs stay reachable. Injected once.
+       Butter pass (workstream 5): cinematic entrance + premium CTA hover. */
     try {
       if (!document.getElementById('pf-enlisted-css')) {
         var pfs = document.createElement('style');
         pfs.id = 'pf-enlisted-css';
-        pfs.textContent = '@media (max-height:640px){#pf-enlisted .pf-en-card{padding:1.25rem 1rem !important;}#pf-enlisted .pf-en-head{font-size:1.3rem !important;}#pf-enlisted .pf-en-poster{max-width:170px !important;margin-bottom:0.7rem !important;}}';
+        pfs.textContent = '@media (max-height:640px){#pf-enlisted .pf-en-card{padding:1.25rem 1rem !important;}#pf-enlisted .pf-en-head{font-size:1.3rem !important;}#pf-enlisted .pf-en-poster{max-width:170px !important;margin-bottom:0.7rem !important;}}'
+          + '#pf-enlisted{animation:pfEnFade .28s ease-out}'
+          + '@keyframes pfEnFade{from{opacity:0}to{opacity:1}}'
+          + '#pf-enlisted .pf-en-card{animation:pfEnRise .34s cubic-bezier(.2,.9,.25,1.15)}'
+          + '@keyframes pfEnRise{from{transform:translateY(26px) scale(.97);opacity:0}to{transform:none;opacity:1}}'
+          + '#pf-enlisted .pf-en-poster img{box-shadow:0 6px 28px rgba(193,18,31,.35)}'
+          + '#pf-en-cta{transition:background .15s ease,transform .12s ease,box-shadow .15s ease;box-shadow:0 4px 18px rgba(193,18,31,.4)}'
+          + '#pf-en-cta:hover{background:#e01424;border-color:#e01424;transform:translateY(-1px);box-shadow:0 8px 28px rgba(193,18,31,.55)}'
+          + '#pf-en-cta:active{transform:scale(.98)}'
+          + '#pf-en-cta:focus-visible{outline:3px solid #f5ead6;outline-offset:2px}'
+          + '#pf-en-x:hover,#pf-en-no:hover{color:#f5ead6}'
+          + '@media(prefers-reduced-motion:reduce){#pf-enlisted,#pf-enlisted .pf-en-card{animation:none}#pf-en-cta{transition:none}}';
         (document.head || document.documentElement).appendChild(pfs);
       }
     } catch (eCss) {}

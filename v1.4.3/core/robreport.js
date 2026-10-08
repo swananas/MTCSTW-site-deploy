@@ -372,23 +372,44 @@
   }
 
   /* ---------------- share posters (canvas, no free text in pixels) ---------------- */
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only — wrapText,
+     takeLine/bar data, item+basket registration, share plumbing untouched. */
+  function butterGround(x) {
+    var g = x.createLinearGradient(0, 0, 0, 1350);
+    g.addColorStop(0, '#131316'); g.addColorStop(0.5, '#0a0a0c'); g.addColorStop(1, '#060607');
+    x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
+    var v = x.createRadialGradient(540, 430, 90, 540, 675, 830);
+    v.addColorStop(0, 'rgba(245,234,214,0.035)'); v.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = v; x.fillRect(0, 0, 1080, 1350);
+    var rh = x.createLinearGradient(0, 0, 1080, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(86, 32, 908, 5);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(52, 52, 976, 1246);
+  }
+  function butterTrack(x, text, cx, y, ls) {
+    var chs = String(text).split(''), ws = [], tot = 0, i, w;
+    for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+    tot += ls * Math.max(0, chs.length - 1);
+    var pen = cx - tot / 2, pa = x.textAlign; x.textAlign = 'left';
+    for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+    x.textAlign = pa;
+  }
   function basePoster(title, sub) {
     var cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1350;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, 1048, 1318);
+    butterGround(x);
     x.textAlign = 'center';
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', 540, 130);
-    x.fillStyle = '#c1121f'; x.font = '900 76px "Arial Black",Arial,sans-serif';
-    wrapText(x, 'THE ROBBERY REPORT', 910).forEach(function (l, i) { x.fillText(l, 540, 230 + i * 88); });
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    var y = 380;
+    x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
+    butterTrack(x, 'THE PROPAGANDA FACTORY', 540, 130, 8);
+    x.fillStyle = '#c1121f'; x.font = 'bold 74px Georgia, "Times New Roman", serif';
+    wrapText(x, 'THE ROBBERY REPORT', 910).forEach(function (l, i) { x.fillText(l, 540, 232 + i * 86); });
+    x.fillStyle = '#f5ead6'; x.font = 'bold 40px Georgia, "Times New Roman", serif';
+    var y = 386;
     wrapText(x, title, 910).forEach(function (l) { x.fillText(l, 540, y); y += 54; });
-    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
-    wrapText(x, sub, 910).forEach(function (l) { x.fillText(l, 540, y); y += 44; });
+    x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial,sans-serif';
+    wrapText(x, sub, 910).forEach(function (l) { butterTrack(x, l, 540, y, 3); y += 46; });
     return { cv: cv, x: x, y: y };
   }
   function wrapText(x, text, maxW) {
@@ -403,12 +424,16 @@
   function footerPoster(p) {
     var x = p.x, cv = p.cv;
     x.textAlign = 'center';
-    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 30px Arial,sans-serif';
+    var fg = x.createLinearGradient(0, 0, 1080, 0);
+    fg.addColorStop(0, 'rgba(201,191,168,0)'); fg.addColorStop(0.5, '#5a5344'); fg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = fg; x.fillRect(172, 1030, 736, 2);
+    /* the source citation, first: their own filings */
+    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 30px Georgia, "Times New Roman", serif';
     x.fillText('Estimated from their own filings.', 540, 1080);
     x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
     x.fillText('JOIN THE FIGHT.', 540, 1180);
-    x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', 540, 1240);
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    butterTrack(x, 'MTCSTW.COM', 540, 1240, 10);
     try {
       x.fillStyle = '#8f887a'; x.font = '400 26px Arial,sans-serif';
       x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), 540, 1290);
@@ -434,7 +459,8 @@
         var p = basePoster(it.name.toUpperCase(), 'YOU PAID ' + (it.price != null ? money(it.price) : '—'));
         if (!p) { done(null); return; }
         var x = p.x, y = p.y + 40;
-        x.fillStyle = '#e8352e'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+        /* butter: the take is the hero — serif red */
+        x.fillStyle = '#e8352e'; x.font = 'bold 56px Georgia, "Times New Roman", serif';
         wrapText(x, takeLine, 910).forEach(function (l) { x.fillText(l, 540, y); y += 68; });
         /* split bar */
         var total = bar.reduce(function (a, b) { return a + b; }, 0) || 1;
@@ -464,7 +490,8 @@
         var x = p.x, y = p.y + 60;
         x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
         x.fillText('YOU PAID ' + money(b.paid), 540, y); y += 80;
-        x.fillStyle = '#e8352e'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+        /* butter: the take is the hero — serif red */
+        x.fillStyle = '#e8352e'; x.font = 'bold 64px Georgia, "Times New Roman", serif';
         x.fillText('THEIR TAKE \u2248 ' + money(b.take), 540, y); y += 76;
         x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
         x.fillText('\u2248' + b.takePct + '% of your ' + money(b.paid), 540, y);

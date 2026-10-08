@@ -277,7 +277,13 @@ var SECTIONS = {
        Content Bank submissions (SOP v2). Silo key 'review-pool'; self-mounts
        into #pf-review-pool on Creator HQ / Studio, silent no-op elsewhere.
        Kill: ?pf_off=review-pool. */
-    'review-pool.js'
+    'review-pool.js',
+    /* WAVE B5 S-35 (2026-10-05): war-room ticker — macro release feed for
+       cell HQs (?action=fred_ticker, cell-member-gated). Silo key
+       'fred_ticker'; self-mounts into #pf-fred-ticker or after #pf-cell-hq,
+       silent no-op elsewhere. Hourly poll, zero XP.
+       Kill: ?pf_off=fred_ticker. */
+    'fred-ticker.js'
   ],
   /* BLOSSOM S1 (2026-10-06): Supply Line Raid (silo key 'raid', template
      id pf-ov-raid) extracts to its own bundle — it plays on /cells AND

@@ -257,8 +257,10 @@
        backend-supplied n.link/n.url/n.href wins if one ever ships. Unknown
        types stay untappable (no invented destinations). Notification types
        enumerated from backend notify() call sites 2026-10-04: battle,
-       bounty, wager, lottery, gov, streak, flash, tip, ambush, recruit
-       (+ boost, in the prefs map, no call site yet).
+       bounty, wager, lottery, gov, streak, flash, tip, ambush, recruit,
+       remit, market (+ boost, in the prefs map, no call site yet).
+       Spec 7 (Fix Pod, 2026-10-05): market winners deep-link to the
+       forecasts section of /arcade, matching the backend notify body.
        FLAGGED FOR LIVE VERIFICATION: bounty -> /create, wager/lottery ->
        /arcade, tip -> /create, recruit -> / are best-guess surfaces. */
     var TYPE_DEEP={battle:'/arcade',bounty:'/create',wager:'/arcade',lottery:'/arcade',gov:'/political-hq',streak:'/',flash:'/#pf-brief',tip:'/create',ambush:'/',recruit:'/',boost:'/create',remit:'/bank'};

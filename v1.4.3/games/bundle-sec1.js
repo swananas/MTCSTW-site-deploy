@@ -718,9 +718,29 @@ function render(){
               if(rj&&rj.ok&&rj.is_record){ toast("NEW PERSONAL RECORD: "+got+" XP in a day."); }
             });
           }catch(e){}
+          /* Spec 8 (Fix Pod, 2026-10-05): route into one prescribed next
+             action — the Daily Orders check-in card — instead of toast +
+             reload. load() re-fetches comeback_check so the CLAIM card
+             clears; then scroll to #pf-orders and flash it (pf-flash idiom
+             mirrors daily-orders.js). */
+          load();
+          setTimeout(function(){
+            try{
+              var oc=document.getElementById("pf-orders");
+              if(oc){
+                var r=oc.getBoundingClientRect();
+                if(r.top<-10||r.top>window.innerHeight+10){
+                  var t=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+                  window.scrollTo(0,Math.max(0,t-20));
+                }
+                oc.classList.add("pf-flash");
+                setTimeout(function(){ try{oc.classList.remove("pf-flash");}catch(e3){} },1400);
+              } else { toast("Next: check in with Daily Orders."); }
+            }catch(e2){ toast("Next: check in with Daily Orders."); }
+          },650);
+          return;
         }
         else { toast(PF.errCopy(j,"Claim failed.")); btn.disabled=false; btn.textContent="CLAIM"; return; }
-        load();
       });
     }; })(acts[a]);
   }

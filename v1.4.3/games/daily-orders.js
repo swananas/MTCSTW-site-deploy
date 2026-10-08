@@ -86,7 +86,11 @@ var MISSIONS=[
 {t:"Comment on one SLR post tagging another SLR creator who'd vibe with it. Cross-pollinate."},
 {t:"Like and share a post from the newest SLR recruit. Welcome them in.",share:1},
 {t:"Post a screenshot of an SLR post you liked and say why it hit.",share:1},
-{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."}
+{t:"Rest. Like one SLR post, touch grass, come back tomorrow — the streak keeps."},
+/* Spec 9 (Fix Pod, 2026-10-05): the nuke joins the rotation. Copy mirrors
+   the strip's own button title ("One deliberate press per day: +50 charge,
+   +5 XP. The nuke can't be bought.") — honest, real link, no fake urgency. */
+{t:"CHARGE THE NUKE — one deliberate press feeds the network charge pool (+50 charge, +5 XP). The nuke can't be bought.",nuke:1}
 ];
 /* WILD FINDS (CEO directive 2026-10-06): photo missions from the wild-find
    type registry — the same "types of things we're looking for" as the
@@ -294,7 +298,7 @@ function checkin(mi,platform){
     /* every 7th streak day forges a shield: one missed day forgiven */
     if(o.streak%7===0&&o.lastShieldAt!==o.streak){ o.shields=(o.shields||0)+1; o.lastShieldAt=o.streak; shieldEarned=true; }
   }
-  rec.done.push({m:String(mi),p:platform,g:gained}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
+  rec.done.push({m:String(mi),p:platform,g:gained,c:cellMult}); rec.xp=(rec.xp||0)+gained; saveDay(o,rec);
   /* FULL DEPLOYMENT command bonus is claimed here so it lands inside the same
      dispatched event — the tally records it exactly once, no phantom row. */
   var cmd=maybeCommandBonus();
@@ -1112,9 +1116,21 @@ function render(){
     var m=MISSIONS[mi]||{t:""}, entry=null;
     rec.done.forEach(function(x){ if(String(x.m)===String(mi)) entry=x; });
     var isDone=!!entry;
-    var xpLine='+'+(isDone?(typeof entry.g==="number"?entry.g:BASE_XP):BASE_XP)+' XP'+(isDone?"":" · report #"+(doneCount+1));
+    /* Spec 10: the award line surfaces the cell streak multiplier — done
+   entries show what the streak paid ("+7 XP (×1.35 cell streak)"),
+   pending missions preview the multiplied want. */
+    var multNow=(typeof window.pfCellMult==="function")?window.pfCellMult():1;
+    var shown=isDone?(typeof entry.g==="number"?entry.g:BASE_XP):Math.round(BASE_XP*Math.max(1,multNow));
+    var multTag="";
+    if(isDone&&entry.c>1){ multTag=" (×"+fmtMult(entry.c)+" cell streak)"; }
+    else if(!isDone&&multNow>1){ multTag=" (×"+fmtMult(multNow)+" cell streak)"; }
+    var xpLine='+'+shown+' XP'+multTag+(isDone?"":" · report #"+(doneCount+1));
     var action;
     if(isDone){ action='<div><span class="o-donetag">Reported</span></div>'; }
+    /* Spec 9: the nuke mission deep-links to the strip press button —
+       the press itself pays the strip's +5 XP; completion auto-reports
+       below when the press lands. */
+    else if(m.nuke){ action='<button class="o-btn o-nukego" data-mi="'+mi+'">GO TO THE NUKE &rarr;</button>'; }
     else if(m.share){
       action='<div class="o-platpick" id="o-pick-'+mi+'"><div class="o-picklabel">Where did you share it?</div>'
         +PLATFORMS.map(function(p){
@@ -1253,6 +1269,29 @@ function render(){
   z.querySelectorAll("button.o-platbtn").forEach(function(b){
     b.onclick=function(){
       doReport(parseInt(b.getAttribute("data-mi"),10), b.getAttribute("data-p"), b);
+    };
+  });
+  /* Spec 9: GO TO THE NUKE — unhide the stick (respecting the user's
+     pf_nuke_stick_hide dismissal), focus + flash the press button;
+     fall back to the nuke section anchor when the stick is gone. */
+  z.querySelectorAll("button.o-nukego").forEach(function(b){
+    b.onclick=function(){
+      try{
+        var dismissed=false;
+        try{ dismissed=!!sessionStorage.getItem("pf_nuke_stick_hide"); }catch(e){}
+        var stick=document.getElementById("pf-nuke-stick");
+        if(stick&&!dismissed){
+          stick.hidden=false;
+          try{ stick.scrollIntoView({behavior:"smooth",block:"end"}); }catch(e2){ try{stick.scrollIntoView();}catch(e3){} }
+          var nb=document.getElementById("pnsNuke");
+          if(nb){ try{ nb.focus(); }catch(e4){} nb.classList.add("pf-flash");
+            setTimeout(function(){ try{nb.classList.remove("pf-flash");}catch(e5){} },1400); }
+          return;
+        }
+      }catch(e6){}
+      try{ var sec=document.getElementById("slr-nuke");
+        if(sec){ sec.scrollIntoView({behavior:"smooth",block:"start"}); return; } }catch(e7){}
+      try{ window.scrollTo(0,document.body.scrollHeight); }catch(e8){}
     };
   });
   document.getElementById("oProg").textContent=Math.min(doneCount,PER_DAY)+"/"+PER_DAY+" orders complete";

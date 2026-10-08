@@ -1016,6 +1016,9 @@ window.PFCallsign = function(){
       +"#pf-nuke-stick .pns-act.rally{background:transparent;border:1px solid #c1121f;color:#f5ead6}"
       +"#pf-nuke-stick .pns-act.charged{background:#1a4d1a;border:2px solid #7CFC00;color:#fff}"
       +"#pf-nuke-stick .pns-act.claim{background:#3a2a00;border:2px solid #e8b923;color:#ffe9a8}"
+      /* 2026-10-05 retry-scope fix: the failed-press retry affordance is
+         scoped to the nuke press button ONLY (never the whole bar). */
+      +"#pf-nuke-stick .pns-act.failed{background:#3a0d0d;border:2px dashed #ff4d5e;color:#ffd9de}"
       +"#pf-nuke-stick.flash{animation:pnsflash .6s}"
       +"@keyframes pnsflash{0%,100%{border-top-color:#c1121f}50%{border-top-color:#ffcc00;box-shadow:0 -4px 26px rgba(255,204,0,.35)}}"
       +"@media (prefers-reduced-motion:reduce){#pf-nuke-stick .pns-fill{transition:none}#pf-nuke-stick .pns-fill.pulse{filter:none}#pf-nuke-stick.flash{animation:none}}";
@@ -1341,8 +1344,11 @@ window.PFCallsign = function(){
       b.classList.add("charged");
       b.title="Blast charged. One deliberate press per comrade per day — the nuke can't be bought.";
     }else if(pressFailed){
+      /* 2026-10-05 retry-scope fix: the retry state lives ONLY on the nuke
+         press button — no bar-wide overlay, no other bar element touched. */
       b.textContent="PRESS FAILED \u2014 RETRY";
-      b.title="The press did not land. Tap to try again.";
+      b.title="The press did not land. Tap this button to try again.";
+      b.classList.add("failed");
     }else{
       b.textContent="CHARGE THE NUKE";
       b.title="One deliberate press per day: +50 charge, +5 XP. The nuke can't be bought.";

@@ -279,6 +279,29 @@ ROUTES = {
         "core": "bundle-core.js",
         "games": ["core/karl-page.js"],
     },
+    # ---- DEAD-ROUTE FIXES (upset-risk hunt 2026-10-08) ----
+    # /request-access: Creator HQ — the Academy mounts here directly
+    # (academy.js: "direct mount where the page provides #pf-academy-hq").
+    # Linked from the homepage hero CTA fallback, the closer grid, and the
+    # sitemap component; was serving the 10-byte text fallback.
+    "/request-access": {
+        "title": "Creator HQ — The Propaganda Factory",
+        "desc": "For creators: unlock the workshop. The Academy lives here — claim your callsign, run the lessons, earn your stripes.",
+        "mounts": ["pf-academy-hq"],
+        "core": "bundle-core.js",
+        "games": ["games/bundle-create.js"],
+    },
+    # NOTE: /my-hq, /bounty, /follow-the-money are static redirect shells
+    # (not in ROUTES — the template only builds full app shells):
+    #   site/my-hq/index.html -> /dashboard (Karl's "MY HQ dashboard" link)
+    #   site/bounty/index.html -> /data-bounties (brand-integration links;
+    #     the crossnav JS redirect never fired on the text/plain fallback)
+    #   site/follow-the-money/index.html -> /money (Karl + sitemap alias)
+    # /creator-onboard is a static form shell (documented spec 2026-09-26:
+    # name/email/platform link/follower count/short pitch -> mtcstw@gmail.com
+    # via mailto) — kept out of ROUTES so rebuilds never clobber the form.
+    # /privacy, /terms, /about, /faqs, /network are still open — they need
+    # Shane's copy.
 }
 
 SHELL_TEMPLATE = """<!DOCTYPE html>

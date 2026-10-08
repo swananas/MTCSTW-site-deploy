@@ -385,6 +385,11 @@ var BUNDLES = {
     'pages/political-hq.js',
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
+    /* Roster Beat Pages (2026-10-05): "THEIR FIGHT" section on catalog pages.
+       Fills the #pf-beat mount from slr-catalog.js via the public beat_get
+       read. Fail-soft everywhere; the section self-removes with no data.
+       Kill: ?pf_off=creator-beat. */
+    'pages/creator-beat.js',
     'pages/page-mount.js',
     /* A5 (2026-10-04): Scout Circuit claim panel (roster page). */
     'pages/scout-circuit.js',

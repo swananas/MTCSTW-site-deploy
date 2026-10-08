@@ -1245,6 +1245,10 @@ function render(){
       /* 2026-10-03: petition_sigs (public) — who signed, per card. */
       +'<button class="c-btn cp-mbtn" data-pet-sigs="'+esc(p.id)+'">WHO SIGNED</button>'
       +'<div class="x-note" data-pet-sigs-out="'+esc(p.id)+'" style="display:none"></div>'
+      /* 2026-10-05: petition share kit — poster + caption from the live kit
+         payload. Killed by ?pf_off=kit-petition. */
+      +(KIT_OFF?'':'<button class="c-btn cp-mbtn" data-pet-kit="'+esc(p.id)+'">SHARE KIT</button>'
+      +'<div class="x-note" data-pet-kit-out="'+esc(p.id)+'" style="display:none"></div>')
       +'<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
   }
   if(CREATE_OPEN){
@@ -1706,6 +1710,31 @@ function bind(){
         var names=[];
         for(var i=0;i<Math.min(sigs.length,10);i++){ names.push(esc(sigs[i].callsign)); }
         out.innerHTML='<div class="x-note"><b>'+sigs.length+'</b> signed: '+names.join(", ")+(sigs.length>10?" &hellip;":"")+'</div>';
+      });
+    };
+  });
+  /* Petition share kits (2026-10-05): per-card SHARE KIT toggle + panel.
+     Attribute-matched (audit #5 idiom) — the id never goes through
+     selector parsing. */
+  qsa("[data-pet-kit]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-pet-kit");
+      var out=null, outs=document.querySelectorAll("[data-pet-kit-out]");
+      for(var oi=0;oi<outs.length;oi++){
+        if(outs[oi].getAttribute("data-pet-kit-out")===pid){ out=outs[oi]; break; }
+      }
+      if(!out) return;
+      if(out.style.display!=="none"&&out.getAttribute("data-kit-loaded")==="1"){
+        out.style.display="none"; return;
+      }
+      out.style.display="block";
+      if(out.getAttribute("data-kit-loaded")==="1"){ paintKit(out,pid); return; }
+      out.innerHTML='<div class="x-note">Forging your share kit&hellip;</div>';
+      getPetitionKit(pid,function(kit){
+        if(!kit){ out.innerHTML='<div class="x-note">Kit unavailable &mdash; retry.</div>'; return; }
+        out.setAttribute("data-kit-loaded","1");
+        try{ out.setAttribute("data-kit-json",JSON.stringify(kit)); }catch(e){}
+        paintKit(out,pid);
       });
     };
   });

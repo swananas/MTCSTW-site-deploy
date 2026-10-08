@@ -68,7 +68,7 @@
     '.pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}',
     '.pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}',
     '.pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
-    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e5383b;margin-bottom:10px}',
     '.pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
     '.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
     '.pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}',

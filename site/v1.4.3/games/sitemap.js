@@ -30,7 +30,7 @@
   min-height:56px;padding:10px 16px;text-decoration:none;border-bottom:1px solid #242424}
 #pf-sitemap .pfsm-a:last-child{border-bottom:0}
 #pf-sitemap .pfsm-a:active,#pf-sitemap .pfsm-a:hover{background:#1c0707}
-#pf-sitemap .pfsm-t{color:#c1121f;font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;font-family:Arial,sans-serif}
+#pf-sitemap .pfsm-t{color:#e5383b;font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;font-family:Arial,sans-serif}
 #pf-sitemap .pfsm-d{color:#b8ab8f;font-size:13px;line-height:1.45;font-family:Arial,sans-serif;margin-top:2px}
 </style>
 <h2>Site Map</h2>

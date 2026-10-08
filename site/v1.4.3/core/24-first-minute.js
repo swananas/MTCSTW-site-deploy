@@ -114,7 +114,7 @@
       card.setAttribute('aria-label', 'First mission');
       card.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;max-width:680px;width:calc(100% - 2rem);margin:1rem auto;padding:1.5rem 1.25rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;';
       card.innerHTML =
-        '<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.7rem;">&#9733; FIRST MISSION &#8212; 60 SECONDS. NO NAME REQUIRED. &#9733;</div>'
+        '<div style="color:#e5383b;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.7rem;">&#9733; FIRST MISSION &#8212; 60 SECONDS. NO NAME REQUIRED. &#9733;</div>'
         + '<div style="color:#f5ead6;font-weight:900;font-size:1.5rem;line-height:1.25;margin-bottom:0.4rem;">YOU DON\'T NEED A NAME TO FIRE THE FIRST SHOT.</div>'
         + '<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.1rem;">One vote. Sixty seconds. Then decide if you\'re staying.</div>'
         + '<a id="pf-fm-cta" href="#pf-vote" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2.2rem;border:2px solid #c1121f;">FIRE &#8594;</a>'

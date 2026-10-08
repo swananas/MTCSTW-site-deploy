@@ -4,6 +4,11 @@
   },
   "devDependencies": {
     "@atproto/oauth-client-browser": "^0.5.9",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "wrangler": "^4.148.0"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   }
 }

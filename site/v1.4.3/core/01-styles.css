@@ -26,7 +26,7 @@
 #pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
 #pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #pf-caption .c-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
-#pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-bottom:16px}
+#pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e5383b;text-transform:uppercase;margin-bottom:16px}
 #pf-caption .c-template{background:#1a1a1a;border:2px dashed #555;min-height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden}
 #pf-caption .c-template img{max-width:100%;display:block}
 #pf-caption .c-template .c-ph{font-family:Arial,sans-serif;font-size:13px;color:#777;letter-spacing:2px;text-transform:uppercase;padding:40px 20px}
@@ -50,7 +50,7 @@
 #pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
 #pf-orders h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
 #pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
-#pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
+#pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#e5383b;text-transform:uppercase;margin-bottom:12px;min-height:20px}
 #pf-orders .o-meterwrap{margin-bottom:12px}
 #pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
 #pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
@@ -61,7 +61,7 @@
 #pf-orders .o-mission{background:#1a1a1a;border:2px dashed #c1121f;padding:14px 12px;margin-bottom:10px}
 #pf-orders .o-mission.done{border-style:solid;opacity:.75}
 #pf-orders .o-mtext{font-size:16px;line-height:1.5}
-#pf-orders .o-xp{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;margin-top:8px;text-transform:uppercase}
+#pf-orders .o-xp{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e5383b;margin-top:8px;text-transform:uppercase}
 #pf-orders .o-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:10px 28px;cursor:pointer;text-transform:uppercase;margin-top:10px}
 #pf-orders .o-btn:hover{transform:scale(1.04)}
 #pf-orders .o-donetag{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-size:13px;letter-spacing:3px;padding:8px 22px;text-transform:uppercase}
@@ -69,29 +69,29 @@
 #pf-orders .o-picklabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:8px}
 #pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
 #pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
-#pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
+#pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#e5383b;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
 #pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
 #pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
-#pf-orders .o-streak b{color:#c1121f;font-size:20px}
+#pf-orders .o-streak b{color:#e5383b;font-size:20px}
 #pf-orders .o-next{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px;margin-bottom:6px}
-#pf-orders .o-rankline{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-rankline{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e5383b;text-transform:uppercase;margin-top:10px}
 #pf-orders .o-loot{font-size:15px;color:#f5ead6;margin-top:10px;min-height:22px;font-style:italic;font-family:Arial,sans-serif}
 #pf-orders .o-flash{animation:oflash .6s}
 @keyframes oflash{0%{background:#c1121f;color:#fff}100%{background:#0d0d0d}}
 /* ============ DOPAMINE LAYER: HQ dispatch lynchpin (2026-10-01) ============ */
 #pf-orders .o-dispatch{min-height:36px;margin-bottom:4px}
-#pf-orders .o-stamp{display:inline-block;border:3px solid #c1121f;color:#c1121f;font-size:18px;letter-spacing:4px;padding:6px 18px;transform:rotate(-6deg);animation:ostamp .45s cubic-bezier(.2,2.4,.4,1) backwards}
+#pf-orders .o-stamp{display:inline-block;border:3px solid #c1121f;color:#e5383b;font-size:18px;letter-spacing:4px;padding:6px 18px;transform:rotate(-6deg);animation:ostamp .45s cubic-bezier(.2,2.4,.4,1) backwards}
 @keyframes ostamp{from{opacity:0;transform:rotate(-6deg) scale(2.4)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
 #pf-orders .o-warpath{margin:8px 0 4px}
 #pf-orders .o-wplabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
 #pf-orders .o-wprow{display:flex;gap:6px;justify-content:center}
 #pf-orders .o-day{width:36px;height:48px;border:2px solid #555;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif}
 #pf-orders .o-day span{font-size:11px;color:#777;letter-spacing:1px}
-#pf-orders .o-day em{font-style:normal;font-size:14px;color:#c1121f;min-height:18px}
+#pf-orders .o-day em{font-style:normal;font-size:14px;color:#e5383b;min-height:18px}
 #pf-orders .o-day.hit{border-color:#c1121f;background:#2a0d0d}
 #pf-orders .o-day.hit span{color:#f5ead6}
 #pf-orders .o-day.today{outline:2px solid #f5ead6;outline-offset:2px}
-#pf-orders .o-reset{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin:6px 0 10px;animation:oflashseg 2s infinite}
+#pf-orders .o-reset{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e5383b;text-transform:uppercase;margin:6px 0 10px;animation:oflashseg 2s infinite}
 #pf-orders .o-fieldop{border:3px solid #e8b923;background:#221a08;padding:14px 12px;margin-bottom:10px}
 #pf-orders .o-fieldop.done{opacity:.75}
 #pf-orders .o-fophead{font-size:13px;letter-spacing:3px;color:#e8b923;margin-bottom:8px}
@@ -121,7 +121,7 @@
 #pf-orders .o-pumpbtn.done{background:#1d5c1d;border-color:#1d5c1d;color:#f5ead6;cursor:default}
 #pf-orders .o-crown{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#e8b923;margin-top:10px}
 #pf-orders .o-patrons{margin:10px 0}
-#pf-orders .o-phead{font-size:12px;letter-spacing:3px;color:#c1121f;margin-bottom:6px}
+#pf-orders .o-phead{font-size:12px;letter-spacing:3px;color:#e5383b;margin-bottom:6px}
 #pf-orders .o-prow{display:flex;flex-wrap:wrap;gap:8px}
 #pf-orders .o-patron{background:#141414;border:1px solid #c1121f;padding:8px 12px;font-family:Arial,sans-serif}
 #pf-orders .o-patron b{display:block;font-size:13px;color:#f5ead6;letter-spacing:1px}
@@ -129,7 +129,7 @@
 @keyframes ofadeup{from{opacity:0;transform:translateY(14px)}}
 @media (prefers-reduced-motion:reduce){#pf-orders .o-stamp,#pf-orders .o-reset,#pf-orders .o-reveal .o-mission,#pf-orders .o-reveal .o-fieldop{animation:none}}
 #pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
-#pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;letter-spacing:1px;margin-top:8px;min-height:16px}
+#pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#e5383b;letter-spacing:1px;margin-top:8px;min-height:16px}
 #pf-orders .o-claim{margin-top:14px;border-top:1px solid #333;padding-top:12px}
 #pf-orders .o-claim a{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;cursor:pointer;text-decoration:underline}
 #pf-orders .o-claimbox{display:none;margin-top:10px}
@@ -139,22 +139,22 @@
 #pf-orders .o-shareimg{background:#c1121f;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 28px;cursor:pointer;text-transform:uppercase;margin:14px 4px 0}
 #pf-orders .o-shareimg:hover{transform:scale(1.04)}
 #pf-orders .o-shareimg:disabled{opacity:.5;cursor:wait;transform:none}
-#pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#e5383b;text-transform:uppercase;margin-top:10px}
 
 #pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden;box-sizing:border-box}
 #pf-dometer2 h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:3px;text-transform:uppercase}
 #pf-dometer2 .d-sub{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:14px;line-height:1.6}
 #pf-dometer2 .d-num{font-size:64px;color:#f5ead6;letter-spacing:2px;line-height:1;margin:6px 0}
-#pf-dometer2 .d-num small{font-size:16px;color:#c1121f;letter-spacing:3px;display:block;margin-top:6px}
+#pf-dometer2 .d-num small{font-size:16px;color:#e5383b;letter-spacing:3px;display:block;margin-top:6px}
 #pf-dometer2 .d-you{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#b8ab8e;text-transform:uppercase;margin:2px 0 8px}
 #pf-dometer2 .d-flash{animation:dflash .5s}
-@keyframes dflash{0%{color:#c1121f;transform:scale(1.12)}100%{color:#f5ead6;transform:scale(1)}}
+@keyframes dflash{0%{color:#e5383b;transform:scale(1.12)}100%{color:#f5ead6;transform:scale(1)}}
 #pf-dometer2 .d-keglabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin:14px 0 6px}
 #pf-dometer2 .d-keg{height:34px;background:#1a1a1a;border:3px solid #555;position:relative;overflow:hidden}
 #pf-dometer2 .d-fill{height:100%;width:0%;background:repeating-linear-gradient(-45deg,#c1121f,#c1121f 12px,#8f0d17 12px,#8f0d17 24px);transition:width .6s ease}
 #pf-dometer2 .d-keg.hot .d-fill{animation:dblazepulse .8s infinite}
 @keyframes dblazepulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
-#pf-dometer2 .d-goal{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:8px}
+#pf-dometer2 .d-goal{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e5383b;text-transform:uppercase;margin-top:8px}
 #pf-dometer2 .d-types{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
 #pf-dometer2 .d-type{font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;color:#c9bfa8;border:1px solid #444;padding:4px 10px;text-transform:uppercase}
 #pf-dometer2 .d-type b{color:#f5ead6}
@@ -176,11 +176,11 @@
 
 #pf-do-mini{position:fixed;bottom:0;left:0;right:0;z-index:99998;pointer-events:none;text-align:center;font-family:Arial,sans-serif}
 #pf-do-mini .m-line{display:inline-block;margin-bottom:12px;background:#0d0d0d;border:2px solid #c1121f;color:#c9bfa8;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px}
-#pf-do-mini .m-line b{color:#c1121f}
+#pf-do-mini .m-line b{color:#e5383b}
 @media (max-width:640px){#pf-do-mini .m-line{margin-bottom:8px;font-size:9px}}
 
 #slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
-#slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:6px}
+#slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#e5383b;text-transform:uppercase;margin-bottom:6px}
 #slr-nuke h2{color:#f5ead6;font-size:26px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
 #slr-nuke h2 .slr-red{color:#c1121f}
 #slr-nuke .slr-nuke-sub{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;letter-spacing:1px;margin:0 0 18px}
@@ -197,7 +197,7 @@
 @keyframes slr-nuke-blink{50%{opacity:.55}}
 #slr-nuke .slr-nuke-detail{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#8a8172;margin-bottom:6px}
 #slr-nuke .slr-nuke-you{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin-bottom:4px}
-#slr-nuke .slr-nuke-you strong{color:#c1121f}
+#slr-nuke .slr-nuke-you strong{color:#e5383b}
 #slr-nuke .slr-nuke-math{margin-top:14px;text-align:left;font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;line-height:1.55}
 #slr-nuke .slr-nuke-math summary{cursor:pointer;color:#f5ead6;letter-spacing:2px;text-transform:uppercase;font-size:12px;text-align:center;outline:none}
 #slr-nuke .slr-nuke-math p{margin:8px 0}
@@ -236,21 +236,21 @@ body.homepage #page .page-section:first-child{
 /* Zero orange: propaganda red/cream site-wide (2026-09-29) */
 a.sqs-block-button-element.sqs-button-element--primary{background-color:#c1121f !important;border-color:#c1121f !important;color:#f5f0e1 !important;}
 .header-nav-list .header-nav-item a{color:#f5ead6 !important;}
-.header-nav-list .header-nav-item a:hover{color:#c1121f !important;}
+.header-nav-list .header-nav-item a:hover{color:#e5383b !important;}
 footer a{color:#f5ead6 !important;}
-footer a:hover{color:#c1121f !important;}
+footer a:hover{color:#e5383b !important;}
 
 
 /* Round 2: folder buttons, cart link, footer headings (2026-09-29) */
 header a, header button{color:#f5ead6 !important;}
-header a:hover, header button:hover{color:#c1121f !important;}
+header a:hover, header button:hover{color:#e5383b !important;}
 footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 
 
 /* CELLS (2026-10-01): callsign squads. Black/red/cream propaganda register. */
 #pf-cells .c-tag{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:6px 0 12px}
 #pf-cells .c-load{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:10px 0}
-#pf-cells .c-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;margin-top:8px}
+#pf-cells .c-err{font-family:Arial,sans-serif;font-size:12px;color:#e5383b;margin-top:8px}
 #pf-cells .c-empty{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:6px 0}
 #pf-cells .c-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
 #pf-cells .c-gate{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin:8px 0}
@@ -268,13 +268,13 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-code{font-family:monospace;font-size:16px;font-weight:bold;color:#0d0d0d;background:#f5ead6;padding:6px 12px;cursor:pointer;letter-spacing:2px}
 #pf-cells .c-cstats{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8}
 #pf-cells .c-flame{color:#f5ead6;font-weight:bold}
-#pf-cells .c-mult{color:#c1121f;font-weight:bold}
+#pf-cells .c-mult{color:#e5383b;font-weight:bold}
 #pf-cells .c-members{margin:8px 0}
 #pf-cells .c-mrow{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:monospace;font-size:14px}
 #pf-cells .c-dot{width:10px;height:10px;border-radius:50%;background:#444;display:inline-block}
 #pf-cells .c-dot.c-on{background:#c1121f;box-shadow:0 0 6px #c1121f}
 #pf-cells .c-mname{color:#f5ead6;flex:1}
-#pf-cells .c-mok{color:#c1121f;font-weight:bold;font-size:12px}
+#pf-cells .c-mok{color:#e5383b;font-weight:bold;font-size:12px}
 #pf-cells .c-mno{color:#666;font-size:12px}
 #pf-cells .c-done{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-top:10px;font-style:italic}
 #pf-cells .c-leave{margin-top:10px}
@@ -294,13 +294,13 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-cells .c-rename .c-sel{width:auto;flex:1 1 200px;margin:0}
 #pf-cells .c-neterr{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0;line-height:1.7}
 #pf-cells .c-pitch{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0 10px;line-height:1.65}
-#pf-cells .c-pitch b{color:#c1121f}
+#pf-cells .c-pitch b{color:#e5383b}
 #pf-cells .c-steps{margin:0 0 10px}
 #pf-cells .c-step{display:flex;align-items:center;gap:10px;font-family:Arial,sans-serif;font-size:13px;color:#444;padding:4px 0}
 #pf-cells .c-snum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#c1121f;color:#fff;font-family:"Arial Black",Arial,sans-serif;font-size:12px;flex:none}
 #pf-cells .c-bounty{font-family:Arial,sans-serif;font-size:12px;color:#555;margin-top:10px}
-#pf-cells .c-bounty b{color:#c1121f}
-#pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#c1121f;min-width:22px}
+#pf-cells .c-bounty b{color:#e5383b}
+#pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#e5383b;min-width:22px}
 #pf-cells .c-bname{flex:1;font-weight:bold}
 #pf-cells .c-bstat{font-size:12px;color:#777}
 /* CREATOR WAR CARD (2026-10-01): recruit-with-a-share builder. */
@@ -311,7 +311,7 @@ footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
 #pf-war-card .c-warwrap label{display:block;font-family:monospace;font-size:11px;font-weight:bold;color:#c9bfa8;letter-spacing:1px}
 #pf-war-card .c-warwrap select,#pf-war-card .c-warwrap input{width:100%;box-sizing:border-box;margin-top:6px;background:#0b0b0c;border:1px solid #c1121f;color:#f5ead6;font-family:monospace;font-size:16px;padding:10px}
 #pf-war-card .c-wmeta{display:flex;gap:18px;flex-wrap:wrap;font-family:monospace;font-size:12px;font-weight:bold;color:#f5ead6;margin:4px 0}
-#pf-war-card .c-wmeta #wCode{color:#c1121f}
+#pf-war-card .c-wmeta #wCode{color:#e5383b}
 #pf-war-card .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
 #pf-war-card .c-wbtns .c-big{flex:2;min-width:200px}
 @media (max-width:560px){#pf-war-card .c-wgrid,#pf-war-card .c-wgrid3{grid-template-columns:1fr}}

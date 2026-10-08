@@ -165,7 +165,7 @@
 
   var CSS = [
     '.pf-wc{max-width:680px;margin:0 auto;padding:8px 4px;color:#f5ead6;font-family:Arial,sans-serif}',
-    '.pf-wc-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#c1121f;text-align:center;margin-bottom:8px}',
+    '.pf-wc-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e5383b;text-align:center;margin-bottom:8px}',
     '.pf-wc-title{font-weight:900;font-size:32px;text-align:center;margin:0 0 6px;letter-spacing:2px;color:#f5ead6}',
     '.pf-wc-sub{font-size:14px;color:#c9bfa8;text-align:center;margin:0 0 18px}',
     '.pf-wc-herofig{font-weight:900;font-size:44px;text-align:center;color:#e8b923;margin:2px 0 4px}',

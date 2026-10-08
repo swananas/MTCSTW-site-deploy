@@ -102,7 +102,7 @@
     }
     return null;
   }
-  var LINK_STYLE = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+  var LINK_STYLE = 'color:#e5383b;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
   function makeLink() {
     var a = document.createElement('a');
     a.id = 'pf-delete-data-link';
@@ -137,7 +137,7 @@
     box.setAttribute('aria-modal', 'true');
     box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;max-width:520px;width:100%;padding:28px;font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.6;box-sizing:border-box;';
     box.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>' +
       '<p style="font-size:13px;margin:0 0 12px;">This wipes <b>everything</b> the Propaganda Factory holds on you' +
       (id.callsign ? ' under callsign <b>' + esc(id.callsign) + '</b>' : ' on this browser') +
       ': your XP, streaks, medals, votes, cells, referrals, contact info' +
@@ -175,7 +175,7 @@
            UI stops presenting as the deleted identity. */
         wipeLocal();
         box.innerHTML =
-          '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>' +
+          '<div style="color:#e5383b;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>' +
           '<p style="font-size:13px;margin:0;">' + esc((j && j.note) || 'All your data has been erased. Gone like it was never here.') + '</p>' +
           '<p style="font-size:12px;margin:12px 0 0;color:#b8ab8e;">This page will reload in a few seconds.</p>';
         toast('Data erased.');

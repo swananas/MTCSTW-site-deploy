@@ -294,21 +294,56 @@
       return lines.slice(0,maxLines||2);
     }
     x.fillStyle=pal.bg; x.fillRect(0,0,1080,1350);
+    /* ---- butter: pinstripe + vignette over the cell palette ---- */
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-1350; btD<2430; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+1350,1350); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(540,540,216,540,675,1147);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.45)");
+    x.fillStyle=btVg; x.fillRect(0,0,1080,1350);
     x.strokeStyle=pal.primary; x.lineWidth=14; x.strokeRect(20,20,1040,1310);
     x.strokeStyle=pal.cream; x.lineWidth=3; x.strokeRect(44,44,992,1262);
     var y=130;
-    center("★ THE PROPAGANDA FACTORY ★",y,"700 32px Arial,sans-serif",pal.primary); y+=84;
-    wrap(String((cell&&cell.name)||"MY CELL").toUpperCase(),'900 84px "Arial Black",Arial,sans-serif',900,2).forEach(function(l){ center(l,y,'900 84px "Arial Black",Arial,sans-serif',pal.primary); y+=98; });
+    /* kicker: letterspaced */
+    x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+    center("THE PROPAGANDA FACTORY",y,"700 30px Arial,sans-serif",pal.primary);
+    x.restore(); y+=62;
+    x.strokeStyle=pal.primary; x.globalAlpha=0.5; x.lineWidth=1;
+    x.beginPath(); x.moveTo(430,y); x.lineTo(650,y); x.stroke();
+    x.globalAlpha=1; y+=72;
+    /* cell name: monumental serif in the cell's primary */
+    var btNF='900 84px Georgia,"Times New Roman",serif';
+    wrap(String((cell&&cell.name)||"MY CELL").toUpperCase(),btNF,900,2).forEach(function(l){ center(l,y,btNF,pal.primary); y+=100; });
     y+=10;
     var motto=String((cell&&cell.motto)||"").trim();
-    if(motto){ wrap("“"+motto+"”","italic 700 40px Arial,sans-serif",880,2).forEach(function(l){ center(l,y,"italic 700 40px Arial,sans-serif",pal.cream); y+=56; }); y+=20; }
+    if(motto){ var btMF='italic 400 42px Georgia,"Times New Roman",serif';
+      wrap("\u201c"+motto+"\u201d",btMF,880,2).forEach(function(l){ center(l,y,btMF,pal.cream); y+=58; }); y+=20; }
     var acts=String((cell&&cell.activity)||"").toUpperCase();
-    if(acts){ center("⚡ "+acts+" ⚡",y,'900 40px "Arial Black",Arial,sans-serif',pal.primary); y+=70; }
+    if(acts){ x.save(); try{ x.letterSpacing="3px"; }catch(e){}
+      center("\u26a1 "+acts+" \u26a1",y,"700 32px Arial,sans-serif",pal.primary);
+      x.restore(); y+=70; }
     var causes=(cell&&cell.causes)||[];
     var cl=causes.map(function(c){ return typeof c==="string"?c:(c.label||c.key||""); }).filter(Boolean).slice(0,3);
-    if(cl.length){ center(cl.join(" · ").toUpperCase(),y,"700 34px Arial,sans-serif",pal.muted); y+=60; }
+    if(cl.length){ x.save(); try{ x.letterSpacing="3px"; }catch(e){}
+      center(cl.join(" \u00b7 ").toUpperCase(),y,"700 32px Arial,sans-serif",pal.muted);
+      x.restore(); y+=60; }
     var st=String((cell&&cell.state)||"").toUpperCase();
-    if(st){ center("OPERATING IN "+st,y,"700 34px Arial,sans-serif",pal.muted); y+=60; }
+    if(st){ x.save(); try{ x.letterSpacing="3px"; }catch(e){}
+      center("OPERATING IN "+st,y,"700 32px Arial,sans-serif",pal.muted);
+      x.restore(); y+=60; }
+    /* butter footer: CTA standard in the cell palette */
+    var fy=1350-168;
+    x.strokeStyle=pal.primary; x.globalAlpha=0.55; x.lineWidth=1;
+    x.beginPath(); x.moveTo(140,fy); x.lineTo(940,fy); x.stroke();
+    x.globalAlpha=1; fy+=58;
+    x.save(); try{ x.letterSpacing="6px"; }catch(e){}
+    center("JOIN THE FIGHT.",fy,"900 40px Arial,sans-serif",pal.primary);
+    x.restore(); fy+=56;
+    x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+    center("MTCSTW.COM",fy,"900 30px Arial,sans-serif",pal.primary);
+    x.restore();
     /* Stamp: FIGHTING AS <CALLSIGN>, idempotent. */
     try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(cv); }catch(e){}
     cv.style.cssText="max-width:100%;height:auto;border:2px solid "+pal.primary;
@@ -893,7 +928,7 @@ function loadBoard(){
         '<span class="c-bstat">'+c.streak+' streak &middot; '+c.members+'/5</span></div>';
     }).join("");
     el.innerHTML=html;
-    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#c1121f;">Full cell leaderboard &rarr;</a></div>'); }
+    if(SLIM){ el.insertAdjacentHTML('beforeend','<div class="x-note"><a href="/cells" style="color:#e5383b;">Full cell leaderboard &rarr;</a></div>'); }
   });
 }
 /* CELLS G14 (2026-10-04): CELL MUSTER board \
@@ -912,10 +947,10 @@ function loadMuster(){
     wrap.style.display="";
     var op=j.op;
     var head='<div class="x-note">'+esc(op.name)+
-      (op.live?' &mdash; <b style="color:#c1121f;">LIVE</b>: check in to score muster points':' &mdash; final standings')+'</div>';
+      (op.live?' &mdash; <b style="color:#e5383b;">LIVE</b>: check in to score muster points':' &mdash; final standings')+'</div>';
     var terr=["+20","+10","+5"];
     var rows=j.board.slice(0,10).map(function(r){
-      var bonus=r.rank<=3?' &middot; <b style="color:#c1121f;">'+terr[r.rank-1]+' territory</b>':"";
+      var bonus=r.rank<=3?' &middot; <b style="color:#e5383b;">'+terr[r.rank-1]+' territory</b>':"";
       return '<div class="c-lrow"><span class="c-lname">#'+r.rank+' '+esc(r.cell_name)+'</span>'+
         '<span class="c-lstat">'+r.points+' muster &middot; '+r.fighters+' fighters'+bonus+'</span></div>';
     }).join("");
@@ -1046,7 +1081,7 @@ function renderLobby(el){
     '</div>'+
     searchHtml+
     '<div class="c-bounty">SHARE YOUR CELL CODE &mdash; every RECRUIT who checks in pays <b>+25 XP</b>. One recruit, one credit, everywhere.</div>'+
-    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#c1121f;">/cells</a>.</div>':'');
+    (SLIM?'<div class="x-note">Full cell management &mdash; search, prestige, challenges &mdash; lives at <a href="/cells" style="color:#e5383b;">/cells</a>.</div>':'');
   /* CELL IDENTITY (2026-10-05): wizard mounts when enabled; the blank form
      is the kill-switch fallback. */
   if(identEnabled()){
@@ -1222,7 +1257,7 @@ function renderLobby(el){
 function verifiedBanner(c){
   if(!c||!c.verified) return "";
   return '<div class="c-vbanner" style="background:#0d0d0d;border:2px solid #c1121f;margin:0 0 12px;padding:10px 12px;text-align:center;">'+
-    '<span style="color:#c1121f;font-weight:900;letter-spacing:2px;font-size:15px;">\u2713 VERIFIED CELL</span>'+
+    '<span style="color:#e5383b;font-weight:900;letter-spacing:2px;font-size:15px;">\u2713 VERIFIED CELL</span>'+
     '<div class="x-note" style="margin-top:4px;">2+ callsigns strong &middot; Hall-pinnable</div></div>';
 }
 function renderCellSlim(el,s){
@@ -1241,7 +1276,7 @@ function renderCellSlim(el,s){
   if(s.cover_for){
     html+='<button class="c-btn c-cover" id="cCover">Cover '+esc(s.cover_for)+' &mdash; save the streak</button>';
   }
-  html+='<div class="x-note"><a href="/cells" style="color:#c1121f;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
+  html+='<div class="x-note"><a href="/cells" style="color:#e5383b;">Manage your cell &rarr;</a> members, prestige, challenges, the full board.</div>';
   html+='<div class="c-err" id="cActErr"></div></div>';
   el.innerHTML=html;
   var errEl=document.getElementById("cActErr");
@@ -1335,6 +1370,15 @@ function drawRecruitPoster(c){
     return lines.slice(0,maxLines||2);
   }
   x.fillStyle=pal.bg; x.fillRect(0,0,W,H);
+  /* ---- butter: pinstripe + vignette over the cell palette ---- */
+  x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+  for(var btD=-H; btD<W+H; btD+=26){
+    x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+  }
+  x.restore();
+  var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+  btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.45)");
+  x.fillStyle=btVg; x.fillRect(0,0,W,H);
   /* Prestige frame (G9): prestiged cells get an outer band in the derived
      primary, over the standard double frame. */
   var pr=(c&&c.prestige)||null,
@@ -1343,50 +1387,81 @@ function drawRecruitPoster(c){
   x.strokeStyle=pal.primary; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
   x.strokeStyle=pal.cream; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
   var y=118;
-  center("\u2605 THE PROPAGANDA FACTORY \u2605",y,"700 32px Arial,sans-serif",pal.primary); y+=76;
-  var nameF='900 82px "Arial Black",Arial,sans-serif';
+  /* kicker: letterspaced */
+  x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+  center("THE PROPAGANDA FACTORY",y,"700 30px Arial,sans-serif",pal.primary);
+  x.restore(); y+=58;
+  x.strokeStyle=pal.primary; x.globalAlpha=0.5; x.lineWidth=1;
+  x.beginPath(); x.moveTo(430,y); x.lineTo(650,y); x.stroke();
+  x.globalAlpha=1; y+=66;
+  /* cell name: monumental serif in the cell's primary */
+  var nameF='900 82px Georgia,"Times New Roman",serif';
   wrapLines(String(c.name||"MY CELL").toUpperCase(),nameF,W-170,2).forEach(function(l){
-    center(l,y,nameF,pal.primary); y+=96; });
-  y+=18;
+    center(l,y,nameF,pal.primary); y+=98; });
+  y+=14;
   /* VERIFIED check (G9): verified cells carry the mark on the poster. */
   if(c&&c.verified){
-    var vt="\u2713 VERIFIED";
-    x.font="700 34px Arial,sans-serif";
-    var vw=x.measureText(vt).width+64;
+    var vt="✓ VERIFIED";
+    x.font="700 32px Arial,sans-serif";
+    try{ x.letterSpacing="4px"; }catch(e){}
+    var vw=x.measureText(vt).width+72;
+    try{ x.letterSpacing="0px"; }catch(e){}
     x.fillStyle=pal.bg; x.fillRect(W/2-vw/2,y-44,vw,64);
-    x.strokeStyle=pal.primary; x.lineWidth=4; x.strokeRect(W/2-vw/2,y-44,vw,64);
-    center(vt,y,"700 34px Arial,sans-serif",pal.primary); y+=72;
+    x.strokeStyle=pal.primary; x.lineWidth=3; x.strokeRect(W/2-vw/2,y-44,vw,64);
+    x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+    center(vt,y,"700 32px Arial,sans-serif",pal.primary);
+    x.restore(); y+=72;
   }
-  var tagF="700 34px Arial,sans-serif";
-  wrapLines("FIVE CALLSIGNS. ONE STREAK. NOBODY LEFT BEHIND.",tagF,W-190,2).forEach(function(l){
-    center(l,y,tagF,pal.cream); y+=48; });
+  var tagF='italic 400 34px Georgia,"Times New Roman",serif';
+  wrapLines("Five callsigns. One streak. Nobody left behind.",tagF,W-190,2).forEach(function(l){
+    center(l,y,tagF,pal.cream); y+=50; });
   var streak=Number(c.streak)||0;
   y+=26;
-  center("\u26A1 "+streak+"-DAY STREAK \u26A1",y,'900 40px "Arial Black",Arial,sans-serif',pal.primary); y+=74;
+  x.save(); try{ x.letterSpacing="3px"; }catch(e){}
+  center("⚡ "+streak+"-DAY STREAK ⚡",y,"700 36px Arial,sans-serif",pal.primary);
+  x.restore(); y+=74;
   /* Prestige tier banner (G9). */
   if(pTier){
-    center("\u25C6 "+pTier+" \u25C6",y,"700 34px Arial,sans-serif",pal.primary); y+=56;
+    x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+    center("◆ "+pTier+" ◆",y,"700 32px Arial,sans-serif",pal.primary);
+    x.restore(); y+=56;
   }
-  center("INVITE CODE",y,"700 30px Arial,sans-serif",pal.muted); y+=16;
+  x.save(); try{ x.letterSpacing="6px"; }catch(e){}
+  center("INVITE CODE",y,"700 28px Arial,sans-serif",pal.muted);
+  x.restore(); y+=18;
   var code=String(c.invite_code||"").toUpperCase()||"???";
-  x.strokeStyle=pal.primary; x.lineWidth=6;
+  x.strokeStyle=pal.primary; x.lineWidth=4;
   x.strokeRect(W/2-280,y,560,150);
   x.fillStyle=pal.box; x.fillRect(W/2-280,y,560,150);
-  center(code,y+106,'900 96px "Arial Black",Arial,sans-serif',pal.primary);
+  center(code,y+106,'900 92px Georgia,"Times New Roman",serif',pal.primary);
   y+=150+52;
-  var lnF="400 34px Arial,sans-serif";
+  var lnF='400 32px Georgia,"Times New Roman",serif';
   wrapLines("Enter this code on mtcstw.com/cells to wire in.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,pal.muted); y+=50; });
+    center(l,y,lnF,pal.muted); y+=48; });
   wrapLines("Check in daily. Stack the streak. Recruit +25 XP.",lnF,W-210,2).forEach(function(l){
-    center(l,y,lnF,pal.muted); y+=50; });
-  y+=44;
+    center(l,y,lnF,pal.muted); y+=48; });
+  y+=40;
+  /* CTA plate: letterspaced cream on the cell's primary */
   var cta="JOIN MY CELL";
-  x.font='900 44px "Arial Black",Arial,sans-serif';
-  var tw=x.measureText(cta).width+110;
+  x.font="900 40px Arial,sans-serif";
+  try{ x.letterSpacing="4px"; }catch(e){}
+  var tw=x.measureText(cta).width+120;
+  try{ x.letterSpacing="0px"; }catch(e){}
   x.fillStyle=pal.primary; x.fillRect(W/2-tw/2,y-58,tw,94);
-  center(cta,y+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
-  y=H-160;
-  center("MTCSTW.COM",y,'900 48px "Arial Black",Arial,sans-serif',pal.primary);
+  x.save(); try{ x.letterSpacing="4px"; }catch(e){}
+  center(cta,y+6,"900 40px Arial,sans-serif","#ffffff");
+  x.restore();
+  /* butter footer: hairline + CTA standard in the cell palette */
+  y=H-168;
+  x.strokeStyle=pal.primary; x.globalAlpha=0.55; x.lineWidth=1;
+  x.beginPath(); x.moveTo(140,y); x.lineTo(940,y); x.stroke();
+  x.globalAlpha=1; y+=54;
+  x.save(); try{ x.letterSpacing="6px"; }catch(e){}
+  center("JOIN THE FIGHT.",y,"900 38px Arial,sans-serif",pal.primary);
+  x.restore(); y+=52;
+  x.save(); try{ x.letterSpacing="8px"; }catch(e){}
+  center("MTCSTW.COM",y,"900 30px Arial,sans-serif",pal.primary);
+  x.restore();
   return cv;
 }
 function renderCell(el,s){
@@ -1419,7 +1494,7 @@ function renderCell(el,s){
     }
     prHtml='<div class="c-prestige" style="background:#120404;border:2px solid #c1121f;margin:12px 0;padding:14px;text-align:center;">'+
       '<div style="font-size:22px;letter-spacing:2px;">'+pr.flame+'</div>'+
-      '<div style="color:#c1121f;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
+      '<div style="color:#e5383b;font-weight:900;font-size:18px;letter-spacing:3px;">'+esc(pr.tier.name)+'</div>'+
       '<div class="x-note" style="margin-bottom:8px;">'+pr.power+' prestige power &middot; '+pr.prestiged_count+' prestiged '+(pr.prestiged_count===1?"fighter":"fighters")+'</div>'+
       benHtml+progHtml+'</div>';
   } else {
@@ -1755,7 +1830,7 @@ function renderCell(el,s){
           h+='<div class="x-pane"><h4>'+esc(ch.title)+cellStateTag(ch)+'</h4>'
             +'<div class="x-note">'+esc(ch.detail||"")+'</div>'
             +(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b></div>':'')
-            +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#c1121f;">HALL OF PROOF \u2192</a></div>':'')
+            +(won?'<div class="x-note">\uD83C\uDFC6 WINNER: <b>'+esc(won)+'</b> &mdash; <a href="/#pf-v2" style="color:#e5383b;">HALL OF PROOF \u2192</a></div>':'')
             +'<div class="x-note">'+(isDone?"Decided.":"Ends: "+esc(ch.ends||"soon"))+'</div>'
             +(isDone
               ?(purse?'<div class="x-note"><b>\uD83C\uDFC6 PURSE: '+purse.toLocaleString()+' XP</b> — auto-pays to '+(won?'<b>'+esc(won)+'</b>':'the winning cell')+' via the backend. No manual payout.</div>':'')
@@ -2214,7 +2289,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
       : 'You have a squad now. Three moves to become dangerous.';
 
     card.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.16em;font-size:.85rem;margin-bottom:.3rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.16em;font-size:.85rem;margin-bottom:.3rem;">' +
       '&#9873; ' + kicker + '</div>' +
       '<div style="color:#f5ead6;font-weight:900;font-size:1.35rem;letter-spacing:.04em;margin-bottom:.3rem;">' +
       title + '</div>' +
@@ -2572,7 +2647,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
         '#pf-warrticker{background:#0a0a0a;border:3px solid #c1121f;padding:22px 20px;' +
         'max-width:680px;margin:18px auto;color:#f5ead6;font-family:Arial,sans-serif;box-sizing:border-box}' +
         '#pf-warrticker .wrt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}' +
-        '#pf-warrticker .wrt-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800}' +
+        '#pf-warrticker .wrt-kicker{font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800}' +
         '#pf-warrticker .wrt-title{font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;' +
         'letter-spacing:2px;text-transform:uppercase}' +
         '#pf-warrticker .wrt-live{display:inline-flex;align-items:center;gap:6px;background:#c1121f;' +
@@ -2588,7 +2663,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
         '#pf-warrticker .wrt-item.wrt-isub{box-shadow:inset 3px 0 0 #d4af37;background:#141008}' +
         '#pf-warrticker a.wrt-item:hover{background:#161616}' +
         '#pf-warrticker .wrt-copy{flex:1;line-height:1.4}' +
-        '#pf-warrticker .wrt-tag{color:#c1121f;font-weight:700}' +
+        '#pf-warrticker .wrt-tag{color:#e5383b;font-weight:700}' +
         '#pf-warrticker .wrt-ago{font-size:11px;color:#a89e88;white-space:nowrap}' +
         '#pf-warrticker .wrt-empty{padding:16px 4px;color:#a89e88;font-size:14px;text-align:center}' +
         '@media(max-width:520px){#pf-warrticker{padding:16px 12px}#pf-warrticker .wrt-title{font-size:18px}}' +
@@ -2751,7 +2826,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
     bar.setAttribute('aria-label', 'First Wave launch banner');
     bar.innerHTML =
       '<div style="max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-sizing:border-box;">'
-      + '<span style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
+      + '<span style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
       + '<span style="color:#f5ead6;font-weight:900;font-size:1.05rem;letter-spacing:0.06em;">' + esc(head) + '</span>'
       + '<span style="color:#c9bfa8;font-size:0.9rem;">' + esc(sub) + '</span>'
       + '</div>';
@@ -2778,7 +2853,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
           slot.innerHTML =
             '<div style="display:inline-block;background:#0b0b0c;border:2px solid #c1121f;'
             + 'padding:10px 18px;margin:10px auto;font-family:\'Helvetica Neue\',Arial,sans-serif;text-align:center;">'
-            + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
+            + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
             + '<div style="color:#c9bfa8;font-size:0.85rem;margin-top:4px;">You were here when it started.</div>'
             + '</div>';
           host.parentNode.insertBefore(slot, host.nextSibling);
@@ -2876,13 +2951,13 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
         var linkId = (day.key === 'route-march') ? ' id="pf-fw-day5-link"' : '';
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
-          : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
+          : '<span style="color:#e5383b;font-weight:900;">&#9679; OPEN</span>';
         var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=
           '<div style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid #2a2a2a;">'
-          + '<div style="min-width:44px;color:#c1121f;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
+          + '<div style="min-width:44px;color:#e5383b;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
           + '<div style="flex:1;min-width:0;">'
           + '<a' + linkId + ' href="' + esc(url) + '" style="color:#f5ead6;font-weight:900;font-size:0.95rem;text-decoration:none;letter-spacing:0.04em;">' + esc(day.name) + ' &rarr;</a>'
           + '<div style="color:#a89e88;font-size:0.8rem;margin-top:2px;">' + esc(day.sub) + '</div>'
@@ -2894,7 +2969,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
       var head = allDone
         ? '<div style="color:#7ddf8a;font-weight:900;letter-spacing:0.2em;font-size:0.78rem;">&#9733; FIRST WAVE &#8212; FULL MUSTER &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">YOU STOOD ALL SEVEN.</div>'
-        : '<div style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
+        : '<div style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">SEVEN DAYS. SEVEN ACTIONS. FOUNDERS FINISH.</div>';
       var el = document.createElement('div');
       el.id = 'pf-firstwave-circuit';
@@ -2960,7 +3035,7 @@ if(!window._pfCellsTick){ window._pfCellsTick=setInterval(function(){ try{ if(wi
           '<div style="background:#0a0a0a;border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;'
           + 'padding:22px 16px;max-width:1100px;margin:18px auto;color:#f5ead6;'
           + 'font-family:\'Helvetica Neue\',Arial,sans-serif;box-sizing:border-box;text-align:center;">'
-          + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
+          + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.3rem;margin:8px 0 4px;letter-spacing:0.05em;">THEY WERE HERE WHEN IT STARTED.</div>'
           + '<div style="color:#a89e88;font-size:0.85rem;margin-bottom:10px;">This roll is closed forever. No late entries. No exceptions.</div>'
           + '<div style="max-width:560px;margin:0 auto;text-align:left;">' + (rows || '<div style="color:#a89e88;font-size:0.9rem;text-align:center;">The roll is being written. Enlist during the First Wave and your name lands here.</div>') + '</div>'

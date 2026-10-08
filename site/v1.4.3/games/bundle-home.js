@@ -570,7 +570,7 @@ function renderAbsorb(){
   var box=document.getElementById("oAbsorb"); if(!box) return;
   var refOk=false;
   try{ refOk=!!document.getElementById("pf-referral"); }catch(e){}
-  var h=refOk?'<div style="margin:6px 0"><a href="#pf-referral" id="oRecruitNudge" style="color:#c1121f;font-weight:700;text-decoration:none;letter-spacing:.08em;font-size:13px;min-height:44px;display:inline-block;line-height:44px;">Recruit a fighter &rarr;</a></div>':"";
+  var h=refOk?'<div style="margin:6px 0"><a href="#pf-referral" id="oRecruitNudge" style="color:#e5383b;font-weight:700;text-decoration:none;letter-spacing:.08em;font-size:13px;min-height:44px;display:inline-block;line-height:44px;">Recruit a fighter &rarr;</a></div>':"";
   box.innerHTML=h+'<div id="oLootAbs"></div>';
   var nudge=document.getElementById("oRecruitNudge");
   if(nudge) nudge.onclick=function(){ try{ var t=document.getElementById("pf-referral"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); }catch(e2){} };
@@ -725,27 +725,45 @@ function renderPatrons(){
     if(rateNew) renderBoost(); /* server rate landed: repaint ratio copy */
   });
 }
-/* Boost share card: 1080x1350 propaganda card for cross-platform pumping. */
+/* Boost share card: 1080x1350 propaganda card for cross-platform pumping.
+   BUTTER PASS (2026-10-07): editorial restyle, visual-only — data fields
+   (b.signal, b.tipped, signalRate(), entry.name) and share plumbing untouched. */
 function drawBoostCard(){
   var b=boostRec(); if(!b) return null;
   var entry=rosterBySlug(b.creator)||{name:b.creator};
   var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
   var ctx=cv.getContext("2d");
-  ctx.fillStyle="#0d0d0d"; ctx.fillRect(0,0,1080,1350);
-  ctx.fillStyle="#c1121f"; ctx.fillRect(0,0,1080,26); ctx.fillRect(0,1324,1080,26);
-  ctx.textAlign="center"; ctx.fillStyle="#f5f0e1";
-  ctx.font="bold 64px Arial"; ctx.fillText("I BOOSTED",540,220);
-  ctx.fillStyle="#ff5a00"; ctx.font="bold 88px Arial";
-  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,340+i*100); });
-  ctx.fillStyle="#f5f0e1"; ctx.font="bold 120px Arial";
-  ctx.fillText(b.signal+" SIGNAL",540,640);
-  ctx.font="40px Arial"; ctx.fillStyle="#c1121f";
-  ctx.fillText(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,730);
-  ctx.fillStyle="#f5f0e1"; ctx.font="36px Arial";
-  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,880+i*52); });
-  ctx.fillStyle="#c1121f"; ctx.font="bold 44px Arial";
-  ctx.fillText("MTCSTW.COM",540,1180);
-  ctx.font="bold 40px Arial";
+  /* ink-black editorial ground */
+  var bg=ctx.createLinearGradient(0,0,0,1350);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+  var vg=ctx.createRadialGradient(540,440,90,540,675,830);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  ctx.fillStyle=vg;ctx.fillRect(0,0,1080,1350);
+  var rh=ctx.createLinearGradient(0,0,1080,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  ctx.fillStyle=rh;ctx.fillRect(90,26,900,6);ctx.fillRect(90,1318,900,6);
+  ctx.strokeStyle="#33302a";ctx.lineWidth=2;ctx.strokeRect(52,64,976,1222);
+  function tracked(t,cx,cy,ls){var chs=String(t).split(""),ws=[],tot=0,i,w;
+    for(i=0;i<chs.length;i++){w=ctx.measureText(chs[i]).width;ws.push(w);tot+=w;}
+    tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=ctx.textAlign;ctx.textAlign="left";
+    for(i=0;i<chs.length;i++){ctx.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}ctx.textAlign=pa;}
+  ctx.textAlign="center";ctx.fillStyle="#c9bfa8";
+  ctx.font="700 30px Arial,sans-serif";
+  tracked("\u2605 DAILY ORDERS \u2605",540,150,8);
+  ctx.fillStyle="#f5ead6";ctx.font="700 40px Arial,sans-serif";
+  tracked("I BOOSTED",540,240,14);
+  ctx.fillStyle="#c1121f";ctx.font="bold 84px Georgia,'Times New Roman',serif";
+  wrapLines(ctx,entry.name.toUpperCase(),900).slice(0,2).forEach(function(l,i){ ctx.fillText(l,540,352+i*96); });
+  ctx.fillStyle="#f5ead6";ctx.font="bold 110px Georgia,'Times New Roman',serif";
+  ctx.fillText(b.signal+" SIGNAL",540,652);
+  ctx.font="700 34px Arial,sans-serif";ctx.fillStyle="#e8b923";
+  tracked(b.tipped+" XP TIPPED \u00b7 1 XP = "+signalRate()+" SIGNAL",540,736,4);
+  ctx.fillStyle="#c9bfa8";ctx.font="italic 400 36px Georgia,'Times New Roman',serif";
+  wrapLines(ctx,"Pump your creator. Daily Orders on mtcstw.com.",860).forEach(function(l,i){ ctx.fillText(l,540,890+i*54); });
+  ctx.fillStyle="#f5ead6";ctx.font="700 36px Arial,sans-serif";
+  tracked("MTCSTW.COM",540,1180,12);
+  ctx.fillStyle="#c1121f";ctx.font="bold 40px Arial";
   ctx.fillText("JOIN THE FIGHT.",540,1236);
   return cv;
 }
@@ -890,17 +908,17 @@ function renderRaid(){
   var cur=raidCurrent(), st=raidLoad(), t=raidToday(), done=st.done===t;
   box.innerHTML=
    '<div id="pf-raid" style="max-width:640px;margin:0 auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\\\'Helvetica Neue\\\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">'
-  +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
+  +'<div style="font-size:1.15rem;font-weight:900;letter-spacing:0.18em;color:#e5383b;">&#9876; TODAY\u2019S HEADLINE MISSION &#9876;</div>'
   +'<div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">One target. One day. The whole network hits it at once.<br>Like. Comment. Share. Report back.</div>'
-  +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\">TODAY\u2019S TARGET</div>'
+  +'<div><div style=\"font-size:0.85rem;letter-spacing:0.2em;color:#e5383b;\">TODAY\u2019S TARGET</div>'
   +'<div style=\"font-size:1.5rem;font-weight:900;margin:0.4rem 0;\"><a href=\"'+escHtml(cur.tu)+'\" style=\"color:#f5f0e1;text-decoration:underline;text-decoration-color:#c1121f;\">'+escHtml(cur.tn)+'</a></div>'
   +'<div style=\"font-size:0.9rem;color:#b8ab8e;\">'+escHtml(cur.th)+(cur.tp?' \u00b7 '+escHtml(cur.tp):'')+'</div>'
   +'<div style=\"font-size:0.95rem;margin:0.8rem 0;padding:0.8rem;border:2px dashed #c1121f;\">'+escHtml(cur.tgt.m)+'</div></div>'
   +'<div id="oRaidTurnout" style="font-size:0.85rem;color:#b8ab8e;margin:0.6rem 0;min-height:1.2em;"></div>'
-  +'<div id="oRaidClock" style="font-size:0.85rem;color:#c1121f;letter-spacing:0.15em;margin:0.8rem 0;"></div>'
+  +'<div id="oRaidClock" style="font-size:0.85rem;color:#e5383b;letter-spacing:0.15em;margin:0.8rem 0;"></div>'
   +'<div><button id="oRaidReport" style="background:#c1121f;border:none;color:#f5f0e1;padding:0.8rem 2rem;font-size:1rem;font-weight:900;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">'+(done?"REPORTED \u2713":"REPORT BACK")+'</button></div>'
   +'<div id="oRaidMsg" style="margin-top:0.8rem;font-size:0.9rem;color:#b8ab8e;min-height:1.4em;">'+(done?"Raid logged. See you tomorrow, soldier.":"")+'</div>'
-  +'<div id="oRaidStreak" style="font-size:0.85rem;color:#c1121f;margin-top:0.4rem;letter-spacing:0.1em;"></div>'
+  +'<div id="oRaidStreak" style="font-size:0.85rem;color:#e5383b;margin-top:0.4rem;letter-spacing:0.1em;"></div>'
   +'</div>';
   var btn=document.getElementById("oRaidReport");
   if(done){ btn.disabled=true; btn.style.opacity="0.5"; }
@@ -1053,7 +1071,7 @@ function wrMondayLink(){
   var isMon=false;
   try{ isMon=PF.chiNow().getDay()===1; }catch(e){}
   return '<span style="margin-left:12px;color:#b8ab8e;font-size:12px">'
-    +'<a href="/#pf-warreport" style="color:#c1121f;font-weight:700;text-decoration:none">'
+    +'<a href="/#pf-warreport" style="color:#e5383b;font-weight:700;text-decoration:none">'
     +(isMon?"MONDAY: THE WAR REPORT &#8594;":"CATCH UP: THE WAR REPORT &#8594;")
     +'</a></span>';
 }
@@ -1469,7 +1487,7 @@ syncFromServer();
 <div class="fe-block pf-override-block" id="pf-dometer2">
 
 <h2>&#9879; The Do Meter</h2>
-<div class="d-sub">Not followers. Not likes. Things <b style="color:#c1121f">done</b>.<br>Every mission reported, every vote cast, every bond bought &mdash; the machine keeps count.</div>
+<div class="d-sub">Not followers. Not likes. Things <b style="color:#e5383b">done</b>.<br>Every mission reported, every vote cast, every bond bought &mdash; the machine keeps count.</div>
 <div class="d-num"><span id="dCount">0</span> <small>tasks complete</small></div>
 <div class="d-you" id="dYou" style="display:none"></div>
 <div class="d-pulse" id="dPulse" style="display:none"></div>
@@ -1744,33 +1762,47 @@ function doTotals(){
   return {total:total,you:you};
 }
 function drawDoCard(){
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only. doTotals(),
+     dWrap, LABELS, week label, tops, goal line, footer — all data untouched. */
   var T=doTotals(),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var x=cv.getContext('2d');
-  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
-  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
-  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  var bg=x.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#131316');bg.addColorStop(0.5,'#0a0a0c');bg.addColorStop(1,'#060607');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  var vg=x.createRadialGradient(W/2,H*0.32,90,W/2,H/2,H*0.62);
+  vg.addColorStop(0,'rgba(245,234,214,0.035)');vg.addColorStop(1,'rgba(0,0,0,0.32)');
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+  var rh=x.createLinearGradient(0,0,W,0);
+  rh.addColorStop(0,'rgba(193,18,31,0)');rh.addColorStop(0.5,'#c1121f');rh.addColorStop(1,'rgba(193,18,31,0)');
+  x.fillStyle=rh;x.fillRect(W*0.08,30,W*0.84,5);
+  x.strokeStyle='#33302a';x.lineWidth=2;x.strokeRect(52,52,W-104,H-104);
+  function tracked(t,cx,cy,ls){var chs=String(t).split(''),ws=[],tot=0,i,w;
+    for(i=0;i<chs.length;i++){w=x.measureText(chs[i]).width;ws.push(w);tot+=w;}
+    tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=x.textAlign;x.textAlign='left';
+    for(i=0;i<chs.length;i++){x.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}x.textAlign=pa;}
   x.textAlign='center';var y=150;
-  x.fillStyle='#f5ead6';x.font='900 74px "Arial Black",Arial,sans-serif';
-  x.fillText('\u2699 THE DO METER',W/2,y);y+=58;
-  x.fillStyle='#c1121f';x.font='700 32px Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='700 30px Arial,sans-serif';
+  tracked('\u2699 THE DO METER',W/2,y,8);y+=58;
+  x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';
   var mo=null;try{mo=PF.mondayOf(PF.chiNow());}catch(e){}
-  x.fillText(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y);y+=30;
-  x.strokeStyle='#c1121f';x.lineWidth=4;
-  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=84;
-  x.fillStyle='#c1121f';x.font='900 150px "Arial Black",Arial,sans-serif';
+  tracked(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y,6);y+=34;
+  x.strokeStyle='#c1121f';x.lineWidth=3;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=88;
+  /* the hero number — serif, editorial */
+  x.fillStyle='#f5ead6';x.font='bold 150px Georgia,"Times New Roman",serif';
   x.fillText(fmt(T.total),W/2,y);y+=70;
-  x.fillStyle='#f5ead6';x.font='900 52px "Arial Black",Arial,sans-serif';
-  x.fillText('TASKS COMPLETE',W/2,y);y+=58;
-  x.fillStyle='#e8b923';x.font='900 36px "Arial Black",Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='700 40px Arial,sans-serif';
+  tracked('TASKS COMPLETE',W/2,y,10);y+=58;
+  x.fillStyle='#e8b923';x.font='italic bold 36px Georgia,"Times New Roman",serif';
   x.fillText('NETWORK-WIDE',W/2,y);y+=66;
-  x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='italic 400 30px Georgia,"Times New Roman",serif';
   x.fillText('Not followers. Not likes. Things done.',W/2,y);y+=64;
   if(T.you){x.fillStyle='#f5ead6';x.font='700 34px Arial,sans-serif';x.fillText(T.you,W/2,y);y+=60;}
   var tops=Object.keys(S.byType||{}).map(function(k){return[k,S.byType[k]];})
     .sort(function(a,b){return b[1]-a[1];}).slice(0,4);
   if(tops.length){
-    x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
-    x.fillText('YOUR WEEK',W/2,y);y+=44;
+    x.fillStyle='#c9bfa8';x.font='700 28px Arial,sans-serif';
+    tracked('YOUR WEEK',W/2,y,10);y+=44;
     x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
     tops.forEach(function(p){x.fillText((LABELS[p[0]]||p[0]).toUpperCase()+' \u00D7 '+fmt(p[1]),W/2,y);y+=44;});
     y+=16;
@@ -1779,11 +1811,12 @@ function drawDoCard(){
   x.fillStyle='#e8b923';x.font='700 30px Arial,sans-serif';
   dWrap(x,gl,W-240).forEach(function(ln){x.fillText(ln,W/2,y);y+=40;});
   y+=20;
-  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
-  x.fillText('MTCSTW.COM',W/2,H-170);
-  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
-  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
-  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  var fg=x.createLinearGradient(0,0,W,0);
+  fg.addColorStop(0,'rgba(201,191,168,0)');fg.addColorStop(0.5,'#5a5344');fg.addColorStop(1,'rgba(201,191,168,0)');
+  x.fillStyle=fg;x.fillRect(W*0.16,H-236,W*0.68,2);
+  x.fillStyle='#f5ead6';x.font='700 44px Arial,sans-serif';
+  tracked('MTCSTW.COM',W/2,H-178,12);
+  x.fillStyle='#c1121f';x.font='900 34px "Arial Black",Arial,sans-serif';
   x.fillText('JOIN THE FIGHT.',W/2,H-76);
   return cv;
 }
@@ -2100,7 +2133,7 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
 </script>
 </div>
 </template>`);
-  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n/* PF-NUKE-WIREUP-20261005: hero card — press button, tier ladder, hold, honesty line. */\n#slr-nuke .slr-nuke-press{margin:10px 0 6px}\n#slr-nuke .slr-nuke-btn{background:#c1121f;color:#fff;border:0;font:700 14px \'Arial Black\',Arial,sans-serif;letter-spacing:2px;padding:12px 20px;cursor:pointer;text-transform:uppercase}\n#slr-nuke .slr-nuke-btn.charged{background:#1a4d1a;border:2px solid #7CFC00}\n#slr-nuke .slr-nuke-btn.claim{background:#3a2a00;border:2px solid #e8b923;color:#ffe9a8}\n#slr-nuke .slr-nuke-btn:disabled{cursor:default}\n#slr-nuke .slr-nuke-hold{font-size:13px;letter-spacing:2px;color:#ff8a8a;margin-top:6px;text-transform:uppercase}\n#slr-nuke .slr-nuke-ladder{margin:14px 0 10px;text-align:left}\n#slr-nuke .slr-ladder-row{display:flex;gap:10px;align-items:center;padding:7px 10px;border:1px solid #333;margin-bottom:4px;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px}\n#slr-nuke .slr-ladder-row.armed{border-color:#c1121f;background:#1c0d0d}\n#slr-nuke .slr-ladder-id{font-weight:900;color:#c1121f;min-width:28px}\n#slr-nuke .slr-ladder-name{flex:1;color:#f5ead6}\n#slr-nuke .slr-ladder-ch{color:#c9bfa8}\n#slr-nuke .slr-ladder-flag{background:#c1121f;color:#fff;font-size:10px;font-weight:900;letter-spacing:2px;padding:3px 8px}\n#slr-nuke .slr-nuke-honest{font-family:Arial,sans-serif;font-size:11.5px;color:#8a8172;font-style:italic;line-height:1.5;margin:10px 0 4px}\n</style>");
+  PF.holder().insertAdjacentHTML('beforeend', "<style>/* PF-DOMETER-SPARK-FIX-20260930: the sparkline bars had no explicit height, so the\nabsolutely-positioned fill overflowed the collapsed bar and rendered as a stray floating\nred square. Give legacy page-level #pf-dometer the same 64px bar height as the template. */\n#pf-dometer .d-bar{height:64px}\n/* PF-DOMETER-LOOP-20261001: milestone toast + week-reset countdown for the dopamine loop. */\n#pf-dometer2 .d-reset{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#f5ead6;opacity:.65;text-transform:uppercase;margin-top:6px}\n#pf-dometer2 .d-ping{position:absolute;top:34%;left:50%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 14px monospace;letter-spacing:1px;padding:10px 18px;border:2px solid #f5ead6;z-index:11;pointer-events:none;white-space:nowrap;max-width:94%;animation:dpingshake .4s}\n@keyframes dpingshake{0%{transform:translateX(-50%) scale(.7)}60%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-ping{animation:none}}\n/* PF-DOMETER-G8-20261001: expansion panels — pulse ticker, streak saver, weekly op, badges, dissemination rank, fan fire, 90% critical keg. */\n#pf-dometer2 .d-pulse{font:bold 12px monospace;color:#e8b923;letter-spacing:1px;margin:4px 0}\n#pf-dometer2 .d-saver{background:#3a0d0d;border:2px solid #c1121f;color:#f5ead6;font:bold 12px Arial,sans-serif;letter-spacing:1px;padding:8px 12px;margin-top:8px}\n#pf-dometer2 .d-challenge{border:2px dashed #e8b923;padding:10px 12px;margin-top:10px;text-align:left}\n#pf-dometer2 .d-chl-head{font:bold 13px Arial,sans-serif;color:#e8b923;letter-spacing:1px}\n#pf-dometer2 .d-chl-bar{height:10px;background:#2a2a2a;margin:8px 0 4px}\n#pf-dometer2 .d-chl-bar i{display:block;height:100%;background:#e8b923}\n#pf-dometer2 .d-chl-prog{font:11px monospace;color:#f5ead6;opacity:.8}\n#pf-dometer2 .d-badges{margin-top:8px}\n#pf-dometer2 .d-badge{display:inline-block;background:#c1121f;color:#fff;font:bold 10px monospace;letter-spacing:1px;padding:4px 8px;margin:2px 3px;border:1px solid #f5ead6}\n#pf-dometer2 .d-rank{font:bold 12px Arial,sans-serif;color:#7fd4ff;letter-spacing:1px;margin-top:8px}\n#pf-dometer2 .d-fire{font:bold 12px Arial,sans-serif;color:#ff9d5c;letter-spacing:1px;margin-top:6px}\n#pf-dometer2 .d-keg.critical{animation:dkegpulse 1s infinite}\n@keyframes dkegpulse{0%,100%{box-shadow:0 0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 18px 4px rgba(193,18,31,.9)}}\n@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.critical{animation:none}}\n/* PF-NUKE-WIREUP-20261005: hero card — press button, tier ladder, hold, honesty line. */\n#slr-nuke .slr-nuke-press{margin:10px 0 6px}\n#slr-nuke .slr-nuke-btn{background:#c1121f;color:#fff;border:0;font:700 14px \'Arial Black\',Arial,sans-serif;letter-spacing:2px;padding:12px 20px;cursor:pointer;text-transform:uppercase}\n#slr-nuke .slr-nuke-btn.charged{background:#1a4d1a;border:2px solid #7CFC00}\n#slr-nuke .slr-nuke-btn.claim{background:#3a2a00;border:2px solid #e8b923;color:#ffe9a8}\n#slr-nuke .slr-nuke-btn:disabled{cursor:default}\n#slr-nuke .slr-nuke-hold{font-size:13px;letter-spacing:2px;color:#ff8a8a;margin-top:6px;text-transform:uppercase}\n#slr-nuke .slr-nuke-ladder{margin:14px 0 10px;text-align:left}\n#slr-nuke .slr-ladder-row{display:flex;gap:10px;align-items:center;padding:7px 10px;border:1px solid #333;margin-bottom:4px;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px}\n#slr-nuke .slr-ladder-row.armed{border-color:#c1121f;background:#1c0d0d}\n#slr-nuke .slr-ladder-id{font-weight:900;color:#e5383b;min-width:28px}\n#slr-nuke .slr-ladder-name{flex:1;color:#f5ead6}\n#slr-nuke .slr-ladder-ch{color:#c9bfa8}\n#slr-nuke .slr-ladder-flag{background:#c1121f;color:#fff;font-size:10px;font-weight:900;letter-spacing:2px;padding:3px 8px}\n#slr-nuke .slr-nuke-honest{font-family:Arial,sans-serif;font-size:11.5px;color:#8a8172;font-style:italic;line-height:1.5;margin:10px 0 4px}\n</style>");
 })();
 
 ;
@@ -2693,7 +2726,7 @@ paint();setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) retur
       '<div id="pf-ob-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;' +
       'top:0;right:0;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;' +
       'padding:.6rem;min-width:44px;min-height:44px;box-sizing:border-box;text-align:center;">&times;</div>' +
-      '<div style="font-size:.8rem;font-weight:900;letter-spacing:.22em;color:#c1121f;margin-bottom:.9rem;">' +
+      '<div style="font-size:.8rem;font-weight:900;letter-spacing:.22em;color:#e5383b;margin-bottom:.9rem;">' +
       '&#9873; YOUR FIRST 2 MINUTES</div>' +
       '<div id="pf-ob-dots"></div><div id="pf-ob-body"></div>';
     overlay.appendChild(box);
@@ -4035,24 +4068,81 @@ function shareLoot(reward,rk){
   try{
     var c=document.createElement("canvas"); c.width=1080; c.height=1080;
     var g=c.getContext("2d");
-    g.fillStyle="#160b0b"; g.fillRect(0,0,1080,1080);
-    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=24; g.strokeRect(24,24,1032,1032);
-    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="bold 54px monospace"; g.textAlign="center";
-    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,300);
-    g.fillStyle="#f5ead6"; g.font="bold 88px monospace";
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    g.fillStyle="#0e0d0c"; g.fillRect(0,0,1080,1080);
+    g.save(); g.globalAlpha=0.032; g.strokeStyle="#ffffff"; g.lineWidth=1;
+    for(var btD=-1080; btD<2160; btD+=26){
+      g.beginPath(); g.moveTo(btD,0); g.lineTo(btD+1080,1080); g.stroke();
+    }
+    g.restore();
+    var btVg=g.createRadialGradient(540,432,173,540,540,918);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    g.fillStyle=btVg; g.fillRect(0,0,1080,1080);
+    var btBar=g.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    g.fillStyle=btBar; g.fillRect(0,0,1080,10);
+    g.save(); g.globalAlpha=0.05; g.fillStyle=btC;
+    g.font="900 620px Arial,sans-serif"; g.textAlign="center";
+    g.fillText("★",540,648); g.restore();
+    /* rarity frame keeps the pull's color identity */
+    g.strokeStyle=(rk&&rk.c)||"#e8b10c"; g.lineWidth=10; g.strokeRect(28,28,1024,1024);
+    g.strokeStyle="rgba(242,236,220,0.25)"; g.lineWidth=2; g.strokeRect(52,52,976,976);
+    g.textAlign="center";
+    /* rarity label: letterspaced */
+    g.fillStyle=(rk&&rk.c)||"#e8b10c"; g.font="700 44px Arial,sans-serif";
+    try{ g.letterSpacing="10px"; }catch(e9){}
+    g.fillText(((rk&&rk.label)||"LEGENDARY").toUpperCase()+" PULL",540,220);
+    try{ g.letterSpacing="0px"; }catch(e8){}
+    g.strokeStyle="rgba(201,162,39,0.5)"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(430,258); g.lineTo(650,258); g.stroke();
+    /* reward: monumental serif */
+    g.fillStyle=btC; g.font='900 84px Georgia,"Times New Roman",serif';
     var lb=String((reward&&reward.label)||"SUPPLY DROP").toUpperCase().slice(0,22);
-    g.fillText(lb,540,470);
+    g.fillText(lb,540,400);
     if(reward&&reward.xp){
-      g.fillStyle="#e8b10c"; g.font="bold 72px monospace";
-      g.fillText("+"+Number(reward.xp)+" XP",540,600);
+      /* red diamond rule */
+      g.strokeStyle=btR; g.lineWidth=2;
+      g.beginPath(); g.moveTo(390,470); g.lineTo(514,470); g.stroke();
+      g.beginPath(); g.moveTo(566,470); g.lineTo(690,470); g.stroke();
+      g.save(); g.translate(540,470); g.rotate(Math.PI/4);
+      g.fillStyle=btR; g.fillRect(-8,-8,16,16); g.restore();
+      /* the figure: gold gradient, drop shadow */
+      g.font='900 96px Georgia,"Times New Roman",serif';
+      var btFig="+"+Number(reward.xp)+" XP";
+      g.fillStyle="rgba(0,0,0,0.55)";
+      g.fillText(btFig,545,617);
+      var btGg=g.createLinearGradient(0,520,0,610);
+      btGg.addColorStop(0,"#f0d060"); btGg.addColorStop(1,"#8a6d1c");
+      g.fillStyle=btGg;
+      g.fillText(btFig,540,610);
     }
     var cs=""; try{ cs=String(window.PFCallsign?window.PFCallsign():"").toUpperCase(); }catch(e2){}
-    g.fillStyle="#c9bfa8"; g.font="bold 44px monospace";
-    if(cs) g.fillText("PULLED BY "+cs,540,700);
-    g.fillStyle="#c1121f"; g.font="bold 72px monospace";
-    g.fillText("JOIN THE FIGHT.",540,840);
-    g.fillStyle="#f5ead6"; g.font="bold 48px monospace";
-    g.fillText("MTCSTW.COM",540,940);
+    g.fillStyle=btM; g.font="700 36px Arial,sans-serif";
+    try{ g.letterSpacing="6px"; }catch(e7){}
+    if(cs) g.fillText("PULLED BY "+cs,540,710);
+    try{ g.letterSpacing="0px"; }catch(e6){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=830;
+    g.strokeStyle="rgba(201,162,39,0.45)"; g.lineWidth=1;
+    g.beginPath(); g.moveTo(140,fy); g.lineTo(940,fy); g.stroke();
+    fy+=56;
+    g.font="900 42px Arial,sans-serif"; g.fillStyle=btC;
+    try{ g.letterSpacing="8px"; }catch(e5){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=g.measureText(btCta).width;
+    g.fillText(btCta,540,fy);
+    g.fillStyle=btR; g.fillText(".",540+btCtaW/2-4,fy);
+    try{ g.letterSpacing="0px"; }catch(e4){}
+    fy+=50;
+    g.fillStyle=btR; g.font="900 30px Arial,sans-serif";
+    try{ g.letterSpacing="10px"; }catch(e3){}
+    g.fillText("MTCSTW.COM",540,fy);
+    try{ g.letterSpacing="0px"; }catch(e10){}
+    var btBar2=g.createLinearGradient(0,1070,0,1080);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    g.fillStyle=btBar2; g.fillRect(0,1070,1080,10);
     try{ if(window.PFShare&&window.PFShare.stampCallsign) c=window.PFShare.stampCallsign(c)||c; }catch(e2){}
     var filename="loot-pull-"+Date.now()+".png";
     /* A completed share counts as content shared (feeds the combo meter)
@@ -4156,7 +4246,7 @@ function warplanCard(){
     var d=document.createElement("div");
     d.id="dpWarplan";
     d.style.cssText="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99995;background:#0a0a0a;border:2px solid #c1121f;color:#f5ead6;font:bold 14px Arial,sans-serif;padding:14px 18px;max-width:92vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.6)";
-    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;margin-bottom:6px">WELCOME BACK, SOLDIER</div>'
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#e5383b;margin-bottom:6px">WELCOME BACK, SOLDIER</div>'
       +'<a href="/#pf-warplan" style="color:#f5ead6;text-decoration:none;font-size:16px;letter-spacing:1px">YOUR WAR PLAN FOR TODAY \u2192</a>'
       +'<button id="dpWarplanX" aria-label="Dismiss" style="margin-left:12px;background:none;border:1px solid #666;color:#999;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
     document.body.appendChild(d);
@@ -4225,7 +4315,7 @@ function warplanCard(){
 #pf-ranks .u-state.lock{color:#777}
 #pf-ranks .u-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 16px;cursor:pointer;text-transform:uppercase;white-space:nowrap;margin:2px}
 #pf-ranks .u-msg{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#ff5a00;text-align:center;margin-top:10px;min-height:20px;text-transform:uppercase}
-#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;text-align:center;margin:16px 0 8px}
+#pf-ranks .u-walltitle{font-size:16px;letter-spacing:3px;color:#e5383b;text-transform:uppercase;text-align:center;margin:16px 0 8px}
 #pf-ranks .u-wall{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 #pf-ranks #uWall{scroll-margin-top:140px}
 #pf-ranks .u-wname{background:#1a1a1a;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:6px 12px;text-transform:uppercase;text-decoration:none;display:inline-block}
@@ -4237,7 +4327,7 @@ function warplanCard(){
 /* PLAY 7 (2026-10-06): weekly FAN FAVORITE honorific card — pure display,
    votes never become XP. Kill: ?pf_off=fan-favorite. */
 #pf-ranks .u-fanfav{width:100%;background:#1a1a1a;border:3px solid #c1121f;padding:10px;margin-bottom:4px;text-align:center}
-#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#c1121f;text-transform:uppercase}
+#pf-ranks .u-ffhonor{font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:4px;color:#e5383b;text-transform:uppercase}
 #pf-ranks .u-ffname{font-family:'Arial Black',Arial,sans-serif;font-size:20px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase;margin:4px 0}
 #pf-ranks .u-ffsub{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase}
 /* ---------- PRESTIGE ---------- */
@@ -4253,7 +4343,7 @@ function warplanCard(){
 #pf-ranks .p-reqt{font-size:13px;letter-spacing:1px;color:#f5ead6;text-transform:uppercase;margin-bottom:6px}
 #pf-ranks .p-reqd{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;line-height:1.5}
 #pf-ranks .p-reqd .yes{color:#4caf50;font-weight:bold}
-#pf-ranks .p-reqd .no{color:#c1121f;font-weight:bold}
+#pf-ranks .p-reqd .no{color:#e5383b;font-weight:bold}
 #pf-ranks .p-bar{height:10px;background:#2a2a2a;border:1px solid #555;margin:6px 0}
 #pf-ranks .p-bar i{display:block;height:100%;background:#ff5a00;width:0;transition:width .4s}
 #pf-ranks .p-benefits{background:#141414;border:1px dashed #555;padding:10px 12px;margin:12px 0;text-align:left}
@@ -4261,7 +4351,7 @@ function warplanCard(){
 #pf-ranks .p-benefits b{color:#ff5a00}
 #pf-ranks .p-btn{background:#ff5a00;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:3px;padding:14px 40px;cursor:pointer;text-transform:uppercase;margin-top:8px}
 #pf-ranks .p-btn:disabled{background:#333;color:#777;cursor:default}
-#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#c1121f;margin-top:10px;line-height:1.5}
+#pf-ranks .p-warn{font-family:Arial,sans-serif;font-size:11px;color:#e5383b;margin-top:10px;line-height:1.5}
 #pf-ranks .p-max{font-family:Arial,sans-serif;font-size:14px;color:#ff5a00;letter-spacing:2px;text-transform:uppercase;padding:16px}
 </style>
 
@@ -4386,63 +4476,96 @@ function dl(url,name){
   var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); },600);
 }
 
+/* BUTTER PASS (2026-10-07): editorial paint kit shared by the enlistment
+   painters. Visual-only — callsign slicing, dates, share plumbing untouched. */
+function butterGround900(x){
+  var bg=x.createLinearGradient(0,0,0,1200);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  x.fillStyle=bg;x.fillRect(0,0,900,1200);
+  var vg=x.createRadialGradient(450,400,80,450,600,760);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  x.fillStyle=vg;x.fillRect(0,0,900,1200);
+  var rh=x.createLinearGradient(0,0,900,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh;x.fillRect(72,34,756,5);
+  x.strokeStyle="#33302a";x.lineWidth=2;x.strokeRect(60,56,780,1088);
+}
+function butterGround1080(x){
+  var bg=x.createLinearGradient(0,0,0,1350);
+  bg.addColorStop(0,"#131316");bg.addColorStop(0.5,"#0a0a0c");bg.addColorStop(1,"#060607");
+  x.fillStyle=bg;x.fillRect(0,0,1080,1350);
+  var vg=x.createRadialGradient(540,440,90,540,675,830);
+  vg.addColorStop(0,"rgba(245,234,214,0.035)");vg.addColorStop(1,"rgba(0,0,0,0.32)");
+  x.fillStyle=vg;x.fillRect(0,0,1080,1350);
+  var rh=x.createLinearGradient(0,0,1080,0);
+  rh.addColorStop(0,"rgba(193,18,31,0)");rh.addColorStop(0.5,"#c1121f");rh.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh;x.fillRect(90,40,900,6);
+  x.strokeStyle="#33302a";x.lineWidth=2;x.strokeRect(56,64,968,1222);
+}
+function butterTrack(x,t,cx,cy,ls){var chs=String(t).split(""),ws=[],tot=0,i,w;
+  for(i=0;i<chs.length;i++){w=x.measureText(chs[i]).width;ws.push(w);tot+=w;}
+  tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=x.textAlign;x.textAlign="left";
+  for(i=0;i<chs.length;i++){x.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}x.textAlign=pa;}
+var SERIF='Georgia,"Times New Roman",serif';
 function drawCert(cs){
   var c=mkCanvas(900,1200), x=c.getContext("2d");
-  x.fillStyle="#0d0d0d"; x.fillRect(0,0,900,1200);
-  x.strokeStyle="#c1121f"; x.lineWidth=12; x.strokeRect(30,30,840,1140);
-  x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(60,60,780,1080);
+  butterGround900(x);
   x.textAlign="center";
-  x.fillStyle="#c1121f"; x.font="900 64px 'Arial Black',Arial,sans-serif";
-  x.fillText("ENLISTMENT",450,220); x.fillText("PAPERS",450,300);
-  x.fillStyle="#f5ead6"; x.font="28px Arial,sans-serif";
-  x.fillText("THE PROPAGANDA FACTORY",450,380);
-  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
-  x.fillText("This certifies that",450,480);
-  x.fillStyle="#f5ead6"; x.font="900 64px 'Arial Black',Arial,sans-serif";
-  x.fillText((cs||"RECRUIT").slice(0,16),450,600);
-  x.fillStyle="#c9bfa8"; x.font="24px Arial,sans-serif";
-  x.fillText("has enlisted in the",450,680);
-  x.fillStyle="#c1121f"; x.font="900 40px 'Arial Black',Arial,sans-serif";
-  x.fillText("SICK LEFT RADICALS",450,740);
-  x.fillStyle="#c9bfa8"; x.font="22px Arial,sans-serif";
-  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,830);
-  x.fillText("Rank: RECRUIT",450,880);
-  x.strokeStyle="#c1121f"; x.lineWidth=2;
-  x.beginPath(); x.moveTo(250,1000); x.lineTo(650,1000); x.stroke();
-  x.fillStyle="#f5ead6"; x.font="20px Arial,sans-serif";
-  x.fillText("MTCSTW — NETWORK COMMAND",450,1040);
-  x.fillStyle="#c1121f"; x.font="900 26px 'Arial Black',Arial,sans-serif";
-  x.fillText("JOIN THE FIGHT.",450,1095);
+  x.fillStyle="#c9bfa8"; x.font="700 26px Arial,sans-serif";
+  butterTrack(x,"THE PROPAGANDA FACTORY",450,150,9);
+  x.fillStyle="#c1121f"; x.font="bold 72px "+SERIF;
+  x.fillText("ENLISTMENT",450,290); x.fillText("PAPERS",450,378);
+  x.strokeStyle="#c1121f"; x.lineWidth=3;
+  x.beginPath(); x.moveTo(330,420); x.lineTo(570,420); x.stroke();
+  x.fillStyle="#c9bfa8"; x.font="italic 400 30px "+SERIF;
+  x.fillText("This certifies that",450,500);
+  x.fillStyle="#f5ead6"; x.font="bold 68px "+SERIF;
+  x.fillText((cs||"RECRUIT").slice(0,16),450,620);
+  x.fillStyle="#c9bfa8"; x.font="italic 400 30px "+SERIF;
+  x.fillText("has enlisted in the",450,700);
+  x.fillStyle="#c1121f"; x.font="bold 44px "+SERIF;
+  x.fillText("SICK LEFT RADICALS",450,766);
+  x.fillStyle="#8a8271"; x.font="400 26px Arial,sans-serif";
+  x.fillText("Enlisted "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}),450,850);
+  x.fillStyle="#c9bfa8"; x.font="700 28px Arial,sans-serif";
+  butterTrack(x,"RANK: RECRUIT",450,900,6);
+  x.strokeStyle="#5a5344"; x.lineWidth=2;
+  x.beginPath(); x.moveTo(250,990); x.lineTo(650,990); x.stroke();
+  x.fillStyle="#c9bfa8"; x.font="700 22px Arial,sans-serif";
+  butterTrack(x,"MTCSTW \u2014 NETWORK COMMAND",450,1030,5);
+  x.fillStyle="#c1121f"; x.font="900 30px 'Arial Black',Arial,sans-serif";
+  x.fillText("JOIN THE FIGHT.",450,1090);
   return c.toDataURL("image/png");
 }
 function drawPoster(n,cs){
   var c=mkCanvas(1080,1350), x=c.getContext("2d");
-  x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);
-  x.strokeStyle="#c1121f"; x.lineWidth=20; x.strokeRect(40,40,1000,1270);
+  butterGround1080(x);
   x.textAlign="center";
   var name=(cs||"AGITATOR").slice(0,18);
   if(n===0){
-    x.font="900 118px 'Arial Black',Arial,sans-serif";
+    x.font="bold 112px "+SERIF;
     x.fillStyle="#c1121f"; x.fillText("AGITATE",540,480);
     x.fillStyle="#f5ead6"; x.fillText("EDUCATE",540,640);
     x.fillStyle="#c1121f"; x.fillText("ORGANIZE",540,800);
   } else if(n===1){
-    x.font="900 96px 'Arial Black',Arial,sans-serif";
+    x.font="bold 90px "+SERIF;
     x.fillStyle="#f5ead6"; x.fillText("ANOTHER BRICK",540,420);
     x.fillText("IN THEIR WALL.",540,545);
     x.fillStyle="#c1121f"; x.fillText("WE'RE TAKING",540,720);
     x.fillText("IT APART.",540,845);
   } else {
-    x.fillStyle="#c1121f"; x.font="900 150px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#c1121f"; x.font="bold 148px "+SERIF;
     x.fillText("8M+",540,450);
-    x.fillStyle="#f5ead6"; x.font="900 84px 'Arial Black',Arial,sans-serif";
+    x.fillStyle="#f5ead6"; x.font="bold 80px "+SERIF;
     x.fillText("NETWORK",540,585); x.fillText("REACH",540,695);
-    x.fillStyle="#c9bfa8"; x.font="36px Arial,sans-serif";
+    x.fillStyle="#c9bfa8"; x.font="italic 400 38px "+SERIF;
     x.fillText("You are the media now.",540,820);
   }
-  x.fillStyle="#c1121f"; x.fillRect(140,1060,800,6);
-  x.fillStyle="#f5ead6"; x.font="900 44px 'Arial Black',Arial,sans-serif";
-  x.fillText(name+" — AGITATOR CLASS",540,1150);
+  var rh2=x.createLinearGradient(0,0,1080,0);
+  rh2.addColorStop(0,"rgba(193,18,31,0)");rh2.addColorStop(0.5,"#c1121f");rh2.addColorStop(1,"rgba(193,18,31,0)");
+  x.fillStyle=rh2; x.fillRect(140,1060,800,5);
+  x.fillStyle="#f5ead6"; x.font="700 42px Arial,sans-serif";
+  butterTrack(x,name+" \u2014 AGITATOR CLASS",540,1150,6);
   x.fillStyle="#c1121f"; x.font="900 32px 'Arial Black',Arial,sans-serif";
   x.fillText("JOIN THE FIGHT AT MTCSTW.COM",540,1215);
   return c.toDataURL("image/png");
@@ -4452,13 +4575,13 @@ function drawFrame(){
   x.clearRect(0,0,512,512);
   x.strokeStyle="#c1121f"; x.lineWidth=26;
   x.beginPath(); x.arc(256,256,228,0,Math.PI*2); x.stroke();
-  x.strokeStyle="#ff5a00"; x.lineWidth=8;
+  x.strokeStyle="#e8b923"; x.lineWidth=8;
   x.beginPath(); x.arc(256,256,198,0,Math.PI*2); x.stroke();
   x.textAlign="center";
-  x.fillStyle="#c1121f"; x.font="900 46px 'Arial Black',Arial,sans-serif";
+  x.fillStyle="#c1121f"; x.font="bold 46px "+SERIF;
   x.fillText("SLR",256,62);
-  x.fillStyle="#f5ead6"; x.font="900 40px 'Arial Black',Arial,sans-serif";
-  x.fillText("OPERATIVE",256,482);
+  x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
+  butterTrack(x,"OPERATIVE",256,482,8);
   return c.toDataURL("image/png");
 }
 function doUnlock(id,cs){
@@ -5318,7 +5441,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
     bar.setAttribute('aria-label', 'First Wave launch banner');
     bar.innerHTML =
       '<div style="max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-sizing:border-box;">'
-      + '<span style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
+      + '<span style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.7rem;">&#9733; FIRST WAVE &#9733;</span>'
       + '<span style="color:#f5ead6;font-weight:900;font-size:1.05rem;letter-spacing:0.06em;">' + esc(head) + '</span>'
       + '<span style="color:#c9bfa8;font-size:0.9rem;">' + esc(sub) + '</span>'
       + '</div>';
@@ -5345,7 +5468,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
           slot.innerHTML =
             '<div style="display:inline-block;background:#0b0b0c;border:2px solid #c1121f;'
             + 'padding:10px 18px;margin:10px auto;font-family:\'Helvetica Neue\',Arial,sans-serif;text-align:center;">'
-            + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
+            + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">FIRST WAVE</div>'
             + '<div style="color:#c9bfa8;font-size:0.85rem;margin-top:4px;">You were here when it started.</div>'
             + '</div>';
           host.parentNode.insertBefore(slot, host.nextSibling);
@@ -5443,13 +5566,13 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
         var linkId = (day.key === 'route-march') ? ' id="pf-fw-day5-link"' : '';
         var tag = doneD
           ? '<span style="color:#7ddf8a;font-weight:900;">&#10003; DONE</span>'
-          : '<span style="color:#c1121f;font-weight:900;">&#9679; OPEN</span>';
+          : '<span style="color:#e5383b;font-weight:900;">&#9679; OPEN</span>';
         var stake = (day.key === 'ventures')
           ? '<div style="color:#8a8172;font-size:0.72rem;margin-top:6px;">XP has no cash value. Stakes are final.</div>'
           : '';
         rows +=
           '<div style="display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid #2a2a2a;">'
-          + '<div style="min-width:44px;color:#c1121f;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
+          + '<div style="min-width:44px;color:#e5383b;font-weight:900;font-size:0.8rem;letter-spacing:0.1em;">DAY ' + day.day + '</div>'
           + '<div style="flex:1;min-width:0;">'
           + '<a' + linkId + ' href="' + esc(url) + '" style="color:#f5ead6;font-weight:900;font-size:0.95rem;text-decoration:none;letter-spacing:0.04em;">' + esc(day.name) + ' &rarr;</a>'
           + '<div style="color:#a89e88;font-size:0.8rem;margin-top:2px;">' + esc(day.sub) + '</div>'
@@ -5461,7 +5584,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
       var head = allDone
         ? '<div style="color:#7ddf8a;font-weight:900;letter-spacing:0.2em;font-size:0.78rem;">&#9733; FIRST WAVE &#8212; FULL MUSTER &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">YOU STOOD ALL SEVEN.</div>'
-        : '<div style="color:#c1121f;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
+        : '<div style="color:#e5383b;font-weight:900;letter-spacing:0.25em;font-size:0.78rem;">&#9733; THE FIRST WAVE CIRCUIT &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.25rem;margin-top:6px;letter-spacing:0.05em;">SEVEN DAYS. SEVEN ACTIONS. FOUNDERS FINISH.</div>';
       var el = document.createElement('div');
       el.id = 'pf-firstwave-circuit';
@@ -5527,7 +5650,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
           '<div style="background:#0a0a0a;border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;'
           + 'padding:22px 16px;max-width:1100px;margin:18px auto;color:#f5ead6;'
           + 'font-family:\'Helvetica Neue\',Arial,sans-serif;box-sizing:border-box;text-align:center;">'
-          + '<div style="color:#c1121f;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
+          + '<div style="color:#e5383b;font-weight:900;letter-spacing:0.3em;font-size:0.72rem;">&#9733; THE FOUNDER ROLL &#9733;</div>'
           + '<div style="color:#f5ead6;font-weight:900;font-size:1.3rem;margin:8px 0 4px;letter-spacing:0.05em;">THEY WERE HERE WHEN IT STARTED.</div>'
           + '<div style="color:#a89e88;font-size:0.85rem;margin-bottom:10px;">This roll is closed forever. No late entries. No exceptions.</div>'
           + '<div style="max-width:560px;margin:0 auto;text-align:left;">' + (rows || '<div style="color:#a89e88;font-size:0.9rem;text-align:center;">The roll is being written. Enlist during the First Wave and your name lands here.</div>') + '</div>'
@@ -5602,7 +5725,7 @@ wallFromServer(function(j){ if(j&&j.ok&&j.wall) renderWall(j.wall, j.fan_favorit
 <div class="fe-block pf-override-block" id="pf-spotlight">
 <style>
 #pf-spotlight .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-spotlight .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-spotlight .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-spotlight .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-spotlight .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-spotlight .pft-hook b{color:#f5ead6}
@@ -5668,7 +5791,7 @@ try{
 <div class="fe-block pf-override-block" id="pf-matchquiz">
 <style>
 #pf-matchquiz .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-matchquiz .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-matchquiz .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-matchquiz .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-matchquiz .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-matchquiz .pft-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:14px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:48px;line-height:1.2;box-sizing:border-box;font-family:Arial,sans-serif}
@@ -5754,7 +5877,7 @@ try{
 <div class="fe-block pf-override-block" id="pf-infight">
 <style>
 #pf-infight .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-infight .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-infight .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-infight .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-infight .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-infight .pft-hook b{color:#f5ead6}
@@ -5805,7 +5928,7 @@ try{
 <div class="fe-block pf-override-block" id="pf-cells">
 <style>
 #pf-cells .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-cells .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-cells .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-cells .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-cells .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-cells .pft-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:14px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:48px;line-height:1.2;box-sizing:border-box;font-family:Arial,sans-serif}
@@ -6209,29 +6332,82 @@ function render(){
       var cs=id.callsign.toUpperCase(), link=refLink(id.callsign);
       var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
       var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
-      x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-      x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-      x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+          btM="#a89a7d", btF="#6f6350";
+      x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+      x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+      for(var btD=-H; btD<W+H; btD+=26){
+        x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+      }
+      x.restore();
+      var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+      btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+      x.fillStyle=btVg; x.fillRect(0,0,W,H);
+      var btBar=x.createLinearGradient(0,0,0,10);
+      btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+      x.fillStyle=btBar; x.fillRect(0,0,W,10);
+      x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+      x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+      x.fillText("★",W/2,H*0.60); x.restore();
       x.textAlign="center";
-      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
-      x.fillText("\u2605 REFERRAL WAR \u2605",W/2,170);
-      x.fillStyle="#c1121f"; x.font="900 92px \\\"Arial Black\\\",Arial,sans-serif";
-      x.fillText("JOIN THE FIGHT.",W/2,330);
-      x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
-      x.fillText("Claim your callsign with my code:",W/2,470);
+      /* kicker: letterspaced gold */
+      x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+      try{ x.letterSpacing="10px"; }catch(e){}
+      x.fillText("REFERRAL WAR",W/2,140);
+      try{ x.letterSpacing="0px"; }catch(e5){}
+      x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+      x.beginPath(); x.moveTo(W/2-150,176); x.lineTo(W/2+150,176); x.stroke();
+      /* subhead: quiet serif */
+      x.fillStyle=btC; x.font='italic 400 44px Georgia,"Times New Roman",serif';
+      x.fillText("Claim your callsign with my code:",W/2,300);
       /* 2026-10-04 P4 #12: shrink-to-fit -- long callsigns stay inside the canvas. */
-      x.fillStyle="#c1121f"; x.textAlign="center";
       var csSize=120;
-      x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif";
+      x.font='900 '+csSize+'px Georgia,"Times New Roman",serif';
       while(csSize>36&&x.measureText(cs).width>W-200){ csSize-=4;
-        x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif"; }
-      x.fillText(cs,W/2,660);
-      x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-      x.fillText(link,W/2,780);
-      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
-      x.fillText("We both get XP. You join my army.",W/2,920);
-      x.fillStyle="#c1121f"; x.font="900 64px \\\"Arial Black\\\",Arial,sans-serif";
-      x.fillText("MTCSTW.COM",W/2,H-140);
+        x.font='900 '+csSize+'px Georgia,"Times New Roman",serif'; }
+      /* the figure: monumental red gradient, drop shadow */
+      x.fillStyle="rgba(0,0,0,0.55)";
+      x.fillText(cs,W/2+6,527);
+      var btFg2=x.createLinearGradient(0,400,0,520);
+      btFg2.addColorStop(0,"#e63946"); btFg2.addColorStop(1,btRD);
+      x.fillStyle=btFg2;
+      x.fillText(cs,W/2,520);
+      x.fillStyle=btM; x.font="400 36px Arial,sans-serif";
+      try{ x.letterSpacing="2px"; }catch(e3){}
+      x.fillText(link,W/2,660);
+      try{ x.letterSpacing="0px"; }catch(e4){}
+      x.fillStyle=btC; x.font='italic 400 40px Georgia,"Times New Roman",serif';
+      x.fillText("We both get XP. You join my army.",W/2,790);
+      /* red diamond rule */
+      x.strokeStyle=btR; x.lineWidth=2;
+      x.beginPath(); x.moveTo(W/2-190,880); x.lineTo(W/2-26,880); x.stroke();
+      x.beginPath(); x.moveTo(W/2+26,880); x.lineTo(W/2+190,880); x.stroke();
+      x.save(); x.translate(W/2,880); x.rotate(Math.PI/4);
+      x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+      /* ---- butter footer: CTA standard ---- */
+      var fy=H-215;
+      x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+      x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+      fy+=58;
+      x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+      try{ x.letterSpacing="8px"; }catch(e6){}
+      var btCta="JOIN THE FIGHT";
+      var btCtaW=x.measureText(btCta).width;
+      x.fillText(btCta,W/2,fy);
+      x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+      try{ x.letterSpacing="0px"; }catch(e7){}
+      fy+=52;
+      x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+      try{ x.letterSpacing="10px"; }catch(e8){}
+      x.fillText("MTCSTW.COM",W/2,fy);
+      try{ x.letterSpacing="0px"; }catch(e9){}
+      fy+=42;
+      x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+      try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,fy); }catch(e10){}
+      var btBar2=x.createLinearGradient(0,H-10,0,H);
+      btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+      x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
       try{ cv._pfStamped=true; }catch(e2){}
       PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");
     }catch(e3){ toast("Card failed — copy your link instead."); }
@@ -6276,7 +6452,7 @@ try{
 <div class="fe-block pf-override-block" id="pf-poster">
 <style>
 #pf-poster .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-poster .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-poster .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-poster .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-poster .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-poster .pft-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:14px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:48px;line-height:1.2;box-sizing:border-box;font-family:Arial,sans-serif}
@@ -6311,7 +6487,7 @@ try{
 <div class="fe-block pf-override-block" id="pf-feed">
 <style>
 #pf-feed .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-feed .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-feed .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-feed .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-feed .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-feed .pft-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:14px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;min-height:48px;line-height:1.2;box-sizing:border-box;font-family:Arial,sans-serif}
@@ -6412,8 +6588,8 @@ try{
 .pf-qm-notes b{color:#b8ab8e}
 .pf-qm-veil{position:fixed;inset:0;background:rgba(4,4,4,0.88);z-index:2147483000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:8vh 12px 12px;box-sizing:border-box}
 .pf-qm-sheet{max-width:520px;width:100%;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:Arial,sans-serif;padding:1.4rem 1.3rem;box-sizing:border-box}
-.pf-qm-sheet h3{margin:0 0 4px;font-size:1.25rem;letter-spacing:0.12em;color:#c1121f}
-.pf-qm-kick{font-size:0.72rem;letter-spacing:0.22em;color:#c1121f;font-weight:900;margin:0 0 6px}
+.pf-qm-sheet h3{margin:0 0 4px;font-size:1.25rem;letter-spacing:0.12em;color:#e5383b}
+.pf-qm-kick{font-size:0.72rem;letter-spacing:0.22em;color:#e5383b;font-weight:900;margin:0 0 6px}
 .pf-qm-line{font-size:0.85rem;color:#b8ab8e;line-height:1.6;margin:8px 0}
 .pf-qm-fund-btn{display:block;width:100%;box-sizing:border-box;background:#c1121f;color:#f5f0e1;border:none;font:900 1.05rem Arial,sans-serif;letter-spacing:0.1em;padding:0.95rem 1rem;cursor:pointer;margin:12px 0 6px;text-align:center}
 .pf-qm-fund-btn:hover{background:#e01525}
@@ -6594,7 +6770,7 @@ function render(){
   if(!PAT){
     box.innerHTML='<div class="pf-qm-wrap"><p class="pf-qm-line">The quartermaster is '+
       'down for maintenance \u2014 the store is still open: '+
-      '<a href="'+STORE_URL+'" style="color:#c1121f;font-weight:700;">mtcstw.com/store</a></p></div>';
+      '<a href="'+STORE_URL+'" style="color:#e5383b;font-weight:700;">mtcstw.com/store</a></p></div>';
     return;
   }
   var hero=PAT.hero({
@@ -6613,7 +6789,7 @@ function render(){
     if(tier) html+=missionCard(tier,last.key.replace(/^qm-/,'').slice(0,8).toUpperCase());
   }
   html+='<div class="pf-qm-onetime">One-time shot instead? '+
-    '<a href="#pf-warbonds" style="color:#c1121f;font-weight:700;">OUTFIT A CELL \u2192</a></div>';
+    '<a href="#pf-warbonds" style="color:#e5383b;font-weight:700;">OUTFIT A CELL \u2192</a></div>';
   html+='<p class="pf-qm-notes"><b>War Bonds grant no XP, ever.</b> Real money is '+
     'fully delinked from the XP economy. Card tokenized by our payment provider; '+
     'the public ledger shows aggregates only.</p>';
@@ -6668,7 +6844,7 @@ try{ render(); }catch(e){
     <option value="">Pick your propagandist&hellip;</option>
   </select>
   <div id="pf-wb-out"></div>
-  <div style="margin-top:1.2rem;font-size:0.8rem;color:#b8ab8e;">On the roster? <a href="mailto:mtcstw@gmail.com?subject=War%20chest%20links%20for%20the%20roster" style="color:#c1121f;font-weight:700;">Send your tip / merch links</a> and get listed.</div>
+  <div style="margin-top:1.2rem;font-size:0.8rem;color:#b8ab8e;">On the roster? <a href="mailto:mtcstw@gmail.com?subject=War%20chest%20links%20for%20the%20roster" style="color:#e5383b;font-weight:700;">Send your tip / merch links</a> and get listed.</div>
 </div>
 <script>
 (function(){
@@ -6790,7 +6966,7 @@ try{ render(); }catch(e){
     var w = WARCHEST[name];
     var h = '<div style="font-size:1.25rem;font-weight:900;margin-bottom:0.8rem;">' + esc(name) + '</div>';
     if(w){
-      h += '<div style="font-size:0.8rem;letter-spacing:0.12em;color:#c1121f;font-weight:900;margin-bottom:0.8rem;">\u2605 WAR CHEST ACTIVE \u2605</div>';
+      h += '<div style="font-size:0.8rem;letter-spacing:0.12em;color:#e5383b;font-weight:900;margin-bottom:0.8rem;">\u2605 WAR CHEST ACTIVE \u2605</div>';
       w.pay.forEach(function(p){
         h += '<a href="' + esc(p.url) + '" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.1em;text-decoration:none;padding:0.8rem 1.6rem;margin:0.3rem;font-size:0.95rem;">' + esc(String(p.label).toUpperCase()) + ' &rarr;</a>';
       });
@@ -6894,7 +7070,7 @@ try{ render(); }catch(e){
   min-height:56px;padding:10px 16px;text-decoration:none;border-bottom:1px solid #242424}
 #pf-sitemap .pfsm-a:last-child{border-bottom:0}
 #pf-sitemap .pfsm-a:active,#pf-sitemap .pfsm-a:hover{background:#1c0707}
-#pf-sitemap .pfsm-t{color:#c1121f;font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;font-family:Arial,sans-serif}
+#pf-sitemap .pfsm-t{color:#e5383b;font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;font-family:Arial,sans-serif}
 #pf-sitemap .pfsm-d{color:#b8ab8f;font-size:13px;line-height:1.45;font-family:Arial,sans-serif;margin-top:2px}
 </style>
 <h2>Site Map</h2>
@@ -7346,27 +7522,82 @@ function racePoster(r,done){
       }
       x.font=f; x.fillText(text,540,y);
     }
-    x.fillStyle="#0d0d0d"; x.fillRect(0,0,1080,1350);
-    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,1048,1318);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,976,1246);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    x.fillStyle="#0e0d0c"; x.fillRect(0,0,1080,1350);
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-1350; btD<2430; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+1350,1350); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(540,540,216,540,675,1147);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    x.fillStyle=btVg; x.fillRect(0,0,1080,1350);
+    var btBar=x.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    x.fillStyle=btBar; x.fillRect(0,0,1080,10);
+    x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+    x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+    x.fillText("★",540,810); x.restore();
     x.textAlign="center";
-    x.fillStyle="#f5ead6"; x.font='700 34px Arial,sans-serif';
-    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",540,160);
-    x.fillStyle="#c1121f"; x.font='900 96px "Arial Black",Arial,sans-serif';
+    /* kicker: letterspaced gold */
+    x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("THE PROPAGANDA FACTORY",540,140);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(390,176); x.lineTo(690,176); x.stroke();
+    /* masthead: monumental serif, red gradient */
+    x.font='900 96px Georgia,"Times New Roman",serif';
+    var btFg=x.createLinearGradient(0,240,0,336);
+    btFg.addColorStop(0,"#e63946"); btFg.addColorStop(1,btRD);
+    x.fillStyle=btFg;
     x.fillText("DEPLOY FOR "+String(r.state||"").toUpperCase().slice(0,2),540,330);
     var cs=r.candidates||[];
     var sub=lastName(cs[0]&&cs[0].name).toUpperCase()+" VS "+lastName(cs[1]&&cs[1].name).toUpperCase()
       +" \u2014 "+String(r.office||"").toUpperCase();
-    x.fillStyle="#f5ead6";
-    shrinkFit(sub,920,'900 64px "Arial Black",Arial,sans-serif',448);
-    x.font="400 38px Arial,sans-serif";
-    var lines=wrap(r.stakes,920), y=570, li;
-    for(li=0;li<lines.length&&y<900;li++){ x.fillText(lines[li],540,y); y+=52; }
-    x.fillStyle="#c9bfa8";
+    x.fillStyle=btC;
+    shrinkFit(sub,920,'900 62px Georgia,"Times New Roman",serif',448);
+    /* red diamond rule */
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.beginPath(); x.moveTo(350,512); x.lineTo(514,512); x.stroke();
+    x.beginPath(); x.moveTo(566,512); x.lineTo(730,512); x.stroke();
+    x.save(); x.translate(540,512); x.rotate(Math.PI/4);
+    x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+    x.font='400 36px Georgia,"Times New Roman",serif'; x.fillStyle=btM;
+    var lines=wrap(r.stakes,920), y=590, li;
+    for(li=0;li<lines.length&&y<920;li++){ x.fillText(lines[li],540,y); y+=50; }
+    x.fillStyle=btF; x.font='italic 400 32px Georgia,"Times New Roman",serif';
     x.fillText("Real race. Real stakes. Class lines drawn.",540,y+44);
-    x.fillStyle="#c1121f"; x.font='900 46px "Arial Black",Arial,sans-serif';
-    x.fillText("MTCSTW.COM",540,1182);
-    x.fillText("JOIN THE FIGHT.",540,1242);
+    /* source citation: race + state */
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.letterSpacing="2px"; }catch(e){}
+    x.fillText(("SOURCE \u2014 THE PROPAGANDA FACTORY RACE DESK").slice(0,60),540,1080);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=1350-215;
+    x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(120,fy); x.lineTo(960,fy); x.stroke();
+    fy+=58;
+    x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+    try{ x.letterSpacing="8px"; }catch(e){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=x.measureText(btCta).width;
+    x.fillText(btCta,540,fy);
+    x.fillStyle=btR; x.fillText(".",540+btCtaW/2-4,fy);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    fy+=52;
+    x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("MTCSTW.COM",540,fy);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    fy+=42;
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),540,fy); }catch(e){}
+    var btBar2=x.createLinearGradient(0,1340,0,1350);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    x.fillStyle=btBar2; x.fillRect(0,1340,1080,10);
     done(cv);
   }catch(e){ fail(); }
 }
@@ -7646,7 +7877,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#9c8f78;
   padding:9px 12px;border:1px solid #2c2c2c;border-radius:6px;background:#0d0d0d;
   max-width:680px;margin:0 auto;text-align:center}
-#pf-alerts .pf-quietstrip b{color:#c1121f;letter-spacing:2px}
+#pf-alerts .pf-quietstrip b{color:#e5383b;letter-spacing:2px}
 #pf-alerts.pf-quiet #pf-alerts-body{display:none}
 #pf-alerts.pf-quiet .pf-quietstrip{display:flex}
 #pf-alerts.pf-quiet .pf-next{display:none}
@@ -7734,7 +7965,7 @@ function render(j){
   if(!ok){
     /* FAIL SOFT: exactly as today — visible section, honest quiet pane. */
     setQuiet(false);
-    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first. <a href="/create?tab=bounties" style="color:#c1121f;font-weight:700;text-decoration:none">HIT THE OPEN BOUNTIES &#8594;</a></div></div>';
+    h+='<div class="x-pane"><div class="x-note">No active alerts. The wire is quiet &mdash; for now. When a moment breaks, it lands here first. <a href="/create?tab=bounties" style="color:#e5383b;font-weight:700;text-decoration:none">HIT THE OPEN BOUNTIES &#8594;</a></div></div>';
     h+='<div style="margin-top:10px"><button class="c-btn" id="alRetry">Refresh</button></div>';
     el.innerHTML=h;
     var rb0=document.getElementById("alRetry");
@@ -7996,14 +8227,14 @@ try{ boot(); }catch(e){ hide(); }
 #pf-vote .pfv-ballot-name{font-weight:900;font-size:1.05rem;letter-spacing:0.06em;}
 #pf-vote .pfv-seal{display:inline-block;margin-top:0.7rem;background:#c1121f;color:#f5ead6;font-weight:900;font-size:0.8rem;letter-spacing:0.2em;padding:0.45rem 1.1rem;border-radius:50%;transform:rotate(-8deg);animation:pfvstamp 0.35s 0.8s ease-out backwards;}
 @keyframes pfvstamp{0%{transform:scale(2.6) rotate(-8deg);opacity:0;}60%{transform:scale(0.92) rotate(-8deg);opacity:1;}100%{transform:scale(1) rotate(-8deg);}}
-#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
+#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#e5383b;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
 #pf-vote .pfv-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:6;pointer-events:none;animation:pfvfall linear forwards;}
 @keyframes pfvfall{to{transform:translateY(480px) rotate(540deg);opacity:0;}}
 @media (prefers-reduced-motion:reduce){#pf-vote .pfv-ballot,#pf-vote .pfv-seal{animation:none;}}
 </style>
 <div id="pf-vote" style="position:relative;max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
   <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; FAN VOTE &#9733;</div>
-  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#c1121f;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
+  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#e5383b;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
   <div id="pf-vote-urgency" class="pfv-strip">COUNTING BALLOTS&hellip;</div>
   <div id="pf-vote-streak" class="pfv-strip"></div>
   <div id="pf-vote-kingmaker"></div>
@@ -8012,7 +8243,7 @@ try{ boot(); }catch(e){ hide(); }
   <div id="pf-vote-list"></div>
   <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
   <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
-  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;"></div>
+  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#e5383b;min-height:1.2em;"></div>
   <!-- V3 (2026-10-07) absorbs: hall (winners strip) + draw (pot line). -->
   <div id="pf-vote-champs" class="pfv-strip" style="display:none;margin-top:1rem;"></div>
   <div id="pf-vote-pot" class="pfv-strip" style="display:none;"></div>
@@ -8169,7 +8400,7 @@ try{ boot(); }catch(e){ hide(); }
     if(!el) return;
     var st = getStreak();
     if(st.streak > 0){
-      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#c1121f;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
+      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#e5383b;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
     } else {
       el.innerHTML = 'Cast your ballot to start a <b style="color:#f5f0e1;">voting streak</b>';
     }
@@ -8237,7 +8468,7 @@ try{ boot(); }catch(e){ hide(); }
   function renderUrgency(){
     var el=document.getElementById('pf-vote-urgency');
     if(!el) return;
-    el.innerHTML='<span style="color:#c1121f;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
+    el.innerHTML='<span style="color:#e5383b;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
   }
   setInterval(function(){ var el=document.getElementById('pf-vote-urgency'); if(el && urgencyTotal>0) renderUrgency(); }, 60000);
   /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG
@@ -8253,20 +8484,31 @@ try{ boot(); }catch(e){ hide(); }
       var W=1080,H=1350,canvas=document.createElement('canvas');
       canvas.width=W;canvas.height=H;
       var x=canvas.getContext('2d');
-      x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
-      x.strokeStyle='#c1121f';x.lineWidth=14;x.strokeRect(28,28,W-56,H-56);
-      x.lineWidth=3;x.strokeRect(58,58,W-116,H-116);
+      /* BUTTER PASS (2026-10-07): editorial ground, visual-only. */
+      var vbg=x.createLinearGradient(0,0,0,H);
+      vbg.addColorStop(0,'#131316');vbg.addColorStop(0.5,'#0a0a0c');vbg.addColorStop(1,'#060607');
+      x.fillStyle=vbg;x.fillRect(0,0,W,H);
+      var vvg=x.createRadialGradient(W/2,H*0.3,90,W/2,H/2,H*0.62);
+      vvg.addColorStop(0,'rgba(245,234,214,0.035)');vvg.addColorStop(1,'rgba(0,0,0,0.32)');
+      x.fillStyle=vvg;x.fillRect(0,0,W,H);
+      var vrh=x.createLinearGradient(0,0,W,0);
+      vrh.addColorStop(0,'rgba(193,18,31,0)');vrh.addColorStop(0.5,'#c1121f');vrh.addColorStop(1,'rgba(193,18,31,0)');
+      x.fillStyle=vrh;x.fillRect(W*0.08,52,W*0.84,5);
+      x.strokeStyle='#33302a';x.lineWidth=2;x.strokeRect(58,72,W-116,H-144);
       var cx=W/2;
-      function ct(t,y,size,color,weight,ls){
+      /* BUTTER PASS: ct() paints serif headlines by default; pass serif=0
+         for letterspaced sans authority labels. */
+      function ct(t,y,size,color,weight,ls,serif){
         x.fillStyle=color;
-        x.font=weight+' '+size+'px "Arial Black",Arial,sans-serif';
+        x.font=(serif===0)?(weight+' '+size+'px Arial,sans-serif'):('bold '+size+'px Georgia,"Times New Roman",serif');
         x.textAlign='center';x.textBaseline='middle';
         try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
         x.fillText(t,cx,y);
         try{ x.letterSpacing='0px'; }catch(e){}
       }
       function wrap(t,maxW,size){
-        x.font='900 '+size+'px "Arial Black",Arial,sans-serif';
+        /* measure in the serif headline family so paint matches measure */
+        x.font='bold '+size+'px Georgia,"Times New Roman",serif';
         var words=String(t).split(' '),lines=[],cur='',i,trial;
         for(i=0;i<words.length;i++){
           trial=cur?cur+' '+words[i]:words[i];
@@ -8276,8 +8518,8 @@ try{ boot(); }catch(e){ hide(); }
         if(cur)lines.push(cur);
         return lines;
       }
-      ct('\\u2605 FAN VOTE \\u2605',150,54,'#c1121f','900',6);
-      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',228,34,'#f5ead6','900',8);
+      ct('\\u2605 FAN VOTE \\u2605',150,50,'#c1121f','700',8,0);
+      ct(mode==='post'?'I VOTED FOR':'VOTE FOR',226,32,'#c9bfa8','700',10,0);
       /* Adaptive name size: shrink until the name fits maxLines. */
       var hasImg=!!VOTE_IMGS[c.slug];
       var maxLines=hasImg?2:3, nsize=72, lines=wrap(c.name.toUpperCase(),W-240,nsize), i;
@@ -8297,14 +8539,14 @@ try{ boot(); }catch(e){ hide(); }
           y=280+S+64;
         } else { y=372; }
         var ty=y+Math.round(lh/2);
-        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2); ty+=lh; }
+        for(i=0;i<lines.length;i++){ ct(lines[i],ty,nsize,'#f5ead6','900',2,1); ty+=lh; }
         ty+=22;
-        ct('PROPAGANDIST OF THE WEEK',ty,40,'#c1121f','900',5); ty+=70;
-        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,32,'#b8ab8e','700',3); ty+=62; }
+        ct('PROPAGANDIST OF THE WEEK',ty,36,'#c1121f','700',7,0); ty+=70;
+        if(c.score){ ct('PROPAGANDA SCORE '+c.score.toFixed(1),ty,30,'#b8ab8e','700',5,0); ty+=62; }
         var footY=Math.min(Math.max(ty+44,H-200),H-128);
-        ct('MTCSTW.COM',footY,44,'#f5ead6','900',6);
-        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4);
-        ct('VOTING ENDS SUNDAY',footY+102,24,'#b8ab8e','700',4);
+        ct('MTCSTW.COM',footY,40,'#f5ead6','700',10,0);
+        ct('JOIN THE FIGHT.',footY+58,30,'#c1121f','900',4,0);
+        ct('VOTING ENDS SUNDAY',footY+102,22,'#8a8271','700',6,0);
         resolve(canvas);
       }
       if(hasImg){
@@ -8358,15 +8600,15 @@ try{ boot(); }catch(e){ hide(); }
   function showVoted(name, weight){
     list.innerHTML = '';
     var vc = candByName(name);
-    var wtxt = (weight > 1) ? ' <b style="color:#c1121f;">&times;' + weight + '</b>' : '';
+    var wtxt = (weight > 1) ? ' <b style="color:#e5383b;">&times;' + weight + '</b>' : '';
     var first = String(name).split(' ')[0].toUpperCase();
     msg.innerHTML = 'Vote counted for <b style="color:#f5f0e1;">' + name + '</b>' + wtxt +
       '.<br>Results drop Monday morning on the reshuffle.<br>' +
       '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">CAMPAIGN FOR ' + esc(first) + '</button>' +
-      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
+      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#e5383b;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
     /* R3 (2026-10-04): post-vote route back to the creator's catalog page. */
     if(vc && vc.slug){
-      msg.innerHTML += '<div style="margin-top:0.9rem;"><a href="/' + esc(vc.slug) + '" style="color:#c1121f;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid #c1121f;">see ' + esc(name) + '&rsquo;s page &rarr;</a></div>';
+      msg.innerHTML += '<div style="margin-top:0.9rem;"><a href="/' + esc(vc.slug) + '" style="color:#e5383b;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid #c1121f;">see ' + esc(name) + '&rsquo;s page &rarr;</a></div>';
     }
     var sb = document.getElementById('pf-vote-share');
     if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
@@ -8391,7 +8633,7 @@ try{ boot(); }catch(e){ hide(); }
       b.onclick = function(){ castVote(c, b); };
       var s = document.createElement('button');
       s.textContent = 'SHARE';
-      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#e5383b;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
       s.onclick = function(){ shareVotePoster(c,'pre'); };
       row.appendChild(b); row.appendChild(s);
       /* R3 (2026-10-04): ?for=<slug> preselect — highlight the catalog pick. */
@@ -8401,7 +8643,7 @@ try{ boot(); }catch(e){ hide(); }
         b.style.boxShadow = '0 0 0 2px #c1121f';
         var tag = document.createElement('span');
         tag.textContent = ' \u2605 YOUR PICK';
-        tag.style.cssText = 'color:#c1121f;font-weight:900;font-size:0.75rem;letter-spacing:0.12em;';
+        tag.style.cssText = 'color:#e5383b;font-weight:900;font-size:0.75rem;letter-spacing:0.12em;';
         row.appendChild(tag);
       }
       list.appendChild(row);
@@ -8457,7 +8699,7 @@ try{ boot(); }catch(e){ hide(); }
       }
       try { localStorage.removeItem(storeKey); } catch(e){}
       renderBallot();
-      msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
+      msg.innerHTML = 'Vote reset &mdash; <b style="color:#e5383b;">-' + (v ? v.weight : 1) + '</b>' +
         (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
         '.<br>Changed your mind? Pick again below.';
       /* Refresh the shared totals after the retract lands. */
@@ -8546,7 +8788,7 @@ try{ boot(); }catch(e){ hide(); }
             var line='Solidarity Draw pot: <b style="color:#ffd34d;">'
               +Number(p).toLocaleString("en-US")+" XP</b>";
             pot.innerHTML=hasDraw
-              ?(line+' &nbsp;<a href="#pf-draw" id="pf-vote-potgo" style="color:#c1121f;font-weight:700;text-decoration:none;">\\u2192</a>')
+              ?(line+' &nbsp;<a href="#pf-draw" id="pf-vote-potgo" style="color:#e5383b;font-weight:700;text-decoration:none;">\\u2192</a>')
               :line;
             pot.style.display="";
             var go=document.getElementById("pf-vote-potgo");
@@ -8795,11 +9037,11 @@ try{ boot(); }catch(e){ hide(); }
         'background:#0a0a0a;border-bottom:3px solid #c1121f;color:#f5ead6;' +
         'font-family:Arial,sans-serif;text-align:center;padding:10px 12px;' +
         'font-size:14px;letter-spacing:1px;box-sizing:border-box}' +
-        '#pf-blackout-bar .bo-k{color:#c1121f;font-weight:800;letter-spacing:3px;' +
+        '#pf-blackout-bar .bo-k{color:#e5383b;font-weight:800;letter-spacing:3px;' +
         'font-size:11px;display:block;margin-bottom:2px}' +
         '#pf-blackout-bar .bo-t{font-family:\'Arial Black\',Arial,sans-serif;' +
         'font-size:16px;letter-spacing:2px}' +
-        '#pf-blackout-bar .bo-c{color:#c1121f;font-weight:800}' +
+        '#pf-blackout-bar .bo-c{color:#e5383b;font-weight:800}' +
         '</style>' +
         '<span class="bo-k">\uD83D\uDEA8 INCOMING TRANSMISSION</span>' +
         '<span class="bo-t">BLACKOUT OP</span> — the wire goes dark in ' +
@@ -8893,7 +9135,7 @@ try{ boot(); }catch(e){ hide(); }
         'padding:22px 20px;max-width:680px;margin:18px auto;color:#f5ead6;' +
         'font-family:Arial,sans-serif;box-sizing:border-box}' +
         '#pf-blackout-debrief .bo-k{font-size:12px;letter-spacing:4px;' +
-        'color:#c1121f;font-weight:800}' +
+        'color:#e5383b;font-weight:800}' +
         '#pf-blackout-debrief .bo-title{font-family:\'Arial Black\',Arial,sans-serif;' +
         'font-size:22px;letter-spacing:2px;text-transform:uppercase;margin:4px 0 6px}' +
         '#pf-blackout-debrief .bo-sub{font-size:13px;color:#a89e88;margin-bottom:14px}' +
@@ -8977,15 +9219,15 @@ try{ boot(); }catch(e){ hide(); }
 <div class="fe-block pf-override-block pf-silo" id="pf-hallofproof">
 <style>
 #pf-hallofproof{background:#0a0a0a;border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;padding:22px 16px;font-family:Arial,sans-serif;color:#f5ead6;text-align:center}
-#pf-hallofproof .hp-kicker{font-size:11px;letter-spacing:3px;color:#c1121f;font-weight:bold;margin-bottom:6px}
+#pf-hallofproof .hp-kicker{font-size:11px;letter-spacing:3px;color:#e5383b;font-weight:bold;margin-bottom:6px}
 #pf-hallofproof h2{margin:0 0 4px;font-size:24px;letter-spacing:1px;color:#f5ead6}
 #pf-hallofproof .hp-sub{font-size:12px;color:#9c8f78;margin-bottom:16px}
 #pf-hallofproof .hp-banner{background:#1a0505;border:1px solid #c1121f;border-radius:6px;padding:12px;max-width:640px;margin:0 auto 18px;font-size:13px}
-#pf-hallofproof .hp-banner b{color:#c1121f}
+#pf-hallofproof .hp-banner b{color:#e5383b}
 #pf-hallofproof .hp-groups{max-width:720px;margin:0 auto;text-align:left}
 #pf-hallofproof .hp-group{margin-bottom:14px;background:#111;border:1px solid #2c2c2c;border-radius:6px;overflow:hidden}
 #pf-hallofproof .hp-ghead{padding:8px 12px;background:#161616;font-size:13px;font-weight:bold;color:#f5ead6;border-bottom:1px solid #2c2c2c}
-#pf-hallofproof .hp-ghead .hp-count{color:#c1121f;margin-left:6px;font-size:12px}
+#pf-hallofproof .hp-ghead .hp-count{color:#e5383b;margin-left:6px;font-size:12px}
 #pf-hallofproof .hp-pin{padding:7px 12px;font-size:13px;border-bottom:1px solid #1d1d1d;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 #pf-hallofproof .hp-pin:last-child{border-bottom:none}
 #pf-hallofproof .hp-cs{font-family:monospace;color:#ffd34d;font-weight:bold}
@@ -9730,7 +9972,7 @@ api(null,paint);
         '#pf-warrticker{background:#0a0a0a;border:3px solid #c1121f;padding:22px 20px;' +
         'max-width:680px;margin:18px auto;color:#f5ead6;font-family:Arial,sans-serif;box-sizing:border-box}' +
         '#pf-warrticker .wrt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}' +
-        '#pf-warrticker .wrt-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800}' +
+        '#pf-warrticker .wrt-kicker{font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800}' +
         '#pf-warrticker .wrt-title{font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;' +
         'letter-spacing:2px;text-transform:uppercase}' +
         '#pf-warrticker .wrt-live{display:inline-flex;align-items:center;gap:6px;background:#c1121f;' +
@@ -9746,7 +9988,7 @@ api(null,paint);
         '#pf-warrticker .wrt-item.wrt-isub{box-shadow:inset 3px 0 0 #d4af37;background:#141008}' +
         '#pf-warrticker a.wrt-item:hover{background:#161616}' +
         '#pf-warrticker .wrt-copy{flex:1;line-height:1.4}' +
-        '#pf-warrticker .wrt-tag{color:#c1121f;font-weight:700}' +
+        '#pf-warrticker .wrt-tag{color:#e5383b;font-weight:700}' +
         '#pf-warrticker .wrt-ago{font-size:11px;color:#a89e88;white-space:nowrap}' +
         '#pf-warrticker .wrt-empty{padding:16px 4px;color:#a89e88;font-size:14px;text-align:center}' +
         '@media(max-width:520px){#pf-warrticker{padding:16px 12px}#pf-warrticker .wrt-title{font-size:18px}}' +
@@ -10820,7 +11062,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
 <div style="font-family:'Arial Black',Arial,sans-serif;font-size:26px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">&#127897; The Propaganda Factory Podcast</div>
 <div style="font-size:14px;color:#a89e88;line-height:1.5;margin:0 auto 14px;max-width:540px;">The week in propaganda, straight to your ears. New episodes on the feed — take the fight with you.</div>
 <a href="https://rss.com/podcasts/the-propaganda-factory" target="_blank" rel="noopener" style="display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;">LISTEN NOW &#8594;</a>
-<div style="font-size:11px;letter-spacing:3px;color:#c1121f;font-weight:800;margin-top:12px;">MTCSTW.COM &mdash; JOIN THE FIGHT.</div>
+<div style="font-size:11px;letter-spacing:3px;color:#e5383b;font-weight:800;margin-top:12px;">MTCSTW.COM &mdash; JOIN THE FIGHT.</div>
 </div>
 </div>
 </template>`);
@@ -10953,7 +11195,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
   var FETCH_TIMEOUT_MS = 12000;
   var CACHE_MS = 10 * 60 * 1000;
 
-  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -11029,7 +11271,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         link = 'https://bsky.app/hashtag/' + encodeURIComponent(String(feat.tag));
       }
       out += link
-        ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="color:' + RED + ';font-weight:700;">' + esc(chunk) + '</a>'
+        ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="color:' + RED_TX + ';font-weight:700;">' + esc(chunk) + '</a>'
         : esc(chunk);
       cur = be;
     });
@@ -11042,7 +11284,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     var name = esc((author && author.displayName) || (author && author.handle) || '?');
     if (av) return '<img src="' + esc(av) + '" alt="' + name + '" loading="lazy" referrerpolicy="no-referrer" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:2px solid ' + RED + ';display:block;">';
     var init = String(name.replace(/&[^;]+;/g, '')).replace(/&/g, '').charAt(0).toUpperCase() || '?';
-    return '<span style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#1a1a1a;border:2px solid ' + RED + ';display:inline-flex;align-items:center;justify-content:center;color:' + RED + ';font-weight:900;font-size:' + Math.round(size * 0.4) + 'px;flex:none;">' + esc(init) + '</span>';
+    return '<span style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#1a1a1a;border:2px solid ' + RED + ';display:inline-flex;align-items:center;justify-content:center;color:' + RED_TX + ';font-weight:900;font-size:' + Math.round(size * 0.4) + 'px;flex:none;">' + esc(init) + '</span>';
   }
 
   function embedHTML(pv) {
@@ -11067,7 +11309,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       h += '<div style="padding:0.6rem 0.8rem;">'
         + (x.title ? '<div style="font-weight:800;font-size:0.85rem;color:' + CREAM + ';">' + esc(x.title) + '</div>' : '')
         + (x.description ? '<div style="font-size:0.78rem;color:' + MUTED + ';margin-top:0.25rem;">' + esc(String(x.description).slice(0, 160)) + '</div>' : '')
-        + (xurl ? '<div style="font-size:0.72rem;color:' + RED + ';margin-top:0.3rem;">' + esc(String(x.uri).replace(/^https?:\/\//, '').slice(0, 60)) + '</div>' : '')
+        + (xurl ? '<div style="font-size:0.72rem;color:' + RED_TX + ';margin-top:0.3rem;">' + esc(String(x.uri).replace(/^https?:\/\//, '').slice(0, 60)) + '</div>' : '')
         + '</div></div>';
     } else if (/embed\.record#view/i.test(t) && e.record) {
       var r = e.record, rt = String(r.$type || '');
@@ -11114,7 +11356,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         + '<span>&#8646; ' + num(post.repostCount) + '</span>'
         + '<span>&hearts; ' + num(post.likeCount) + '</span>'
         + (post.quoteCount ? '<span>&ldquo; ' + num(post.quoteCount) + '</span>' : '')
-        + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="margin-left:auto;color:' + RED + ';font-weight:800;letter-spacing:0.08em;">VIEW &rarr;</a>' : '')
+        + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="margin-left:auto;color:' + RED_TX + ';font-weight:800;letter-spacing:0.08em;">VIEW &rarr;</a>' : '')
         + '</div>';
       return '<article class="pf-bsky-card" style="background:' + BLACK + ';border:2px solid #2a2a2a;border-left:4px solid ' + RED + ';color:' + CREAM + ';padding:1rem 1.1rem;border-radius:4px;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         + byline

@@ -19,6 +19,7 @@
 /* ---------- 1. DESIGN TOKENS ---------- */
 :root{
   --pf-red:#c1121f; --pf-red-dark:#8f0d17; --pf-red-bright:#dc143c;
+  --pf-red-text:#e5383b; /* CONTRAST FIX 2026-10-08: 4.68:1 on #0a0a0a, for normal-size text */
   --pf-dark:#0d0d0d; --pf-dark-2:#1a1a1a; --pf-dark-3:#141414;
   --pf-cream:#f5ead6; --pf-muted:#c9bfa8; --pf-dim:#777;
   --pf-border:#333; --pf-border-light:#555;
@@ -130,7 +131,7 @@ html,body{overflow-x:clip;}
 .c-tag{font-size:14px;margin-bottom:14px;}
 .c-err{
   font-family:var(--pf-font-body); font-size:12px;
-  color:var(--pf-red-bright); margin:8px 0; letter-spacing:1px;
+  color:var(--pf-red-text); margin:8px 0; letter-spacing:1px;
 }
 .pf-load,.c-load{
   font-family:var(--pf-font-body); font-size:13px;
@@ -185,24 +186,24 @@ html,body{overflow-x:clip;}
 }
 .cp-mission.done,.cp-mdone{border-style:solid;opacity:.75;}
 .cp-mtext{font-size:15px;line-height:1.5;color:var(--pf-cream);}
-.cp-mxp{font-family:var(--pf-font-body);font-size:12px;letter-spacing:2px;color:var(--pf-red-bright);margin-top:8px;text-transform:uppercase;}
+.cp-mxp{font-family:var(--pf-font-body);font-size:12px;letter-spacing:2px;color:var(--pf-red-text);margin-top:8px;text-transform:uppercase;}
 /* Leaderboards */
 .cp-lead{margin:10px 0;}
 .cp-lname{color:var(--pf-cream);font-weight:bold;flex:1;}
-.cp-lrank{font-family:var(--pf-font-display);color:var(--pf-red-bright);min-width:28px;}
+.cp-lrank{font-family:var(--pf-font-display);color:var(--pf-red-text);min-width:28px;}
 .cp-lxp{font-family:var(--pf-font-mono);color:var(--pf-muted);font-size:13px;}
 /* Campaign: 32-Day Offensive (2026-10-05, audit #10) — the 13 cp-* classes
    had zero CSS rules; countdown, pledge wall, and Battlegrounds cards
    rendered as unstyled plain text. Locked to the site's red/black/cream
    campaign voice. */
 .cp-count{font-family:var(--pf-font-display);font-size:34px;font-weight:900;letter-spacing:2px;color:var(--pf-cream);margin:6px 0;text-transform:uppercase;}
-.cp-frame{font-family:var(--pf-font-display);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);margin:8px 0;}
+.cp-frame{font-family:var(--pf-font-display);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--pf-red-text);margin:8px 0;}
 .cp-sub{font-size:14px;color:var(--pf-muted);line-height:1.55;margin:6px 0 14px;}
 .cp-wall{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
 .cp-wname{display:inline-block;background:var(--pf-dark-3);border:1px solid var(--pf-border);color:var(--pf-cream);font-size:12px;letter-spacing:1px;padding:5px 10px;text-transform:uppercase;}
 .cp-race{background:var(--pf-dark-2);border:2px solid var(--pf-red);padding:16px 14px;margin:12px 0;text-align:left;}
 .cp-rtitle{font-family:var(--pf-font-display);font-size:19px;font-weight:900;letter-spacing:1px;color:var(--pf-cream);text-transform:uppercase;}
-.cp-rrating{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);}
+.cp-rrating{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--pf-red-text);}
 .cp-cand{margin:10px 0;padding-top:10px;border-top:1px solid var(--pf-border);}
 .cp-cand b{color:var(--pf-cream);font-size:15px;}
 .cp-cfund{font-size:13px;color:var(--pf-gold);margin-top:4px;}
@@ -212,7 +213,7 @@ html,body{overflow-x:clip;}
 .cp-deploy{margin:12px 0 2px;}
 .cp-pledged{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);background:var(--pf-dark-3);border:1px solid var(--pf-gold);padding:10px 12px;margin:10px 0;}
 .cp-status-top{color:var(--pf-gold);font-weight:700;letter-spacing:1px;}
-.cp-youmsg{color:var(--pf-red-bright);font-weight:700;}
+.cp-youmsg{color:var(--pf-red-text);font-weight:700;}
 .cp-wtime{color:var(--pf-muted);font-size:10px;letter-spacing:1px;margin-left:6px;}
 /* Casino */
 .cs-wager{background:var(--pf-dark-2);border:2px solid var(--pf-border);padding:12px;margin-bottom:10px;text-align:left;}
@@ -233,7 +234,7 @@ html,body{overflow-x:clip;}
 @media (max-width:560px){.pb-cards{grid-template-columns:1fr;}}
 .pb-clabel,.pb-blabel,.pb-nwlabel{font-family:var(--pf-font-body);font-size:11px;letter-spacing:2px;color:var(--pf-muted);text-transform:uppercase;}
 .pb-networth{border:3px solid var(--pf-gold);background:#1a1408;padding:16px;margin-bottom:12px;}
-.pb-neg{color:var(--pf-red-bright);}
+.pb-neg{color:var(--pf-red-text);}
 .pb-hist{margin-top:12px;}
 .pb-filters{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;}
 .pb-sub{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);margin:8px 0;}
@@ -243,7 +244,7 @@ html,body{overflow-x:clip;}
 .vl-form{background:var(--pf-dark-2);border:2px solid var(--pf-border);padding:14px;margin-bottom:10px;text-align:left;}
 /* Governance */
 .gv-dur{font-family:var(--pf-font-body);font-size:11px;color:var(--pf-dim);letter-spacing:1px;}
-.gv-pass{color:var(--pf-green);} .gv-fail{color:var(--pf-red-bright);} .gv-tie{color:var(--pf-gold);}
+.gv-pass{color:var(--pf-green);} .gv-fail{color:var(--pf-red-text);} .gv-tie{color:var(--pf-gold);}
 /* Video forge */
 .vd-ctlrow,.vd-addrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;}
 .vd-frow{display:flex;gap:8px;align-items:center;padding:10px;border:2px solid var(--pf-border);margin-bottom:8px;background:var(--pf-dark-3);}
@@ -253,13 +254,13 @@ html,body{overflow-x:clip;}
 .vd-tpls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
 .vd-librow{display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #2a2a2a;}
 .vd-del,.vd-up,.vd-down{background:var(--pf-dark-3);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:6px 10px;cursor:pointer;font-size:12px;}
-.vd-del:hover{border-color:var(--pf-red);color:var(--pf-red);}
+.vd-del:hover{border-color:var(--pf-red);color:var(--pf-red-text);}
 /* Dopamine */
 .dp-cratewrap{text-align:center;padding:20px 0;}
 .dp-crate{font-size:64px;cursor:pointer;}
 .dp-flame{font-size:48px;}
 .dp-streakn{font-size:42px;color:var(--pf-orange);font-family:var(--pf-font-display);}
-.dp-risk{color:var(--pf-red-bright);font-weight:bold;animation:dpPulse 1s infinite;}
+.dp-risk{color:var(--pf-red-text);font-weight:bold;animation:dpPulse 1s infinite;}
 @keyframes dpPulse{50%{opacity:.6;}}
 .dp-combo{font-size:24px;color:var(--pf-gold);}
 .dp-mult{font-family:var(--pf-font-mono);color:var(--pf-gold);}
@@ -276,10 +277,10 @@ html,body{overflow-x:clip;}
 .br-rank{font-size:14px;color:var(--pf-gold);letter-spacing:2px;}
 .br-id{font-family:var(--pf-font-mono);font-size:12px;color:var(--pf-dim);}
 .br-order{border-left:3px solid var(--pf-red);padding:8px 12px;margin-bottom:8px;background:var(--pf-dark-3);text-align:left;}
-.br-oxp{font-family:var(--pf-font-mono);color:var(--pf-red);font-size:12px;}
+.br-oxp{font-family:var(--pf-font-mono);color:var(--pf-red-text);font-size:12px;}
 .br-tick{font-family:var(--pf-font-mono);color:var(--pf-gold);}
 .br-seasonline{font-size:13px;color:var(--pf-muted);margin:8px 0;}
-.br-war{color:var(--pf-red);font-weight:bold;}
+.br-war{color:var(--pf-red-text);font-weight:bold;}
 .sb-name{font-size:12px;letter-spacing:2px;color:var(--pf-cream);}
 .sb-days{font-family:var(--pf-font-mono);font-size:11px;color:var(--pf-muted);}
 /* Diplomacy */
@@ -394,12 +395,12 @@ html,body{overflow-x:clip;}
    hierarchy explicitly instead of relying on inheritance. Red/black
    propaganda aesthetic kept — this is legibility, not a redesign. */
 #pf-intel .x-pane{color:var(--pf-cream);}
-#pf-intel .in-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-intel .in-frame{color:var(--pf-red-text);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
 #pf-intel .in-target{color:var(--pf-cream);font-weight:700;font-size:16px;letter-spacing:1px;margin-bottom:6px;}
 #pf-intel .in-activity{color:var(--pf-cream);line-height:1.55;}
 #pf-intel .in-amount{color:var(--pf-gold);font-weight:700;letter-spacing:1px;margin-top:8px;}
 #pf-intel .in-meta{color:var(--pf-muted);font-size:12px;margin-top:6px;}
-#pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
+#pf-intel .in-meta a{color:var(--pf-red-text);font-weight:700;}
 #pf-intel .in-sub{color:var(--pf-cream);}
 
 /* === KNOW YOUR ENEMY live wire feed (2026-10-05) ===
@@ -413,7 +414,7 @@ html,body{overflow-x:clip;}
   font-size:11px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:2px;}
 #pf-intel .inl-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:inlPulse 1.4s ease-in-out infinite;}
 @keyframes inlPulse{0%,100%{opacity:1;}50%{opacity:.25;}}
-#pf-intel .inl-title{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;font-size:13px;}
+#pf-intel .inl-title{color:var(--pf-red-text);font-weight:700;letter-spacing:2px;font-size:13px;}
 #pf-intel .inl-item{border-top:1px solid var(--pf-border);padding:8px 0;}
 #pf-intel .inl-headline{color:var(--pf-cream);font-weight:700;font-size:14px;line-height:1.4;text-decoration:none;}
 #pf-intel a.inl-headline:hover{text-decoration:underline;}
@@ -432,22 +433,22 @@ html,body{overflow-x:clip;}
 #pf-ventures .x-empty{color:var(--pf-cream);padding:8px 0;}
 #pf-ventures .x-venture{border-top:1px solid var(--pf-border);padding:10px 0;}
 #pf-ventures .x-chead{color:var(--pf-cream);font-weight:700;font-size:15px;margin-bottom:4px;}
-#pf-ventures .x-kind{color:var(--pf-red-bright);font-size:11px;letter-spacing:1px;}
+#pf-ventures .x-kind{color:var(--pf-red-text);font-size:11px;letter-spacing:1px;}
 #pf-ventures .x-eb{color:var(--pf-gold);font-size:11px;font-weight:700;}
 #pf-ventures .x-csub,#pf-ventures .x-pool,#pf-ventures .x-myrow{color:var(--pf-cream);font-size:13px;line-height:1.5;}
 #pf-ventures .x-poolnum{color:var(--pf-gold);font-weight:700;}
 #pf-ventures .x-sides{color:var(--pf-cream);font-size:13px;margin-top:4px;}
-#pf-ventures .x-sideA{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-sideA{color:var(--pf-red-text);font-weight:700;}
 #pf-ventures .x-sideB{color:var(--pf-gold);font-weight:700;}
-#pf-ventures .x-risk{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-risk{color:var(--pf-red-text);font-weight:700;}
 #pf-ventures .x-warn{color:var(--pf-gold);font-weight:700;margin:6px 0;}
 #pf-ventures input,#pf-ventures select{background:var(--pf-dark);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:8px;}
-#pf-irl .irl-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-irl .irl-frame{color:var(--pf-red-text);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
 #pf-irl .irl-type{color:var(--pf-cream);font-weight:700;letter-spacing:1px;}
 #pf-irl .irl-when,#pf-irl .irl-where{color:var(--pf-cream);font-size:13px;}
 #pf-irl .irl-rsvps{color:var(--pf-gold);font-weight:700;margin-top:6px;}
 /* R10 (2026-10-04): YOUR CELL strip + roll-with-cell checkbox. */
-#pf-irl .irl-cell{color:var(--pf-red-bright);font-weight:700;margin-top:6px;letter-spacing:1px;font-size:13px;}
+#pf-irl .irl-cell{color:var(--pf-red-text);font-weight:700;margin-top:6px;letter-spacing:1px;font-size:13px;}
 #pf-irl .irl-sq{display:block;color:var(--pf-cream);font-size:13px;font-weight:700;letter-spacing:1px;margin:8px 0 4px;cursor:pointer;}
 #pf-irl .irl-sq input{margin-right:6px;accent-color:var(--pf-red-bright);}
 
@@ -461,7 +462,7 @@ html,body{overflow-x:clip;}
 .pf-hq-tab[aria-current="true"]{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
 .pf-hub{margin:28px 0;padding:0 4px;}
 .pf-hub-head{border-left:4px solid var(--pf-red);padding:4px 0 4px 14px;margin-bottom:14px;}
-.pf-hub-kicker{color:var(--pf-red-bright);font-family:var(--pf-font-body);font-weight:700;font-size:11px;letter-spacing:2px;}
+.pf-hub-kicker{color:var(--pf-red-text);font-family:var(--pf-font-body);font-weight:700;font-size:11px;letter-spacing:2px;}
 .pf-hub-head h2{color:var(--pf-cream);font-family:var(--pf-font-display);font-size:24px;margin:6px 0;}
 .pf-hub-mission{color:var(--pf-muted);font-family:var(--pf-font-body);font-size:14px;margin:0;}
 .pf-hub-alertrow{margin:10px 0 0;font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);}
@@ -520,7 +521,7 @@ html,body{overflow-x:clip;}
 .pf-body{font-family:var(--pf-font-body);font-size:var(--pf-type-body);line-height:1.6;color:var(--pf-cream);}
 .pf-lede{font-family:var(--pf-font-body);font-size:1.125rem;line-height:1.6;color:var(--pf-muted);}
 .pf-label{font-family:var(--pf-font-body);font-size:var(--pf-type-label);letter-spacing:.18em;text-transform:uppercase;color:var(--pf-muted);font-weight:700;}
-.pf-kicker{font-family:var(--pf-font-body);font-size:var(--pf-type-label);letter-spacing:.24em;text-transform:uppercase;color:var(--pf-red-bright);font-weight:900;}
+.pf-kicker{font-family:var(--pf-font-body);font-size:var(--pf-type-label);letter-spacing:.24em;text-transform:uppercase;color:var(--pf-red-text);font-weight:900;}
 
 /* ---- BUTTONS: micro-interactions (merges with §4 rules above) ----
    Buttons feel alive but restrained: 1px lift + soft red glow on hover,
@@ -591,7 +592,7 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
   transition:color .18s var(--pf-ease);}
 .pf-modal-x:hover{color:#fff;}
 .pf-modal-kicker{font-size:var(--pf-type-label);font-weight:900;letter-spacing:.24em;
-  color:var(--pf-red-bright);margin-bottom:.9rem;text-transform:uppercase;}
+  color:var(--pf-red-text);margin-bottom:.9rem;text-transform:uppercase;}
 .pf-modal-title{font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:var(--pf-cream);
   margin-bottom:.6rem;text-transform:uppercase;}
 .pf-modal-sub{font-size:.9rem;color:var(--pf-muted);line-height:1.55;margin-bottom:1rem;}
@@ -661,7 +662,7 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
   background-size:200% 100%;animation:pfBorderSweep 4s linear infinite;}
 @keyframes pfBorderSweep{to{background-position:200% 0;}}
 .pf-claim-cta-copy{font-size:.95rem;font-weight:900;letter-spacing:.12em;
-  color:var(--pf-red-bright);text-transform:uppercase;}
+  color:var(--pf-red-text);text-transform:uppercase;}
 .pf-claim-cta-star{animation:pfStarPulse 2.2s ease-in-out infinite;display:inline-block;}
 @keyframes pfStarPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.65;transform:scale(1.15);}}
 .pf-claim-cta-sub{font-size:.78rem;color:var(--pf-muted);margin:.4rem 0 .8rem;}
@@ -694,7 +695,7 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
 .pf-op-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
   background:linear-gradient(90deg,transparent,var(--pf-red),transparent);}
 @keyframes pfOpIn{from{opacity:0;transform:translateY(18px) scale(.97);}60%{opacity:1;}}
-.pf-op-kicker{font-size:.78rem;font-weight:900;letter-spacing:.24em;color:var(--pf-red-bright);margin-bottom:.9rem;}
+.pf-op-kicker{font-size:.78rem;font-weight:900;letter-spacing:.24em;color:var(--pf-red-text);margin-bottom:.9rem;}
 .pf-op-head{font-size:1.5rem;font-weight:900;line-height:1.25;margin:0 0 .6rem;letter-spacing:.02em;color:var(--pf-cream);}
 .pf-op-sub{font-size:.85rem;color:var(--pf-muted);line-height:1.6;margin:0 0 1.4rem;}
 .pf-op-claim{background:var(--pf-red);color:#fff;border:none;font-family:inherit;font-weight:900;
@@ -712,11 +713,11 @@ button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
   transition:color .18s var(--pf-ease);}
 .pf-op-no:hover{color:var(--pf-cream);}
 .pf-op-no-wrap{margin-top:.8rem;}
-.pf-op-checklist{background:#0b0b0c;border:3px solid var(--pf-red);max-width:680px;
+.pf-op-checklist{background:#0b0b0c;border:3px solid var(--pf-red);max-width:1080px;
   width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;
   font-family:'Helvetica Neue',Arial,sans-serif;animation:pfFadeUp .4s var(--pf-ease);}
 .pf-op-cl-headrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
-.pf-op-cl-head{color:var(--pf-red-bright);font-weight:900;letter-spacing:.22em;font-size:.72rem;}
+.pf-op-cl-head{color:var(--pf-red-text);font-weight:900;letter-spacing:.22em;font-size:.72rem;}
 .pf-op-cl-x{background:none;border:0;color:#8a7f68;cursor:pointer;font-size:1.2rem;
   line-height:1;padding:.4rem;min-width:40px;min-height:40px;transition:color .18s var(--pf-ease);}
 .pf-op-cl-x:hover{color:#fff;}

@@ -102,7 +102,7 @@
     }
     return null;
   }
-  var LINK_STYLE = 'color:#e5383b;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+  var LINK_STYLE = 'color:#666;font-weight:400;letter-spacing:0.08em;font-size:10px;text-decoration:none;cursor:pointer;margin-left:14px;white-space:nowrap;opacity:0.7;';
   function makeLink() {
     var a = document.createElement('a');
     a.id = 'pf-delete-data-link';

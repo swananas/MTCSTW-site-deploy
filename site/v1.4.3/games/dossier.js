@@ -35,7 +35,7 @@
   window.pfDossierDone = true;
 
   /* Light receipt-paper palette (matches the Receipt; CEO: clean, light). */
-  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
     HAIR = '#e7e1d0', DASH = '#d8d2bd', MONO = "'SF Mono',Menlo,Consolas,monospace";
   var BACKEND = window.PF_BACKEND_URL;
   var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
@@ -126,8 +126,7 @@
   function sectionCard(title, inner, stamp) {
     return '<details open style="background:' + PAPER + ';border:1px solid ' + HAIR
       + ';border-radius:3px;margin:0 0 10px;overflow:hidden;">'
-      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED
-      + ';border-bottom:2px dashed ' + DASH + ';outline:none;">\u25b8 ' + esc(title) + '</summary>'
+      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED_TX + ';border-bottom:2px dashed ' + DASH + ';outline:none;">\u25b8 ' + esc(title) + '</summary>'
       + '<div style="padding:14px 16px;">' + inner
       + (stamp ? '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
         + '<div>SOURCE: ' + esc(stamp.source || '') + '</div>'
@@ -144,7 +143,7 @@
       + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
   }
   function labelHTML(t, max) {
-    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin:16px 0 6px;">'
       + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
   }
   function divider() {
@@ -158,7 +157,7 @@
     var sub = office + (r.state ? ' · ' + r.state : '') + (r.party ? ' · ' + r.party : '');
     var html = '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-top:4px solid ' + RED
       + ';border-radius:3px;padding:20px 18px;margin-bottom:12px;' + FONT + 'color:' + INK + ';">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">SOURCED DATA — FROM THE RECEIPT · NOT EDITABLE</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">SOURCED DATA — FROM THE RECEIPT · NOT EDITABLE</div>'
       + '<div style="font-size:24px;font-weight:900;">' + esc(r.display_name) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin:4px 0 12px;">' + esc(sub) + '</div>'
       + '<div style="border-top:2px dashed ' + DASH + ';padding-top:12px;">';
@@ -168,7 +167,7 @@
         + esc(h.total_raised_display) + '</div>';
     }
     if (h.top_industries && h.top_industries.length) {
-      html += '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:800;margin:12px 0 4px;">TOP INDUSTRIES</div>';
+      html += '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:800;margin:12px 0 4px;">TOP INDUSTRIES</div>';
       h.top_industries.forEach(function (t) {
         html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed ' + DASH + ';font-size:13px;">'
           + '<span>' + esc(t.industry) + ' <span style="color:' + MUTED + ';">(est.)</span></span>'
@@ -206,7 +205,7 @@
   function builderShell(host) {
     host.innerHTML = '<div class="pf-dossier-build" style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">USER-GENERATED DOSSIERS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">USER-GENERATED DOSSIERS</div>'
       + '<div style="font-size:24px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;">BUILD THE DOSSIER</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Pick a Receipt. Add your context. Publish the page.<br>Sourced numbers stay locked — your words sit beside them, clearly yours.</div>'
       + '</div>'
@@ -217,7 +216,7 @@
   }
 
   function stepBadge(n, label) {
-    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED_TX + ';border:2px solid ' + RED
       + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">STEP ' + n + ' · ' + esc(label) + '</div>';
   }
 
@@ -233,7 +232,7 @@
       + '<input id="pf-dsurl" type="text" autocomplete="off" placeholder="mtcstw.com/receipt/bernie-sanders" aria-label="Receipt URL" style="' + inputStyle() + '">'
       + '<div style="text-align:center;margin-top:14px;">'
       + '<button id="pf-dsgo" type="button" style="' + btnStyle(true) + '">START THE DOSSIER</button></div>'
-      + '<div id="pf-dserr" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>';
+      + '<div id="pf-dserr" style="text-align:center;color:' + RED_TX + ';font-size:14px;margin-top:10px;"></div>';
     host.innerHTML = html;
     wireStep1(host);
   }
@@ -434,7 +433,7 @@
     var polSlug = doc.pol_slug || slugify(doc.pol_name || '');
     var html = '<div style="' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 14px;">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">USER-GENERATED DOSSIER</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">USER-GENERATED DOSSIER</div>'
       + '<div style="font-size:26px;font-weight:900;line-height:1.25;">' + esc(doc.title) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">'
       + esc(doc.callsign) + '</strong>' + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
@@ -442,7 +441,7 @@
       + (receipt ? renderSourceHeadline(receipt)
         : '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:18px;margin-bottom:12px;text-align:center;color:' + MUTED + ';font-size:14px;">'
           + 'The source Receipt is unavailable right now — the user\u2019s context below is still theirs.</div>')
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">USER CONTEXT — ANNOTATIONS, NOT SOURCED DATA</div>';
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">USER CONTEXT — ANNOTATIONS, NOT SOURCED DATA</div>';
     html += '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
       + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · WHY THIS MATTERS</div>'
       + '<div style="font-size:15px;line-height:1.65;">' + esc(doc.why) + '</div></div>';
@@ -481,7 +480,7 @@
       if (!j || !j.ok || !j.dossier) {
         host.innerHTML = '<div style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK
           + ';text-align:center;padding:30px 10px;">No dossier at that address. '
-          + '<a href="/dossier" style="color:' + RED + ';font-weight:800;">Build one →</a></div>';
+          + '<a href="/dossier" style="color:' + RED_TX + ';font-weight:800;">Build one →</a></div>';
         return;
       }
       var doc = j.dossier;
@@ -499,7 +498,7 @@
   /* ---------------------------------------------------------------- */
   function renderFeed(host) {
     host.innerHTML = '<div style="max-width:680px;margin:0 auto 30px;' + FONT + 'color:' + INK + ';">'
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED DOSSIERS</div>'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED DOSSIERS</div>'
       + '<div id="pf-dossier-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed…</div></div>';
     var list = host.querySelector('#pf-dossier-feedlist');
     api('dossier_feed', {}, function (j) {

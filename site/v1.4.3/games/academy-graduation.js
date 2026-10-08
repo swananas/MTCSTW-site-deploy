@@ -188,7 +188,7 @@
        cell handoff — "You're trained. Your cell is waiting." One-tap cell
        browse. The other bridges stay as secondary routes. */
     steps += '<div style="margin:.9rem 0;padding:1rem;border:3px solid #c1121f;background:#140a0a;">' +
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.14em;font-size:.95rem;margin-bottom:.3rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.14em;font-size:.95rem;margin-bottom:.3rem;">' +
       'TRAINED. YOUR CELL IS WAITING &rarr;</div>' +
       '<div style="font-size:.78rem;color:#f5f0e1;line-height:1.5;margin-bottom:.6rem;">' +
       'Trained soldiers fight together. Find your cell — or build your own.</div>' +
@@ -227,7 +227,7 @@
       'SHARE YOUR GRADUATION</button></div>';
 
     card.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.18em;font-size:1.15rem;margin-bottom:.4rem;">' +
       '&#9733; ACADEMY GRADUATE &#9733;</div>' +
       '<div style="font-size:.9rem;color:#f5f0e1;line-height:1.6;margin-bottom:.8rem;">' +
       'All ' + total + ' lessons complete. The training wheels are off, soldier &mdash; ' +

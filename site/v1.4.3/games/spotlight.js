@@ -13,7 +13,7 @@
 <div class="fe-block pf-override-block" id="pf-spotlight">
 <style>
 #pf-spotlight .pft-card{max-width:680px;margin:0 auto;box-sizing:border-box;background:#0d0d0d;border:2px solid #c1121f;border-radius:4px;padding:22px 18px;text-align:center}
-#pf-spotlight .pft-kick{font-size:11px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
+#pf-spotlight .pft-kick{font-size:11px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:8px;font-family:Arial,sans-serif}
 #pf-spotlight .pft-title{font-family:'Arial Black',Arial,sans-serif;font-size:24px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin:0 0 8px}
 #pf-spotlight .pft-hook{font-size:14px;color:#b8ab8f;line-height:1.5;margin:0 0 16px;font-family:Arial,sans-serif}
 #pf-spotlight .pft-hook b{color:#f5ead6}

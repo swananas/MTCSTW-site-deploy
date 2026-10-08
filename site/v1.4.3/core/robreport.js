@@ -51,13 +51,13 @@
       '.pf-rr .pf-pat-data{margin:12px 0 4px}' +
       /* P2 fallback (patterns killed): same contract, legacy classes */
       '.pf-rr-card{background:#0a0a0a;border:1px solid #2a2a2a;border-top:3px solid #c1121f;border-radius:4px;padding:16px;margin:0 0 16px}' +
-      '.pf-rr-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;margin:0 0 6px}' +
+      '.pf-rr-kicker{color:#e5383b;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;margin:0 0 6px}' +
       '.pf-rr-h{font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:17px;color:#fff;margin:0 0 8px;line-height:1.3}' +
       '.pf-rr-mech{font-size:14px;color:#fff;margin:0 0 12px;line-height:1.45}' +
       /* P4 fallback (patterns killed): same contract, legacy classes */
       '.pf-rr-dstrip{text-align:center;padding:18px 12px;margin:12px 0}' +
       '.pf-rr-dfig{font-size:44px;font-weight:bold;color:#fff;line-height:1.1;margin:0}' +
-      '.pf-rr-dlabel{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold;margin:8px 0 0}' +
+      '.pf-rr-dlabel{color:#e5383b;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold;margin:8px 0 0}' +
       '.pf-rr-dsrc{color:#8a8a8a;font-size:11px;line-height:1.5;margin:12px 0 0}' +
       '.pf-rr-dtime{color:#8a8a8a;font-size:11px;letter-spacing:1px;margin:2px 0 0}' +
       /* the wonks' table: one tap deep, never the lead */

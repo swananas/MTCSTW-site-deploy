@@ -84,7 +84,7 @@ function render(){
   /* 2026-10-05 (fe/events-move): /events cross-link — town halls ↔ protest/
      event map (wiring-map §7.1–7.2). Same-page anchor; no-op fail-soft if the
      lazy map chunk is killed or not yet loaded. */
-  html+='<a href="#pf-civicevents" style="font:bold 11px monospace;color:#c1121f;text-decoration:underline;">NEARBY PROTESTS &amp; EVENTS &#8595;</a>';
+  html+='<a href="#pf-civicevents" style="font:bold 11px monospace;color:#e5383b;text-decoration:underline;">NEARBY PROTESTS &amp; EVENTS &#8595;</a>';
   /* wiring-map §7.1 exit: AC return rail. The Action Center silo is in-flight
      (fe/action-center-dashboard); link the page it will live on, no invented
      anchor. */
@@ -108,7 +108,7 @@ function card(h){
   s+='<div style="font:bold 14px Arial;">'+esc(h.title)+'</div>';
   s+='<div style="font:12px monospace;color:#aaa;margin:4px 0;">'+esc(who)+(h.district?' <span style="color:#666;">'+esc(h.district)+'</span>':"")+'</div>';
   s+='<div style="font:12px monospace;">'+esc(when)+(where?' &mdash; '+esc(where):"")+'</div>';
-  s+='<div style="font:12px monospace;color:#c1121f;font-weight:bold;margin:4px 0;">'+(h.rsvp_count||0)+' GOING</div>';
+  s+='<div style="font:12px monospace;color:#e5383b;font-weight:bold;margin:4px 0;">'+(h.rsvp_count||0)+' GOING</div>';
   s+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">';
   s+='<button data-thq="'+esc(h.id)+'" style="font:bold 11px monospace;padding:5px 9px;cursor:pointer;">QUESTION KIT</button>';
   s+='<button data-thr="'+esc(h.id)+'" style="font:bold 11px monospace;padding:5px 9px;cursor:pointer;">RSVP</button>';
@@ -144,7 +144,7 @@ function renderSoon(){
   soon.sort(function(a,b){ return (Number(a.starts_at||a.event_at)||0)-(Number(b.starts_at||b.event_at)||0); });
   if(!soon.length){ el.innerHTML=""; return; }
   var s='<div style="border:2px solid #c1121f;background:#1a0505;padding:8px;margin:8px 0;">';
-  s+='<div style="font:bold 12px monospace;color:#c1121f;">NEXT 72 HOURS &mdash; SHOW UP</div>';
+  s+='<div style="font:bold 12px monospace;color:#e5383b;">NEXT 72 HOURS &mdash; SHOW UP</div>';
   soon.slice(0,5).forEach(function(h){
     s+='<div style="font:12px monospace;margin:4px 0;">'+esc(fmtWhen(h.starts_at||h.event_at))+' &mdash; <b>'+esc(h.official||h.legislator_name||"")+'</b> &mdash; '+esc([h.address||h.city,h.state].filter(function(x){return x;}).join(", "))+'</div>';
   });
@@ -156,7 +156,7 @@ function load(){
      live+upcoming only, rows under j.townhalls. */
   api("townhall_list",{state:curState},function(j){
     if(!j||!j.ok){ var el=root.querySelector("#thList");
-      if(el) el.innerHTML='<div style="font:12px monospace;color:#c1121f;">Schedule unavailable. Reload to retry.</div>';
+      if(el) el.innerHTML='<div style="font:12px monospace;color:#e5383b;">Schedule unavailable. Reload to retry.</div>';
       return; }
     cache=j.townhalls||j.halls||[]; renderList(); renderSoon();
   });
@@ -197,7 +197,7 @@ function renderForm(){
   if(host.innerHTML){ host.innerHTML=""; return; }
   var s='<div style="border:1px solid #666;padding:12px;margin:8px 0;background:#0d0d0d;">';
   s+='<div style="font:bold 13px monospace;margin-bottom:8px;">SUBMIT A TOWN HALL</div>';
-  s+='<div style="font:11px monospace;color:#c1121f;margin-bottom:8px;">Unverified submissions are rejected &mdash; every town hall must link a checkable source: the legislator&rsquo;s official schedule, a news report, or the event page.</div>';
+  s+='<div style="font:11px monospace;color:#e5383b;margin-bottom:8px;">Unverified submissions are rejected &mdash; every town hall must link a checkable source: the legislator&rsquo;s official schedule, a news report, or the event page.</div>';
   s+='<div style="display:grid;gap:6px;max-width:520px;">';
   s+='<input id="thfLeg" placeholder="Official name (e.g. Mike Johnson)" style="font:12px monospace;padding:6px;" maxlength="120">';
   s+='<input id="thfTitle" placeholder="Event title" style="font:12px monospace;padding:6px;" maxlength="140">';

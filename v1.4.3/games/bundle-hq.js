@@ -852,6 +852,130 @@ function post(type,actionKey,action,params,cb){
 }
 var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
 var P=null, REPS=null, SCRIPTS=null, VOTER=null, CREATE_OPEN=false, VSTATS=null;
+/* --- petition share kits (2026-10-05, weave #3) ---
+   Every petition ships an auto-generated kit: 1 poster (phq-petition
+   painter) + 1 caption from the live petition_kit payload. Regeneration is
+   a refetch — the payload is computed live, so REFRESH KIT always shows
+   the current sig count.
+   XP wiring: kit GENERATION = 0 XP (creation XP already paid by
+   petition_create 'pet-create-<id>' +25). Kit SHARING rides the existing
+   poster_share 'create_share:<cshash8>:<devhash8>:<proofhash8>:<chi_day>'
+   leg (+5, NO_MULT, counts toward the daily cap, proof-verified).
+   Political plugin registry interface: fetchPluginData(plugin, id) —
+   fail-soft; the registry isn't landed yet, so the petition_kit backend
+   GET is the primary path and a registry hit only overrides it.
+   KILL: ?pf_off=kit-petition hides every kit surface. */
+var KIT_OFF=false;
+try{ KIT_OFF=!!(window.PF&&PF.skip('kit-petition')); }catch(e){}
+function kitLink(pid){ return 'https://mtcstw.com/political-hq?pet='+encodeURIComponent(pid); }
+function getPetitionKit(pid,cb){
+  function viaBackend(){ api('petition_kit',{petition_id:pid},function(j){ cb(j&&j.ok?j:null); }); }
+  try{
+    var f=window.fetchPluginData;
+    if(typeof f!=='function'){ viaBackend(); return; }
+    var r=f('petition',pid);
+    if(r&&typeof r.then==='function'){
+      r.then(function(j){ if(j&&j.ok&&j.title) cb(j); else viaBackend(); },function(){ viaBackend(); });
+      return;
+    }
+    if(r&&r.ok&&r.title){ cb(r); return; }
+  }catch(e){}
+  viaBackend();
+}
+function kitCaptionOf(kit){ return (kit&&(kit.caption_text||''))||''; }
+function copyText(t,okMsg){
+  function done(){ toast(okMsg||'Copied.'); }
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(done,function(){ legacyCopy(t,done); });
+      return;
+    }
+  }catch(e){}
+  legacyCopy(t,done);
+}
+function legacyCopy(t,done){
+  try{
+    var ta=document.createElement('textarea'); ta.value=t;
+    ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta); done();
+  }catch(e){ toast('Copy failed — long-press to copy.'); }
+}
+function phqKit(){
+  try{ return (window.PF&&PF.PHQShare)?PF.PHQShare:null; }catch(e){ return null; }
+}
+function kitPaintPreview(box,kit){
+  box.innerHTML='';
+  var PHQ=phqKit(); if(!PHQ) return;
+  var cv=null;
+  try{ cv=PHQ.paint('phq-petition',kit.poster_data||{}); }catch(e){}
+  if(!cv) return;
+  try{
+    cv.style.cssText='width:100%;max-width:340px;height:auto;border:1px solid #3a3a3a;display:block;margin:6px auto;';
+    box.appendChild(cv);
+  }catch(e){}
+}
+function kitGet(out){
+  try{ return JSON.parse(out.getAttribute('data-kit-json')||'null'); }catch(e){ return null; }
+}
+/* SHARE KIT panel: poster preview + download/share + caption copy +
+   REFRESH KIT (refetch = regenerate) + LOG MY SHARE proof capture
+   (poster_share -> create_share: leg, +5 XP, NO_MULT, daily-capped). */
+function paintKit(out,pid){
+  var kit=kitGet(out); if(!kit) return;
+  var cap=kitCaptionOf(kit);
+  var PHQ=phqKit();
+  out.innerHTML='<div class="x-note"><b>SHARE KIT</b> — poster + caption, live numbers (launched '+esc(kit.source_date||'')+').</div>'
+    +'<div data-kit-preview></div>'
+    +'<textarea class="c-in" rows="4" readonly>'+esc(cap)+'</textarea>'
+    +'<button class="c-btn cp-mbtn" data-kit-copy>COPY CAPTION</button> '
+    +(PHQ?'<button class="c-btn cp-mbtn" data-kit-dl>DOWNLOAD POSTER</button> '
+    +'<button class="c-btn cp-mbtn" data-kit-share>SHARE POSTER</button> ':'')
+    +'<button class="c-btn cp-mbtn" data-kit-refresh>REFRESH KIT</button>'
+    +'<div class="x-note" style="margin-top:6px"><b>LOG MY SHARE (+5 XP)</b> — post the poster publicly (keep the petition link in the post), then paste the link:'
+    +'<br><input class="c-in" data-kit-proof placeholder="https://\u2026 link to your public post" maxlength="2000">'
+    +' <button class="c-btn cp-mbtn" data-kit-proof-go>SUBMIT PROOF</button>'
+    +'<div class="c-err" data-kit-proof-out></div>'
+    +'<div class="x-note">XP has no cash value. Stakes are final.</div></div>';
+  kitPaintPreview(out.querySelector('[data-kit-preview]'),kit);
+  function q1(sel){ try{ return out.querySelector(sel); }catch(e){ return null; } }
+  var cp=q1('[data-kit-copy]'); if(cp) cp.onclick=function(){ copyText(cap,'Caption copied.'); };
+  var dl=q1('[data-kit-dl]'); if(dl) dl.onclick=function(){
+    var P2=phqKit(); if(P2) P2.save('phq-petition',kit.poster_data||{});
+  };
+  var sh=q1('[data-kit-share]'); if(sh) sh.onclick=function(){
+    var P3=phqKit(); if(!P3) return;
+    var link=kitLink(pid);
+    try{ if(window.PF&&PF.shareUrl) link=PF.shareUrl(link); }catch(e){}
+    P3.share('phq-petition',kit.poster_data||{},{link:link});
+  };
+  var rf=q1('[data-kit-refresh]'); if(rf) rf.onclick=function(){
+    rf.disabled=true;
+    getPetitionKit(pid,function(k2){
+      rf.disabled=false;
+      if(!k2){ toast('Refresh failed \u2014 retry.'); return; }
+      try{ out.setAttribute('data-kit-json',JSON.stringify(k2)); }catch(e){}
+      paintKit(out,pid);
+      toast('Kit refreshed \u2014 live numbers.');
+    });
+  };
+  var pg=q1('[data-kit-proof-go]'); if(pg) pg.onclick=function(){
+    var inp=q1('[data-kit-proof]'), msg=q1('[data-kit-proof-out]');
+    var proof=(inp&&inp.value||'').trim();
+    if(!/^https?:[/][/]/i.test(proof)){ if(msg) msg.textContent='Paste the link to your public post.'; return; }
+    pg.disabled=true;
+    var id2=ident();
+    post('readcreate','rc_action','poster_share',
+      {callsign:id2.callsign,device:id2.device,story_url:kitLink(pid),proof_url:proof},
+      function(j){
+        pg.disabled=false;
+        if(j&&j.ok){ if(msg) msg.textContent=''; try{ inp.value=''; }catch(e){} toast('Share logged. +5 XP.'); }
+        else if(msg){ msg.textContent=PF.errCopy(j,'Proof didn\u2019t verify. Check it\u2019s public and carries the petition link.'); }
+      });
+  };
+}
+
 /* 2026-10-05 (pledge-share-cards weave): voter-pledge share card state.
    PLEDGE_CARD holds the phq-pledge painter data built from ballot_get via
    PF.PHQShare.pledgeData — set on a successful pledge only when the ballot
@@ -2671,6 +2795,32 @@ function bind(){
   });
   var pc=document.getElementById("cvPetCancel");
   if(pc) pc.onclick=function(){ CREATE_OPEN=false; render(); };
+  /* Petition share kits (2026-10-05): per-card SHARE KIT toggle + panel.
+     Attribute-matched — the id never goes through selector parsing. */
+  if(!KIT_OFF){
+  qsa("[data-pet-kit]").forEach(function(b){
+    b.onclick=function(){
+      var pid=b.getAttribute("data-pet-kit");
+      var out=null, outs=document.querySelectorAll("[data-pet-kit-out]");
+      for(var oi=0;oi<outs.length;oi++){
+        if(outs[oi].getAttribute("data-pet-kit-out")===pid){ out=outs[oi]; break; }
+      }
+      if(!out) return;
+      if(out.style.display!=="none"&&out.getAttribute("data-kit-loaded")==="1"){
+        out.style.display="none"; return;
+      }
+      out.style.display="block";
+      if(out.getAttribute("data-kit-loaded")==="1"){ paintKit(out,pid); return; }
+      out.innerHTML='<div class="x-note">Forging your share kit&hellip;</div>';
+      getPetitionKit(pid,function(kit){
+        if(!kit){ out.innerHTML='<div class="x-note">Kit unavailable &mdash; retry.</div>'; return; }
+        out.setAttribute("data-kit-loaded","1");
+        try{ out.setAttribute("data-kit-json",JSON.stringify(kit)); }catch(e){}
+        paintKit(out,pid);
+      });
+    };
+  });
+  }
   /* 2026-10-05 (P2 F2-TOAST): post-sign share affordance — two-tier native
      share with clipboard fallback, same pattern as pcShare(). */
   qsa("[data-pet-shareafter]").forEach(function(sb){

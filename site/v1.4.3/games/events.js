@@ -154,7 +154,7 @@ function evCard(e){
   var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"\uD83D\uDCCD";
   var past=normTs(e.event_at)<Date.now();
   var s='<div class="x-pane" style="border:1px solid #444;padding:10px;margin:8px 0;background:#111;">';
-  s+='<div style="font:bold 11px monospace;color:#c1121f;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+(past?' <span style="color:#666;">&mdash; PAST</span>':"")+'</div>';
+  s+='<div style="font:bold 11px monospace;color:#e5383b;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+(past?' <span style="color:#666;">&mdash; PAST</span>':"")+'</div>';
   s+='<h4 style="margin:4px 0;"><a href="#e='+esc(e.id)+'" style="color:#fff;">'+esc(e.title)+'</a></h4>';
   s+='<div style="font:12px monospace;color:#aaa;">'+esc(chiDate(e.event_at))+(e.location?" &mdash; "+esc(e.location):"")+'</div>';
   s+='<div style="font:12px monospace;margin:4px 0;">'+(Number(e.rsvp_count)||0)+' GOING</div>';
@@ -307,7 +307,7 @@ function renderDetail(id){
     var icon=TYPE_ICON[String(e.type||"").toLowerCase()]||"\uD83D\uDCCD";
     var h=backHtml();
     h+='<div class="x-pane" style="border:1px solid #444;padding:12px;background:#111;">';
-    h+='<div style="font:bold 11px monospace;color:#c1121f;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+'</div>';
+    h+='<div style="font:bold 11px monospace;color:#e5383b;">'+icon+' '+esc(String(e.type||"event").toUpperCase())+'</div>';
     h+='<h3 style="margin:4px 0;">'+esc(e.title)+'</h3>';
     h+='<div style="font:12px monospace;color:#aaa;">'+esc(chiDate(e.event_at))+(e.location?" &mdash; "+esc(e.location):"")+'</div>';
     if(e.description) h+='<div style="font:13px Arial;margin:8px 0;">'+esc(e.description)+'</div>';
@@ -321,7 +321,7 @@ function renderDetail(id){
     h+='<div style="border:1px solid #666;padding:12px;background:#0d0d0d;">';
     h+='<div style="font:11px monospace;color:#888;margin-bottom:8px;">For the record, not for points. No GPS is ever stored. Get consent before posting photos with other people in them \u2014 faces on this public wall are visible to everyone. Don\u2019t post anyone who hasn\u2019t agreed to be shown.</div>';
     h+='<label style="font:11px monospace;">PHOTO <input type="file" id="evPhoto" accept="image/*" style="font:12px monospace;"></label>';
-    h+='<div style="font:11px monospace;color:#c1121f;margin:4px 0;">Add a photo from the field \u2014 check-ins are photo-first.</div>';
+    h+='<div style="font:11px monospace;color:#e5383b;margin:4px 0;">Add a photo from the field \u2014 check-ins are photo-first.</div>';
     h+='<div style="margin:6px 0;"><input id="evNote" placeholder="Field note (280 chars, optional)" maxlength="280" style="font:12px monospace;padding:6px;width:100%;box-sizing:border-box;"></div>';
     h+='<div><button id="evCheckin" disabled style="font:bold 12px monospace;padding:7px 14px;cursor:pointer;">FILE REPORT</button></div>';
     h+='</div>';

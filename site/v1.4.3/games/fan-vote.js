@@ -15,14 +15,14 @@
 #pf-vote .pfv-ballot-name{font-weight:900;font-size:1.05rem;letter-spacing:0.06em;}
 #pf-vote .pfv-seal{display:inline-block;margin-top:0.7rem;background:#c1121f;color:#f5ead6;font-weight:900;font-size:0.8rem;letter-spacing:0.2em;padding:0.45rem 1.1rem;border-radius:50%;transform:rotate(-8deg);animation:pfvstamp 0.35s 0.8s ease-out backwards;}
 @keyframes pfvstamp{0%{transform:scale(2.6) rotate(-8deg);opacity:0;}60%{transform:scale(0.92) rotate(-8deg);opacity:1;}100%{transform:scale(1) rotate(-8deg);}}
-#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#c1121f;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
+#pf-vote .pfv-boxlabel{position:absolute;bottom:12%;width:100%;text-align:center;color:#e5383b;font-weight:900;letter-spacing:0.22em;font-size:0.85rem;}
 #pf-vote .pfv-confetti{position:absolute;top:-12px;width:9px;height:13px;z-index:6;pointer-events:none;animation:pfvfall linear forwards;}
 @keyframes pfvfall{to{transform:translateY(480px) rotate(540deg);opacity:0;}}
 @media (prefers-reduced-motion:reduce){#pf-vote .pfv-ballot,#pf-vote .pfv-seal{animation:none;}}
 </style>
 <div id="pf-vote" style="position:relative;max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">
   <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9733; FAN VOTE &#9733;</div>
-  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#c1121f;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
+  <div id="pf-vote-sub" style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Who was the hardest-working propagandist this week?<br><span style="color:#e5383b;">This week's ballot: the 10 highest propaganda scores.</span><br>Polls close <b style="color:#f5f0e1;">Sunday night</b> &mdash; results Monday.</div>
   <div id="pf-vote-urgency" class="pfv-strip">COUNTING BALLOTS&hellip;</div>
   <div id="pf-vote-streak" class="pfv-strip"></div>
   <div id="pf-vote-kingmaker"></div>
@@ -31,7 +31,7 @@
   <div id="pf-vote-list"></div>
   <div id="pf-vote-msg" style="margin-top:1rem;font-size:0.9rem;color:#b8ab8e;"></div>
   <div><button id="pf-vote-copy" style="background:#141414;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:1rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">COPY TO SHARE</button></div>
-  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#c1121f;min-height:1.2em;"></div>
+  <div id="pf-vote-copymsg" style="margin-top:0.5rem;font-size:0.8rem;color:#e5383b;min-height:1.2em;"></div>
   <!-- V3 (2026-10-07) absorbs: hall (winners strip) + draw (pot line). -->
   <div id="pf-vote-champs" class="pfv-strip" style="display:none;margin-top:1rem;"></div>
   <div id="pf-vote-pot" class="pfv-strip" style="display:none;"></div>
@@ -188,7 +188,7 @@
     if(!el) return;
     var st = getStreak();
     if(st.streak > 0){
-      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#c1121f;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
+      el.innerHTML = '\\uD83D\\uDD25 <b style="color:#e5383b;">'+st.streak+'-WEEK STREAK</b> \\u2014 '+streakRank(st.streak)+' &nbsp;\\u00B7&nbsp; miss a week and it dies';
     } else {
       el.innerHTML = 'Cast your ballot to start a <b style="color:#f5f0e1;">voting streak</b>';
     }
@@ -256,7 +256,7 @@
   function renderUrgency(){
     var el=document.getElementById('pf-vote-urgency');
     if(!el) return;
-    el.innerHTML='<span style="color:#c1121f;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
+    el.innerHTML='<span style="color:#e5383b;">\\uD83D\\uDD34 '+urgencyTotal+' BALLOT'+(urgencyTotal===1?'':'S')+' CAST</span> &nbsp;\\u2014&nbsp; POLLS CLOSE IN <b style="color:#f5f0e1;">'+pollsCloseIn()+'</b>';
   }
   setInterval(function(){ var el=document.getElementById('pf-vote-urgency'); if(el && urgencyTotal>0) renderUrgency(); }, 60000);
   /* FAN VOTE SHARE POSTERS — canvas poster per candidate, Web Share API or PNG
@@ -388,15 +388,15 @@
   function showVoted(name, weight){
     list.innerHTML = '';
     var vc = candByName(name);
-    var wtxt = (weight > 1) ? ' <b style="color:#c1121f;">&times;' + weight + '</b>' : '';
+    var wtxt = (weight > 1) ? ' <b style="color:#e5383b;">&times;' + weight + '</b>' : '';
     var first = String(name).split(' ')[0].toUpperCase();
     msg.innerHTML = 'Vote counted for <b style="color:#f5f0e1;">' + name + '</b>' + wtxt +
       '.<br>Results drop Monday morning on the reshuffle.<br>' +
       '<button id="pf-vote-share" style="background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;padding:0.6rem 1.4rem;margin-top:0.8rem;margin-right:0.5rem;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">CAMPAIGN FOR ' + esc(first) + '</button>' +
-      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
+      '<button id="pf-vote-reset" style="background:transparent;border:2px solid #c1121f;color:#e5383b;padding:0.45rem 1.2rem;margin-top:0.8rem;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;">RESET VOTE</button>';
     /* R3 (2026-10-04): post-vote route back to the creator's catalog page. */
     if(vc && vc.slug){
-      msg.innerHTML += '<div style="margin-top:0.9rem;"><a href="/' + esc(vc.slug) + '" style="color:#c1121f;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid #c1121f;">see ' + esc(name) + '&rsquo;s page &rarr;</a></div>';
+      msg.innerHTML += '<div style="margin-top:0.9rem;"><a href="/' + esc(vc.slug) + '" style="color:#e5383b;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid #c1121f;">see ' + esc(name) + '&rsquo;s page &rarr;</a></div>';
     }
     var sb = document.getElementById('pf-vote-share');
     if(sb) sb.onclick = function(){ shareVotePoster(vc,'post'); };
@@ -421,7 +421,7 @@
       b.onclick = function(){ castVote(c, b); };
       var s = document.createElement('button');
       s.textContent = 'SHARE';
-      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#c1121f;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+      s.style.cssText = 'display:inline-block;background:transparent;border:2px solid #c1121f;color:#e5383b;padding:0.6rem 0.8rem;margin:0.15rem;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
       s.onclick = function(){ shareVotePoster(c,'pre'); };
       row.appendChild(b); row.appendChild(s);
       /* R3 (2026-10-04): ?for=<slug> preselect — highlight the catalog pick. */
@@ -431,7 +431,7 @@
         b.style.boxShadow = '0 0 0 2px #c1121f';
         var tag = document.createElement('span');
         tag.textContent = ' \u2605 YOUR PICK';
-        tag.style.cssText = 'color:#c1121f;font-weight:900;font-size:0.75rem;letter-spacing:0.12em;';
+        tag.style.cssText = 'color:#e5383b;font-weight:900;font-size:0.75rem;letter-spacing:0.12em;';
         row.appendChild(tag);
       }
       list.appendChild(row);
@@ -487,7 +487,7 @@
       }
       try { localStorage.removeItem(storeKey); } catch(e){}
       renderBallot();
-      msg.innerHTML = 'Vote reset &mdash; <b style="color:#c1121f;">-' + (v ? v.weight : 1) + '</b>' +
+      msg.innerHTML = 'Vote reset &mdash; <b style="color:#e5383b;">-' + (v ? v.weight : 1) + '</b>' +
         (v ? ' from <b style="color:#f5f0e1;">' + v.name + '</b>' : '') +
         '.<br>Changed your mind? Pick again below.';
       /* Refresh the shared totals after the retract lands. */
@@ -576,7 +576,7 @@
             var line='Solidarity Draw pot: <b style="color:#ffd34d;">'
               +Number(p).toLocaleString("en-US")+" XP</b>";
             pot.innerHTML=hasDraw
-              ?(line+' &nbsp;<a href="#pf-draw" id="pf-vote-potgo" style="color:#c1121f;font-weight:700;text-decoration:none;">\\u2192</a>')
+              ?(line+' &nbsp;<a href="#pf-draw" id="pf-vote-potgo" style="color:#e5383b;font-weight:700;text-decoration:none;">\\u2192</a>')
               :line;
             pot.style.display="";
             var go=document.getElementById("pf-vote-potgo");

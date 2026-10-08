@@ -20,7 +20,7 @@
 #pf-interrogation .iq-why{background:#1a1a1a;border-left:6px solid #c1121f;padding:14px 16px;text-align:left;margin:0 0 12px;display:none}
 #pf-interrogation .iq-verdict{font-size:18px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
 #pf-interrogation .iq-verdict.right{color:#7bc96f}
-#pf-interrogation .iq-verdict.wrong{color:#c1121f}
+#pf-interrogation .iq-verdict.wrong{color:#e5383b}
 #pf-interrogation .iq-why p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
 #pf-interrogation .iq-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
 #pf-interrogation .iq-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}

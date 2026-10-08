@@ -38,7 +38,7 @@
 /* P1 — BRIEFING HERO: red caps kicker -> one-line mission -> single primary red button.
    No carousels, no sliders, no video backgrounds. A movement briefs, it doesn't browse. */
 .pf-pat-hero{padding:28px 16px 32px;text-align:center;border-bottom:1px solid #222}
-.pf-pat-hero-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:3px;
+.pf-pat-hero-kicker{color:#e5383b;text-transform:uppercase;letter-spacing:3px;
   font-weight:bold;font-size:12px;margin:0 0 10px}
 .pf-pat-hero-mission{font-size:22px;line-height:1.25;font-weight:bold;margin:0 0 18px}
 .pf-pat-hero-sub{color:#8a8a8a;font-size:13px;margin:-10px 0 18px;line-height:1.4}
@@ -47,7 +47,7 @@
    one data line, one action. The brand's unit of thought. */
 .pf-pat-intel{background:#0a0a0a;border:1px solid #2a2a2a;border-top:3px solid #c1121f;
   padding:16px;margin:12px 0}
-.pf-pat-intel-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:2px;
+.pf-pat-intel-kicker{color:#e5383b;text-transform:uppercase;letter-spacing:2px;
   font-size:11px;font-weight:bold;margin:0 0 6px}
 .pf-pat-intel h3,.pf-pat-intel-head{font-family:Arial,Helvetica,sans-serif;
   font-weight:bold;font-size:17px;color:#fff;margin:0 0 8px;line-height:1.3}
@@ -65,7 +65,7 @@
   letter-spacing:2px;text-transform:uppercase;text-decoration:none;cursor:pointer;
   text-align:center}
 .pf-pat-join:hover,.pf-pat-join:active{background:#8f0d17;color:#fff}
-.pf-pat-deploy{display:inline-block;color:#c1121f;font-weight:bold;font-size:14px;
+.pf-pat-deploy{display:inline-block;color:#e5383b;font-weight:bold;font-size:14px;
   letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;
   padding:8px 0}
 .pf-pat-deploy:hover{text-decoration:underline;color:#fff}
@@ -78,7 +78,7 @@
   letter-spacing:1px;text-transform:uppercase;text-decoration:underline;
   text-decoration-color:#8a8a8a;text-underline-offset:4px;cursor:pointer;
   padding:8px 0}
-.pf-pat-report:hover{color:#c1121f;text-decoration-color:#c1121f}
+.pf-pat-report:hover{color:#e5383b;text-decoration-color:#c1121f}
 /* Ghost/second-order link for non-primary actions. Never red. */
 .pf-pat-textlink{color:#fff;font-size:13px;text-decoration:underline;
   text-decoration-color:#8a8a8a;text-underline-offset:3px}
@@ -89,7 +89,7 @@
    nothing unless figure + label + source + recency are ALL present. */
 .pf-pat-data{text-align:center;padding:18px 12px;margin:12px 0}
 .pf-pat-data-fig{font-size:44px;font-weight:bold;color:#fff;line-height:1.1;margin:0}
-.pf-pat-data-label{color:#c1121f;text-transform:uppercase;letter-spacing:2px;
+.pf-pat-data-label{color:#e5383b;text-transform:uppercase;letter-spacing:2px;
   font-size:11px;font-weight:bold;margin:8px 0 0}
 .pf-pat-data-rule{width:56px;height:2px;background:#c1121f;margin:12px auto}
 .pf-pat-data-src{color:#8a8a8a;font-size:11px;line-height:1.5;margin:0}
@@ -121,7 +121,7 @@
   text-decoration:none;padding:14px 6px;border-right:1px solid #2a2a2a;
   line-height:1.4;display:flex;align-items:center;justify-content:center}
 .pf-pat-actions a:last-child,.pf-pat-actions span:last-child{border-right:0}
-.pf-pat-actions a:hover{color:#c1121f}
+.pf-pat-actions a:hover{color:#e5383b}
 .pf-pat-actions span.pat-disabled{color:#8a8a8a;cursor:default}
 
 /* P7 — LEDGER LINE: left = what, right = figure, red when it matters
@@ -130,7 +130,7 @@
   gap:12px;padding:9px 0;border-bottom:1px solid #222;font-size:14px}
 .pf-pat-ledger-what{color:#fff;min-width:0}
 .pf-pat-ledger-fig{font-weight:bold;color:#fff;white-space:nowrap}
-.pf-pat-ledger.hot .pf-pat-ledger-fig,.pf-pat-ledger-fig.hot{color:#c1121f}
+.pf-pat-ledger.hot .pf-pat-ledger-fig,.pf-pat-ledger-fig.hot{color:#e5383b}
 .pf-pat-ledger-sub{display:block;font-size:11px;color:#8a8a8a;margin-top:2px}
 
 /* P8 — SOCIAL-PROOF LINE: REAL figures or the line is suppressed, NEVER inflated.

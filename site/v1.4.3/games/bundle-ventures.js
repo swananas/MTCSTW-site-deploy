@@ -335,26 +335,93 @@ function mintCertificate(vid){
   var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
   var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
   var g=cv.getContext("2d");
-  g.fillStyle="#0d0d0f"; g.fillRect(0,0,1080,1350);
-  g.strokeStyle="#c1121f"; g.lineWidth=14; g.strokeRect(40,40,1000,1270);
-  g.fillStyle="#c1121f"; g.fillRect(40,40,1000,120);
-  g.fillStyle="#fff"; g.font="bold 56px monospace"; g.textAlign="center";
-  g.fillText("SHAREHOLDER CERTIFICATE",540,122);
-  g.fillStyle="#f4f1e8"; g.font="bold 64px monospace";
+  /* ---- butter: editorial kit (factgen standard), certificate variant ---- */
+  var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+      btM="#a89a7d", btF="#6f6350";
+  g.fillStyle="#0e0d0c"; g.fillRect(0,0,1080,1350);
+  g.save(); g.globalAlpha=0.032; g.strokeStyle="#ffffff"; g.lineWidth=1;
+  for(var btD=-1350; btD<2430; btD+=26){
+    g.beginPath(); g.moveTo(btD,0); g.lineTo(btD+1350,1350); g.stroke();
+  }
+  g.restore();
+  var btVg=g.createRadialGradient(540,540,216,540,675,1147);
+  btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+  g.fillStyle=btVg; g.fillRect(0,0,1080,1350);
+  var btBar=g.createLinearGradient(0,0,0,10);
+  btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+  g.fillStyle=btBar; g.fillRect(0,0,1080,10);
+  g.save(); g.globalAlpha=0.05; g.fillStyle=btC;
+  g.font="900 620px Arial,sans-serif"; g.textAlign="center";
+  g.fillText("★",540,810); g.restore();
+  /* certificate frame: gold hairlines */
+  g.strokeStyle="rgba(201,162,39,0.7)"; g.lineWidth=3; g.strokeRect(40,40,1000,1270);
+  g.strokeStyle="rgba(201,162,39,0.35)"; g.lineWidth=1; g.strokeRect(64,64,952,1222);
+  g.textAlign="center";
+  /* kicker: letterspaced gold */
+  g.fillStyle=btG; g.font="700 26px Arial,sans-serif";
+  try{ g.letterSpacing="10px"; }catch(e){}
+  g.fillText("JOINT VENTURES",540,150);
+  try{ g.letterSpacing="0px"; }catch(e2){}
+  g.strokeStyle="rgba(201,162,39,0.5)"; g.lineWidth=1;
+  g.beginPath(); g.moveTo(390,182); g.lineTo(690,182); g.stroke();
+  /* masthead: monumental serif */
+  g.fillStyle=btC; g.font='900 64px Georgia,"Times New Roman",serif';
+  try{ g.letterSpacing="4px"; }catch(e3){}
+  g.fillText("SHAREHOLDER CERTIFICATE",540,268);
+  try{ g.letterSpacing="0px"; }catch(e4){}
+  g.fillStyle=btM; g.font='italic 400 40px Georgia,"Times New Roman",serif';
   var nm=v.name||"VENTURE"; if(nm.length>22) nm=nm.slice(0,22);
-  g.fillText(nm.toUpperCase(),540,300);
-  g.fillStyle="#c1121f"; g.font="bold 150px monospace";
-  g.fillText(String(v.my_shares),540,560);
-  g.fillStyle="#f4f1e8"; g.font="bold 44px monospace";
-  g.fillText("SHARES",540,630);
-  g.font="32px monospace"; g.fillStyle="#9a9a9a";
-  g.fillText("HELD BY",540,720);
-  g.fillStyle="#fff"; g.font="bold 52px monospace";
-  g.fillText(String(cs||"COMRADE").toUpperCase().slice(0,24),540,790);
-  g.fillStyle="#9a9a9a"; g.font="30px monospace";
-  g.fillText("THE PROPAGANDA FACTORY · JOINT VENTURES",540,1180);
-  g.fillStyle="#c1121f"; g.font="bold 44px monospace";
-  g.fillText("JOIN THE FIGHT.",540,1260);
+  g.fillText(nm.toUpperCase(),540,350);
+  /* red diamond rule */
+  g.strokeStyle=btR; g.lineWidth=2;
+  g.beginPath(); g.moveTo(350,410); g.lineTo(514,410); g.stroke();
+  g.beginPath(); g.moveTo(566,410); g.lineTo(730,410); g.stroke();
+  g.save(); g.translate(540,410); g.rotate(Math.PI/4);
+  g.fillStyle=btR; g.fillRect(-9,-9,18,18); g.restore();
+  /* the figure: monumental gold gradient, drop shadow */
+  g.font='900 150px Georgia,"Times New Roman",serif';
+  var btFig=String(v.my_shares);
+  g.fillStyle="rgba(0,0,0,0.55)";
+  g.fillText(btFig,546,587);
+  var btGg=g.createLinearGradient(0,440,0,580);
+  btGg.addColorStop(0,"#f0d060"); btGg.addColorStop(1,"#8a6d1c");
+  g.fillStyle=btGg;
+  g.fillText(btFig,540,580);
+  g.fillStyle=btG; g.font="700 36px Arial,sans-serif";
+  try{ g.letterSpacing="10px"; }catch(e5){}
+  g.fillText("SHARES",540,660);
+  try{ g.letterSpacing="0px"; }catch(e6){}
+  g.fillStyle=btF; g.font="700 28px Arial,sans-serif";
+  try{ g.letterSpacing="8px"; }catch(e7){}
+  g.fillText("HELD BY",540,740);
+  try{ g.letterSpacing="0px"; }catch(e8){}
+  g.fillStyle=btC; g.font='900 56px Georgia,"Times New Roman",serif';
+  g.fillText(String(cs||"COMRADE").toUpperCase().slice(0,24),540,820);
+  /* source line */
+  g.fillStyle=btF; g.font="400 24px Arial,sans-serif";
+  try{ g.letterSpacing="3px"; }catch(e9){}
+  g.fillText("THE PROPAGANDA FACTORY · JOINT VENTURES",540,1090);
+  try{ g.letterSpacing="0px"; }catch(e10){}
+  /* ---- butter footer: CTA standard ---- */
+  var fy=1135;
+  g.strokeStyle="rgba(201,162,39,0.45)"; g.lineWidth=1;
+  g.beginPath(); g.moveTo(120,fy); g.lineTo(960,fy); g.stroke();
+  fy+=58;
+  g.font="900 44px Arial,sans-serif"; g.fillStyle=btC;
+  try{ g.letterSpacing="8px"; }catch(e11){}
+  var btCta="JOIN THE FIGHT";
+  var btCtaW=g.measureText(btCta).width;
+  g.fillText(btCta,540,fy);
+  g.fillStyle=btR; g.fillText(".",540+btCtaW/2-4,fy);
+  try{ g.letterSpacing="0px"; }catch(e12){}
+  fy+=52;
+  g.fillStyle=btR; g.font="900 32px Arial,sans-serif";
+  try{ g.letterSpacing="10px"; }catch(e13){}
+  g.fillText("MTCSTW.COM",540,fy);
+  try{ g.letterSpacing="0px"; }catch(e14){}
+  var btBar2=g.createLinearGradient(0,1340,0,1350);
+  btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+  g.fillStyle=btBar2; g.fillRect(0,1340,1080,10);
   try{ if(window.PFShare&&PFShare.stampCallsign) cv=PFShare.stampCallsign(cv)||cv; }catch(e){}
   function done(url){
     var a=document.createElement("a"); a.href=url; a.download="venture-certificate.png";

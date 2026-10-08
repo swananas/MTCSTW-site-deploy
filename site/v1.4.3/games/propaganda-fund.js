@@ -127,7 +127,7 @@
       '.pf-fund-cta{text-align:center;margin:6px 0 4px;}' +
       '.pf-fund-cta .pf-pat-deploy-red{margin:4px;}' +
       '.pf-fund-sec{margin:26px 0 0;padding:0 4px;}' +
-      '.pf-fund-sec-k{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:700;font-size:12px;margin:0 0 6px;}' +
+      '.pf-fund-sec-k{color:#e5383b;text-transform:uppercase;letter-spacing:3px;font-weight:700;font-size:12px;margin:0 0 6px;}' +
       '.pf-fund-sec-t{font-size:19px;font-weight:700;margin:0 0 6px;}' +
       '.pf-fund-sec-s{color:#8a8a8a;font-size:13px;line-height:1.5;margin:0 0 8px;}' +
       '.pf-fund-empty{border:2px dashed #4a4a4a;border-radius:10px;padding:28px 22px;text-align:center;background:#0d0d0d;}' +

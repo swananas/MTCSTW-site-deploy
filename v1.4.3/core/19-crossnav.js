@@ -117,7 +117,19 @@
     /* SPACE-AUDIT FIX 3 (2026-10-06): /governance was shadowed under ACT
        (goPillar picks /call-it) — the FRONT LINES grid gives it its own
        inbound path from every page footer. */
-    ['GOVERNANCE', '/governance']
+    ['GOVERNANCE', '/governance'],
+    /* CROSS-POLLINATION PASS (2026-10-08): every route gets an inbound path.
+       No page is more than one click from any other theater. */
+    ['DASHBOARD', '/dashboard'],
+    ['CALL IT', '/call-it'],
+    ["PEOPLE'S CPI", '/peoples-cpi'],
+    ['POLITICAL HQ', '/political-hq'],
+    ['COMMAND', '/command'],
+    ['WAR ROOM', '/war-room'],
+    ['CELL WAR', '/cell-war'],
+    ['LIQUIDATION', '/liquidation'],
+    ['STORE', '/store'],
+    ['RADICALS', '/sick-left-radicals']
   ];
 
   /* SPACE-AUDIT FIX 2 (2026-10-06): /fund joins the pillar spine as an

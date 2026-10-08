@@ -24,7 +24,7 @@
 <style>
 #pf-territory-map .tm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#1a0d0d 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:760px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}
 #pf-territory-map .tm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}
-#pf-territory-map .tm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-territory-map .tm-kicker{font-size:12px;letter-spacing:5px;color:#e5383b;font-weight:800;margin-bottom:6px}
 #pf-territory-map h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}
 #pf-territory-map .tm-week{font-family:'Courier New',monospace;font-size:13px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}
 #pf-territory-map .tm-map{width:100%;height:auto;display:block;margin:6px auto 4px;max-width:640px}

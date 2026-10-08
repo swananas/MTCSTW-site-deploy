@@ -80,8 +80,8 @@
 .pf-qm-notes b{color:#b8ab8e}
 .pf-qm-veil{position:fixed;inset:0;background:rgba(4,4,4,0.88);z-index:2147483000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:8vh 12px 12px;box-sizing:border-box}
 .pf-qm-sheet{max-width:520px;width:100%;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:Arial,sans-serif;padding:1.4rem 1.3rem;box-sizing:border-box}
-.pf-qm-sheet h3{margin:0 0 4px;font-size:1.25rem;letter-spacing:0.12em;color:#c1121f}
-.pf-qm-kick{font-size:0.72rem;letter-spacing:0.22em;color:#c1121f;font-weight:900;margin:0 0 6px}
+.pf-qm-sheet h3{margin:0 0 4px;font-size:1.25rem;letter-spacing:0.12em;color:#e5383b}
+.pf-qm-kick{font-size:0.72rem;letter-spacing:0.22em;color:#e5383b;font-weight:900;margin:0 0 6px}
 .pf-qm-line{font-size:0.85rem;color:#b8ab8e;line-height:1.6;margin:8px 0}
 .pf-qm-fund-btn{display:block;width:100%;box-sizing:border-box;background:#c1121f;color:#f5f0e1;border:none;font:900 1.05rem Arial,sans-serif;letter-spacing:0.1em;padding:0.95rem 1rem;cursor:pointer;margin:12px 0 6px;text-align:center}
 .pf-qm-fund-btn:hover{background:#e01525}
@@ -262,7 +262,7 @@ function render(){
   if(!PAT){
     box.innerHTML='<div class="pf-qm-wrap"><p class="pf-qm-line">The quartermaster is '+
       'down for maintenance \u2014 the store is still open: '+
-      '<a href="'+STORE_URL+'" style="color:#c1121f;font-weight:700;">mtcstw.com/store</a></p></div>';
+      '<a href="'+STORE_URL+'" style="color:#e5383b;font-weight:700;">mtcstw.com/store</a></p></div>';
     return;
   }
   var hero=PAT.hero({
@@ -281,7 +281,7 @@ function render(){
     if(tier) html+=missionCard(tier,last.key.replace(/^qm-/,'').slice(0,8).toUpperCase());
   }
   html+='<div class="pf-qm-onetime">One-time shot instead? '+
-    '<a href="#pf-warbonds" style="color:#c1121f;font-weight:700;">OUTFIT A CELL \u2192</a></div>';
+    '<a href="#pf-warbonds" style="color:#e5383b;font-weight:700;">OUTFIT A CELL \u2192</a></div>';
   html+='<p class="pf-qm-notes"><b>War Bonds grant no XP, ever.</b> Real money is '+
     'fully delinked from the XP economy. Card tokenized by our payment provider; '+
     'the public ledger shows aggregates only.</p>';

@@ -236,7 +236,7 @@
       });
     }
     var line = el('div', 'pf-hp-greet', CSS_BASE +
-      'margin-top:14px;font-size:13px;letter-spacing:2px;color:#c1121f;font-weight:800;');
+      'margin-top:14px;font-size:13px;letter-spacing:2px;color:#e5383b;font-weight:800;');
     var txt = 'WELCOME BACK, ' + a.callsign.toUpperCase();
     if (a.rank) txt += ' \u2014 ' + a.rank.toUpperCase();
     txt += ' \u00B7 ' + fmtXp(a.xp) + ' XP';
@@ -274,7 +274,7 @@
       'max-width:min(680px,94vw);margin:0 auto 14px;padding:16px 18px;text-align:center;' +
       'background:#1c0707;border:2px solid #c1121f;color:#f5ead6;');
     card.innerHTML =
-      '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">YOUR WAR</div>' +
+      '<div style="font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px;">YOUR WAR</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:19px;letter-spacing:1px;margin:0 0 6px;">' +
       headline.replace(/</g, '&lt;') + '</div>' +
       '<div style="font-size:13px;color:#a89e88;margin-bottom:12px;">' + sub.replace(/</g, '&lt;') + '</div>' +
@@ -305,7 +305,7 @@
       'max-width:min(680px,94vw);margin:14px auto 0;padding:16px 18px;text-align:center;' +
       'background:#0d0d0d;border:2px solid #3a0d0d;color:#f5ead6;');
     card.innerHTML =
-      '<div style="font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;">BECAUSE YOU BACKED THEM</div>' +
+      '<div style="font-size:12px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px;">BECAUSE YOU BACKED THEM</div>' +
       '<div style="font-family:\'Arial Black\',Arial,sans-serif;font-size:20px;letter-spacing:1px;margin:0 0 4px;">' +
       name + '</div>' +
       (score ? '<div style="font-size:12px;color:#a89e88;margin-bottom:10px;">' + score.replace(/</g, '&lt;') + '</div>' : '') +

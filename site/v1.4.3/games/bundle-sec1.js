@@ -361,7 +361,7 @@ function paintCivicLine(){
         dv.className="br-civic";
         dv.style.cssText="margin:10px 0 0;padding:8px 12px;border:1px solid #3a2c22;background:#0d0b06;color:#f5ead6;font:13px monospace;";
         dv.innerHTML='TODAY IN POLITICAL HQ: <b style="color:#e8b64c">'+esc(t)+'</b>'
-          +' &nbsp;<a href="/political-hq" style="color:#c1121f;font-weight:bold;text-decoration:none;">ENTER &rarr;</a>';
+          +' &nbsp;<a href="/political-hq" style="color:#e5383b;font-weight:bold;text-decoration:none;">ENTER &rarr;</a>';
         el.insertBefore(dv,el.firstChild);
       }catch(e){}
     },function(){});
@@ -385,7 +385,7 @@ function paintHallMention(){
     var d=document.createElement("div");
     d.className="br-hall";
     d.style.cssText="border:1px solid #c1121f;background:#140606;border-radius:6px;padding:10px 12px;margin:10px 0";
-    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;font-weight:bold">HALL OF PROOF</div>'
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#e5383b;font-weight:bold">HALL OF PROOF</div>'
       +'<div style="font-size:13px;margin-top:4px;color:#f5ead6">You were pinned this week &mdash; '+esc(String(mine.length))
       +' feat'+(mine.length===1?"":"s")+' on the wall: '+esc(feats)+'.</div>';
     var arc=el.querySelector(".br-arc"), head=el.querySelector(".br-head");
@@ -794,7 +794,7 @@ function bannerCss(){
     +"#pf-brief .br-tierfill{height:100%;background:#e8b64c;transition:width .5s}"
     +"#pf-brief .br-tierfill.br-war{background:#c1121f}"
     +"#pf-brief .br-sec{margin:14px 0;padding:12px;border:1px solid #333;background:#101010}"
-    +"#pf-brief .br-sect{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .br-sect{font:bold 13px monospace;color:#e5383b;letter-spacing:2px;margin-bottom:10px}"
     +"#pf-brief .br-urg{border:2px solid #c1121f;background:#1a0505;padding:10px;margin-bottom:8px}"
     +"#pf-brief .br-ut{font:bold 13px monospace;color:#ff6b6b;margin-bottom:4px}"
     +"#pf-brief .br-ubtn{margin-top:8px}"
@@ -805,7 +805,7 @@ function bannerCss(){
     +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
     +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
     /* wave-live-rails (2026-10-05): Top Stories rail slots into the brief. */
-    +"#pf-brief .pf-newstop-head{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .pf-newstop-head{font:bold 13px monospace;color:#e5383b;letter-spacing:2px;margin-bottom:10px}"
     +"#pf-brief .pf-newstop-list{list-style:none;margin:0;padding:0}"
     +"#pf-brief .pf-newstop-item{padding:8px 4px;border-bottom:1px solid #222;font:13px monospace}"
     +"#pf-brief .pf-newstop-item a{color:#f5ead6;text-decoration:none}"
@@ -822,10 +822,10 @@ function bannerCss(){
     +"#pf-brief .br-rmday{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px}"
     +"#pf-brief .br-rmstop{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #222;font:13px monospace;color:#ddd;text-decoration:none}"
     +"#pf-brief .br-rmstop.done{color:#7ddf8a}"
-    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#c1121f;min-width:54px}"
+    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#e5383b;min-width:54px}"
     +"#pf-brief .br-rmstop.done .br-rmn{color:#7ddf8a}"
     +"#pf-brief .br-rml{flex:1}"
-    +"#pf-brief .br-rmgo{color:#c1121f;font-weight:bold}"
+    +"#pf-brief .br-rmgo{color:#e5383b;font-weight:bold}"
     +"#pf-brief .br-rmbtn{margin-top:2px}"
     +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
@@ -1043,45 +1043,106 @@ function dropPaintPoster(done){
         body=bdEl?bdEl.textContent:"";
     var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
     var x=cv.getContext("2d"); if(!x){ done(null); return; }
-    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-H; btD<W+H; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    x.fillStyle=btVg; x.fillRect(0,0,W,H);
+    var btBar=x.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    x.fillStyle=btBar; x.fillRect(0,0,W,10);
+    x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+    x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+    x.fillText("★",W/2,H*0.60); x.restore();
     x.textAlign="center";
-    var y=170;
-    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=108;
-    x.fillStyle="#c1121f"; x.font="900 60px \\\"Arial Black\\\",Arial,sans-serif";
-    x.fillText("\u2605 THE DAILY DROP \u2605",W/2,y); y+=92;
-    x.fillStyle="#f5ead6"; x.font="700 38px Arial,sans-serif";
-    x.fillText("DAY "+DROP_N+" OF THE MIDTERM BLITZ",W/2,y); y+=84;
-    x.font="700 32px Arial,sans-serif";
-    var tw=x.measureText(tag).width+80;
-    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,y-46,tw,66);
-    x.fillStyle="#ffffff"; x.fillText(tag,W/2,y); y+=104;
-    x.fillStyle="#f5ead6"; x.font="900 52px \\\"Arial Black\\\",Arial,sans-serif";
-    dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=64; });
-    y+=22;
+    var y=130;
+    /* kicker: letterspaced gold */
+    x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("THE PROPAGANDA FACTORY",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    y+=36;
+    x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(W/2-150,y); x.lineTo(W/2+150,y); x.stroke();
+    y+=78;
+    /* masthead: monumental serif with red gradient */
+    x.font='900 64px Georgia,"Times New Roman",serif';
+    var btFg=x.createLinearGradient(0,y-64,0,y);
+    btFg.addColorStop(0,"#e63946"); btFg.addColorStop(1,btRD);
+    x.fillStyle=btFg;
+    x.fillText("★ THE DAILY DROP ★",W/2,y); y+=96;
+    x.fillStyle=btG; x.font="700 30px Arial,sans-serif";
+    try{ x.letterSpacing="6px"; }catch(e){}
+    x.fillText("DAY "+DROP_N+" OF THE MIDTERM BLITZ",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    y+=84;
+    /* tag: hairline box, red letterspaced */
+    x.font="700 30px Arial,sans-serif";
+    try{ x.letterSpacing="4px"; }catch(e){}
+    var tw=x.measureText(tag).width+90;
+    try{ x.letterSpacing="0px"; }catch(e){}
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.strokeRect(W/2-tw/2,y-46,tw,64);
+    x.fillStyle=btR; x.font="700 30px Arial,sans-serif";
+    try{ x.letterSpacing="4px"; }catch(e){}
+    x.fillText(tag,W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    y+=104;
+    /* headline: editorial serif */
+    x.fillStyle=btC; x.font='900 54px Georgia,"Times New Roman",serif';
+    dropWrap(x,head,W-170).slice(0,5).forEach(function(l){ x.fillText(l,W/2,y); y+=68; });
+    y+=18;
+    /* red diamond rule */
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.beginPath(); x.moveTo(W/2-190,y); x.lineTo(W/2-26,y); x.stroke();
+    x.beginPath(); x.moveTo(W/2+26,y); x.lineTo(W/2+190,y); x.stroke();
+    x.save(); x.translate(W/2,y); x.rotate(Math.PI/4);
+    x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+    y+=56;
     /* 2026-10-04 P4 #11 (margin bump 2026-10-04): footer reservation — the body
-       is capped so it never enters the footer zone (MTCSTW.COM at H-168), and
-       the streak line gets a guaranteed 80px slot instead of being silently
-       skipped when space runs out. The extra 10px over the original 70 buys
-       the streak ~17px of worst-case clearance above the footer while also
-       trimming the tight-case body budget by up to a line. */
-    x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-    var streakSlot=80, bodyMaxY=(H-168)-streakSlot;
+       is capped so it never enters the footer zone (butter footer starts at
+       H-215), and the streak line gets a guaranteed 80px slot instead of
+       being silently skipped when space runs out. */
+    x.fillStyle=btM; x.font='400 36px Georgia,"Times New Roman",serif';
+    var streakSlot=80, bodyMaxY=(H-215)-streakSlot;
     var bodyLines=dropWrap(x,body,W-210);
-    var avail=Math.max(1,Math.floor((bodyMaxY-y)/52));
-    bodyLines.slice(0,Math.min(7,avail)).forEach(function(l){ x.fillText(l,W/2,y); y+=52; });
+    var avail=Math.max(1,Math.floor((bodyMaxY-y)/50));
+    bodyLines.slice(0,Math.min(7,avail)).forEach(function(l){ x.fillText(l,W/2,y); y+=50; });
     y+=26;
-    x.fillStyle="#ff5a00"; x.font="700 34px Arial,sans-serif";
+    x.fillStyle=btG; x.font="700 30px Arial,sans-serif";
+    try{ x.letterSpacing="6px"; }catch(e){}
     x.fillText("YOUR STREAK: "+DROP_S.streak+(DROP_S.streak===1?" DAY":" DAYS"),W/2,y);
-    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
-    x.fillStyle="#c1121f"; x.font="900 46px \\\"Arial Black\\\",Arial,sans-serif";
-    x.fillText("MTCSTW.COM",W/2,H-168);
-    x.font="900 44px \\\"Arial Black\\\",Arial,sans-serif";
-    x.fillText("JOIN THE FIGHT.",W/2,H-108);
-    x.fillStyle="#c9bfa8"; x.font="400 30px Arial,sans-serif";
-    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,H-58); }catch(e){}
+    try{ x.letterSpacing="0px"; }catch(e){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=H-215;
+    x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+    fy+=58;
+    x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+    try{ x.letterSpacing="8px"; }catch(e){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=x.measureText(btCta).width;
+    x.fillText(btCta,W/2,fy);
+    x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    fy+=52;
+    x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("MTCSTW.COM",W/2,fy);
+    try{ x.letterSpacing="0px"; }catch(e){}
+    fy+=42;
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,fy); }catch(e){}
+    var btBar2=x.createLinearGradient(0,H-10,0,H);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
     done(cv);
   }catch(e){ try{ done(null); }catch(e2){} }
 }
@@ -1193,13 +1254,13 @@ setInterval(function(){
 <style>
 #pf-sp-bar{display:flex;align-items:center;gap:14px;background:#0a0a0a;border-left:4px solid #c1121f;padding:10px 14px;font-family:Arial,sans-serif;font-size:13px;color:#f5ead6;flex-wrap:wrap}
 #pf-sp-bar .sp-stat{white-space:nowrap}
-#pf-sp-bar .sp-stat b{color:#c1121f;font-size:15px}
+#pf-sp-bar .sp-stat b{color:#e5383b;font-size:15px}
 #pf-sp-bar .sp-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;animation:spPulse 2s infinite}
 @keyframes spPulse{0%,100%{opacity:1}50%{opacity:.35}}
 #pf-sp-x{margin-left:auto;background:none;border:1px solid #555;color:#888;cursor:pointer;font-size:14px;line-height:1;padding:4px 8px}
 #pf-sp-x:hover{color:#fff;border-color:#c1121f}
 #pf-sp-proofwall{margin-top:8px;border:1px solid #333;background:#0d0d0d;padding:10px 14px;font-family:Arial,sans-serif;font-size:12px;color:#f5ead6}
-.sp-pw-title{font:bold 11px Arial;color:#c1121f;letter-spacing:2px;margin-bottom:8px}
+.sp-pw-title{font:bold 11px Arial;color:#e5383b;letter-spacing:2px;margin-bottom:8px}
 .sp-pw-row{display:flex;gap:8px;flex-wrap:wrap}
 .sp-pw-chip{display:inline-flex;align-items:center;gap:6px;background:#141414;border:1px solid #333;border-left:3px solid #c1121f;padding:6px 10px;color:#f5ead6}
 .sp-pw-chip b{color:#fff}

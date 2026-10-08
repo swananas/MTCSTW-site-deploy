@@ -294,7 +294,7 @@
     '#pf-rx-bank .rx-meta{border:2px solid #c1121f;background:#100808;' +
       'padding:12px;margin:12px 0 4px}' +
     '#pf-rx-bank .rx-meta-head{font:bold 13px Arial;letter-spacing:2px;color:#fff;margin:0 0 2px}' +
-    '#pf-rx-bank .rx-meta-head span{color:#c1121f;letter-spacing:1px;font-size:11px}' +
+    '#pf-rx-bank .rx-meta-head span{color:#e5383b;letter-spacing:1px;font-size:11px}' +
     '#pf-rx-bank .rx-meta-sub{font:400 12px/1.5 Arial;color:#b8a98a;margin:0 0 4px}' +
     '#pf-rx-bank .rx-meta-res{margin:6px 0 0;max-height:220px;overflow-y:auto}' +
     '#pf-rx-bank .rx-meta-hit{display:block;width:100%;text-align:left;background:#1a1a1a;' +
@@ -305,7 +305,7 @@
     '#pf-rx-bank .rx-meta-sel{margin:8px 0 0}' +
     '#pf-rx-bank .rx-meta-chip{display:inline-block;background:#1c1a1a;border:1px solid #c1121f;' +
       'color:#fff;font:bold 12px Arial;letter-spacing:1px;padding:6px 10px;margin:0 6px 6px 0}' +
-    '#pf-rx-bank .rx-meta-chip button{background:none;border:0;color:#c1121f;font:bold 14px Arial;' +
+    '#pf-rx-bank .rx-meta-chip button{background:none;border:0;color:#e5383b;font:bold 14px Arial;' +
       'cursor:pointer;margin-left:8px;padding:0}' +
     '#pf-rx-bank .rx-meta-note{font:400 12px/1.6 Arial;color:#ffd9a0;background:#1a1206;' +
       'border:1px solid #8a6a2a;padding:8px 10px;margin:0 0 8px}' +

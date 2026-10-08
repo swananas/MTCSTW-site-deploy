@@ -104,7 +104,8 @@
     'phq-votedonor',
     'phq-bill',
     'phq-urgency',
-    'phq-index-score'];
+    'phq-index-score',
+    'phq-petition'];
   var TITLES = {
     'phq-pressure': 'PRESSURE CAMPAIGN',
     'phq-prediction': 'PREDICTION RESULT',
@@ -129,7 +130,8 @@
     'phq-votedonor': 'THE MONEY BEHIND THE VOTE',
     'phq-bill': 'BILL POSTER',
     'phq-urgency': 'URGENCY POSTER',
-    'phq-index-score': 'CAPTURE SCORE'
+    'phq-index-score': 'CAPTURE SCORE',
+    'phq-petition': 'PETITION SHARE KIT'
   };
   var DEEP = 'MTCSTW.COM/POLITICAL-HQ';
   var PENDING = {};
@@ -1148,6 +1150,56 @@
     bottomStack(x, 'fight');
     return cv;
   }
+  /* Petition Share Kit (political-hq) — id phq-petition.
+     1080x1350, red headline, target/demand strips, gold tally + progress
+     bar, LIVE COUNT launch-date source line, callsign stamp, ADD MY NAME
+     CTA, JOIN THE FIGHT. standard. Sig counts are painted from the live
+     kit payload, never invented. */
+  function paintPetition(d, cv, x) {
+    base(x); kicker(x);
+    badge(x, 'PETITION \u2014 SHARE KIT', 280, '#f5ead6', 40);
+    var cs = callsignOf();
+    var y = 396;
+    x.fillStyle = '#c1121f';
+    var tlh = 84;
+    x.font = '900 76px "Arial Black",Arial,sans-serif';
+    var tl = wrap(x, String(d.title || 'UNTITLED PETITION').toUpperCase(), 910);
+    if (tl.length > 2) {
+      x.font = '900 64px "Arial Black",Arial,sans-serif'; tlh = 74;
+      tl = wrap(x, String(d.title || 'UNTITLED PETITION').toUpperCase(), 910);
+    }
+    tl = tl.slice(0, 3);
+    for (var i = 0; i < tl.length; i++) { x.fillText(tl[i], W / 2, y); y += tlh; }
+    y = Math.max(700, y + 24);
+    x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
+    wrap(x, 'TARGET: ' + String(d.target || '\u2014').toUpperCase(), 910).slice(0, 1)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+    y += 12;
+    x.fillStyle = '#c9bfa8'; x.font = '400 38px Arial,sans-serif';
+    wrap(x, 'DEMAND: ' + String(d.demand || d.title || '\u2014').toUpperCase(), 910).slice(0, 2)
+      .forEach(function (l) { x.fillText(l, W / 2, y); y += 48; });
+    y = Math.max(930, y + 30);
+    var sig = Math.max(0, parseInt(d.sigCount, 10) || 0);
+    var goal = Math.max(0, parseInt(d.goal, 10) || 0);
+    var tally = fmtNum(sig) + ' SIGNATURES' + (goal > 0 ? ' \u2014 ' + fmtNum(Math.max(0, goal - sig)) + ' TO GO' : '');
+    x.fillStyle = '#e8b923';
+    fitFont(x, tally, 64, 40, 910);
+    x.fillText(tally, W / 2, y); y += 44;
+    var frac = goal > 0 ? Math.min(1, sig / goal) : 1;
+    x.fillStyle = '#f5ead6'; x.fillRect(190, y, 700, 26);
+    x.fillStyle = '#c1121f'; x.fillRect(190, y, Math.round(700 * frac), 26);
+    y += 26 + 40;
+    /* Source line: the kit is only as fresh as its data — launch date. */
+    x.fillStyle = '#c9bfa8'; x.font = '400 28px Arial,sans-serif';
+    var src = 'LIVE COUNT \u2014 LAUNCHED ' + String(d.sourceDate || '').toUpperCase();
+    fitFont(x, src, 28, 22, 910, '400');
+    x.fillText(src, W / 2, y); y += 36;
+    if (cs) y = csLine(cv, x, y, cs) + 12;
+    else y = claimLine(x, y) + 50; /* no-callsign: the recruit line becomes the funnel */
+    button(x, 'ADD MY NAME', 1130, 40);
+    bottomStack(x, 'fight');
+    return cv;
+  }
   /* Wall of Shame Card (superpac-alerts) — id phq-wallshame */
   function paintWallShame(d, cv, x) {
     base(x); kicker(x);
@@ -1925,7 +1977,8 @@
     'phq-votedonor': paintVoteDonor,
     'phq-bill': paintBill,
     'phq-urgency': paintUrgency,
-    'phq-index-score': paintIndexScore
+    'phq-index-score': paintIndexScore,
+    'phq-petition': paintPetition
   };
   var TITLES_LOCAL = {
     'phq-racecall': 'RACE CALLED',
@@ -1944,7 +1997,8 @@
     'phq-votedonor': 'THE MONEY BEHIND THE VOTE',
     'phq-bill': 'BILL POSTER',
     'phq-urgency': 'URGENCY POSTER',
-    'phq-index-score': 'CAPTURE SCORE'
+    'phq-index-score': 'CAPTURE SCORE',
+    'phq-petition': 'PETITION SHARE KIT'
   };
   var FACADE = null;       /* the PF.PHQShare facade (stub or standalone) */
   function paintTable() { try { return (FACADE && FACADE._paint) || {}; } catch (e) { return {}; } }

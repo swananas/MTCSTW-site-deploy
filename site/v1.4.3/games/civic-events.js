@@ -102,7 +102,7 @@ function toolbarHTML(){
     '<select id="ce-f-state" aria-label="Filter by state">'+selOpts(STATES,filters.state)+'</select> '+
     '<select id="ce-f-type" aria-label="Filter by type">'+selOpts(TYPES,filters.type)+'</select> '+
     '<button class="c-btn" data-ce="submit-view">POST AN EVENT</button> '+
-    '<a href="#pf-townhall" style="font:bold 11px monospace;color:#c1121f;margin-left:6px;">TOWN HALLS &#8593;</a> '+
+    '<a href="#pf-townhall" style="font:bold 11px monospace;color:#e5383b;margin-left:6px;">TOWN HALLS &#8593;</a> '+
     '<a href="/political-hq" style="font:bold 11px monospace;color:#888;margin-left:6px;">ACTION CENTER &#8599;</a></div>';
 }
 function cardHTML(ev){

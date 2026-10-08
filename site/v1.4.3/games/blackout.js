@@ -156,11 +156,11 @@
         'background:#0a0a0a;border-bottom:3px solid #c1121f;color:#f5ead6;' +
         'font-family:Arial,sans-serif;text-align:center;padding:10px 12px;' +
         'font-size:14px;letter-spacing:1px;box-sizing:border-box}' +
-        '#pf-blackout-bar .bo-k{color:#c1121f;font-weight:800;letter-spacing:3px;' +
+        '#pf-blackout-bar .bo-k{color:#e5383b;font-weight:800;letter-spacing:3px;' +
         'font-size:11px;display:block;margin-bottom:2px}' +
         '#pf-blackout-bar .bo-t{font-family:\'Arial Black\',Arial,sans-serif;' +
         'font-size:16px;letter-spacing:2px}' +
-        '#pf-blackout-bar .bo-c{color:#c1121f;font-weight:800}' +
+        '#pf-blackout-bar .bo-c{color:#e5383b;font-weight:800}' +
         '</style>' +
         '<span class="bo-k">\uD83D\uDEA8 INCOMING TRANSMISSION</span>' +
         '<span class="bo-t">BLACKOUT OP</span> — the wire goes dark in ' +
@@ -254,7 +254,7 @@
         'padding:22px 20px;max-width:680px;margin:18px auto;color:#f5ead6;' +
         'font-family:Arial,sans-serif;box-sizing:border-box}' +
         '#pf-blackout-debrief .bo-k{font-size:12px;letter-spacing:4px;' +
-        'color:#c1121f;font-weight:800}' +
+        'color:#e5383b;font-weight:800}' +
         '#pf-blackout-debrief .bo-title{font-family:\'Arial Black\',Arial,sans-serif;' +
         'font-size:22px;letter-spacing:2px;text-transform:uppercase;margin:4px 0 6px}' +
         '#pf-blackout-debrief .bo-sub{font-size:13px;color:#a89e88;margin-bottom:14px}' +

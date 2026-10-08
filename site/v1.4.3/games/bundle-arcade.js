@@ -25,7 +25,7 @@
 <style>
 .pf-arc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:6px 0 14px}
 @media(min-width:760px){.pf-arc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.pf-arc-lede{font:700 11px Arial,sans-serif;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin:2px 0 12px;text-align:center}
+.pf-arc-lede{font:700 11px Arial,sans-serif;letter-spacing:3px;color:#e5383b;text-transform:uppercase;margin:2px 0 12px;text-align:center}
 .pf-arc-card{margin:0 !important;height:100%;display:flex;flex-direction:column}
 .pf-arc-card .pf-pat-intel-head{display:flex;align-items:center;gap:8px}
 .pf-arc-art{font-size:24px;line-height:1;flex:0 0 auto}
@@ -373,7 +373,7 @@ function ccRenderPol(j){
   var card=document.createElement("div");
   card.style.cssText="border:1px solid #3a3226;background:#14100b;padding:0.9rem 1rem;margin:0.6rem 0;";
   var badge=document.createElement("div");
-  badge.style.cssText="color:#c1121f;font-size:0.72rem;font-weight:800;letter-spacing:0.14em;margin-bottom:0.35rem;";
+  badge.style.cssText="color:#e5383b;font-size:0.72rem;font-weight:800;letter-spacing:0.14em;margin-bottom:0.35rem;";
   badge.textContent=p.badge||"POLITICAL";
   var title=document.createElement("div");
   title.style.cssText="color:#f5f0e1;font-size:1.05rem;font-weight:800;margin-bottom:0.3rem;";
@@ -440,7 +440,7 @@ function markSubmitted(){
   btn.style.pointerEvents="none";
   var note=document.createElement("div");
   note.className="c-rules";
-  note.style.color="#c1121f";
+  note.style.color="#e5383b";
   note.style.marginTop="10px";
   note.textContent="Entry logged for the week of "+weekStr+". One entry per person per week.";
   btn.parentNode.appendChild(note);
@@ -508,7 +508,7 @@ document.getElementById("cSubmit").onclick=function(){
       }else{
         /* mailto didn't fire (no email app / cancelled) - keep the entry open */
         var warn=document.createElement("div");
-        warn.className="c-rules";warn.style.color="#c1121f";warn.style.marginTop="10px";
+        warn.className="c-rules";warn.style.color="#e5383b";warn.style.marginTop="10px";
         warn.textContent="Your email app didn't open - your caption is safe above. Tap SUBMIT again to retry sending (entry not locked yet).";
         self.parentNode.appendChild(warn);
         setTimeout(function(){warn.remove();},9000);
@@ -563,7 +563,7 @@ document.getElementById("cTemplateBtn").href="mailto:"+EMAIL+"?subject="+encodeU
 #pf-bracket .b-pick.picked .b-seed,#pf-bracket .b-pick.picked .b-blurb{color:#fff}
 #pf-bracket .b-pick.dead{opacity:.45;cursor:default}
 #pf-bracket .b-pick.winner{outline:3px solid #ff5a00}
-#pf-bracket .b-vs{display:flex;align-items:center;justify-content:center;color:#c1121f;font-size:18px;padding:0 4px;min-width:44px}
+#pf-bracket .b-vs{display:flex;align-items:center;justify-content:center;color:#e5383b;font-size:18px;padding:0 4px;min-width:44px}
 #pf-bracket .b-note{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-top:10px}
 #pf-bracket .b-locked{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;background:#1a1a1a;border:2px dashed #555;padding:12px;margin:10px 0;text-transform:uppercase;letter-spacing:1px}
 #pf-bracket .b-champ{background:#c1121f;color:#fff;padding:22px;margin-top:18px;text-transform:uppercase;letter-spacing:2px}
@@ -577,17 +577,17 @@ document.getElementById("cTemplateBtn").href="mailto:"+EMAIL+"?subject="+encodeU
 #pf-bracket .b-oracle{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin:4px 0 10px}
 #pf-bracket .b-oracle b{color:#ff5a00}
 #pf-bracket .b-feedwrap{margin:14px 0 4px;border:2px dashed #c1121f;padding:10px 12px;background:#141414;max-height:190px;overflow-y:auto;text-align:left}
-#pf-bracket .b-feedtitle{font-size:13px;letter-spacing:3px;color:#c1121f;margin-bottom:8px;text-align:center}
+#pf-bracket .b-feedtitle{font-size:13px;letter-spacing:3px;color:#e5383b;margin-bottom:8px;text-align:center}
 #pf-bracket .b-feeditem{font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;margin:7px 0;line-height:1.45}
 #pf-bracket .b-feeditem .b-fname{color:#f5ead6;font-weight:700}
 #pf-bracket .b-feeditem .b-fworth{color:#ff5a00;font-weight:700}
-#pf-bracket .b-feedround{font-size:11px;letter-spacing:2px;color:#c1121f;margin:10px 0 2px;text-transform:uppercase}
+#pf-bracket .b-feedround{font-size:11px;letter-spacing:2px;color:#e5383b;margin:10px 0 2px;text-transform:uppercase}
 #pf-bracket .b-pick .b-worth{display:block;font-size:11px;letter-spacing:1px;color:#ff5a00;margin-top:5px;font-family:Arial,sans-serif}
 #pf-bracket button.b-pick:hover .b-worth{color:#fff}
 #pf-bracket .b-pick.picked .b-worth{color:#fff}
 #pf-bracket .b-pick.upset{outline:2px dashed #ff5a00;outline-offset:-2px}
 #pf-bracket .b-pick.b-exec{position:relative;animation:bshred .5s 1.15s ease-in forwards}
-#pf-bracket .b-pick.b-exec::after{content:"LIQUIDATED";position:absolute;top:50%;left:50%;color:#c1121f;border:3px solid #c1121f;background:rgba(13,13,13,.88);padding:4px 10px;font-size:14px;letter-spacing:2px;white-space:nowrap;opacity:0;animation:bstamp .35s .15s ease-out forwards;z-index:2}
+#pf-bracket .b-pick.b-exec::after{content:"LIQUIDATED";position:absolute;top:50%;left:50%;color:#e5383b;border:3px solid #c1121f;background:rgba(13,13,13,.88);padding:4px 10px;font-size:14px;letter-spacing:2px;white-space:nowrap;opacity:0;animation:bstamp .35s .15s ease-out forwards;z-index:2}
 @keyframes bstamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(2.6)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
 @keyframes bshred{to{opacity:0;transform:translateY(26px) skewX(-8deg)}}
 #pf-bracket .b-confetti{position:absolute;top:-10px;width:9px;height:13px;z-index:6;pointer-events:none;animation:bfall linear forwards}
@@ -1147,7 +1147,7 @@ function render(){
   h+='<div class="x-pane"><h4>Enter the arena</h4>'
     +'<div class="x-note">Submit a forged poster by its content ID (shown in the Poster Forge after you share).</div>'
     /* R6 (2026-10-04): reverse link — forge -> battles one-tap pipeline. */
-    +'<div class="x-note" style="margin:0.5rem 0 0.75rem;"><a href="/create" style="color:#c1121f;font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid #c1121f;">FORGE A CONTENDER &rarr;</a></div>';
+    +'<div class="x-note" style="margin:0.5rem 0 0.75rem;"><a href="/create" style="color:#e5383b;font-weight:900;letter-spacing:0.12em;text-decoration:none;border-bottom:2px solid #c1121f;">FORGE A CONTENDER &rarr;</a></div>';
   if(open.length){
     var lastCid=""; try{ lastCid=localStorage.getItem("pf_last_content_id")||""; }catch(e){}
     h+='<select id="btBattleSel">'+open.map(function(b){
@@ -1981,35 +1981,105 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       var x = cv.getContext('2d');
       if (!x) { done(null); return; }
       var gl = GAME_LBL[w.game] || 'WAR ROOM';
-      x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-      x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-      x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+          btM='#a89a7d', btF='#6f6350';
+      x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+      x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+      for (var btD = -H; btD < W + H; btD += 26) {
+        x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+      }
+      x.restore();
+      var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+      btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+      var btBar = x.createLinearGradient(0, 0, 0, 10);
+      btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+      x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+      x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+      x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+      x.fillText('★', W / 2, H * 0.60); x.restore();
       x.textAlign = 'center';
-      var y = 170;
-      x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-      x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 110;
-      x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+      var y = 130;
+      /* kicker: letterspaced gold */
+      x.fillStyle = btG; x.font = '700 27px Arial,sans-serif';
+      try { x.letterSpacing = '10px'; } catch (e) {}
+      x.fillText('THE PROPAGANDA FACTORY', W / 2, y);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      y += 36;
+      x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(W / 2 - 150, y); x.lineTo(W / 2 + 150, y); x.stroke();
+      y += 82;
+      /* masthead: monumental serif, red gradient */
+      x.font = '900 84px Georgia,"Times New Roman",serif';
+      var btFg = x.createLinearGradient(0, y - 84, 0, y);
+      btFg.addColorStop(0, '#e63946'); btFg.addColorStop(1, btRD);
+      x.fillStyle = btFg;
       wmWrap(x, 'THE WAR ROOM', W - 170).forEach(function (l) { x.fillText(l, W / 2, y); y += 98; });
-      y += 20;
-      x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-      x.fillText('THE BOARD PAYS OUT', W / 2, y); y += 110;
-      x.fillStyle = '#7CFC00'; x.font = '900 120px "Arial Black",Arial,sans-serif';
-      x.fillText('+' + fmt(w.payout) + ' XP', W / 2, y); y += 110;
-      x.fillStyle = '#c9bfa8'; x.font = '700 38px Arial,sans-serif';
-      x.fillText(gl + ' WIN', W / 2, y); y += 130;
-      x.font = '900 42px "Arial Black",Arial,sans-serif';
-      var cta = 'BACK THE NEXT ONE', tw = x.measureText(cta).width + 100;
-      x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
-      x.fillStyle = '#ffffff'; x.fillText(cta, W / 2, y + 8);
-      /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — share-image CTA standard. */
-      x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-      x.fillText('MTCSTW.COM', W / 2, H - 168);
-      x.font = '900 44px "Arial Black",Arial,sans-serif';
-      x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
-      x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+      y += 24;
+      x.fillStyle = btG; x.font = '700 34px Arial,sans-serif';
+      try { x.letterSpacing = '8px'; } catch (e) {}
+      x.fillText('THE BOARD PAYS OUT', W / 2, y);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      y += 116;
+      /* the figure: monumental, gold gradient, drop shadow */
+      x.font = '900 120px Georgia,"Times New Roman",serif';
+      var btFig = '+' + fmt(w.payout) + ' XP';
+      x.fillStyle = 'rgba(0,0,0,0.55)';
+      x.fillText(btFig, W / 2 + 5, y + 7);
+      var btGg = x.createLinearGradient(0, y - 120, 0, y);
+      btGg.addColorStop(0, '#f0d060'); btGg.addColorStop(1, '#8a6d1c');
+      x.fillStyle = btGg;
+      x.fillText(btFig, W / 2, y); y += 116;
+      /* red diamond rule */
+      x.strokeStyle = btR; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(W / 2 - 190, y); x.lineTo(W / 2 - 26, y); x.stroke();
+      x.beginPath(); x.moveTo(W / 2 + 26, y); x.lineTo(W / 2 + 190, y); x.stroke();
+      x.save(); x.translate(W / 2, y); x.rotate(Math.PI / 4);
+      x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+      y += 76;
+      x.fillStyle = btM; x.font = 'italic 400 40px Georgia,serif';
+      x.fillText(gl + ' WIN', W / 2, y); y += 96;
+      /* CTA: red plate, letterspaced cream */
+      x.font = '900 40px Arial,sans-serif';
+      try { x.letterSpacing = '4px'; } catch (e) {}
+      var cta = 'BACK THE NEXT ONE', tw = x.measureText(cta).width + 120;
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      x.fillStyle = btR; x.fillRect(W / 2 - tw / 2, y - 58, tw, 92);
+      x.fillStyle = '#ffffff'; x.font = '900 40px Arial,sans-serif';
+      try { x.letterSpacing = '4px'; } catch (e) {}
+      x.fillText(cta, W / 2, y + 6);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      /* source citation: the war-room ledger */
+      x.fillStyle = btF; x.font = '400 24px Arial,sans-serif';
+      try { x.letterSpacing = '2px'; } catch (e) {}
+      x.fillText('SOURCE — THE WAR ROOM LEDGER', W / 2, H - 250);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      /* ---- butter footer: CTA standard ---- */
+      var fy = H - 215;
+      x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(120, fy); x.lineTo(W - 120, fy); x.stroke();
+      fy += 58;
+      x.font = '900 44px Arial,sans-serif'; x.fillStyle = btC;
+      try { x.letterSpacing = '8px'; } catch (e) {}
+      var btCta = 'JOIN THE FIGHT';
+      var btCtaW = x.measureText(btCta).width;
+      x.fillText(btCta, W / 2, fy);
+      x.fillStyle = btR; x.fillText('.', W / 2 + btCtaW / 2 - 4, fy);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      fy += 52;
+      x.fillStyle = btR; x.font = '900 32px Arial,sans-serif';
+      try { x.letterSpacing = '10px'; } catch (e) {}
+      x.fillText('MTCSTW.COM', W / 2, fy);
+      try { x.letterSpacing = '0px'; } catch (e) {}
+      fy += 42;
+      x.fillStyle = btF; x.font = '400 24px Arial,sans-serif';
       try {
-        x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), W / 2, H - 58);
+        x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), W / 2, fy);
       } catch (e) {}
+      var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+      btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+      x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
       done(cv);
     } catch (err) { try { done(null); } catch (e2) {} }
   }

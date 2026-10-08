@@ -187,7 +187,7 @@ function renderStoreCta(){
    /store ride the footer chrome (16-footer.js). */
 function renderBondWall(id){
   var h='<div class="x-pane" id="pf-bond-wall"><div class="pb-bankhead">&#9733; BONDHOLDER WALL &#9733;</div>'
-    +'<div class="x-note">The names behind the war chest. Buy a bond in the <a href="/store" style="color:#c1121f;">store</a> and your callsign lands here.</div>';
+    +'<div class="x-note">The names behind the war chest. Buy a bond in the <a href="/store" style="color:#e5383b;">store</a> and your callsign lands here.</div>';
   var buyers=(BWALL&&BWALL.ok&&(BWALL.buyers||BWALL.recent_buyers))||[];
   if(!buyers.length){
     h+='<div class="x-note">The wall is waiting for its first name.'+(BWALL?'':'')+'</div>';

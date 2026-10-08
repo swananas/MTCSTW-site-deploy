@@ -463,6 +463,86 @@ function renderUnlocks(){
   }
 }
 
+/* DISPATCH SIGNUP (2026-10-05): "Join the dispatch" is The Dispatch
+   newsletter signup, not a bare XP tap. Opens a modal: email + 13+
+   checkbox -> POSTs the EXISTING notifyq/contact_set contract
+   (type:'notifyq', nq_action:'contact_set', {callsign,email,email_optin:1,
+   age13:1}) — exactly how notify-prefs.js stores The Dispatch opt-in.
+   No callsign yet -> clearly-labeled mailto fallback (the match-quiz
+   ENLIST pattern), never a faked signup. The +20 XP is the pre-existing
+   enlist-action reward (same key/amount/rule) — no XP mechanic change;
+   pf-enlisted still fires so service medals / do-meter / pinups keep
+   their listeners. */
+function dispatchSignup(){
+  if(document.getElementById("pfDispatchModal")){ document.getElementById("pfDispatchModal").style.display="flex"; return; }
+  var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){}
+  var d=document.createElement("div");
+  d.id="pfDispatchModal";
+  d.style.cssText="position:fixed;inset:0;z-index:99998;background:rgba(5,5,5,.88);display:flex;align-items:center;justify-content:center;padding:18px;";
+  d.innerHTML='<div style="background:#0d0d0d;border:2px solid #c1121f;max-width:430px;width:100%;padding:22px;font-family:inherit;color:#f5f0e1;">'
+   +'<div style="font-size:11px;letter-spacing:.25em;color:#c1121f;margin-bottom:8px;">THE DISPATCH</div>'
+   +'<div style="font-size:1.15rem;font-weight:900;margin-bottom:8px;">JOIN THE DISPATCH</div>'
+   +'<div style="font-size:.85rem;color:#b8ab8e;margin-bottom:14px;">The weekly drop from the factory — actions, wins, and what the machine is building. One email a week. No spam, ever.</div>'
+   +'<input id="pfDspEmail" type="email" placeholder="your@email.com" style="width:100%;box-sizing:border-box;padding:10px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;margin-bottom:10px;">'
+   +'<label style="display:block;font-size:12px;margin-bottom:12px;cursor:pointer;"><input id="pfDspAge" type="checkbox" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>'
+   +'<div id="pfDspMsg" style="font-size:.8rem;color:#c1121f;min-height:1.2em;margin-bottom:8px;"></div>'
+   +'<div style="display:flex;gap:10px;">'
+   +'<button id="pfDspGo" style="flex:1;padding:12px;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:1px;">SIGN ME UP</button>'
+   +'<button id="pfDspX" style="padding:12px 16px;background:transparent;border:2px solid #b8ab8e;color:#b8ab8e;font-weight:700;cursor:pointer;font-family:inherit;">CANCEL</button>'
+   +'</div>'
+   +(cs?"":'<div style="font-size:.75rem;color:#b8ab8e;margin-top:12px;">No callsign yet? Enlist first in Daily Orders to save your signup on the wire — or sign up above and your mail app handles the rest.</div>')
+   +'</div>';
+  document.body.appendChild(d);
+  var msg=d.querySelector("#pfDspMsg");
+  function close(){ try{ d.parentNode.removeChild(d); }catch(e){} }
+  d.addEventListener("click",function(e){ if(e.target===d) close(); });
+  d.querySelector("#pfDspX").onclick=close;
+  function settleDispatch(){
+    /* Same award as the old one-tap action: key "enlisted", 20 XP, once,
+       exempt. pf-enlisted keeps service medals / do-meter / pinups live. */
+    try{ document.dispatchEvent(new CustomEvent("pf-enlisted")); }catch(e){}
+    var g=award("enlisted",20,"once",{exempt:1});
+    if(g>0){ try{ if(window.PF&&PF.toast) PF.toast("ENLISTED IN THE DISPATCH — +20 XP"); }catch(e2){} }
+    close();
+  }
+  d.querySelector("#pfDspGo").onclick=function(){
+    var em=(d.querySelector("#pfDspEmail").value||"").trim();
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(em)){ msg.style.color="#c1121f"; msg.textContent="Enter a valid email."; return; }
+    var ageEl=d.querySelector("#pfDspAge");
+    if(!(ageEl&&ageEl.checked)){ msg.style.color="#c1121f"; msg.textContent="Please confirm you are 13 or older."; return; }
+    if(!cs){
+      /* No callsign: the auth-gated backend can't take this row.
+         Clearly-labeled mailto fallback (quiz ENLIST pattern) — real
+         signup gesture, not a fake one. */
+      window.location.href="mailto:mtcstw@gmail.com?subject="+encodeURIComponent("DISPATCH SIGNUP")+"&body="+encodeURIComponent("Add me to The Dispatch: "+em);
+      msg.style.color="#b8ab8e"; msg.textContent="Opening your mail app — send it and you're on the list.";
+      settleDispatch(); return;
+    }
+    var btn=d.querySelector("#pfDspGo"); btn.disabled=true; btn.textContent="ENLISTING\u2026";
+    msg.textContent="";
+    var url=""; try{ url=window.PF_BACKEND_URL||""; }catch(e){}
+    var body={type:"notifyq",nq_action:"contact_set",callsign:cs,email:em,email_optin:1,age13:1};
+    function cb(j){
+      btn.disabled=false; btn.textContent="SIGN ME UP";
+      if(j&&j.ok){ settleDispatch(); }
+      else{
+        var err=""; try{ err=(window.PF&&PF.errCopy)?PF.errCopy(j,""):""; }catch(e){}
+        msg.style.color="#c1121f";
+        msg.innerHTML='The wire is down — retry in a bit, or <a href="mailto:mtcstw@gmail.com?subject='+encodeURIComponent("DISPATCH SIGNUP")+'" style="color:#f5f0e1;">email us directly</a>.'+(err?' ('+err+')':'');
+      }
+    }
+    try{
+      if(url&&window.PF&&PF.authPost){ PF.authPost(url,body,cb); }
+      else{
+        var sec=""; try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; }catch(e){}
+        if(sec) body.auth_secret=sec;
+        fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+          .then(function(r){ return r.json(); }).then(function(j){ cb(j||{ok:false}); })
+          .catch(function(){ cb(null); });
+      }
+    }catch(e){ cb(null); }
+  };
+}
 var ACTIONS=[
  /* Daily pool (50/day across the page): check-in 2, share 1.
     Weekly tasks keep their own values and bypass the pool (exempt). */
@@ -470,7 +550,7 @@ var ACTIONS=[
  {id:"bracket", label:"Vote in the bracket", xp:10, rule:"once", href:"#pf-bracket"},
  {id:"fanvote", label:"Vote propagandist of the week", xp:10, rule:"once", href:"#pf-vote"},
  {id:"quiz", label:"Find your SLR match", xp:15, rule:"once", href:"#slr-quiz"},
- {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:function(){ try{document.dispatchEvent(new CustomEvent("pf-enlisted"));}catch(e){} return award("enlisted",20,"once",{exempt:1}); }},
+ {id:"enlisted", label:"Join the dispatch", xp:20, rule:"once", run:dispatchSignup},
  {id:"share", label:"Share the machine", xp:1, rule:"daily", run:function(){
     var done=function(){ settle("pf-share-image",award("share",1,"daily")); };
     if(navigator.share){ navigator.share({title:"The Propaganda Factory",url:location.href}).then(done).catch(function(){}); }

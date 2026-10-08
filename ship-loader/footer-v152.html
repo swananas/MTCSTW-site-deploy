@@ -1,8 +1,10 @@
-<!-- PF FOOTER v152 — SHIP 9f63650 (2026-10-07).
-     Fact Generator: v1.4.3/games/fact-generator.js (butter poster redesign)
-     ships in games/bundle-create.js; mounts on /create via
-     pages/page-mount.js pf-create order. Merged into integrate/big-update-fe.
-     New pin: V3/VCHROME='9f63650', V1='76107b5'. -->
+<!-- PF FOOTER v152 — SHIP 549a4a5 (2026-10-08).
+     Butter pass: full visual upgrade of all user interactions (CEO 2026-10-07).
+     Homepage 3-bug fixes: dead hero (pf-dashboard now in onV2 detection +
+     bundle-userdash.js loads wherever #pf-dashboard exists), Karl/commends
+     overlap (chip -> bottom:132px, form -> bottom:184px), footer text
+     de-collide guard in core/16-footer.js.
+     New pin: V3/VCHROME='549a4a5', V1='76107b5'. -->
 <!-- PF FOOTER v149 — SHIP 696e41b (2026-10-07).
      v146 added jsCompanion() but routed through loadBundle() => BASE+n, which
      on v1.1.0 pages (homepage, no #pf-v2) resolves to the V1 pin's v1.1.0
@@ -61,11 +63,11 @@
      privacy_erase flow). The JS silo strips any already-pasted static
      fallback on boot, so no footer re-paste is needed. -->
 <script>(function(){
-var V3='9f63650',V1='76107b5';
+var V3='549a4a5',V1='76107b5';
 /* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
    commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
    byte-identical; re-pin together on the next release. */
-var VCHROME='9f63650';
+var VCHROME='549a4a5';
 /* MERGE (2026-10-05, integrate/big-update-fe <- wave-6b): V3/VCHROME keep
    HEAD's 41c13ac (newer; matches the --ours built-bundle resolution).
    V1 takes wave-6b's 76107b5 (newer; v1.1.0 tree byte-identical at both

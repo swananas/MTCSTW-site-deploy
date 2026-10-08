@@ -165,7 +165,7 @@
     var x = cv.getContext('2d');
     if (!x) return null;
     /* ground */
-    x.fillStyle = '#0a0a0a'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
     /* photo background, darkened so the ink stays readable */
     if (photo) {
       try {
@@ -176,34 +176,57 @@
         x.globalAlpha = 1;
       } catch (e) {}
     }
-    /* red top rule — the brand's unit of thought */
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 26);
-    x.fillStyle = '#f5ead6'; x.textAlign = 'center';
-    /* kicker */
+    /* ---- butter: pinstripe + vignette over the photo ---- */
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W / 2, H * 0.40, H * 0.16, W / 2, H * 0.50, H * 0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    /* masthead bar: red gradient — the brand's unit of thought */
+    var btBar = x.createLinearGradient(0, 0, 0, 26);
+    btBar.addColorStop(0, '#c1121f'); btBar.addColorStop(1, '#7d0b16');
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 26);
+    x.fillStyle = '#f2ecdc'; x.textAlign = 'center';
+    /* kicker: letterspaced gold */
     var val = function (k) { return String(values[k] == null ? '' : values[k]).trim(); };
-    x.font = '800 44px Arial, sans-serif';
-    x.fillStyle = '#c1121f';
+    x.font = '800 40px Arial, sans-serif';
+    x.fillStyle = '#c9a227';
+    try { x.letterSpacing = '6px'; } catch (e2) {}
     wrap(x, val('kicker') || kit.slots[0].def, W / 2, 120, W - 160, 52);
-    /* headline — the dominant figure */
-    x.fillStyle = '#f5ead6';
-    x.font = '900 118px "Arial Black", Arial, sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e3) {}
+    /* headline — the dominant figure: monumental serif */
+    x.fillStyle = '#f2ecdc';
     var size = fitHead(x, val('headline') || kit.slots[1].def, W - 140, 300, 118);
-    x.font = '900 ' + size + 'px "Arial Black", Arial, sans-serif';
+    x.font = '900 ' + size + 'px Georgia,"Times New Roman",serif';
     wrap(x, val('headline') || kit.slots[1].def, W / 2, 300, W - 140, size * 1.12);
-    /* remaining slots as body lines */
-    x.font = '700 44px Arial, sans-serif';
+    /* remaining slots as body lines: quiet serif */
+    x.font = '400 42px Georgia,"Times New Roman",serif';
+    x.fillStyle = '#a89a7d';
     var y = 660;
     for (var i = 2; i < kit.slots.length; i++) {
       y = wrap(x, val(kit.slots[i].key) || kit.slots[i].def, W / 2, y, W - 160, 58) + 56;
-      if (y > 1060) break;
+      if (y > 1040) break;
     }
-    /* share-image CTA standard: JOIN THE FIGHT. (red, bold) + MTCSTW.COM */
-    x.fillStyle = '#c1121f';
-    x.font = '900 52px Arial, sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, 1170);
-    x.fillStyle = '#f5ead6';
-    x.font = '800 56px Arial, sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, 1240);
+    /* ---- butter footer: gold hairline + CTA standard ---- */
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, 1100); x.lineTo(W - 120, 1100); x.stroke();
+    x.fillStyle = '#f2ecdc'; x.font = '900 44px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e4) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, W / 2, 1158);
+    x.fillStyle = '#c1121f'; x.fillText('.', W / 2 + btCtaW / 2 - 4, 1158);
+    try { x.letterSpacing = '0px'; } catch (e5) {}
+    x.fillStyle = '#c1121f'; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e6) {}
+    x.fillText('MTCSTW.COM', W / 2, 1212);
+    try { x.letterSpacing = '0px'; } catch (e7) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, '#c1121f');
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
   function wrap(x, text, cx, y, maxW, lh) {
@@ -219,7 +242,7 @@
   function fitHead(x, text, maxW, maxSize, minSize) {
     var s = maxSize;
     while (s > minSize) {
-      x.font = '900 ' + s + 'px "Arial Black", Arial, sans-serif';
+      x.font = '900 ' + s + 'px Georgia,"Times New Roman",serif';
       if (x.measureText(text).width <= maxW) return s;
       s -= 6;
     }

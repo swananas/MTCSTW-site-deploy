@@ -595,7 +595,7 @@
         g += '<br><b>' + esc(fresh[fresh.length - 1]) + '.</b> Noted on the record.';
       }
     } catch (e) {}
-    g += '<br><br><b>' + esc(move.headline) + '</b><br>' + esc(move.body);
+    g += '<br><br><span class="pf-kc-mv-h">' + esc(move.headline) + '</span><br><span class="pf-kc-mv-b">' + esc(move.body) + '</span>';
     g += '<br><a class="pf-kc-go" href="' + esc(move.href) + '">' + esc(move.link) + '</a>';
     g += '<div class="sig">— Karl</div>';
     return g;

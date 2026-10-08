@@ -289,33 +289,47 @@ function doTotals(){
   return {total:total,you:you};
 }
 function drawDoCard(){
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only. doTotals(),
+     dWrap, LABELS, week label, tops, goal line, footer — all data untouched. */
   var T=doTotals(),W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
   var x=cv.getContext('2d');
-  x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);
-  x.strokeStyle='#c1121f';x.lineWidth=16;x.strokeRect(14,14,W-28,H-28);
-  x.strokeStyle='#f5ead6';x.lineWidth=3;x.strokeRect(44,44,W-88,H-88);
+  var bg=x.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#131316');bg.addColorStop(0.5,'#0a0a0c');bg.addColorStop(1,'#060607');
+  x.fillStyle=bg;x.fillRect(0,0,W,H);
+  var vg=x.createRadialGradient(W/2,H*0.32,90,W/2,H/2,H*0.62);
+  vg.addColorStop(0,'rgba(245,234,214,0.035)');vg.addColorStop(1,'rgba(0,0,0,0.32)');
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+  var rh=x.createLinearGradient(0,0,W,0);
+  rh.addColorStop(0,'rgba(193,18,31,0)');rh.addColorStop(0.5,'#c1121f');rh.addColorStop(1,'rgba(193,18,31,0)');
+  x.fillStyle=rh;x.fillRect(W*0.08,30,W*0.84,5);
+  x.strokeStyle='#33302a';x.lineWidth=2;x.strokeRect(52,52,W-104,H-104);
+  function tracked(t,cx,cy,ls){var chs=String(t).split(''),ws=[],tot=0,i,w;
+    for(i=0;i<chs.length;i++){w=x.measureText(chs[i]).width;ws.push(w);tot+=w;}
+    tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=x.textAlign;x.textAlign='left';
+    for(i=0;i<chs.length;i++){x.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}x.textAlign=pa;}
   x.textAlign='center';var y=150;
-  x.fillStyle='#f5ead6';x.font='900 74px "Arial Black",Arial,sans-serif';
-  x.fillText('\u2699 THE DO METER',W/2,y);y+=58;
-  x.fillStyle='#c1121f';x.font='700 32px Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='700 30px Arial,sans-serif';
+  tracked('\u2699 THE DO METER',W/2,y,8);y+=58;
+  x.fillStyle='#c1121f';x.font='700 30px Arial,sans-serif';
   var mo=null;try{mo=PF.mondayOf(PF.chiNow());}catch(e){}
-  x.fillText(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y);y+=30;
-  x.strokeStyle='#c1121f';x.lineWidth=4;
-  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=84;
-  x.fillStyle='#c1121f';x.font='900 150px "Arial Black",Arial,sans-serif';
+  tracked(mo?('WEEK OF '+mo.toLocaleDateString('en-US',{month:'long',day:'numeric'}).toUpperCase()):'THIS WEEK',W/2,y,6);y+=34;
+  x.strokeStyle='#c1121f';x.lineWidth=3;
+  x.beginPath();x.moveTo(140,y);x.lineTo(W-140,y);x.stroke();y+=88;
+  /* the hero number — serif, editorial */
+  x.fillStyle='#f5ead6';x.font='bold 150px Georgia,"Times New Roman",serif';
   x.fillText(fmt(T.total),W/2,y);y+=70;
-  x.fillStyle='#f5ead6';x.font='900 52px "Arial Black",Arial,sans-serif';
-  x.fillText('TASKS COMPLETE',W/2,y);y+=58;
-  x.fillStyle='#e8b923';x.font='900 36px "Arial Black",Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='700 40px Arial,sans-serif';
+  tracked('TASKS COMPLETE',W/2,y,10);y+=58;
+  x.fillStyle='#e8b923';x.font='italic bold 36px Georgia,"Times New Roman",serif';
   x.fillText('NETWORK-WIDE',W/2,y);y+=66;
-  x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
+  x.fillStyle='#c9bfa8';x.font='italic 400 30px Georgia,"Times New Roman",serif';
   x.fillText('Not followers. Not likes. Things done.',W/2,y);y+=64;
   if(T.you){x.fillStyle='#f5ead6';x.font='700 34px Arial,sans-serif';x.fillText(T.you,W/2,y);y+=60;}
   var tops=Object.keys(S.byType||{}).map(function(k){return[k,S.byType[k]];})
     .sort(function(a,b){return b[1]-a[1];}).slice(0,4);
   if(tops.length){
-    x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
-    x.fillText('YOUR WEEK',W/2,y);y+=44;
+    x.fillStyle='#c9bfa8';x.font='700 28px Arial,sans-serif';
+    tracked('YOUR WEEK',W/2,y,10);y+=44;
     x.fillStyle='#c9bfa8';x.font='400 30px Arial,sans-serif';
     tops.forEach(function(p){x.fillText((LABELS[p[0]]||p[0]).toUpperCase()+' \u00D7 '+fmt(p[1]),W/2,y);y+=44;});
     y+=16;
@@ -324,11 +338,12 @@ function drawDoCard(){
   x.fillStyle='#e8b923';x.font='700 30px Arial,sans-serif';
   dWrap(x,gl,W-240).forEach(function(ln){x.fillText(ln,W/2,y);y+=40;});
   y+=20;
-  x.fillStyle='#f5ead6';x.font='900 62px "Arial Black",Arial,sans-serif';
-  x.fillText('MTCSTW.COM',W/2,H-170);
-  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
-  x.fillText('THE PROPAGANDA FACTORY',W/2,H-116);
-  x.fillStyle='#c1121f';x.font='900 30px "Arial Black",Arial,sans-serif';
+  var fg=x.createLinearGradient(0,0,W,0);
+  fg.addColorStop(0,'rgba(201,191,168,0)');fg.addColorStop(0.5,'#5a5344');fg.addColorStop(1,'rgba(201,191,168,0)');
+  x.fillStyle=fg;x.fillRect(W*0.16,H-236,W*0.68,2);
+  x.fillStyle='#f5ead6';x.font='700 44px Arial,sans-serif';
+  tracked('MTCSTW.COM',W/2,H-178,12);
+  x.fillStyle='#c1121f';x.font='900 34px "Arial Black",Arial,sans-serif';
   x.fillText('JOIN THE FIGHT.',W/2,H-76);
   return cv;
 }

@@ -75,24 +75,22 @@
     } catch (e) { finish(null); }
   }
 
-  /* ---------- modal shell ---------- */
+  /* ---------- modal shell ----------
+     BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+     .pf-rec-* class library in core/02-design-system.css. IDs, ARIA,
+     wiring, dismissal behavior — all unchanged, visual-only. */
   function overlayShell(label) {
     var old = document.getElementById('pf-recover-modal');
     if (old && old.parentNode) { try { old.parentNode.removeChild(old); } catch (e) {} }
     var overlay = document.createElement('div');
     overlay.id = 'pf-recover-modal';
+    overlay.className = 'pf-rec-veil';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', label || 'Recover your callsign');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;' +
-      'background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
-      'padding:1rem;box-sizing:border-box;overflow-y:auto;';
     var box = document.createElement('div');
-    box.style.cssText = 'background:#0a0a0a;border:3px solid #d4af37;color:#f5f0e1;' +
-      'font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:440px;width:100%;' +
-      'box-sizing:border-box;text-align:center;position:relative;';
-    box.innerHTML = '<div data-pf-rec-x role="button" tabindex="0" aria-label="Close" ' +
-      'style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>' +
+    box.className = 'pf-rec-card';
+    box.innerHTML = '<div class="pf-rec-x" data-pf-rec-x role="button" tabindex="0" aria-label="Close">&times;</div>' +
       '<div id="pf-rec-body"></div>';
     overlay.appendChild(box);
     document.body.appendChild(overlay);
@@ -109,17 +107,9 @@
     overlay.onkeydown = function (e) { if (e.key === 'Escape') dismiss(); };
     return { overlay: overlay, box: box, body: box.querySelector('#pf-rec-body'), close: close };
   }
-  function inputStyle() {
-    return 'width:100%;background:#141414;color:#f5f0e1;border:2px solid #d4af37;' +
-      'padding:0.8rem;font-size:1rem;font-family:inherit;box-sizing:border-box;' +
-      'margin-bottom:0.5rem;text-align:center;min-height:48px;';
-  }
-  function btnStyle(primary) {
-    return 'display:inline-block;background:' + (primary ? '#d4af37' : 'transparent') + ';' +
-      'color:' + (primary ? '#0a0a0a' : '#d4af37') + ';font-weight:900;letter-spacing:.12em;' +
-      'border:' + (primary ? 'none' : '2px solid #d4af37') + ';padding:0.85rem 2rem;font-size:0.95rem;' +
-      'cursor:pointer;font-family:inherit;min-height:48px;';
-  }
+  /* inputStyle/btnStyle retired in the 2026-10-07 butter pass: inputs and
+     buttons now use .pf-rec-input / .pf-rec-btn classes from
+     core/02-design-system.css. Kept as a comment so the contract stays visible. */
 
   /* ---------- the recovery modal ---------- */
   window.PF.openCallsignRecovery = function (opts) {
@@ -128,26 +118,25 @@
     var b = m.body;
     var csHint = esc(myCallsign());
     b.innerHTML =
-      '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#d4af37;margin-bottom:.6rem;">' +
-      '&#9733; RECOVER YOUR CALLSIGN &#9733;</div>' +
-      '<div style="font-size:.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">' +
+      '<div class="pf-rec-title">&#9733; RECOVER YOUR CALLSIGN &#9733;</div>' +
+      '<div class="pf-rec-sub">' +
       'Got a callsign on another device? Type it plus your recovery code and it moves here &mdash; XP and all.</div>' +
-      '<label for="pf-rec-cs" style="display:block;font-size:.72rem;letter-spacing:.14em;color:#d4af37;margin-bottom:.3rem;">YOUR CALLSIGN</label>' +
-      '<input id="pf-rec-cs" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" ' +
-      'autocorrect="off" spellcheck="false" value="' + csHint + '" style="' + inputStyle() + '" />' +
-      '<label for="pf-rec-code" style="display:block;font-size:.72rem;letter-spacing:.14em;color:#d4af37;margin-bottom:.3rem;">RECOVERY CODE</label>' +
-      '<input id="pf-rec-code" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" ' +
-      'autocomplete="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + 'font-family:monospace;letter-spacing:.1em;" />' +
-      '<div id="pf-rec-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-      '<button id="pf-rec-btn" style="' + btnStyle(true) + '">RECOVER IT</button>' +
-      '<div style="margin:1rem 0;border-top:1px solid #3a3a3a;padding-top:1rem;">' +
-      '<div style="font-size:.85rem;font-weight:900;letter-spacing:.1em;color:#d4af37;margin-bottom:.5rem;">FORGOT YOUR CALLSIGN?</div>' +
-      '<div style="font-size:.8rem;color:#b8ab8e;margin-bottom:.5rem;">Enter the email you signed up with:</div>' +
-      '<input id="pf-rec-email" type="email" maxlength="128" placeholder="you@example.com" ' +
-      'autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + '" />' +
-      '<div id="pf-rec-email-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-      '<button id="pf-rec-email-btn" style="' + btnStyle(false) + '">FIND MY CALLSIGN</button></div>' +
-      '<div style="font-size:.75rem;color:#8a7f68;margin-top:.8rem;line-height:1.5;">No code yet? ' +
+      '<label for="pf-rec-cs" class="pf-rec-label">YOUR CALLSIGN</label>' +
+      '<input id="pf-rec-cs" class="pf-rec-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" ' +
+      'autocorrect="off" spellcheck="false" value="' + csHint + '" />' +
+      '<label for="pf-rec-code" class="pf-rec-label">RECOVERY CODE</label>' +
+      '<input id="pf-rec-code" class="pf-rec-input pf-rec-input-mono" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" ' +
+      'autocomplete="off" autocorrect="off" spellcheck="false" />' +
+      '<div id="pf-rec-err" role="alert" class="pf-rec-err"></div>' +
+      '<button id="pf-rec-btn" class="pf-rec-btn">RECOVER IT</button>' +
+      '<div class="pf-rec-div">' +
+      '<div class="pf-rec-title pf-rec-sect">FORGOT YOUR CALLSIGN?</div>' +
+      '<div class="pf-rec-sub">Enter the email you signed up with:</div>' +
+      '<input id="pf-rec-email" class="pf-rec-input" type="email" maxlength="128" placeholder="you@example.com" ' +
+      'autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" />' +
+      '<div id="pf-rec-email-err" role="alert" class="pf-rec-err"></div>' +
+      '<button id="pf-rec-email-btn" class="pf-rec-btn pf-rec-btn-ghost">FIND MY CALLSIGN</button></div>' +
+      '<div class="pf-rec-note">No code yet? ' +
       'On the device that has your callsign: <b>Enlistment Ranks &rarr; Get a recovery code</b>.</div>';
     var csEl = b.querySelector('#pf-rec-cs'), codeEl = b.querySelector('#pf-rec-code'),
         errEl = b.querySelector('#pf-rec-err'), btn = b.querySelector('#pf-rec-btn');
@@ -180,9 +169,8 @@
         } catch (e3) {}
         setErr('');
         b.innerHTML =
-          '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#7ddf8a;margin-bottom:.6rem;">' +
-          '&#9733; RECOVERED &#9733;</div>' +
-          '<div style="font-size:.95rem;color:#f5ead6;line-height:1.55;">Welcome back, <b>' +
+          '<div class="pf-rec-success">&#9733; RECOVERED &#9733;</div>' +
+          '<div class="pf-rec-sub pf-rec-sub-bright">Welcome back, <b>' +
           esc(String(j.callsign || cs).toUpperCase()) + '</b>. Your name, XP, and rank are back on this device.</div>';
         try { document.dispatchEvent(new CustomEvent('pf-callsign-claimed', { detail: { callsign: String(j.callsign || cs) } })); } catch (e4) {}
         /* The old claim modal (pfClaimModal) may still be open underneath —
@@ -245,22 +233,21 @@
     var b = m.body;
     var cs = myCallsign();
     if (!cs) {
-      b.innerHTML = '<div style="font-size:.95rem;color:#b8ab8e;line-height:1.6;">' +
-        'You need a callsign on this device first. Claim or recover one, then come back for your code.</div>';
+      b.innerHTML = '<div class="pf-rec-sub">You need a callsign on this device first. ' +
+        'Claim or recover one, then come back for your code.</div>';
       return;
     }
     b.innerHTML =
-      '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#d4af37;margin-bottom:.6rem;">' +
-      '&#9733; YOUR RECOVERY CODE &#9733;</div>' +
+      '<div class="pf-rec-title">&#9733; YOUR RECOVERY CODE &#9733;</div>' +
       '<div id="pf-rec-i-body"></div>';
     var ib = b.querySelector('#pf-rec-i-body');
     function issueView() {
       ib.innerHTML =
-        '<div style="font-size:.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">' +
-        'A recovery code moves <b style="color:#f5ead6;">' + esc(cs.toUpperCase()) +
+        '<div class="pf-rec-sub">' +
+        'A recovery code moves <b class="pf-rec-b">' + esc(cs.toUpperCase()) +
         '</b> to a new phone, tablet, or browser &mdash; one code, one move.</div>' +
-        '<div id="pf-rec-i-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-        '<button id="pf-rec-i-btn" style="' + btnStyle(true) + '">GET A RECOVERY CODE</button>';
+        '<div id="pf-rec-i-err" role="alert" class="pf-rec-err"></div>' +
+        '<button id="pf-rec-i-btn" class="pf-rec-btn">GET A RECOVERY CODE</button>';
       var btn = ib.querySelector('#pf-rec-i-btn'), errEl = ib.querySelector('#pf-rec-i-err');
       btn.onclick = function () {
         errEl.textContent = 'Writing your code\u2026';
@@ -291,17 +278,14 @@
        in the page. Typable groups, copy button, hard warning. */
     function codeView(code) {
       ib.innerHTML =
-        '<div style="font-size:1rem;font-weight:900;letter-spacing:.1em;color:#f5ead6;margin-bottom:.5rem;">' +
+        '<div class="pf-rec-title pf-rec-sect pf-rec-sect-cream">' +
         'WRITE THIS DOWN &mdash; IT WON\u2019T BE SHOWN AGAIN</div>' +
-        '<div id="pf-rec-i-code" style="font-family:monospace;font-size:1.5rem;font-weight:900;' +
-        'letter-spacing:.28em;color:#d4af37;background:#141414;border:2px dashed #d4af37;' +
-        'padding:1rem .6rem 1rem 1rem;margin:.4rem 0 .8rem;word-break:keep-all;">' + esc(code) + '</div>' +
-        '<button id="pf-rec-i-copy" style="' + btnStyle(false) + 'font-size:.8rem;padding:.7rem 1.4rem;">COPY CODE</button>' +
-        '<div id="pf-rec-i-copied" style="font-size:.78rem;color:#7ddf8a;min-height:1.3em;margin-top:.4rem;"></div>' +
-        '<div style="font-size:.8rem;color:#ff6b6b;line-height:1.6;margin-top:.8rem;border:2px solid #c1121f;' +
-        'padding:.7rem;text-align:left;">&#9888; Anyone with this code can move your callsign to <i>their</i> device. ' +
+        '<div id="pf-rec-i-code" class="pf-rec-code">' + esc(code) + '</div>' +
+        '<button id="pf-rec-i-copy" class="pf-rec-btn pf-rec-btn-ghost pf-rec-copybtn">COPY CODE</button>' +
+        '<div id="pf-rec-i-copied" class="pf-rec-copy-ok"></div>' +
+        '<div class="pf-rec-warn">&#9888; Anyone with this code can move your callsign to <i>their</i> device. ' +
         'Keep it secret &mdash; treat it like a password.</div>' +
-        '<div style="font-size:.75rem;color:#8a7f68;margin-top:.8rem;">Need another later? A new code cancels the old one.</div>';
+        '<div class="pf-rec-note">Need another later? A new code cancels the old one.</div>';
       var copyBtn = ib.querySelector('#pf-rec-i-copy'), copiedEl = ib.querySelector('#pf-rec-i-copied');
       copyBtn.onclick = function () {
         function done() { try { copiedEl.textContent = 'Copied. Now write it down somewhere safe.'; } catch (e) {} }
@@ -329,10 +313,8 @@
      opens the modal, and never navigates. The delegated tap handler below
      owns it, so it works from banners, modals, game panes, and bundles. */
   window.PF.recoverLinkHTML = function () {
-    return '<div class="pf-recover-row" style="margin-top:.7rem;">' +
-      '<button type="button" data-pf-recover-cs="1" ' +
-      'style="background:none;border:none;color:#d4af37;font-size:.78rem;letter-spacing:.08em;' +
-      'text-decoration:underline;cursor:pointer;font-family:inherit;padding:.5rem;min-height:44px;">' +
+    return '<div class="pf-recover-row">' +
+      '<button type="button" data-pf-recover-cs="1" class="pf-recover-link">' +
       'Already have one? Recover it &rarr;</button></div>';
   };
 
@@ -345,14 +327,11 @@
       if (node.querySelector && node.querySelector('[data-pf-recovery-entry]')) return true;
       var wrap = document.createElement('div');
       wrap.setAttribute('data-pf-recovery-entry', '1');
-      wrap.style.cssText = 'margin-top:.4rem;';
+      wrap.className = 'pf-recovery-entry';
       wrap.innerHTML =
-        '<button type="button" data-pf-recovery-issue="1" ' +
-        'style="background:none;border:1px solid #d4af37;color:#d4af37;font-size:.7rem;' +
-        'letter-spacing:.12em;padding:.45rem .9rem;cursor:pointer;font-family:inherit;min-height:44px;">' +
+        '<button type="button" data-pf-recovery-issue="1" class="pf-rec-entrybtn">' +
         'GET A RECOVERY CODE</button>' +
-        '<div style="font-size:.68rem;color:#8a7f68;margin-top:.3rem;letter-spacing:.06em;">' +
-        'Move this callsign to a new device.</div>';
+        '<div class="pf-rec-entrysub">Move this callsign to a new device.</div>';
       node.appendChild(wrap);
       return true;
     } catch (e) { return false; }

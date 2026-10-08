@@ -446,24 +446,43 @@ window.pfShareAchievement = function(gameName, detailText){
     var c = document.createElement('canvas');
     c.width = 1080; c.height = 1080;
     var x = c.getContext('2d');
-    /* Background: black with red border. */
-    x.fillStyle = '#0d0d0d'; x.fillRect(0,0,1080,1080);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 24; x.strokeRect(24,24,1032,1032);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 4; x.strokeRect(60,60,960,960);
-    /* Header. */
-    x.fillStyle = '#c1121f'; x.font = '900 72px Arial Black, Arial, sans-serif';
+    /* BUTTER PASS (2026-10-07) — editorial restyle, visual-only. Data, the
+       shrink-to-fit/ellipsis logic, callsign stamp and share plumbing are
+       untouched. */
+    var W = 1080, H = 1080;
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0,0,W,H);
+    var vg = x.createRadialGradient(540, 360, 80, 540, 540, 700);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0,0,W,H);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(60,60,960,960);
+    /* red gradient hairline — the one structural red accent */
+    var rh = x.createLinearGradient(0, 0, W, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(90, 34, W - 180, 5);
+    /* Header — letterspaced authority label, not a shout. */
+    x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial, sans-serif';
     x.textAlign = 'center';
-    x.fillText('THE PROPAGANDA FACTORY', 540, 160);
-    /* Game name — shrink-to-fit so long names (e.g. 'BILLIONAIRE OR
-       SUPERVILLAIN?') stay inside the 920px inner border instead of
-       overflowing the canvas at a fixed 96px. */
+    (function tracked(t, cx, y, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, i, w;
+      for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+      x.textAlign = prev;
+    })('THE PROPAGANDA FACTORY', 540, 140, 9);
+    /* Game name — serif headline, shrink-to-fit so long names (e.g.
+       'BILLIONAIRE OR SUPERVILLAIN?') stay inside the 920px inner border
+       instead of overflowing the canvas at a fixed 96px. */
     x.fillStyle = '#c1121f';
     var gn = (gameName || 'MISSION').toUpperCase();
     var gnSize = 96;
-    x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    var fam = function (s) { return 'bold ' + s + 'px Georgia, "Times New Roman", serif'; };
+    x.font = fam(gnSize);
     while (gnSize > 36 && x.measureText(gn).width > 920) {
       gnSize -= 4;
-      x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+      x.font = fam(gnSize);
     }
     /* Ellipsis cap: names still wider than 920px at the 36px floor get
        truncated with … so they can't overflow the inner border. */
@@ -473,11 +492,11 @@ window.pfShareAchievement = function(gameName, detailText){
       gn = gn.trim() + '…';
     }
     x.fillText(gn, 540, 320);
-    /* Star divider. */
-    x.fillStyle = '#f5ead6'; x.font = '64px Arial';
-    x.fillText('\u2605 \u2605 \u2605', 540, 420);
-    /* Detail text (wrapped). */
-    x.fillStyle = '#f5ead6'; x.font = '48px Arial, sans-serif';
+    /* Gold divider. */
+    x.fillStyle = '#e8b923'; x.font = '40px Arial';
+    x.fillText('\u25C6', 540, 400);
+    /* Detail text (wrapped), editorial serif. */
+    x.fillStyle = '#f5ead6'; x.font = '400 46px Georgia, "Times New Roman", serif';
     var words = String(detailText || '').split(' ');
     var lines = [], line = '';
     for(var i=0; i<words.length; i++){
@@ -486,15 +505,22 @@ window.pfShareAchievement = function(gameName, detailText){
       else { line = t; }
     }
     if(line.trim()) lines.push(line.trim());
-    var y = 520;
-    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 70; }
+    var y = 510;
+    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 68; }
     /* Timestamp. */
-    x.fillStyle = '#b8ab8e'; x.font = '36px Arial, sans-serif';
+    x.fillStyle = '#8a8471'; x.font = '34px Arial, sans-serif';
     var d = new Date();
     x.fillText(d.toLocaleDateString() + ' ' + d.toLocaleTimeString(), 540, 920);
     /* Footer. */
-    x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
-    x.fillText('MTCSTW.COM', 540, 990);
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial, sans-serif';
+    (function tracked2(t, cx, y2, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, k, w;
+      for (k = 0; k < chs.length; k++) { w = x.measureText(chs[k]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (k = 0; k < chs.length; k++) { x.fillText(chs[k], pen, y2); pen += ws[k] + ls; }
+      x.textAlign = prev;
+    })('MTCSTW.COM', 540, 990, 10);
     x.fillStyle = '#c1121f'; x.font = '900 40px Arial Black, Arial, sans-serif';
     x.fillText('JOIN THE FIGHT.', 540, 1046);
     /* Callsign attribution on every achievement image. */

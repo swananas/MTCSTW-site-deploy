@@ -383,29 +383,82 @@ function render(){
       var cs=id.callsign.toUpperCase(), link=refLink(id.callsign);
       var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
       var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
-      x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-      x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-      x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+          btM="#a89a7d", btF="#6f6350";
+      x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+      x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+      for(var btD=-H; btD<W+H; btD+=26){
+        x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+      }
+      x.restore();
+      var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+      btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+      x.fillStyle=btVg; x.fillRect(0,0,W,H);
+      var btBar=x.createLinearGradient(0,0,0,10);
+      btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+      x.fillStyle=btBar; x.fillRect(0,0,W,10);
+      x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+      x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+      x.fillText("★",W/2,H*0.60); x.restore();
       x.textAlign="center";
-      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
-      x.fillText("\u2605 REFERRAL WAR \u2605",W/2,170);
-      x.fillStyle="#c1121f"; x.font="900 92px \\\"Arial Black\\\",Arial,sans-serif";
-      x.fillText("JOIN THE FIGHT.",W/2,330);
-      x.fillStyle="#f5ead6"; x.font="700 44px Arial,sans-serif";
-      x.fillText("Claim your callsign with my code:",W/2,470);
+      /* kicker: letterspaced gold */
+      x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+      try{ x.letterSpacing="10px"; }catch(e){}
+      x.fillText("REFERRAL WAR",W/2,140);
+      try{ x.letterSpacing="0px"; }catch(e5){}
+      x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+      x.beginPath(); x.moveTo(W/2-150,176); x.lineTo(W/2+150,176); x.stroke();
+      /* subhead: quiet serif */
+      x.fillStyle=btC; x.font='italic 400 44px Georgia,"Times New Roman",serif';
+      x.fillText("Claim your callsign with my code:",W/2,300);
       /* 2026-10-04 P4 #12: shrink-to-fit -- long callsigns stay inside the canvas. */
-      x.fillStyle="#c1121f"; x.textAlign="center";
       var csSize=120;
-      x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif";
+      x.font='900 '+csSize+'px Georgia,"Times New Roman",serif';
       while(csSize>36&&x.measureText(cs).width>W-200){ csSize-=4;
-        x.font="900 "+csSize+"px \\\"Arial Black\\\",Arial,sans-serif"; }
-      x.fillText(cs,W/2,660);
-      x.fillStyle="#c9bfa8"; x.font="400 38px Arial,sans-serif";
-      x.fillText(link,W/2,780);
-      x.fillStyle="#f5ead6"; x.font="700 40px Arial,sans-serif";
-      x.fillText("We both get XP. You join my army.",W/2,920);
-      x.fillStyle="#c1121f"; x.font="900 64px \\\"Arial Black\\\",Arial,sans-serif";
-      x.fillText("MTCSTW.COM",W/2,H-140);
+        x.font='900 '+csSize+'px Georgia,"Times New Roman",serif'; }
+      /* the figure: monumental red gradient, drop shadow */
+      x.fillStyle="rgba(0,0,0,0.55)";
+      x.fillText(cs,W/2+6,527);
+      var btFg2=x.createLinearGradient(0,400,0,520);
+      btFg2.addColorStop(0,"#e63946"); btFg2.addColorStop(1,btRD);
+      x.fillStyle=btFg2;
+      x.fillText(cs,W/2,520);
+      x.fillStyle=btM; x.font="400 36px Arial,sans-serif";
+      try{ x.letterSpacing="2px"; }catch(e3){}
+      x.fillText(link,W/2,660);
+      try{ x.letterSpacing="0px"; }catch(e4){}
+      x.fillStyle=btC; x.font='italic 400 40px Georgia,"Times New Roman",serif';
+      x.fillText("We both get XP. You join my army.",W/2,790);
+      /* red diamond rule */
+      x.strokeStyle=btR; x.lineWidth=2;
+      x.beginPath(); x.moveTo(W/2-190,880); x.lineTo(W/2-26,880); x.stroke();
+      x.beginPath(); x.moveTo(W/2+26,880); x.lineTo(W/2+190,880); x.stroke();
+      x.save(); x.translate(W/2,880); x.rotate(Math.PI/4);
+      x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+      /* ---- butter footer: CTA standard ---- */
+      var fy=H-215;
+      x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+      x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+      fy+=58;
+      x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+      try{ x.letterSpacing="8px"; }catch(e6){}
+      var btCta="JOIN THE FIGHT";
+      var btCtaW=x.measureText(btCta).width;
+      x.fillText(btCta,W/2,fy);
+      x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+      try{ x.letterSpacing="0px"; }catch(e7){}
+      fy+=52;
+      x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+      try{ x.letterSpacing="10px"; }catch(e8){}
+      x.fillText("MTCSTW.COM",W/2,fy);
+      try{ x.letterSpacing="0px"; }catch(e9){}
+      fy+=42;
+      x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+      try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,fy); }catch(e10){}
+      var btBar2=x.createLinearGradient(0,H-10,0,H);
+      btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+      x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
       try{ cv._pfStamped=true; }catch(e2){}
       PFShare.shareImage(cv,"referral-"+cs.toLowerCase()+".png","Referral War","referral");
     }catch(e3){ toast("Card failed — copy your link instead."); }

@@ -203,11 +203,19 @@ function sharePinup(p){
         var cv=document.createElement('canvas'); cv.width=600; cv.height=800;
         var cx=cv.getContext('2d'); cx.fillStyle='#f5ead6'; cx.fillRect(0,0,600,800);
         cx.drawImage(img,0,0,600,800); URL.revokeObjectURL(url);
-        /* CTA strip: every pinup share recruits. */
-        cx.fillStyle='rgba(13,13,13,0.94)'; cx.fillRect(0,736,600,64);
-        cx.fillStyle='#c1121f'; cx.fillRect(0,736,600,4);
-        cx.fillStyle='#f5ead6'; cx.font='900 25px "Arial Black",Arial,sans-serif';
-        cx.textAlign='center'; cx.fillText('JOIN THE FIGHT \u2014 MTCSTW.COM',300,776);
+        /* CTA strip: every pinup share recruits. BUTTER PASS (2026-10-07):
+           editorial strip — ink, red hairline, tracked authority label. */
+        cx.fillStyle='rgba(8,8,9,0.96)'; cx.fillRect(0,730,600,70);
+        var ph=cx.createLinearGradient(0,0,600,0);
+        ph.addColorStop(0,'rgba(193,18,31,0)');ph.addColorStop(0.5,'#c1121f');ph.addColorStop(1,'rgba(193,18,31,0)');
+        cx.fillStyle=ph; cx.fillRect(60,730,480,3);
+        cx.fillStyle='#f5ead6'; cx.font='700 21px Arial,sans-serif';
+        cx.textAlign='center';
+        (function(t,cx0,cy0,ls){var chs=String(t).split(''),ws=[],tot=0,i,w;
+          for(i=0;i<chs.length;i++){w=cx.measureText(chs[i]).width;ws.push(w);tot+=w;}
+          tot+=ls*Math.max(0,chs.length-1);var pen=cx0-tot/2,pa=cx.textAlign;cx.textAlign='left';
+          for(i=0;i<chs.length;i++){cx.fillText(chs[i],pen,cy0);pen+=ws[i]+ls;}cx.textAlign=pa;})
+          ('JOIN THE FIGHT \u2014 MTCSTW.COM',300,772,4);
         try{ if(window.PFShare&&window.PFShare.stampCallsign) window.PFShare.stampCallsign(cv); }catch(e){}
         cv.toBlob(function(b){
           if(!b){ pinupToast('Pinup failed — try again.'); return; }

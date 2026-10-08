@@ -174,6 +174,36 @@
      referral engine do the rest — no new backend actions. CTA stays in the
      war-card family bucket: JOIN MY CELL when the founder has a code,
      BUILD YOUR CELL when they don't. */
+  /* BUTTER PASS (2026-10-07): editorial paint kit shared by both war-card
+     variants. Visual-only — data fields, photo/glyph flow, share plumbing
+     untouched. */
+  function butterKit(x,W,H){
+    var bg=x.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#131316');bg.addColorStop(0.5,'#0a0a0c');bg.addColorStop(1,'#060607');
+    x.fillStyle=bg;x.fillRect(0,0,W,H);
+    var vg=x.createRadialGradient(W/2,H*0.3,90,W/2,H/2,H*0.62);
+    vg.addColorStop(0,'rgba(245,234,214,0.035)');vg.addColorStop(1,'rgba(0,0,0,0.32)');
+    x.fillStyle=vg;x.fillRect(0,0,W,H);
+    var rh=x.createLinearGradient(0,0,W,0);
+    rh.addColorStop(0,'rgba(193,18,31,0)');rh.addColorStop(0.5,'#c1121f');rh.addColorStop(1,'rgba(193,18,31,0)');
+    x.fillStyle=rh;x.fillRect(W*0.08,36,W*0.84,5);
+    x.strokeStyle='#33302a';x.lineWidth=2;x.strokeRect(44,56,W-88,H-112);
+    x.fillStyle='#c9bfa8';x.font='700 28px Arial,sans-serif';
+    tracked(x,'\u2605 SICK LEFT RADICALS \u2605',W/2,112,8);
+  }
+  function tracked(x,t,cx,cy,ls){var chs=String(t).split(''),ws=[],tot=0,i,w;
+    for(i=0;i<chs.length;i++){w=x.measureText(chs[i]).width;ws.push(w);tot+=w;}
+    tot+=ls*Math.max(0,chs.length-1);var pen=cx-tot/2,pa=x.textAlign;x.textAlign='left';
+    for(i=0;i<chs.length;i++){x.fillText(chs[i],pen,cy);pen+=ws[i]+ls;}x.textAlign=pa;}
+  function butterFoot(x,W,H){
+    var fg=x.createLinearGradient(0,0,W,0);
+    fg.addColorStop(0,'rgba(201,191,168,0)');fg.addColorStop(0.5,'#5a5344');fg.addColorStop(1,'rgba(201,191,168,0)');
+    x.fillStyle=fg;x.fillRect(W*0.16,H-228,W*0.68,2);
+    x.textAlign='center';x.fillStyle='#f5ead6';x.font='700 36px Arial,sans-serif';
+    tracked(x,'MTCSTW.COM',W/2,H-168,12);
+    x.fillStyle='#c1121f';x.font='900 44px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.',W/2,H-108);
+  }
   function drawCellVariant(d,cb){
     var W=1080,H=1350;
     var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
@@ -189,27 +219,27 @@
       return lines.slice(0,maxLines||2);
     }
     function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
-    x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
-    center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
-    center("BUILD A CELL",168,'900 84px "Arial Black",Arial,sans-serif',"#f5ead6");
-    var yy=252;
-    wrap(d.callsign,'900 60px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
-      center(l,yy,'900 60px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=74; });
+    butterKit(x,W,H);
+    center("BUILD A CELL",172,'bold 80px Georgia,"Times New Roman",serif',"#f5ead6");
+    var yy=258;
+    wrap(d.callsign,'bold 58px Georgia,"Times New Roman",serif',W-160,2).forEach(function(l){
+      center(l,yy,'bold 58px Georgia,"Times New Roman",serif',"#c1121f"); yy+=72; });
     if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=48; }
     yy+=24;
-    center("FIVE CALLSIGNS. ONE STREAK.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=52;
-    center("NOBODY LEFT BEHIND.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=92;
+    x.fillStyle="#c9bfa8"; x.font="700 36px Arial,sans-serif";
+    tracked(x,"FIVE CALLSIGNS. ONE STREAK.",W/2,yy,4); yy+=52;
+    tracked(x,"NOBODY LEFT BEHIND.",W/2,yy,4); yy+=92;
     var code=String(d.code||"").trim();
     if(code){
-      center("YOUR INVITE CODE",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=24;
+      x.fillStyle="#c9bfa8"; x.font="700 30px Arial,sans-serif";
+      tracked(x,"YOUR INVITE CODE",W/2,yy,6); yy+=30;
       x.strokeStyle="#c1121f"; x.lineWidth=6;
       x.strokeRect(W/2-280,yy,560,150);
       x.fillStyle="#141010"; x.fillRect(W/2-280,yy,560,150);
-      center(code,yy+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+      center(code,yy+106,'bold 92px Georgia,"Times New Roman",serif',"#c1121f");
       yy+=150+56;
-      center("WIRE IN AT:",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=52;
+      x.fillStyle="#c9bfa8"; x.font="700 30px Arial,sans-serif";
+      tracked(x,"WIRE IN AT:",W/2,yy,6); yy+=56;
       wrap("MTCSTW.COM/CELLS?CELL="+code,'700 34px Arial,sans-serif',W-160,2).forEach(function(l){
         center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
       yy+=36;
@@ -218,14 +248,15 @@
         center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
       yy+=36;
     }
-    center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",yy,'700 26px Arial,sans-serif',"#f5ead6"); yy+=100;
+    center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",yy,'700 26px Arial,sans-serif',"#e8b923"); yy+=100;
     var cta=code?"JOIN MY CELL":"BUILD YOUR CELL";
     x.font='900 44px "Arial Black",Arial,sans-serif';
     var tw=x.measureText(cta).width+110;
-    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,yy-58,tw,94);
+    var cbg=x.createLinearGradient(0,yy-58,0,yy+36);
+    cbg.addColorStop(0,'#d81f2c');cbg.addColorStop(1,'#a30e19');
+    x.fillStyle=cbg; x.fillRect(W/2-tw/2,yy-58,tw,94);
     center(cta,yy+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
-    center("MTCSTW.COM",H-168,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
-    center("JOIN THE FIGHT.",H-108,'900 44px "Arial Black",Arial,sans-serif',"#c1121f");
+    butterFoot(x,W,H);
     cb(cv);
   }
 
@@ -246,42 +277,46 @@
       return lines.slice(0,maxLines||2);
     }
     function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
-    x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
-    center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
-    center("CREATOR WAR CARD",160,'900 60px "Arial Black",Arial,sans-serif',"#f5ead6");
-    var bw=320,bh=320,bx=(W-bw)/2,by=190;
+    butterKit(x,W,H);
+    center("CREATOR WAR CARD",166,'bold 58px Georgia,"Times New Roman",serif',"#f5ead6");
+    var bw=320,bh=320,bx=(W-bw)/2,by=196;
     function glyph(){
-      x.fillStyle="#1a1a1c"; x.fillRect(bx,by,bw,bh);
+      var pg=x.createLinearGradient(bx,by,bx,by+bh);
+      pg.addColorStop(0,"#1c1c1f");pg.addColorStop(1,"#101012");
+      x.fillStyle=pg; x.fillRect(bx,by,bw,bh);
       center("\u2605",by+bh/2+72,'900 190px Arial,sans-serif',"#c1121f");
     }
     function paintRest(){
       x.strokeStyle="#c1121f"; x.lineWidth=8; x.strokeRect(bx,by,bw,bh);
-      var yy=by+bh+86;
-      wrap(d.callsign,'900 72px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
-        center(l,yy,'900 72px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=84; });
-      if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c1121f"); yy+=44; }
-      center("PROPAGANDA SCORE "+(d.roster?d.roster.score:"\u2014"),yy,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=66;
-      x.fillStyle="#c1121f"; x.fillRect(80,yy,W-160,96);
+      var yy=by+bh+88;
+      wrap(d.callsign,'bold 68px Georgia,"Times New Roman",serif',W-160,2).forEach(function(l){
+        center(l,yy,'bold 68px Georgia,"Times New Roman",serif',"#f5ead6"); yy+=82; });
+      if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=44; }
+      x.fillStyle="#c1121f"; x.font="700 36px Arial,sans-serif";
+      tracked(x,"PROPAGANDA SCORE "+(d.roster?d.roster.score:"\u2014"),W/2,yy,6); yy+=68;
+      var sbg=x.createLinearGradient(0,yy,0,yy+96);
+      sbg.addColorStop(0,'#d81f2c');sbg.addColorStop(1,'#a30e19');
+      x.fillStyle=sbg; x.fillRect(80,yy,W-160,96);
       x.fillStyle="#f5ead6"; x.textAlign="center";
       [[String(d.cells),"CELLS"],[d.followers||"\u2014","FOLLOWERS"],[d.years||"\u2014","YRS ACTIVE"]].forEach(function(s,i){
         var cx=80+(W-160)*(i+0.5)/3;
-        x.font='900 42px "Arial Black",Arial,sans-serif'; x.fillText(s[0],cx,yy+44);
+        x.font='bold 42px Georgia,"Times New Roman",serif'; x.fillText(s[0],cx,yy+46);
         x.font='700 22px Arial,sans-serif'; x.fillText(s[1],cx,yy+80);
       });
       yy+=136;
       if(d.strengths.length){
-        center("KEY STRENGTHS",yy,'900 32px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=48;
+        x.fillStyle="#c9bfa8"; x.font="700 30px Arial,sans-serif";
+        tracked(x,"KEY STRENGTHS",W/2,yy,8); yy+=50;
         d.strengths.slice(0,3).forEach(function(s){
-          wrap("\u2605 "+s,'700 30px Arial,sans-serif',W-220,1).forEach(function(l){
-            center(l,yy,'700 30px Arial,sans-serif',"#f5ead6"); yy+=42; });
+          wrap("\u2605 "+s,'400 30px Arial,sans-serif',W-220,1).forEach(function(l){
+            center(l,yy,'400 30px Arial,sans-serif',"#f5ead6"); yy+=42; });
         });
         yy+=8;
       }
       center(d.code?("JOIN MY CELL: "+d.code):"BUILD YOUR CELL AT MTCSTW.COM",
-        H-128,'900 42px "Arial Black",Arial,sans-serif',"#c1121f");
-      center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",H-82,'700 24px Arial,sans-serif',"#f5ead6");
+        H-250,'bold 40px Georgia,"Times New Roman",serif',"#c1121f");
+      center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",H-206,'700 24px Arial,sans-serif',"#e8b923");
+      butterFoot(x,W,H);
       cb(cv);
     }
     var imgUrl=(d.roster&&d.roster.img)?String(d.roster.img):"";

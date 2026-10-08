@@ -434,3 +434,59 @@ body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-a
    ============================================================================ */
 #pf-armory,#pf-billionaire,#pf-interrogation,#pf-ranks{box-sizing:border-box}
 [id^="pf-"] input,[id^="pf-"] textarea,[id^="pf-"] select{font-size:16px!important}
+
+/* ============================================================================
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Legacy widget families (caption / daily-orders / do-meter / nuke / poster /
+   cells / war-card) get the same butter: button micro-interactions, press
+   states, gold focus rings, input focus glow. Every rule below is NEW — no
+   existing rule in this file was modified, so the bundle sync is a pure
+   append.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+/* ---- button micro-interactions: alive but restrained ---- */
+#pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+#pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+#pf-orders .o-pumpbtn,#pf-cells .vd-del,#pf-cells .vd-up,#pf-cells .vd-down{
+  transition:background .18s ease,transform .12s ease,box-shadow .18s ease,
+    color .18s ease,border-color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-caption .c-btn:hover,#pf-poster .p-btn:hover,#pf-cells .c-btn:hover,
+#pf-orders .o-shareimg:hover{
+  box-shadow:0 8px 24px rgba(193,18,31,.3);
+}
+#pf-caption .c-btn:active,#pf-orders .o-btn:active,#pf-orders .o-shareimg:active,
+#pf-poster .p-btn:active,#pf-poster .p-style:active,#pf-cells .c-btn:active,
+#pf-orders .o-platbtn:active,#pf-orders .o-tipbtn:active,#pf-orders .o-pumpbtn:active{
+  transform:translateY(1px);
+}
+/* ---- focus: every legacy CTA gets the gold ring ---- */
+#pf-caption .c-btn:focus-visible,#pf-orders .o-btn:focus-visible,
+#pf-orders .o-shareimg:focus-visible,#pf-poster .p-btn:focus-visible,
+#pf-poster .p-style:focus-visible,#pf-cells .c-btn:focus-visible,
+#pf-orders .o-platbtn:focus-visible,#pf-orders .o-tipbtn:focus-visible,
+#pf-orders .o-pumpbtn:focus-visible,#xFeed .fd-tab:focus-visible,
+#slr-nuke .slr-nuke-math summary:focus-visible{
+  outline:2px solid #e8b923; outline-offset:2px;
+}
+/* ---- input focus glow for the legacy forms ---- */
+#pf-caption .c-form input:focus,#pf-caption .c-form textarea:focus,
+#pf-poster .p-ctl input:focus,#pf-cells input:focus,#pf-cells .c-sel:focus,
+#pf-war-card .c-warwrap select:focus,#pf-war-card .c-warwrap input:focus,
+#pf-orders .o-claimbox input:focus,#pf-orders .o-bsel:focus{
+  outline:none; border-color:#dc143c; box-shadow:0 0 0 2px rgba(193,18,31,.35);
+}
+#pf-caption .c-form input::placeholder,#pf-poster .p-ctl input::placeholder{color:#5a5348;}
+/* ---- soft depth for the legacy silo roots ---- */
+#pf-caption,#pf-orders,#pf-dometer2,#slr-nuke,#pf-poster{
+  box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f,0 14px 40px rgba(0,0,0,.55);
+}
+/* ---- reduced motion: butter off where asked ---- */
+@media (prefers-reduced-motion:reduce){
+  #pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+  #pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+  #pf-orders .o-pumpbtn{transition:none;}
+}

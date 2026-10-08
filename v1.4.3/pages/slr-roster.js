@@ -285,25 +285,96 @@
       cv.width = 1080; cv.height = 1350;
       var x = cv.getContext('2d');
       if (!x) { done(null); return; }
-      x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
-      x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(24, 24, 1032, 1302);
-      x.textAlign = 'center'; x.textBaseline = 'middle';
-      x.fillStyle = '#c1121f';
-      x.font = '900 92px Arial,sans-serif';
-      x.fillText('RECRUIT', 540, 300);
-      x.fillText('CHAMPION', 540, 400);
-      x.fillStyle = '#f5ead6';
-      x.font = '900 120px Arial,sans-serif';
+      var W = 1080, H = 1350;
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+          btM='#a89a7d', btF='#6f6350';
+      x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, 1080, 1350);
+      x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+      for (var btD = -1350; btD < 2430; btD += 26) {
+        x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + 1350, 1350); x.stroke();
+      }
+      x.restore();
+      var btVg = x.createRadialGradient(540, 540, 216, 540, 675, 1147);
+      btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      x.fillStyle = btVg; x.fillRect(0, 0, 1080, 1350);
+      var btBar = x.createLinearGradient(0, 0, 0, 10);
+      btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+      x.fillStyle = btBar; x.fillRect(0, 0, 1080, 10);
+      x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+      x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+      x.fillText('★', 540, 810); x.restore();
+      x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+      /* kicker: letterspaced gold */
+      x.fillStyle = btG; x.font = '700 27px Arial,sans-serif';
+      try { x.letterSpacing = '10px'; } catch (e) {}
+      x.fillText('THE PROPAGANDA FACTORY', 540, 140);
+      try { x.letterSpacing = '0px'; } catch (e3) {}
+      x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(390, 176); x.lineTo(690, 176); x.stroke();
+      /* masthead: monumental serif, red gradient */
+      x.font = '900 92px Georgia,"Times New Roman",serif';
+      var btFg = x.createLinearGradient(0, 220, 0, 400);
+      btFg.addColorStop(0, '#e63946'); btFg.addColorStop(1, btRD);
+      x.fillStyle = btFg;
+      x.fillText('RECRUIT', 540, 310);
+      x.fillText('CHAMPION', 540, 412);
+      /* red diamond rule */
+      x.strokeStyle = btR; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(350, 480); x.lineTo(514, 480); x.stroke();
+      x.beginPath(); x.moveTo(566, 480); x.lineTo(730, 480); x.stroke();
+      x.save(); x.translate(540, 480); x.rotate(Math.PI/4);
+      x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+      /* champion: monumental serif cream */
+      x.fillStyle = btC;
+      x.font = '900 104px Georgia,"Times New Roman",serif';
       var who = String(c.winner || '?').toUpperCase();
       x.fillText(who.length > 16 ? who.slice(0, 16) : who, 540, 640);
-      x.fillStyle = '#b8ab8e'; x.font = '700 44px Arial,sans-serif';
-      x.fillText(String(c.race_name || '').toUpperCase().slice(0, 40), 540, 780);
-      x.fillStyle = '#f5ead6'; x.font = '900 72px Arial,sans-serif';
-      x.fillText(String(c.recruits || 0) + ' RECRUITS', 540, 900);
-      x.fillStyle = '#c1121f'; x.font = '900 64px Arial,sans-serif';
-      x.fillText('JOIN THE FIGHT.', 540, 1080);
-      x.fillStyle = '#f5ead6'; x.font = '900 56px Arial,sans-serif';
-      x.fillText('MTCSTW.COM', 540, 1150);
+      x.fillStyle = btG; x.font = '700 32px Arial,sans-serif';
+      try { x.letterSpacing = '6px'; } catch (e4) {}
+      x.fillText(String(c.race_name || '').toUpperCase().slice(0, 40), 540, 730);
+      try { x.letterSpacing = '0px'; } catch (e5) {}
+      /* the figure: monumental gold gradient, drop shadow */
+      x.font = '900 120px Georgia,"Times New Roman",serif';
+      var btFig = String(c.recruits || 0);
+      x.fillStyle = 'rgba(0,0,0,0.55)';
+      x.fillText(btFig, 545, 887);
+      var btGg = x.createLinearGradient(0, 780, 0, 880);
+      btGg.addColorStop(0, '#f0d060'); btGg.addColorStop(1, '#8a6d1c');
+      x.fillStyle = btGg;
+      x.fillText(btFig, 540, 880); 
+      x.fillStyle = btM; x.font = '700 32px Arial,sans-serif';
+      try { x.letterSpacing = '8px'; } catch (e6) {}
+      x.fillText('RECRUITS', 540, 950);
+      try { x.letterSpacing = '0px'; } catch (e7) {}
+      /* source citation */
+      x.fillStyle = btF; x.font = '400 24px Arial,sans-serif';
+      try { x.letterSpacing = '2px'; } catch (e8) {}
+      x.fillText('SOURCE — THE RECRUIT RACE BOARD', 540, H - 252);
+      try { x.letterSpacing = '0px'; } catch (e9) {}
+      /* ---- butter footer: CTA standard ---- */
+      var fy = H - 215;
+      x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(120, fy); x.lineTo(960, fy); x.stroke();
+      fy += 58;
+      x.font = '900 44px Arial,sans-serif'; x.fillStyle = btC;
+      try { x.letterSpacing = '8px'; } catch (e10) {}
+      var btCta = 'JOIN THE FIGHT';
+      var btCtaW = x.measureText(btCta).width;
+      x.fillText(btCta, 540, fy);
+      x.fillStyle = btR; x.fillText('.', 540 + btCtaW/2 - 4, fy);
+      try { x.letterSpacing = '0px'; } catch (e11) {}
+      fy += 52;
+      x.fillStyle = btR; x.font = '900 32px Arial,sans-serif';
+      try { x.letterSpacing = '10px'; } catch (e12) {}
+      x.fillText('MTCSTW.COM', 540, fy);
+      try { x.letterSpacing = '0px'; } catch (e13) {}
+      fy += 42;
+      x.fillStyle = btF; x.font = '400 24px Arial,sans-serif';
+      try { x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), 540, fy); } catch (e14) {}
+      var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+      btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+      x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
       done(cv);
     } catch (e) { try { done(null); } catch (e2) {} }
   }

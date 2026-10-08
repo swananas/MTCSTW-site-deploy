@@ -92,52 +92,74 @@
     return lines;
   }
 
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only. fig fields,
+     wrapText, fmtVintage, deep-link proof flow and share plumbing untouched. */
+  function butterTrack(x, text, cx, y, ls) {
+    var chs = String(text).split(''), ws = [], tot = 0, i, w;
+    for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+    tot += ls * Math.max(0, chs.length - 1);
+    var pen = cx - tot / 2, pa = x.textAlign; x.textAlign = 'left';
+    for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+    x.textAlign = pa;
+  }
   function paintStatCard(fig) {
     var W = 1080, H = 1080;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 96;
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    var vg = x.createRadialGradient(W / 2, H * 0.32, 90, W / 2, H / 2, H * 0.62);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0, 0, W, H);
+    /* red gradient hairline — the one structural red accent */
+    var rh = x.createLinearGradient(0, 0, W, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(90, 28, W - 180, 6);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(40, 46, W - 80, H - 92);
+    var cx = W / 2, y = 110;
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    /* kicker */
-    x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('OFFICIAL DATA · FRED', cx, y); y += 28;
+    /* kicker — tracked gold authority label */
+    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    butterTrack(x, 'OFFICIAL DATA \u00b7 FRED', cx, y, 8); y += 30;
     /* SA/NSA chip */
     if (fig.sa_nsa) {
       x.font = '700 26px Arial,sans-serif';
       var chip = String(fig.sa_nsa), cw = x.measureText(chip).width + 36;
-      x.fillStyle = '#2a2a2a'; x.fillRect(cx - cw / 2, y, cw, 44);
+      x.fillStyle = '#1e1d1a'; x.fillRect(cx - cw / 2, y, cw, 44);
+      x.strokeStyle = '#3a362e'; x.lineWidth = 1; x.strokeRect(cx - cw / 2, y, cw, 44);
       x.fillStyle = '#c9bfa8'; x.fillText(chip, cx, y + 32); y += 76;
     } else { y += 30; }
-    /* title */
-    x.fillStyle = '#f5ead6'; x.font = '900 52px Arial,sans-serif';
+    /* title — serif headline */
+    x.fillStyle = '#f5ead6'; x.font = 'bold 52px Georgia, "Times New Roman", serif';
     var tl = wrapText(x, fig.title || fig.series_id || '', W - 160);
-    for (var i = 0; i < tl.length && i < 2; i++) { x.fillText(tl[i], cx, y); y += 62; }
+    for (var i = 0; i < tl.length && i < 2; i++) { x.fillText(tl[i], cx, y); y += 64; }
     y += 18;
-    /* value */
-    x.font = '900 170px Arial,sans-serif';
+    /* value — the hero number, editorial serif */
+    x.fillStyle = '#f5ead6'; x.font = 'bold 168px Georgia, "Times New Roman", serif';
     x.fillText(fig.value_label || '—', cx, y + 130); y += 210;
     /* unit + period */
-    x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
+    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 34px Georgia, "Times New Roman", serif';
     if (fig.unit_label) { x.fillText(fig.unit_label, cx, y); y += 48; }
     x.font = '700 40px Arial,sans-serif'; x.fillStyle = '#f5ead6';
-    x.fillText(fig.period_label || fig.period || '', cx, y); y += 62;
+    butterTrack(x, fig.period_label || fig.period || '', cx, y, 4); y += 62;
     /* change */
     if (fig.change_label) {
-      x.font = '900 52px Arial,sans-serif'; x.fillStyle = '#e8b923';
+      x.font = 'bold 52px Georgia, "Times New Roman", serif'; x.fillStyle = '#e8b923';
       x.fillText(fig.change_label, cx, y); y += 70;
     }
-    /* source stamp */
-    x.fillStyle = '#2a2a2a'; x.fillRect(80, y + 10, W - 160, 2); y += 56;
+    /* source stamp — the citation, tracked */
+    var sg = x.createLinearGradient(0, 0, W, 0);
+    sg.addColorStop(0, 'rgba(201,191,168,0)'); sg.addColorStop(0.5, '#5a5344'); sg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = sg; x.fillRect(140, y + 8, W - 280, 2); y += 58;
     x.fillStyle = '#8a8271'; x.font = '400 28px Arial,sans-serif';
-    x.fillText('FRED · ' + (fig.series_id || '') + ' · RETRIEVED ' + fmtVintage(fig), cx, y); y += 60;
+    butterTrack(x, 'FRED \u00b7 ' + (fig.series_id || '') + ' \u00b7 RETRIEVED ' + fmtVintage(fig), cx, y, 3); y += 62;
     /* footer CTA */
-    x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 56;
-    x.fillStyle = '#c1121f'; x.font = '900 54px Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    butterTrack(x, 'MTCSTW.COM', cx, y, 10); y += 56;
+    x.fillStyle = '#c1121f'; x.font = '900 54px "Arial Black",Arial,sans-serif';
     x.fillText('JOIN THE FIGHT.', cx, y);
     return cv;
   }

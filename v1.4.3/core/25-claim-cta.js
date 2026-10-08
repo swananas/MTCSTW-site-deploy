@@ -30,20 +30,20 @@
   }
 
   /* Invitational banner HTML. context: short purpose string rendered under
-     the copy, e.g. 'to muster with your cell'. */
+     the copy, e.g. 'to muster with your cell'.
+     BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+     .pf-claim-cta class library in core/02-design-system.css. Markup order,
+     copy, data attributes, and wiring are byte-for-byte the same —
+     visual-only. */
   window.PF.claimCTA = function (context) {
     if (hasCallsign()) return '';
-    var ctx = context ? '<div style="font-size:.72rem;color:#b8ab8e;margin-top:.3rem;letter-spacing:.06em;">' +
-      esc(context) + '</div>' : '';
-    return '<div class="pf-claim-cta" style="max-width:560px;margin:1rem auto;background:#0d0d0d;' +
-      'border:2px solid #c1121f;color:#f5ead6;padding:1rem 1.25rem;text-align:center;' +
-      'font-family:Arial,sans-serif;box-sizing:border-box;">' +
-      '<div style="font-size:.95rem;font-weight:900;letter-spacing:.12em;color:#c1121f;">' +
-      '&#9733; ' + esc(COPY) + ' &#9733;</div>' +
-      '<div style="font-size:.78rem;color:#b8ab8e;margin:.4rem 0 .8rem;">' + esc(SUB) + '</div>' + ctx +
-      '<button data-pf-claim-cs="1" style="background:#c1121f;color:#fff;border:none;' +
-      'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.85rem;' +
-      'padding:.7rem 1.8rem;cursor:pointer;">CLAIM A CALLSIGN</button>' +
+    var ctx = context ? '<div class="pf-claim-cta-ctx">' + esc(context) + '</div>' : '';
+    return '<div class="pf-claim-cta">' +
+      '<div class="pf-claim-cta-copy">' +
+      '<span class="pf-claim-cta-star" aria-hidden="true">&#9733;</span> ' + esc(COPY) +
+      ' <span class="pf-claim-cta-star" aria-hidden="true">&#9733;</span></div>' +
+      '<div class="pf-claim-cta-sub">' + esc(SUB) + '</div>' + ctx +
+      '<button type="button" data-pf-claim-cs="1" class="pf-claim-cta-btn">CLAIM A CALLSIGN</button>' +
       /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
          data-pf-recover-cs is owned by core/29-callsign-recovery.js. */
       (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +

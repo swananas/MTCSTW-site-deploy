@@ -542,41 +542,75 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    /* Light paper: cream card on a soft field. */
+    /* ---- butter: editorial paper (factgen standard, light variant) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btInk='#1a1814', btM='#8a8474', btF='#a89a7d';
     x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    var btVg = x.createRadialGradient(W/2, H*0.42, H*0.18, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(60,40,20,0.14)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
     x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeStyle = btR; x.lineWidth = 8; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 1.5;
     x.strokeRect(100, 100, W - 200, H - 200);
-    x.setLineDash([]);
     x.textAlign = 'center';
     var y = 210;
-    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
-    x.fillText('★ USER-GENERATED DOSSIER ★', W / 2, y); y += 70;
-    x.fillStyle = '#1a1814'; x.font = '900 58px "Arial Black",Arial,sans-serif';
+    /* kicker: letterspaced red */
+    x.fillStyle = btR; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    x.fillText('USER-GENERATED DOSSIER', W / 2, y);
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 52;
+    x.strokeStyle = 'rgba(193,18,31,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 72;
+    /* title: monumental serif, ink */
+    x.fillStyle = btInk; x.font = '900 60px Georgia,"Times New Roman",serif';
     wrap(x, String(doc.title || '').toUpperCase(), W - 260).slice(0, 3).forEach(function (l) {
-      x.fillText(l, W / 2, y); y += 70;
+      x.fillText(l, W / 2, y); y += 74;
     });
-    y += 20;
-    x.fillStyle = '#8a8474'; x.font = '700 34px Arial,sans-serif';
+    y += 16;
+    x.fillStyle = btM; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     x.fillText('ON ' + String(doc.pol_name || '').toUpperCase() + '  ·  BY ' + String(doc.callsign || '').toUpperCase(), W / 2, y);
-    y += 80;
-    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 60;
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y += 76;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W/2 - 190, y); x.lineTo(W/2 - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(W/2 + 26, y); x.lineTo(W/2 + 190, y); x.stroke();
+    x.save(); x.translate(W/2, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 68;
     /* The user's top annotation — clearly user content. */
-    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    x.fillStyle = btInk; x.font = 'italic 700 44px Georgia,serif';
     wrap(x, '“' + String(doc.share_line || doc.why || '').slice(0, 220) + '”', W - 280).slice(0, 5).forEach(function (l) {
       x.fillText(l, W / 2, y); y += 60;
     });
     y += 40;
-    x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 30px Georgia,serif';
     x.fillText('— a movement annotation, not sourced data', W / 2, y);
-    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
-    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
-    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 165);
-    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 235;
+    x.strokeStyle = 'rgba(193,18,31,0.4)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 62;
+    x.fillStyle = btR; x.font = '900 56px Arial,sans-serif';
+    try { x.letterSpacing = '6px'; } catch (e5) {}
+    x.fillText('JOIN THE FIGHT.', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 62;
+    x.fillStyle = btInk; x.font = '900 42px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    x.fillStyle = btM; x.font = '400 28px Arial,sans-serif';
     x.fillText('mtcstw.com/dossier/' + slugify(doc.slug), W / 2, H - 105);
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
   function shareDossier(doc) {

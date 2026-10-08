@@ -248,9 +248,22 @@
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 14);
-    x.fillRect(0, H - 14, W, 14);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, '#c1121f'); btBar.addColorStop(1, '#7d0b16');
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = '#f2ecdc';
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
     function line(t, y, size, color, weight, spacing) {
       x.font = (weight || 700) + ' ' + size + 'px Arial';
       x.fillStyle = color; x.textAlign = 'center';
@@ -258,36 +271,58 @@
       x.fillText(t, W / 2, y);
       try { x.letterSpacing = '0px'; } catch (e) {}
     }
-    line('WHO OWNS YOUR TOWN', 110, 34, '#e8b923', 700, 8);
+    line('WHO OWNS YOUR TOWN', 120, 30, '#c9a227', 700, 10);
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, 160); x.lineTo(W/2 + 150, 160); x.stroke();
     var title = (r.share && r.share.title) || 'THIS IS WHO OWNS YOUR TOWN';
-    x.font = '900 64px Arial'; x.fillStyle = '#f5ead6'; x.textAlign = 'center';
-    wrap(x, title, W / 2, 190, 64, 900);
-    if (r.area) line(r.area.coarse_area, 300, 30, '#c9bfa8', 400, 2);
+    x.fillStyle = '#f2ecdc'; x.textAlign = 'center';
+    wrap(x, title, W / 2, 230, 62, 900, 'Georgia,"Times New Roman",serif');
+    if (r.area) line(r.area.coarse_area, 330, 28, '#a89a7d', 400, 3);
     var findings = (r.share && r.share.lines) || [];
     var y = 420;
     x.textAlign = 'left';
     findings.slice(0, 4).forEach(function (f) {
-      x.font = '900 54px Arial'; x.fillStyle = '#e8b923';
+      x.font = '900 52px Georgia,"Times New Roman",serif'; x.fillStyle = '#c9a227';
       x.fillText(f.headline || '', 90, y);
-      x.font = '400 30px Arial'; x.fillStyle = '#c9bfa8';
-      x.fillText((f.label || '').toUpperCase().slice(0, 60), 90, y + 46);
+      x.font = '700 26px Arial'; x.fillStyle = '#a89a7d';
+      try { x.letterSpacing = '3px'; } catch (e2) {}
+      x.fillText((f.label || '').toUpperCase().slice(0, 60), 90, y + 48);
+      try { x.letterSpacing = '0px'; } catch (e3) {}
       y += 150;
     });
     if (!findings.length) {
-      x.font = '400 32px Arial'; x.fillStyle = '#8a8272'; x.textAlign = 'center';
+      x.font = 'italic 400 32px Georgia,serif'; x.fillStyle = '#a89a7d'; x.textAlign = 'center';
       x.fillText('Rails still landing for this area.', W / 2, 500);
     }
-    x.strokeStyle = '#2a2a2a'; x.lineWidth = 2;
-    x.beginPath(); x.moveTo(90, H - 300); x.lineTo(W - 90, H - 300); x.stroke();
-    line('JOIN THE FIGHT.', H - 210, 72, '#c1121f', 900, 4);
-    line('MTCSTW.COM', H - 130, 44, '#f5ead6', 700, 10);
-    line('Every figure sourced. mtcstw.com/town?zip=' + (r.zip || ''), H - 70, 24, '#8a8272', 400, 1);
+    /* ---- butter footer: source line + CTA standard ---- */
+    var fy = H - 250;
+    x.fillStyle = '#6f6350'; x.font = 'italic 400 24px Georgia,serif'; x.textAlign = 'center';
+    x.fillText('Every figure sourced. mtcstw.com/town?zip=' + (r.zip || ''), W / 2, fy);
+    fy += 36;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(W - 120, fy); x.stroke();
+    fy += 58;
+    x.font = '900 44px Arial'; x.fillStyle = '#f2ecdc'; x.textAlign = 'center';
+    try { x.letterSpacing = '8px'; } catch (e4) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, W / 2, fy);
+    x.fillStyle = '#c1121f'; x.fillText('.', W / 2 + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e5) {}
+    fy += 52;
+    x.fillStyle = '#c1121f'; x.font = '900 32px Arial';
+    try { x.letterSpacing = '10px'; } catch (e6) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e7) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, '#c1121f');
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 
-  function wrap(x, text, cx, y, size, weight) {
+  function wrap(x, text, cx, y, size, weight, fam) {
     var words = String(text).split(' '), lines = [], cur = '';
-    x.font = weight + ' ' + size + 'px Arial';
+    x.font = weight + ' ' + size + 'px ' + (fam || 'Arial');
     words.forEach(function (w) {
       var t = cur ? cur + ' ' + w : w;
       if (x.measureText(t).width > 900 && cur) { lines.push(cur); cur = w; }

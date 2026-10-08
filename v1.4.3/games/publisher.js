@@ -260,19 +260,51 @@
     try {
       var S = 540, ctx = canvas.getContext('2d');
       canvas.width = S; canvas.height = S;
-      ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, S, S);
-      ctx.fillStyle = '#c1121f'; ctx.fillRect(0, 0, S, 14); ctx.fillRect(0, S - 14, S, 14);
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      ctx.fillStyle = '#0e0d0c'; ctx.fillRect(0, 0, S, S);
+      ctx.save(); ctx.globalAlpha = 0.032; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+      for (var btD = -S; btD < S * 2; btD += 26) {
+        ctx.beginPath(); ctx.moveTo(btD, 0); ctx.lineTo(btD + S, S); ctx.stroke();
+      }
+      ctx.restore();
+      var btVg = ctx.createRadialGradient(S/2, S*0.40, S*0.16, S/2, S*0.50, S*0.85);
+      btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = btVg; ctx.fillRect(0, 0, S, S);
+      var btBar = ctx.createLinearGradient(0, 0, 0, 10);
+      btBar.addColorStop(0, '#c1121f'); btBar.addColorStop(1, '#7d0b16');
+      ctx.fillStyle = btBar; ctx.fillRect(0, 0, S, 10);
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px Georgia, serif';
+      /* kicker: letterspaced gold */
+      ctx.fillStyle = '#c9a227'; ctx.font = '700 20px Arial,sans-serif';
+      try { ctx.letterSpacing = '6px'; } catch (e2) {}
+      ctx.fillText('THE PROPAGANDA FACTORY', S/2, 64);
+      try { ctx.letterSpacing = '0px'; } catch (e3) {}
+      /* quote: editorial serif italic */
+      ctx.fillStyle = '#f2ecdc';
+      ctx.font = 'italic 400 34px Georgia,serif';
       var n = wrapText(ctx, '\u201C' + String(spec.quote || '') + '\u201D', S / 2, 150, S - 110, 44);
       var base = 150 + n * 44;
+      /* red diamond rule */
+      var ry = Math.min(base + 34, S - 130);
+      ctx.strokeStyle = '#c1121f'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(S/2 - 120, ry); ctx.lineTo(S/2 - 18, ry); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(S/2 + 18, ry); ctx.lineTo(S/2 + 120, ry); ctx.stroke();
+      ctx.save(); ctx.translate(S/2, ry); ctx.rotate(Math.PI/4);
+      ctx.fillStyle = '#c1121f'; ctx.fillRect(-6, -6, 12, 12); ctx.restore();
+      /* CTA: red bold letterspaced */
       ctx.fillStyle = '#c1121f';
-      ctx.font = 'bold 38px Arial, sans-serif';
-      ctx.fillText(String(spec.cta || 'JOIN THE FIGHT.'), S / 2, Math.min(base + 60, S - 96));
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 24px Arial, sans-serif';
-      ctx.fillText(String(spec.brand || 'MTCSTW.COM'), S / 2, S - 52);
+      ctx.font = '900 34px Arial,sans-serif';
+      try { ctx.letterSpacing = '4px'; } catch (e4) {}
+      ctx.fillText(String(spec.cta || 'JOIN THE FIGHT.'), S / 2, Math.min(base + 96, S - 66));
+      try { ctx.letterSpacing = '0px'; } catch (e5) {}
+      ctx.fillStyle = '#f2ecdc';
+      ctx.font = '700 22px Arial,sans-serif';
+      try { ctx.letterSpacing = '6px'; } catch (e6) {}
+      ctx.fillText(String(spec.brand || 'MTCSTW.COM'), S / 2, S - 30);
+      try { ctx.letterSpacing = '0px'; } catch (e7) {}
+      var btBar2 = ctx.createLinearGradient(0, S - 10, 0, S);
+      btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, '#c1121f');
+      ctx.fillStyle = btBar2; ctx.fillRect(0, S - 10, S, 10);
     } catch (e) {}
   }
 

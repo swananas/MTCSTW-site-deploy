@@ -98,8 +98,21 @@
       'cursor:pointer;min-height:44px;font-family:Arial,sans-serif;margin:10px 0 2px}',
       '.pf-mss-btn:hover{background:#c1121f;color:#fff}',
       '.pf-mss-btn:active{transform:scale(.98)}',
+      '.pf-mss-btn:focus-visible{outline:3px solid #c1121f;outline-offset:2px}',
+      /* Butter pass (workstream 5): premium bottom-sheet chrome — drag
+         grip, PFN-red top accent, lifted PUBLISH with hover states. */
+      '.pf-mss-grip{width:44px;height:5px;border-radius:3px;background:#d8d2bd;margin:10px auto 2px}',
+      '.pf-mss-x:hover{color:#c1121f}',
+      '.pf-mss-pub{box-shadow:0 3px 14px rgba(193,18,31,.4);',
+      'transition:background .15s ease,transform .12s ease,box-shadow .15s ease}',
+      '.pf-mss-pub:hover:not(:disabled){background:#e01424;transform:translateY(-1px);',
+      'box-shadow:0 8px 22px rgba(193,18,31,.5)}',
+      '.pf-mss-pub:active:not(:disabled){transform:scale(.98)}',
+      '.pf-mss-pub:focus-visible{outline:3px solid #1a1814;outline-offset:2px}',
+      '@media(prefers-reduced-motion:reduce){.pf-mss-sheet{animation:none}.pf-mss-pub:hover{transform:none}}',
       '.pf-mss-scrim{position:fixed;inset:0;background:rgba(10,8,6,.55);z-index:2147483000;}',
       '.pf-mss-sheet{position:fixed;left:0;right:0;bottom:0;z-index:2147483001;background:#fdfdfa;',
+      'border-top:4px solid #c1121f;',
       'border-radius:16px 16px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.35);max-width:560px;margin:0 auto;',
       'max-height:92vh;display:flex;flex-direction:column;font-family:Arial,sans-serif;color:#1a1814;',
       'animation:pfMssUp .22s ease-out}',
@@ -123,7 +136,7 @@
       '.pf-mss-pub{display:block;width:100%;background:#c1121f;border:0;color:#fff;font-weight:900;',
       'letter-spacing:2px;font-size:16px;padding:16px;border-radius:10px;cursor:pointer;min-height:52px}',
       '.pf-mss-pub:disabled{opacity:.55;cursor:wait}',
-      '@media(prefers-reduced-motion:reduce){.pf-mss-sheet{animation:none}}'
+      '@media(prefers-reduced-motion:reduce){.pf-mss-pub{transition:none}}'
     ];
     var st = document.createElement('style');
     st.id = 'pf-mss-css';
@@ -362,6 +375,7 @@
     root.innerHTML =
       '<div class="pf-mss-scrim" data-mss-close></div>' +
       '<div class="pf-mss-sheet" role="dialog" aria-modal="true" aria-label="Make shareable">' +
+      '<div class="pf-mss-grip" aria-hidden="true"></div>' +
       '<div class="pf-mss-head"><div class="pf-mss-title">MAKE SHAREABLE</div>' +
       '<button class="pf-mss-x" type="button" data-mss-close aria-label="Close">&times;</button></div>' +
       '<div class="pf-mss-body">' +

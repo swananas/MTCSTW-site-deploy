@@ -517,24 +517,60 @@
     var x = cv.getContext('2d');
     if (!x) return null;
     var r = d.resolved, h = d.headline, S = d.sections;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
     x.textAlign = 'center';
-    var y = 150;
-    x.fillStyle = '#f5ead6'; x.font = '700 32px Arial,sans-serif';
+    var y = 130;
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 27px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e) {}
     x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 64;
-    x.fillStyle = '#c1121f'; x.font = '900 64px "Arial Black",Arial,sans-serif';
-    x.fillText('THE RECEIPT', W / 2, y); y += 110;
-    x.fillStyle = '#f5ead6'; x.font = '900 72px "Arial Black",Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 30;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 78;
+    /* masthead: monumental serif, red gradient */
+    x.font = '900 68px Georgia,"Times New Roman",serif';
+    var btFg = x.createLinearGradient(0, y - 68, 0, y);
+    btFg.addColorStop(0, '#e63946'); btFg.addColorStop(1, btRD);
+    x.fillStyle = btFg;
+    x.fillText('THE RECEIPT', W / 2, y); y += 112;
+    x.fillStyle = btC; x.font = '900 74px Georgia,"Times New Roman",serif';
     wrap(x, r.display_name.toUpperCase(), W - 170).slice(0, 2).forEach(function (l) {
       x.fillText(l, W / 2, y); y += 84;
     });
     var sub = (r.office === 'S' ? 'U.S. SENATE' : r.office === 'H' ? 'U.S. HOUSE' : '')
       + (r.state ? ' \u00b7 ' + r.state : '') + (r.party ? ' \u00b7 ' + r.party : '');
-    y += 6;
-    x.fillStyle = '#b8ab8e'; x.font = '700 34px Arial,sans-serif';
-    x.fillText(sub, W / 2, y); y += 90;
+    y += 10;
+    x.fillStyle = btM; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
+    x.fillText(sub, W / 2, y);
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y += 96;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W/2 - 190, y); x.lineTo(W/2 - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(W/2 + 26, y); x.lineTo(W/2 + 190, y); x.stroke();
+    x.save(); x.translate(W/2, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 64;
 
     /* Top 5 lines: money facts first, then industries. */
     var lines = [];
@@ -550,26 +586,51 @@
       lines.push('TOOK ' + (t.total_receipts_display || '?') + ' FROM ' + String(t.industry).toUpperCase() + '*');
     });
     lines = lines.slice(0, 5);
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    x.fillStyle = btC; x.font = '700 40px Georgia,"Times New Roman",serif';
     lines.forEach(function (l) {
-      wrap(x, l, W - 200).slice(0, 2).forEach(function (wl) { x.fillText(wl, W / 2, y); y += 54; });
+      wrap(x, l, W - 200).slice(0, 2).forEach(function (wl) { x.fillText(wl, W / 2, y); y += 56; });
       y += 14;
     });
-    y += 30;
-    x.fillStyle = '#b8ab8e'; x.font = '400 28px Arial,sans-serif';
-    x.fillText('* cycle-wide industry totals, estimated —', W / 2, y); y += 40;
-    x.fillText('candidate-level breakdowns not yet tracked.', W / 2, y); y += 60;
+    y += 26;
+    x.fillStyle = btM; x.font = 'italic 400 28px Georgia,serif';
+    x.fillText('* cycle-wide industry totals, estimated —', W / 2, y); y += 42;
+    x.fillText('candidate-level breakdowns not yet tracked.', W / 2, y); y += 62;
+    /* source citation: hairline box */
     var src = S.money_in.source || 'FEC';
-    x.fillStyle = '#8a8172'; x.font = '400 26px Arial,sans-serif';
-    wrap(x, 'Sources: ' + src, W - 200).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 38; });
+    x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '3px'; } catch (e5) {}
+    var btSrc = 'SOURCES: ' + String(src).toUpperCase().slice(0, 40);
+    var btSw = Math.min(x.measureText(btSrc).width + 90, W - 200);
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(W/2 - btSw/2, y, btSw, 54);
+    x.fillStyle = btC;
+    x.fillText(btSrc, W / 2, y + 37);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    y += 96;
 
-    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
-    x.fillStyle = '#c1121f'; x.font = '900 58px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 220);
-    x.fillStyle = '#f5ead6'; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 150);
-    x.fillStyle = '#b8ab8e'; x.font = '400 28px Arial,sans-serif';
-    x.fillText('mtcstw.com/receipt/' + slugify(r.display_name), W / 2, H - 96);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 235;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(W - 120, fy); x.stroke();
+    fy += 58;
+    x.font = '900 44px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e7) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, W / 2, fy);
+    x.fillStyle = btR; x.fillText('.', W / 2 + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    fy += 52;
+    x.fillStyle = btR; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e9) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e10) {}
+    fy += 40;
+    x.fillStyle = btF; x.font = '400 26px Arial,sans-serif';
+    x.fillText('mtcstw.com/receipt/' + slugify(r.display_name), W / 2, fy);
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
   /* Flow 3 (cross-data): log the dossier share so the movement feed can

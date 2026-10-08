@@ -76,15 +76,15 @@
     { p: '/ventures', t: 'JOINT VENTURES', d: 'Pool up. Back creators. Share the spoils.', k: ['venture', 'ventures', 'invest', 'pool'] },
     { p: '/events', t: 'BOOTS ON THE GROUND', d: 'Digital is the rehearsal. The street is the show.', k: ['event', 'events', 'protest', 'irl', 'rally', 'street'] },
     { p: '/war-report', t: 'WAR REPORT', d: "The week in the war. Numbers, winners, what's next.", k: ['war report', 'report', 'weekly', 'week'] },
-    { p: '/governance', t: 'GOVERNANCE', d: 'How the machine runs itself.', k: ['governance', 'rules', 'vote', 'govern'] },
+    { p: '/governance', t: 'GOVERNANCE', d: 'The machine runs itself — and you get a vote in how.', k: ['governance', 'rules', 'vote', 'govern'] },
     { p: '/karl', t: 'KARL', d: 'Plain questions. Sourced answers. Never a guess.', k: ['karl'] },
     { p: '/receipt', t: 'RECEIPTS', d: 'Politician dossiers — who they are, who funds them.', k: ['receipt', 'dossier', 'politician', 'rep'] },
-    { p: '/town', t: 'YOUR TOWN', d: 'Power mapping for your zip code.', k: ['town', 'zip', 'local', 'my town'] },
+    { p: '/town', t: 'YOUR TOWN', d: 'Who owns your zip code? Power-mapping, street by street.', k: ['town', 'zip', 'local', 'my town'] },
     { p: '/sick-left-radicals', t: 'SICK LEFT RADICALS', d: 'The creator roster. Find your people.', k: ['roster', 'creator', 'sick left', 'radicals', 'affiliate'] },
     { p: '/creator-onboard', t: 'CREATOR ONBOARDING', d: 'Join the roster. Bring your audience.', k: ['onboard', 'join roster', 'become creator'] },
     { p: '/request-access', t: 'CREATOR HQ ACCESS', d: 'Request access to the members-only Creator HQ.', k: ['creator hq', 'request access', 'members'] },
     { p: '/academy', t: 'THE ACADEMY', d: 'Learn the craft. Graduate dangerous.', k: ['academy', 'learn', 'school', 'train'] },
-    { p: '/political-hq', t: 'POLITICAL HQ', d: 'The political war room.', k: ['political', 'phq'] },
+    { p: '/political-hq', t: 'POLITICAL HQ', d: 'The war room for the political fight. Strategy lives here.', k: ['political', 'phq'] },
     { p: '/store', t: 'THE STORE', d: 'Gear that funds the fight.', k: ['store', 'shop', 'merch', 'gear'] },
     { p: '/podcast', t: 'THE PODCAST', d: 'The Propaganda Factory, in your ears.', k: ['podcast', 'listen', 'audio'] },
     { p: '/about', t: 'ABOUT', d: 'What this machine is and why it exists.', k: ['about', 'what is'] },
@@ -241,44 +241,80 @@
 
   /* ============ UI ============ */
   var CSS = [
-    '.pf-kc-btn{position:fixed;right:14px;bottom:76px;z-index:9990;display:flex;align-items:center;gap:8px;',
-    'background:#c81e1e;color:#fff;border:0;border-radius:999px;padding:13px 18px;font:900 14px/1 Arial,sans-serif;',
-    'letter-spacing:1.5px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45);min-height:48px}',
+    /* Launcher — soft red glow, springy hover. */
+    '.pf-kc-btn{position:fixed;right:14px;bottom:76px;z-index:9990;display:flex;align-items:center;gap:9px;',
+    'background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;border:0;border-radius:999px;',
+    'padding:14px 20px;font:900 14px/1 Arial,sans-serif;letter-spacing:1.5px;cursor:pointer;',
+    'box-shadow:0 10px 30px rgba(193,18,31,.35),0 3px 10px rgba(0,0,0,.45);min-height:48px;',
+    'transition:transform .18s cubic-bezier(.2,.7,.3,1.2),box-shadow .18s ease}',
+    '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}',
     '.pf-kc-btn:active{transform:scale(.96)}',
-    '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.5)}',
     '.pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}',
     '.pf-kc-btn .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pfkc-pulse 2s infinite}',
-    '@keyframes pfkc-pulse{0%,100%{opacity:1}50%{opacity:.35}}',
+    '@keyframes pfkc-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{opacity:.4;box-shadow:0 0 0 6px rgba(255,255,255,0)}}',
+    /* Panel — layered war-room comms channel. */
     '.pf-kc-panel{position:fixed;z-index:9991;right:10px;left:10px;bottom:70px;max-height:min(66vh,560px);',
-    'background:#0d0d0d;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:16px;display:none;flex-direction:column;',
-    'box-shadow:0 12px 44px rgba(0,0,0,.6);overflow:hidden}',
+    'background:linear-gradient(180deg,#151515 0%,#0d0d0d 100%);color:#f5f0e6;border:1px solid #2e2e2e;',
+    'border-radius:18px;display:none;flex-direction:column;overflow:hidden;',
+    'box-shadow:0 28px 70px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.07)}',
     '@media(min-width:560px){.pf-kc-panel{left:auto;width:400px;right:14px}}',
-    '.pf-kc-panel.open{display:flex;animation:pfkc-in .22s ease both}',
-    '@keyframes pfkc-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}',
-    '.pf-kc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #232323}',
-    '.pf-kc-title{font:900 15px/1 Arial,sans-serif;letter-spacing:2.5px}',
-    '.pf-kc-sub{font:400 11.5px/1.4 Arial,sans-serif;color:#9a937f;margin-top:3px}',
-    '.pf-kc-x{background:none;border:0;color:#9a937f;font-size:22px;cursor:pointer;min-width:44px;min-height:44px}',
-    '.pf-kc-log{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}',
-    '.pf-kc-msg{max-width:88%;padding:10px 13px;border-radius:12px;font:400 14px/1.5 Arial,sans-serif;white-space:pre-wrap;word-wrap:break-word;animation:pfkc-m .18s ease both}',
-    '@keyframes pfkc-m{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}',
-    '@media(prefers-reduced-motion:reduce){.pf-kc-panel.open,.pf-kc-msg{animation:none}.pf-kc-btn .dot{animation:none}.pf-kc-btn:hover{transform:none}}',
-    '.pf-kc-msg.karl{background:#1c1c1c;border:1px solid #2c2c2c;align-self:flex-start;border-bottom-left-radius:4px}',
-    '.pf-kc-msg.user{background:#c81e1e;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}',
-    '.pf-kc-msg .sig{color:#8a8478;font-size:11px;margin-top:6px}',
-    '.pf-kc-go{display:inline-block;margin-top:8px;background:#c81e1e;color:#fff!important;font:900 12px/1 Arial,sans-serif;',
-    'letter-spacing:1px;padding:10px 16px;border-radius:8px;text-decoration:none;min-height:40px}',
-    '.pf-kc-chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 10px}',
-    '.pf-kc-chip{background:#1c1c1c;border:1px solid #3a3a3a;color:#f5f0e6;border-radius:20px;padding:9px 14px;',
-    'font:400 13px/1 Arial,sans-serif;cursor:pointer;min-height:40px}',
-    '.pf-kc-chip:active{background:#2a2a2a}',
-    '.pf-kc-form{display:flex;gap:8px;padding:10px 12px 14px;border-top:1px solid #232323}',
-    '.pf-kc-in{flex:1;min-width:0;background:#1c1c1c;border:1px solid #3a3a3a;border-radius:10px;color:#f5f0e6;',
-    'font:400 16px/1.3 Arial,sans-serif;padding:12px 14px;outline:none}',
-    '.pf-kc-in:focus{border-color:#c81e1e}',
-    '.pf-kc-send{background:#c81e1e;color:#fff;border:0;border-radius:10px;font:900 14px/1 Arial,sans-serif;',
-    'letter-spacing:1px;padding:0 18px;cursor:pointer;min-height:48px;min-width:64px}',
-    '.pf-kc-typing{color:#8a8478;font:400 13px Arial,sans-serif;align-self:flex-start}'
+    '.pf-kc-panel.open{display:flex;animation:pfkc-in .28s cubic-bezier(.2,.9,.25,1.12) both}',
+    '@keyframes pfkc-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}',
+    '.pf-kc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;',
+    'border-bottom:1px solid #262626;background:linear-gradient(180deg,rgba(193,18,31,.10),transparent)}',
+    '.pf-kc-title{font:900 15px/1 Arial,sans-serif;letter-spacing:3px}',
+    '.pf-kc-title::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;',
+    'background:#c1121f;margin-right:9px;box-shadow:0 0 10px rgba(193,18,31,.9)}',
+    '.pf-kc-sub{font:400 11.5px/1.5 Arial,sans-serif;color:#a39c8b;margin-top:4px}',
+    '.pf-kc-x{background:none;border:0;border-radius:50%;color:#9a937f;font-size:22px;cursor:pointer;',
+    'min-width:44px;min-height:44px;transition:background .15s ease,color .15s ease}',
+    '.pf-kc-x:hover{background:#242424;color:#f5f0e6}',
+    '.pf-kc-log{flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}',
+    '.pf-kc-log::-webkit-scrollbar{width:8px}',
+    '.pf-kc-log::-webkit-scrollbar-thumb{background:#333;border-radius:8px}',
+    '.pf-kc-log::-webkit-scrollbar-track{background:transparent}',
+    '.pf-kc-msg{max-width:88%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;',
+    'animation:pfkc-m .24s cubic-bezier(.2,.8,.3,1.1) both;box-shadow:0 2px 10px rgba(0,0,0,.25)}',
+    '@keyframes pfkc-m{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}',
+    '@media(prefers-reduced-motion:reduce){.pf-kc-panel.open,.pf-kc-msg{animation:none}.pf-kc-btn .dot{animation:none}.pf-kc-btn:hover{transform:none}.pf-kc-td i{animation:none}}',
+    /* Karl speaks in serif — the voice of the site. */
+    '.pf-kc-msg.karl{background:linear-gradient(180deg,#1e1e1e,#191919);border:1px solid #333;',
+    'align-self:flex-start;border-bottom-left-radius:5px;',
+    'font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.62;color:#f2ecdf}',
+    '.pf-kc-msg.karl b{color:#fff}',
+    '.pf-kc-mv-h{font-family:Georgia,serif;font-weight:700;font-size:15.5px;color:#fff;letter-spacing:.2px}',
+    '.pf-kc-mv-b{font-family:Georgia,serif;font-size:14.5px;line-height:1.62}',
+    '.pf-kc-msg.user{background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;',
+    'align-self:flex-end;border-bottom-right-radius:5px;font:400 14px/1.55 Arial,sans-serif}',
+    '.pf-kc-msg .sig{color:#8a8478;font-family:Arial,sans-serif;font-size:11px;margin-top:7px;letter-spacing:.5px}',
+    '.pf-kc-go{display:inline-block;margin-top:9px;background:linear-gradient(135deg,#d61622,#a50e18);color:#fff!important;',
+    'font:900 12px/1 Arial,sans-serif;letter-spacing:1.2px;padding:11px 18px;border-radius:9px;text-decoration:none;',
+    'min-height:40px;box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}',
+    '.pf-kc-go:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,18,31,.45)}',
+    '.pf-kc-chips{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}',
+    '.pf-kc-chip{background:linear-gradient(180deg,#222,#1a1a1a);border:1px solid #3d3d3d;color:#f5f0e6;',
+    'border-radius:20px;padding:10px 15px;font:400 13px/1 Arial,sans-serif;cursor:pointer;min-height:40px;',
+    'transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}',
+    '.pf-kc-chip:hover{transform:translateY(-1px);border-color:#c1121f;box-shadow:0 4px 14px rgba(193,18,31,.25)}',
+    '.pf-kc-chip:active{background:#2a2a2a;transform:none}',
+    '.pf-kc-form{display:flex;gap:8px;padding:12px 12px 16px;border-top:1px solid #232323;background:rgba(0,0,0,.25)}',
+    '.pf-kc-in{flex:1;min-width:0;background:#1c1c1c;border:1px solid #3a3a3a;border-radius:12px;color:#f5f0e6;',
+    'font:400 16px/1.3 Arial,sans-serif;padding:13px 15px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}',
+    '.pf-kc-in:focus{border-color:#c1121f;box-shadow:0 0 0 3px rgba(193,18,31,.22)}',
+    '.pf-kc-send{background:linear-gradient(135deg,#d61622,#a50e18);color:#fff;border:0;border-radius:12px;',
+    'font:900 14px/1 Arial,sans-serif;letter-spacing:1.2px;padding:0 20px;cursor:pointer;min-height:48px;min-width:68px;',
+    'box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}',
+    '.pf-kc-send:hover{box-shadow:0 6px 18px rgba(193,18,31,.5)}',
+    '.pf-kc-send:active{transform:scale(.96)}',
+    /* Typing — Karl working, not a cheap spinner: bubble + bouncing dots. */
+    '.pf-kc-typing{display:flex;align-items:center;gap:10px;align-self:flex-start;background:#1a1a1a;',
+    'border:1px solid #2c2c2c;border-radius:14px;border-bottom-left-radius:5px;padding:11px 15px;',
+    'color:#a39c8b;font:italic 400 13px Georgia,serif}',
+    '.pf-kc-td{display:inline-flex;gap:5px}',
+    '.pf-kc-td i{width:7px;height:7px;border-radius:50%;background:#c1121f;animation:pfkc-td 1.1s infinite ease-in-out}',
+    '.pf-kc-td i:nth-child(2){animation-delay:.15s}',
+    '.pf-kc-td i:nth-child(3){animation-delay:.3s}',
+    '@keyframes pfkc-td{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}'
   ];
 
   var btn, panel, log, form, input, chipsBox;
@@ -358,6 +394,108 @@
     addChips(suggestionChips());
   }
 
+  /* ============ CONVERSATION MEMORY (engagement sweep 2026-10-07) ============
+     Karl remembers the thread. Last 3 Q&A pairs ride in sessionStorage and
+     go to the worker as context.history — so Karl builds on what was just
+     said instead of answering every question like it's the first. */
+  var HIST_KEY = 'pf_kc_hist_v1';
+  function readHistory() {
+    try {
+      var h = JSON.parse(sessionStorage.getItem(HIST_KEY) || '[]');
+      return (h && h.length) ? h.slice(-3) : [];
+    } catch (e) { return []; }
+  }
+  function pushHistory(q, a) {
+    try {
+      var h = readHistory();
+      h.push({ q: String(q).slice(0, 200), a: String(a).slice(0, 500) });
+      sessionStorage.setItem(HIST_KEY, JSON.stringify(h.slice(-3)));
+    } catch (e) {}
+  }
+
+  /* ============ TOPIC-AWARE FOLLOW-UPS (engagement sweep retry 2026-10-07)
+     The old code always offered one generic "Tell me more about that".
+     Derive the follow-up from the question's topic so it reads like Karl
+     listening, not a button factory. */
+  function followUpFor(q) {
+    var t = String(q || '').toLowerCase();
+    function has() {
+      for (var i = 0; i < arguments.length; i++) {
+        if (t.indexOf(arguments[i]) !== -1) { return true; }
+      }
+      return false;
+    }
+    if (has('marx','lenin','trotsky','mao','fanon','luxemburg','che','engels','capital','surplus','theory','communis','socialis','imperialis')) {
+      return 'Who else wrote about this?';
+    }
+    if (has('xp','rank','streak','medal','mission','vote','level')) {
+      return 'What\u2019s my fastest path forward?';
+    }
+    if (has('price','inflation','cpi','shrink','economy','wage','rent','cost of','grocery')) {
+      return 'How do I report a price?';
+    }
+    if (has('how do i','how to','where is','where\u2019s','where do')) {
+      return 'What should I do first?';
+    }
+    if (has('news','happening','trump','biden','congress','election','protest')) {
+      return 'What\u2019s the move on this?';
+    }
+    return 'Tell me more about that';
+  }
+
+  /* ============ REWARD FEEDBACK (engagement sweep retry 2026-10-07) ============
+     The karl_engage loop granted XP server-side but the user never saw it —
+     an invisible reward is no reward. The worker now returns the engage
+     outcome ({xp, lucky, capped, milestone, milestone_xp, streak, tier}).
+     Surface it: XP float on the answer, milestone pings. All guarded,
+     all fail-soft — a missing PF.dope never breaks the chat. */
+  function rewardNudge(msgEl, eng) {
+    if (!eng || typeof eng !== 'object') { return; }
+    try {
+      var dope = (window.PF && PF.dope) ? PF.dope : null;
+      if (!dope) { return; }
+      if (eng.xp > 0 && msgEl && dope.xpFloat) {
+        dope.xpFloat(msgEl, '+' + eng.xp + ' XP');
+      }
+      if (eng.lucky && dope.ping && panel) {
+        dope.ping(panel, 'LUCKY QUESTION \u2014 DOUBLE XP');
+      }
+      if (eng.milestone && eng.milestone_xp > 0 && dope.ping && panel) {
+        dope.ping(panel, eng.milestone + '-DAY KARL STREAK \u2014 +' + eng.milestone_xp + ' XP');
+      }
+    } catch (e) {}
+  }
+  /* ============ STAGED TYPING (engagement sweep 2026-10-07) ============
+     9 seconds of "Karl is thinking…" feels broken on a phone. Rotating
+     personality lines make the wait feel like Karl working — because he is. */
+  var THINK_LINES = [
+    'Karl is thinking\u2026',
+    'Checking the rails\u2026',
+    'Consulting the canon\u2026',
+    'Asking around\u2026',
+    'Sharpening the answer\u2026'
+  ];
+  function stagedTyping() {
+    var tp = document.createElement('div');
+    tp.className = 'pf-kc-typing';
+    var think = document.createElement('span');
+    think.textContent = THINK_LINES[0];
+    var dots = document.createElement('span');
+    dots.className = 'pf-kc-td';
+    dots.innerHTML = '<i></i><i></i><i></i>';
+    tp.appendChild(think);
+    tp.appendChild(dots);
+    log.appendChild(tp);
+    log.scrollTop = log.scrollHeight;
+    var i = 0;
+    var iv = setInterval(function () {
+      i++;
+      if (i >= THINK_LINES.length) { clearInterval(iv); return; }
+      try { think.textContent = THINK_LINES[i]; } catch (e) { clearInterval(iv); }
+    }, 2200);
+    return { el: tp, stop: function () { clearInterval(iv); try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {} } };
+  }
+
   function submitQ(q) {
     q = String(q || '').trim();
     if (!q) { return; }
@@ -381,14 +519,13 @@
       return;
     }
     /* 2. Worker — the deep brain. */
-    var tp = document.createElement('div');
-    tp.className = 'pf-kc-typing';
-    tp.textContent = 'Karl is thinking\u2026';
-    log.appendChild(tp);
-    log.scrollTop = log.scrollHeight;
+    var typing = stagedTyping();
     var ctx = { page: pi.label, path: pi.path };
     var cs = callsign();
     if (cs) { ctx.callsign = cs; }
+    /* Conversation memory: the thread goes with the question. */
+    var hist = readHistory();
+    if (hist.length) { ctx.history = hist; }
     /* Muse mode: the worker answers as the muse — inspirational, narrative-
        aware, one clear next step. The user state travels with the question. */
     try {
@@ -398,13 +535,31 @@
       }
     } catch (e) {}
     askWorker(q, ctx).then(function (r) {
-      try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {}
+      typing.stop();
       if (r && r.ok && r.answer) {
-        addMsg('karl', esc(String(r.answer)).replace(/\n/g, '<br>'));
-      } else if (r && r.error === 'rate_limited') {
-        addMsg('karl', 'I\u2019ve answered a lot this hour — I need a breather. The site index still works: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');
+        var ansHtml = esc(String(r.answer)).replace(/\n/g, '<br>');
+        var msgEl = addMsg('karl', ansHtml);
+        /* Remember the thread — next question builds on this one. */
+        pushHistory(q, r.answer);
+        /* Engagement sweep (retry): the follow-up used to be wiped by the
+           unconditional addChips() after this block — it never survived.
+           Chips are now set exactly once per branch. */
+        var followChips = [followUpFor(q)];
+        try {
+          var sc = suggestionChips();
+          for (var fi = 0; fi < sc.length && followChips.length < 3; fi++) {
+            if (followChips.indexOf(sc[fi]) === -1) { followChips.push(sc[fi]); }
+          }
+        } catch (e) {}
+        addChips(followChips);
+        /* Reward feedback: the invisible +2 XP is now visible. */
+        rewardNudge(msgEl, r.engage);
+        return;
+      }
+      if (r && r.error === 'rate_limited') {
+        addMsg('karl', 'I\u2019ve been talking a lot this hour — even comrades need a breather. The site index still works though: ask me <i>where</i> something is or <i>how</i> to do it, and I\u2019ll point you there instantly.<div class="sig">— Karl</div>');
       } else {
-        addMsg('karl', 'The rails didn\u2019t answer just now. Ask me where something is or how it works — that part lives right here.<div class="sig">— Karl</div>');
+        addMsg('karl', 'The deep brain didn\u2019t pick up just now — the connection dropped somewhere between us. But I still know this site cold: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');
       }
       addChips(suggestionChips());
     });

@@ -39,7 +39,8 @@
   var SS_BUDGET = 'pf_popup_budget_v1';
   var BUDGET_MAX = 3;
   var PROMPT_MS = 5000;
-  var Z = 99998; /* below the callsign modal (99999), same as guided-onboarding */
+  var Z = 99998; /* legacy: below the callsign modal (99999). Now owned by
+     .pf-op-veil in core/02-design-system.css; kept for reference. */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -129,30 +130,23 @@
     if (!queueRequest('one-prompt', 'auto')) return false;
     overlay = document.createElement('div');
     overlay.id = 'pf-oneprompt';
+    overlay.className = 'pf-op-veil';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Welcome to the Propaganda Factory');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:' + Z +
-      ';background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
-      'padding:1rem;box-sizing:border-box;';
+    /* BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+       .pf-op-* class library in core/02-design-system.css. IDs, ARIA,
+       wiring, dismissal, focus — all unchanged, visual-only. */
     overlay.innerHTML =
-      '<div style="background:#0a0a0a;border:3px solid #c1121f;color:#f5ead6;' +
-      'font-family:\'Helvetica Neue\',Arial,sans-serif;padding:2rem 1.5rem;max-width:440px;width:100%;' +
-      'max-height:92vh;overflow-y:auto;box-sizing:border-box;text-align:center;position:relative;">' +
-      '<div style="font-size:.78rem;font-weight:900;letter-spacing:.24em;color:#c1121f;margin-bottom:.9rem;">' +
-      '&#9733; THE PROPAGANDA FACTORY &#9733;</div>' +
-      '<div style="font-size:1.5rem;font-weight:900;line-height:1.25;margin-bottom:.6rem;letter-spacing:.02em;">' +
-      'THE MEMES ARE THE WEAPON.<br>YOU ARE THE ARMY.</div>' +
-      '<div style="font-size:.85rem;color:#b8ab8e;line-height:1.6;margin-bottom:1.4rem;">' +
+      '<div class="pf-op-card">' +
+      '<div class="pf-op-kicker">&#9733; THE PROPAGANDA FACTORY &#9733;</div>' +
+      '<div class="pf-op-head">THE MEMES ARE THE WEAPON.<br>YOU ARE THE ARMY.</div>' +
+      '<div class="pf-op-sub">' +
       'A leftist creator network turning posts into power. One tap and ' +
       'you&rsquo;re in &mdash; your XP follows you everywhere.</div>' +
-      '<button type="button" id="pf-op-claim" style="background:#c1121f;color:#fff;border:none;' +
-      'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.95rem;' +
-      'padding:.9rem 2rem;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;">' +
+      '<button type="button" id="pf-op-claim" class="pf-op-claim">' +
       'CLAIM YOUR CALLSIGN</button>' +
-      '<div style="margin-top:.8rem;"><button type="button" id="pf-op-no" style="background:none;border:0;' +
-      'color:#8a7f68;cursor:pointer;font-size:.78rem;text-decoration:underline;padding:.6rem;' +
-      'min-height:44px;font-family:inherit;">just looking</button></div>' +
+      '<div class="pf-op-no-wrap"><button type="button" id="pf-op-no" class="pf-op-no">just looking</button></div>' +
       /* CEO directive 2026-10-06: every claim prompt needs the recovery path. */
       (function () { try { return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; } catch (e) { return ''; } })() +
       '</div>';
@@ -205,17 +199,11 @@
   }
   function stepRow(n, title, sub, btnLabel, btnId) {
     var done = stepsDone[n];
-    return '<div data-op-step="' + n + '" style="display:flex;align-items:center;gap:.8rem;' +
-      'padding:.7rem 0;border-bottom:1px solid #2a2a2a;text-align:left;">' +
-      '<div style="flex:none;width:26px;height:26px;border:2px solid ' + (done ? '#c1121f' : '#4a4033') + ';' +
-      'color:' + (done ? '#c1121f' : '#4a4033') + ';font-weight:900;display:flex;align-items:center;' +
-      'justify-content:center;font-size:.85rem;box-sizing:border-box;">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
-      '<div style="flex:1;min-width:0;"><div style="font-weight:900;font-size:.85rem;letter-spacing:.08em;' +
-      'color:' + (done ? '#8a7f68' : '#f5ead6') + ';' + (done ? 'text-decoration:line-through;' : '') + '">' + esc(title) + '</div>' +
-      '<div style="font-size:.72rem;color:#8a7f68;">' + esc(sub) + '</div></div>' +
-      (done ? '' : '<button type="button" id="' + btnId + '" style="flex:none;background:#c1121f;color:#fff;' +
-      'border:none;font-family:inherit;font-weight:900;font-size:.72rem;letter-spacing:.1em;' +
-      'padding:.55rem .9rem;cursor:pointer;min-height:40px;white-space:nowrap;">' + esc(btnLabel) + '</button>') +
+    return '<div data-op-step="' + n + '" class="pf-op-step' + (done ? ' is-done' : '') + '">' +
+      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
+      '<div class="pf-op-step-main"><div class="pf-op-step-title">' + esc(title) + '</div>' +
+      '<div class="pf-op-step-sub">' + esc(sub) + '</div></div>' +
+      (done ? '' : '<button type="button" id="' + btnId + '" class="pf-op-step-btn">' + esc(btnLabel) + '</button>') +
       '</div>';
   }
   function renderChecklist() {
@@ -232,10 +220,9 @@
       return;
     }
     checklistEl.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">' +
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.22em;font-size:.72rem;">&#9873; YOUR FIRST MOVES</div>' +
-      '<button type="button" id="pf-op-cl-x" aria-label="Dismiss checklist" style="background:none;border:0;' +
-      'color:#8a7f68;cursor:pointer;font-size:1.2rem;line-height:1;padding:.4rem;min-width:40px;min-height:40px;">&times;</button>' +
+      '<div class="pf-op-cl-headrow">' +
+      '<div class="pf-op-cl-head">&#9873; YOUR FIRST MOVES</div>' +
+      '<button type="button" id="pf-op-cl-x" class="pf-op-cl-x" aria-label="Dismiss checklist">&times;</button>' +
       '</div>' +
       stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight') +
       (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim')) +
@@ -278,11 +265,9 @@
       if (document.getElementById('pf-first-mission')) return;
       checklistEl = document.createElement('div');
       checklistEl.id = 'pf-oneprompt-checklist';
+      checklistEl.className = 'pf-op-checklist';
       checklistEl.setAttribute('role', 'region');
       checklistEl.setAttribute('aria-label', 'Your first moves');
-      checklistEl.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;max-width:680px;' +
-        'width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;' +
-        'font-family:\'Helvetica Neue\',Arial,sans-serif;';
       host.parentNode.insertBefore(checklistEl, host);
       renderChecklist();
     } catch (e) {}

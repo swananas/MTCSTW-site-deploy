@@ -118,3 +118,32 @@
     scroll-behavior:auto!important;
   }
 }
+
+/* ============================================================================
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Mobile-first butter: no tap flash, press feedback (touch has no hover),
+   fluid section titles, balanced hero measure, roomier silo padding.
+   Every rule below is NEW — nothing above was modified.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js. Also register nothing new — this file is
+   already in the SOURCES list of build/check-styles-sync.js.
+   ============================================================================ */
+/* No gray tap flash on any homepage interactive */
+#pf-v2 a,#pf-v2 button{-webkit-tap-highlight-color:transparent;}
+/* Press feedback — touch users get the :active that hover users get from lift */
+#pf-v2 #pf-hero-cta{transition:transform .12s ease,box-shadow .18s ease;}
+#pf-v2 #pf-hero-cta:active{transform:scale(.98);}
+#pf-v2 #pf-closer-grid a{transition:transform .12s ease,border-color .18s ease;}
+#pf-v2 #pf-closer-grid a:active{transform:scale(.98);}
+/* Fluid, balanced section titles */
+#pf-v2 .pf-section-head .pf-sh-title{
+  font-size:clamp(1.25rem,5.5vw,1.625rem); line-height:1.2; text-wrap:balance;
+}
+#pf-v2 #pf-hero h1{text-wrap:balance;letter-spacing:.01em;}
+/* Roomier silo padding on the homepage column */
+#pf-v2 .pf-silo{padding:32px 20px;}
+/* Reduced-motion: butter off where asked */
+@media (prefers-reduced-motion:reduce){
+  #pf-v2 #pf-hero-cta,#pf-v2 #pf-closer-grid a{transition:none;}
+}

@@ -574,10 +574,59 @@
     return base;
   }
 
+  /* Butter pass (workstream 5, 2026-10-07): premium share-out chrome.
+     Visual-only — every share target, caption, and fallback below is
+     untouched; this only styles the buttons the user taps. */
+  var _seCssDone = false;
+  function seCssOnce() {
+    if (_seCssDone) return;
+    _seCssDone = true;
+    try {
+      var st = document.createElement('style');
+      st.setAttribute('data-pf-se-css', '1');
+      st.textContent = [
+        '.pf-se-kicker{color:#c1121f;font-weight:900;letter-spacing:.28em;font-size:.68rem;',
+        'margin:0 0 .55rem;font-family:Arial,Helvetica,sans-serif}',
+        '.pf-se-net{display:inline-block;background:#c1121f;border:2px solid #c1121f;color:#fff;',
+        'padding:.6rem 1.05rem;margin:.25rem;font-size:.7rem;font-weight:900;letter-spacing:.14em;',
+        'text-decoration:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;border-radius:3px;',
+        'box-shadow:0 2px 10px rgba(193,18,31,.35);',
+        'transition:transform .12s ease,box-shadow .12s ease,background .12s ease,border-color .12s ease}',
+        '.pf-se-net:hover{background:#e01424;border-color:#e01424;transform:translateY(-1px);',
+        'box-shadow:0 7px 20px rgba(193,18,31,.5)}',
+        '.pf-se-net:active{transform:translateY(0) scale(.97)}',
+        '.pf-se-net:focus-visible{outline:3px solid #f5ead6;outline-offset:2px}',
+        '.pf-se-btn{display:inline-block;padding:.8rem 1.45rem;margin:.4rem;font-size:.8rem;font-weight:900;',
+        'letter-spacing:.14em;cursor:pointer;font-family:Arial,Helvetica,sans-serif;border-radius:3px;',
+        'transition:transform .12s ease,box-shadow .12s ease,background .12s ease,border-color .12s ease}',
+        '.pf-se-share{background:#c1121f;border:2px solid #c1121f;color:#fff;',
+        'box-shadow:0 3px 14px rgba(193,18,31,.4)}',
+        '.pf-se-share:hover{background:#e01424;border-color:#e01424;transform:translateY(-1px);',
+        'box-shadow:0 8px 24px rgba(193,18,31,.55)}',
+        '.pf-se-share:active{transform:scale(.97)}',
+        '.pf-se-save{background:transparent;border:2px solid #c1121f;color:#c1121f}',
+        '.pf-se-save:hover{background:rgba(193,18,31,.14);transform:translateY(-1px);',
+        'box-shadow:0 4px 14px rgba(193,18,31,.25)}',
+        '.pf-se-save:active{transform:scale(.97)}',
+        '.pf-se-btn:focus-visible{outline:3px solid #f5ead6;outline-offset:2px}',
+        '.pf-se-btn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}',
+        '@media(prefers-reduced-motion:reduce){.pf-se-net,.pf-se-btn{transition:none}}',
+        '@media(prefers-reduced-motion:reduce){.pf-se-net:hover,.pf-se-share:hover,.pf-se-save:hover{transform:none}}'
+      ].join('\n');
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
   function networksRow(gameId, title, link) {
+    seCssOnce();
     var wrap = document.createElement('div');
     wrap.setAttribute('data-pfshare-networks', gameId);
+    wrap.className = 'pf-se-nets';
     wrap.style.cssText = 'text-align:center;margin:0.6rem 0;';
+    var kick = document.createElement('div');
+    kick.className = 'pf-se-kicker';
+    kick.textContent = '\u26a1 SPREAD THE WORD';
+    wrap.appendChild(kick);
     var cap = captionFor(gameId, title);
     var url = shareUrl(link);
     NETWORKS.forEach(function (n) {
@@ -587,17 +636,14 @@
       a.rel = 'noopener';
       a.textContent = n.label;
       a.setAttribute('aria-label', 'Share on ' + n.label);
-      a.style.cssText = 'display:inline-block;background:transparent;border:1px solid #8a8a8a;color:#c9bfa8;' +
-        'padding:0.45rem 0.8rem;margin:0.25rem;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;' +
-        'text-decoration:none;cursor:pointer;font-family:inherit;';
+      a.className = 'pf-se-net';
       wrap.appendChild(a);
     });
     var cp = document.createElement('button');
     cp.type = 'button';
     cp.textContent = 'COPY LINK';
-    cp.style.cssText = 'display:inline-block;background:transparent;border:1px solid #8a8a8a;color:#c9bfa8;' +
-      'padding:0.45rem 0.8rem;margin:0.25rem;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;' +
-      'cursor:pointer;font-family:inherit;';
+    cp.className = 'pf-se-net';
+    cp.setAttribute('aria-label', 'Copy link');
     cp.addEventListener('click', function () {
       function done2(ok) { toast(ok ? 'Link copied. Go recruit.' : 'Copy failed \u2014 long-press the URL.'); }
       try {
@@ -621,14 +667,11 @@
   /* Idempotent per host+gameId. Mirrors share-image.js button styling.  */
   /* ------------------------------------------------------------------ */
   function mkBtn(label, solid) {
+    seCssOnce();
     var b = document.createElement('button');
     b.type = 'button';
     b.textContent = label;
-    b.style.cssText = 'display:inline-block;' +
-      (solid ? 'background:#c1121f;border:2px solid #c1121f;color:#f5f0e1;'
-             : 'background:transparent;border:2px solid #f5ead6;color:#f5f0e1;') +
-      'padding:0.7rem 1.3rem;margin:0.4rem;font-size:0.8rem;font-weight:700;' +
-      'letter-spacing:0.12em;cursor:pointer;font-family:inherit;';
+    b.className = 'pf-se-btn ' + (solid ? 'pf-se-share' : 'pf-se-save');
     return b;
   }
 

@@ -1,0 +1,419 @@
+<!-- PF FOOTER v148 — SHIP be4724a (2026-10-07).
+     v146 added jsCompanion() but routed through loadBundle() => BASE+n, which
+     on v1.1.0 pages (homepage, no #pf-v2) resolves to the V1 pin's v1.1.0
+     tree — bundle-karl-companion.js exists ONLY in v1.4.3, so the homepage
+     404'd and the ASK KARL panel never mounted there.
+     v147 pins the companion load to the V3 pin's v1.4.3 tree (absolute
+     jsDelivr URL, verbatim — same pattern as JS_CHROME), so Karl mounts on
+     every page regardless of silo version. The bundle is self-contained and
+     fail-soft (all PFKarlMuse/PFCallsign refs guarded).
+     New pin: V3/VCHROME='be4724a', V1='76107b5'. -->
+<!-- PF FOOTER v146 — KARL COMPANION LOADER FIX (2026-10-07).
+     The fe/karl-companion ship (pin ba5182a) built bundle-karl-companion.js
+     but the loader (jsCompanion) only existed in the footer-v147-blossom
+     draft — v144/v145 never called it, so the ASK KARL panel never mounted.
+     This version adds jsCompanion() + calls it alongside jsLazy().
+     New pin: V3/VCHROME='be4724a', V1='76107b5'. -->
+<!-- PF FOOTER v1.4.4 — shell-aware loader. Same routing as v1.4.3, plus
+     DEFECT 1 fix (2026-10-03): /store, /privacy, /terms and every other
+     non-v2 page route to the v1.1.0 silo set, which carried no footer
+     chrome — the DELETE MY DATA link (core/16-footer.js) and the NUKE
+     meter + RUN MISSION bar (core/17-nuke-strip.js) shipped only inside
+     v1.4.3's bundle-core.js (v2 pages). The v1.1.0 branch now also loads
+     core/bundle-footer-chrome.js (pinned to VCHROME below): just the PF
+     bus, backend URL + identity helpers, authPost, the nuke strip, and
+     the delete-my-data link. rectifier fixes — V3 c96e8ed.
+     Routing unchanged from v1.4.3: pages carrying #pf-v2 (the v2 homepage)
+     load the v1.4.3 JS set + CSS pinned to the V2 hash. Pages carrying #pf-war-card
+     (Creator HQ) also load the v1.4.3 set so the war-card silo can mount; home-v2.js
+     stays dormant there (no #pf-v2 shell). NEW in v1.4.3: the homepage slimming —
+     the homepage mounts a tight 18-widget lineup (#pf-v2): bundle-sec1.js in the
+     critical path + bundle-home.js lazy-loaded as one bundle for the
+     PLAY/BELONG/CREATE/FUND/ACT/PROOF sections. The rest of the library moved
+     to dedicated pages, each with its own mount div and per-page game bundles
+     (mounted by pages/page-mount.js): /arcade (#pf-arcade), /cells (#pf-cells-page),
+     /cell-war (#pf-cell-war), /create (#pf-create), /bank (#pf-bank),
+     /governance (#pf-governance), /economy (#pf-economy),
+     /war-chest (#pf-warchest), /ventures (#pf-ventures), /events (#pf-events),
+     /war-report (#pf-warreport). NEW in v1.4.3: the Efficiency Index (games/efficiency.js) — weekly data-driven
+     propaganda scores from reach, fan efficiency, and site pull. NEW in v1.4.3: the War Chest
+     (games/peoplesbank.js) — personal XP bank with overtime kickers, weekly deposits, cell-rate
+     interest — plus Joint Ventures (games/ventures.js) — creator/cell shareholder war funds —
+     and the sticky flow layer (core/13-flow.js) routing users enlist > cell > bank > venture. NEW in v1.4.2: the Sick Left Radicals
+     rebuild — /sick-left-radicals and every member catalog page (62 slugs, matched
+     by the inline slug list below) load the v1.4.3 set, where pages/slr-roster.js
+     and pages/slr-catalog.js render the roster and catalogs from the master
+     creator database (core/07-slr-db-data.js + core/07-slr-db.js, 62 members).
+     M34 (2026-10-03): the 173KB snapshot ships only in core/bundle-core-slr.js,
+     loaded on roster pages (homepage, /arcade, /create, Creator HQ, SLR
+     roster/catalog); all other v2 pages load the slim core/bundle-core.js.
+     The old Squarespace-built roster/catalog content is replaced in-page; the
+     v1.1.0 fixes/roster.js patch no longer loads on these pages. Every other
+     page loads the v1.1.0 production set pinned to 6e8b9a4.
+     V3 pin: ba5182a (karl-engagement-sweep + callsign-recovery ship, 2026-10-07 ~19:53 CDT). -->
+<!-- 2026-10-05: the static DELETE MY DATA fallback anchor was removed here —
+     it duplicated the functional link injected by core/16-footer.js (dialog +
+     privacy_erase flow). The JS silo strips any already-pasted static
+     fallback on boot, so no footer re-paste is needed. -->
+<script>(function(){
+var V3='be4724a',V1='76107b5';
+/* DEFECT 1 (2026-10-03): pin for core/bundle-footer-chrome.js (added in
+   commit 133ee90). Kept separate from V3 so the live v1.4.3 set stays
+   byte-identical; re-pin together on the next release. */
+var VCHROME='be4724a';
+/* MERGE (2026-10-05, integrate/big-update-fe <- wave-6b): V3/VCHROME keep
+   HEAD's 41c13ac (newer; matches the --ours built-bundle resolution).
+   V1 takes wave-6b's 76107b5 (newer; v1.1.0 tree byte-identical at both
+   pins). FINAL RE-PIN (2026-10-06 ~20:55 CDT, post ship-blocker repairs):
+   V3/VCHROME = 777f728 (final FE integration tip). V1 stays 76107b5 —
+   untouched by this release, per the standing rule.
+   RE-PIN (2026-10-06 ~23:25 CDT, post hud-batched-call merge + minified
+   bundle rebuild): V3/VCHROME = 1e8bc47. V1 stays 76107b5.
+   RE-PIN (2026-10-07 ~00:35 CDT, fe/qc-gap-fixes merge 5dcbf6e — 6 surgical
+   QC-gap fixes: sharein Escape-to-close, studio_plugins_list fail-soft,
+   PWA async, page-mount hash re-scroll, data-bounties RETRY, /call-it
+   markets lazy entry): V3/VCHROME = 5dcbf6e. V1 stays 76107b5.
+   RE-PIN (2026-10-07 ~19:53 CDT, karl-engagement-sweep merge ba5182a —
+   XP floats, topic-aware follow-ups, callsign recovery, speed fixes):
+   V3/VCHROME = ba5182a. V1 stays 76107b5. */
+var SLR_SLUGS='an-iowan|bitchysitch|black-newsbeat-with-dr-kimeka-campbell|bona-bones|combatvetsagainsttrump|damn-pam-ham-from-effingham|deejay10|dofd|dogman_v1|dr-taylor-andrew|east-coast-it-notes|eat-the-rich|f-this-imperialistic-bs|films-for-action|guillotines-for-a-better-america|guillotines-for-billionares-2020|hex-reject|im-that-girl|ipostwhenifeelhot|itsdewberry|jeanine-pirreaux-comedy|jessicacymone|joey|joman|keithwashburn|kim-hunt-slaythegop|let-the-revolution-begin-peacefully-of-course|little-anarchist-brat|love-and-molotov|luigis-mansion-socialist-shitposting|mandifromtheinternet|mermaid-tm|mexiguerita22|minnesota-department-of-propaganda|moreno-neurospicy-news|mtcstw|nikalie-monroe|official-ghost-of-eli|progressively2026|public-enlightenment|quietmayhem|radically-sunny|sajidahtalks2025|sex-drugs-rock-n-roll|sissyfits|south-dakota-department-of-propaganda|splashofgenz|thatalabamafella|the-antifascist-frog|the-atheist-socialist|the-dr-greg-show|the-political-feminist|thelastcookout|therevcoms|undraylowery|us-department-of-health-and-human-shenanigans|us-federal-department-of-propaganda|vandala-effect|voix-noire|wisconsin-department-of-propaganda|worlds-strongest-mayo|your-friendly-neighborhood-schizophrenic';
+var _p=location.pathname;
+function _seg(p){var s=p.charAt(0)==='/'?p.slice(1):p;return s.charAt(s.length-1)==='/'?s.slice(0,-1):s;}
+var _isSlr=_p==='/sick-left-radicals'||_p==='/sick-left-radicals/'||('|'+SLR_SLUGS+'|').indexOf('|'+_seg(_p)+'|')>-1;
+/* Dedicated-page mount divs (2026-10-03 homepage slimming): each new page
+   carries one of these in a Code block; pages/page-mount.js mounts there. */
+var isArcade=!!document.getElementById('pf-arcade'), isCellsPage=!!document.getElementById('pf-cells-page'), isCellWar=!!document.getElementById('pf-cell-war'), isCreate=!!document.getElementById('pf-create'), isBank=!!document.getElementById('pf-bank'), isGovernance=!!document.getElementById('pf-governance'), isEconomy=!!document.getElementById('pf-economy'), isPeoplesCpi=!!document.getElementById('pf-peoples-cpi'), isWarchest=!!document.getElementById('pf-warchest'), isVentures=!!document.getElementById('pf-ventures'), isEvents=!!document.getElementById('pf-events'), isWarReport=!!document.getElementById('pf-warreport'), isMoney=!!document.getElementById('pf-money'), isFund=!!document.getElementById('pf-fund'), isCommand=!!document.getElementById('pf-command'), isCallIt=!!document.getElementById('pf-call-it'), isLiquidation=!!document.getElementById('pf-liquidation'), isWarRoom=!!document.getElementById('pf-warroom');
+var onV2=!!document.getElementById('pf-v2')||!!document.getElementById('pf-war-card')||!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr||!!document.getElementById('pf-political-hq')||isArcade||isCellsPage||isCellWar||isCreate||isBank||isGovernance||isEconomy||isPeoplesCpi||isWarchest||isVentures||isEvents||isWarReport||isMoney||isFund||isCommand||isCallIt||isLiquidation||isWarRoom;
+var VER=onV2?'v1.4.3':'v1.1.0';
+/* CDN MIRROR (2026-10-06): primary jsDelivr, fallback statically.io.
+   Probe-once-per-session; failover = single reload onto the fallback. */
+var CDN_P='https://cdn.jsdelivr.net/gh/', CDN_F='https://cdn.statically.io/gh/';
+var cdnHost=CDN_P;
+try{if(sessionStorage.getItem('pf_cdn')==='fb')cdnHost=CDN_F;}catch(e){}
+function mkBase(pin){return cdnHost+'swananas/MTCSTW-site-deploy@'+pin+'/'+VER+'/';}
+var BASE=mkBase(onV2?V3:V1);
+function cdnProbe(){
+  var probed=false;try{probed=!!sessionStorage.getItem('pf_cdn');}catch(e){}
+  if(probed)return; /* decision cached — zero added latency on repeat views */
+  var ctl=new AbortController(), to=setTimeout(function(){ctl.abort();},3000);
+  fetch(mkBase(onV2?V3:V1)+'core/00-bus.js',{method:'HEAD',signal:ctl.signal}).then(function(r){
+    clearTimeout(to);try{sessionStorage.setItem('pf_cdn',(r&&r.ok)?'ok':'fb');}catch(e){}
+    if(!(r&&r.ok))cdnFailover();
+  }).catch(function(){clearTimeout(to);try{sessionStorage.setItem('pf_cdn','fb');}catch(e){}cdnFailover();});
+}
+function cdnFailover(){
+  var n=0;try{n=parseInt(sessionStorage.getItem('pf_cdn_retry')||'0',10);}catch(e){}
+  if(n>=1)return; /* both CDNs failed (or probe flaky twice) — do not reload-loop; fall through to siloFail errors */
+  try{sessionStorage.setItem('pf_cdn_retry','1');}catch(e){}
+  location.reload(); /* second load reads pf_cdn='fb' and uses statically.io */
+}
+var CSS=onV2?['core/bundle-styles.css']:['core/01-styles.css','fixes/mobile.css'];
+var isHome=!!document.getElementById('pf-v2');
+var isHQ=!!document.getElementById('pf-political-hq');
+var isWarCard=!!document.getElementById('pf-war-card');
+var CORE_V2=['core/bundle-core.js']; /* placeholder — resolved to the SLR core below once page flags exist */
+var PAGES_V2=['pages/bundle-pages.js'];
+/* Per-page game map: each v2 page fetches only the game bundles it mounts
+   (mounted by pages/page-mount.js PAGE_ORDERS, or home-v2.js on #pf-v2).
+   Homepage = bundle-sec1 blocking + bundle-home lazy (the .pf-sec-anchor
+   mechanism in jsLazy(): PLAY/BELONG/CREATE/FUND/ACT/PROOF anchors all name
+   games/bundle-home.js, loaded once when the first scrolls near).
+   /arcade = bundle-arcade-h (the 5 arcade games that lived in bundle-home)
+   + bundle-arcade (the other casual games) + bundle-predgame + bundle-raid
+   (Supply Line Raid, the cell-scoped 7th entry).
+   /cells = bundle-cells-h (cells.js stages pf-ov-cells for the main Cells
+   widget) + bundle-cells. /cell-war (BLOSSOM S2, 2026-10-06) = bundle-cells
+   (cell-war, war-map, territory map, comp seasons) + bundle-arcade (the
+   'battles' silo ships ONLY there — verified against build/bundle.js).
+   /create = bundle-create-h (poster-forge, feed) +
+   bundle-create. /bank, /economy, /ventures, /events,
+   /war-report = their single bundle each. /war-chest (redirecting to
+   /ventures per BLOSSOM M3) still ships bundle-warchest.js on its own
+   mount div, and /ventures ships bundle-ventures.js + bundle-warchest.js
+   (the movement silo mounts as the "Movement Funds" section).
+   /governance (BLOSSOM S3, 2026-10-06) = the raw games/governance.js silo
+   file directly (the footer loads script paths directly; the file is
+   self-contained, stages pf-ov-gov into PF.holder(), and still ships in
+   bundle-hq-deep for /political-hq — raw load keeps the one-bundle-per-file
+   build rule intact).
+   /peoples-cpi (#pf-peoples-cpi) = games/bundle-peoples-cpi.js (the public
+   People's Price Index). /fund (#pf-fund) = games/bundle-fund.js (Propaganda
+   Fund structure page).
+   /war-room (#pf-warroom) = games/bundle-warroom.js (liveops) +
+   games/bundle-livemode.js (LIVE EVENT MODE fused surface, 2026-10-06 PLAY 9;
+   kill ?pf_off=livemode; read-only, zero writes, zero XP).
+   /political-hq = core + bundle-hq + pages. Creator HQ (#pf-war-card) =
+   core + bundle-create (academy, creator-assist, armory, dashboard) +
+   bundle-cells (cell-hq, war-card, review-pool) + pages.
+   /money (#pf-money) = core + core/bundle-money.js (explicit JS_GAMES entry;
+   the chunk loader in bundle-pages.js is the async fallback for the PHQ tab)
+   + games/bundle-predgame.js (CALL IT. section, self-mounts, 'economy'
+   preselected; kill ?pf_off=predgame) + pages. /follow-the-money IS the
+   money page (BLOSSOM M1 2026-10-06: /money redirects there). /command-deck is retired
+   (BLOSSOM R4 2026-10-06: folded into /war-report — the #pf-command
+   loader branch below ships bundle-command.js only if a #pf-command
+   mount div exists) + pages. /command-deck (#pf-command) = core + games/bundle-command.js
+   (standalone page bundle, self-mounting via command/02-registry.js) + pages.
+   BLOSSOM S1 (2026-10-06): /call-it (#pf-call-it) = core + pages +
+   games/bundle-predgame.js (CALL IT.) + games/bundle-arcade.js (the War Room
+   — Frontline Forecasts). /liquidation (#pf-liquidation) = core + pages +
+   games/bundle-arcade.js (the bracket board). /arcade = core + pages +
+   bundle-arcade-h + bundle-arcade + bundle-raid (Supply Line Raid, the
+   cell-scoped 7th entry; predgame left the arcade for /call-it).
+   /cells = core + pages + bundle-cells-h + bundle-cells + bundle-raid.
+   SLR roster/catalog = core + bundle-roster (efficiency.js paints the live
+   Efficiency Index into their [data-eff-score] slots; nothing else in the
+   bundle mounts there) + pages. */
+var isSlrPage=!!document.getElementById('pf-slr-roster')||!!document.getElementById('pf-catalog')||_isSlr;
+/* M34 (2026-10-03): the 173KB SLR snapshot lives only in bundle-core-slr.js.
+   Pages that mount roster consumers (homepage, /arcade, /create, Creator HQ,
+   SLR roster/catalog) get the SLR core so every synchronous PF.ROSTER read
+   keeps working; all other v2 pages get the slim bundle-core.js. On slim-core
+   pages the DB still loads on demand via PF.ensureSLRDB() if ever needed. */
+var NEED_SLR=isHome||isArcade||isCreate||isWarCard||isSlrPage||isLiquidation;
+CORE_V2=[NEED_SLR?'core/bundle-core-slr.js':'core/bundle-core.js'];
+/* PWA (2026-10-05, fe/pwa): install.js, right after the core bundle (home of
+   core/03-global.js). Relative = resolves against the v1.4.3 BASE. */
+var JS_PWA=['pwa/install.js'];
+var JS_GAMES=isHome?['games/bundle-sec1.js']:isArcade?['games/bundle-arcade-h.js','games/bundle-arcade.js','games/bundle-raid.js']:isCallIt?['games/bundle-predgame.js']:isLiquidation?['games/bundle-arcade.js']:isCellsPage?['games/bundle-cells-h.js','games/bundle-cells.js','games/bundle-raid.js']:isCellWar?['games/bundle-cells.js']:isCreate?['games/bundle-create-h.js','games/bundle-create.js']:isBank?['games/bundle-bank.js']:isGovernance?['games/governance.js']:isEconomy?['games/bundle-economy.js']:isPeoplesCpi?['games/bundle-peoples-cpi.js']:isWarchest?['games/bundle-warchest.js']:isVentures?['games/bundle-ventures.js','games/bundle-warchest.js']:isEvents?['games/bundle-events.js']:isWarReport?['games/bundle-warreport.js']:isWarRoom?['games/bundle-warroom.js','games/bundle-livemode.js']:isMoney?['core/bundle-money.js','games/bundle-predgame.js']:isFund?['games/bundle-fund.js']:isCommand?['games/bundle-command.js']:isHQ?[]:isWarCard?['games/bundle-create.js','games/bundle-cells.js']:isSlrPage?['games/bundle-roster.js']:[];
+var JS_HQ=isHQ?['games/bundle-hq.js','games/bundle-predgame.js']:[]; /* 2026-10-05 (fe/predict-game): CALL IT. section for the BALLOT hub ('elections' preselected) */
+/* DEFECT 1 (2026-10-03): the v1.1.0 set carries no footer chrome. Append
+   the slim footer-chrome bundle (DELETE MY DATA + NUKE meter + RUN
+   MISSION bar) so /store, /privacy, /terms and all other non-v2 pages
+   get the full injected footer. Loads last, async=false, after the
+   v1.1.0 silos — order preserved. */
+var JS_V1=['core/00-bus.js', 'core/03-global.js', /* PWA (2026-10-05, fe/pwa): install.js ships only in v1.4.3 — the v1.1.0 pin has no pwa/ tree, so it loads absolute-pinned to V3 like JS_CHROME (DEFECT-1 pattern). Pin-agnostic: install.js derives its own CDN base. */ cdnHost+'swananas/MTCSTW-site-deploy@'+V3+'/v1.4.3/pwa/install.js', 'core/04-ledger.js', 'core/05-tally.js', 'games/caption-combat.js', 'games/daily-orders.js', 'games/fan-vote.js', 'games/do-meter.js', 'games/media-nuke.js', 'games/poster-forge.js', 'games/daily-drop.js', 'games/service-medals.js', 'games/liquidation-bracket.js', 'core/06-override.js', 'core/08-engage.js', 'core/09-toast.js', 'core/10-ticker.js', 'fixes/homepage.js', 'fixes/about.js', 'fixes/faqs.js', 'fixes/roster.js', 'fixes/podcast.js', 'fixes/tax.js', 'fixes/terms.js', 'fixes/schema.js', 'fixes/article-visibility.js'];
+var JS_CHROME=[cdnHost+'swananas/MTCSTW-site-deploy@'+VCHROME+'/v1.4.3/core/bundle-footer-chrome.js'];
+var JS_SEQ=onV2?CORE_V2.concat(JS_PWA).concat(JS_GAMES).concat(JS_HQ).concat(PAGES_V2):JS_V1.concat(JS_CHROME);
+/* BUTTER (2026-10-06, fe/ux-butter-p0): site-wide loading skeletons.
+   _pfSkip(name) mirrors PF.skip (?pf_off= / localStorage pf_disabled_v1);
+   PF itself isn't loaded yet when the footer runs, so the parse is inline.
+   KILL: ?pf_off=butter-p0 */
+function _pfSkip(name){
+  try{
+    var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
+    var m=location.search.match(/[?&]pf_off=([^&]+)/);
+    if(m)d=d.concat(decodeURIComponent(m[1]).split(','));
+    return d.indexOf(name)!==-1;
+  }catch(e){return false;}
+}
+/* Reusable skeleton painter — the single implementation behind PF.skeleton
+   (adopted by core/00-bus.js so page/game code shares it).
+   window._pfSkeleton(host, opts) -> clear().
+   opts.sections: array of section labels (the #pf-v2 homepage version);
+   omit for the generic version (one title bar + 3 cards).
+   Paints gray placeholder blocks instantly (zero network wait). Skips hosts
+   that already have element children (native Squarespace content or nested
+   mount divs — those get their own skeleton). Auto-clears via a one-shot
+   MutationObserver when a widget section or any real content lands;
+   hard-clears after 25s so a killed/failed bundle never leaves it spinning. */
+window._pfSkeleton=function(host,opts){
+  function noop(){}
+  try{
+    if(!host||_pfSkip('butter-p0'))return noop;
+    opts=opts||{};
+    var pre=host.children,pc;
+    for(pc=0;pc<pre.length;pc++){if(pre[pc].id!=='pf-skeleton')return noop;}
+    if(host.querySelector('#pf-skeleton'))return noop;
+    var B='background:#242424;border-radius:8px;';
+    var html='<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;box-sizing:border-box;">';
+    var i;
+    if(opts.sections&&opts.sections.length){
+      for(i=0;i<opts.sections.length;i++){
+        html+='<div style="height:11px;width:34%;background:#3a3a3a;border-radius:3px;margin:26px 0 7px;"></div>'
+          +'<div style="height:30px;'+B+'margin:0 0 12px;"></div>'
+          +'<div style="height:88px;'+B+'margin:0 0 10px;"></div>'
+          +'<div style="height:88px;'+B+'margin:0 0 10px;"></div>';
+      }
+    }else{
+      html+='<div style="height:30px;'+B+'margin:6px 0 12px;"></div>'
+        +'<div style="height:120px;'+B+'margin:0 0 10px;"></div>'
+        +'<div style="height:120px;'+B+'margin:0 0 10px;"></div>'
+        +'<div style="height:120px;'+B+'margin:0 0 10px;"></div>';
+    }
+    html+='</div>';
+    host.insertAdjacentHTML('afterbegin',html);
+    var cleared=false,obs=null;
+    function clear(){
+      if(cleared)return;cleared=true;
+      try{if(obs)obs.disconnect();}catch(e){}
+      var ch=host.children;
+      for(var k=ch.length-1;k>=0;k--){
+        if(ch[k].id==='pf-skeleton'&&ch[k].parentNode)ch[k].parentNode.removeChild(ch[k]);
+      }
+    }
+    /* Placeholder chrome never counts as content: the skeleton itself, the
+       footer's lazy .pf-sec-anchor markers, home-v2's .pf-slot placeholders
+       and .pf-section-head headers. A mounted widget section, a self-mount
+       div with rendered content, or any text-bearing node does. */
+    function skIgn(el){
+      if(!el||el.id==='pf-skeleton')return true;
+      var cl=typeof el.className==='string'?el.className:'';
+      return cl.indexOf('pf-sec-anchor')>-1||cl.indexOf('pf-slot')>-1||cl.indexOf('pf-section-head')>-1;
+    }
+    function skReal(el){
+      if(skIgn(el))return false;
+      if(el.tagName==='SECTION'&&el.getAttribute('data-game'))return true;
+      var ch=el.children;
+      for(var k=0;k<ch.length;k++){if(!skIgn(ch[k]))return true;}
+      var t=(el.textContent||'').replace(/\s+/g,'');
+      return t.length>0;
+    }
+    function hasContent(){
+      var ch=host.children;
+      for(var k=0;k<ch.length;k++){if(skReal(ch[k]))return true;}
+      return false;
+    }
+    if('MutationObserver' in window){
+      obs=new MutationObserver(function(){try{if(hasContent())clear();}catch(e){}});
+      try{obs.observe(host,{childList:true,subtree:true});}catch(e){obs=null;}
+    }
+    try{if(hasContent())clear();}catch(e){}
+    setTimeout(clear,25000);
+    return clear;
+  }catch(e){return noop;}
+};
+/* BUTTER P0#2 (2026-10-06): connection hints — preconnect both CDN hosts +
+   preload the critical-path core bundle (JS_SEQ[0]) so the first fetch
+   skips DNS/TLS. NOTE (staged-file adaptation): BASE here is cdnHost-aware
+   (jsDelivr primary, statically.io fallback from sessionStorage) — the
+   preload URL is byte-identical to what jsSeq() fetches because both use
+   the same BASE var. On failover reload the new page load re-resolves
+   cdnHost and the preload matches again. */
+function pfHints(){
+  if(_pfSkip('butter-p0'))return;
+  try{
+    var pc=document.createElement('link');pc.rel='preconnect';pc.href='https://cdn.jsdelivr.net';
+    document.head.appendChild(pc);
+    var pc2=document.createElement('link');pc2.rel='preconnect';pc2.href='https://cdn.statically.io';
+    document.head.appendChild(pc2);
+    var first=JS_SEQ[0],url=(first.indexOf('https://')===0)?first:BASE+first;
+    var pl=document.createElement('link');pl.rel='preload';pl.as='script';pl.href=url;
+    document.head.appendChild(pl);
+  }catch(e){}
+}
+/* BUTTER (2026-10-06) CEO site-wide: skeleton every async mount host.
+   #pf-v2 gets the 7-section homepage version; every other known mount host
+   (mirrors pages/page-mount.js FE_MOUNT_IDS plus the loader-detected page
+   hosts) gets the generic version. Hosts absent from this page are skipped. */
+function pfSkeletons(){
+  if(_pfSkip('butter-p0'))return;
+  var sk=window._pfSkeleton;if(!sk)return;
+  var home=document.getElementById('pf-v2');
+  if(home)sk(home,{sections:['START HERE','PLAY','BELONG','CREATE','FUND','ACT','PROOF']});
+  var ids=['pf-cells-page','pf-cell-hq','pf-arcade','pf-call-it','pf-liquidation',
+    'pf-create','pf-bank','pf-economy','pf-peoples-cpi','pf-warchest','pf-ventures',
+    'pf-events','pf-warreport','pf-war-card','pf-academy-hq','pf-dash-hq','pf-hq-mission',
+    'pf-political-hq','pf-slr-roster','pf-catalog','pf-money','pf-fund','pf-command',
+    'pf-cell-war','pf-governance','pf-warroom','pf-live','pf-data-bounties'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el&&el!==home)sk(el,{});
+  }
+}
+function siloFail(n,e){if(window.console)console.error('[PF SILO FAILED] '+n+' :: '+(e&&e.message||e||'load error'));}
+window.addEventListener('error',function(e){
+  var f=e.filename||'',i=f.indexOf('/v1.1.0/'),rest='';
+  if(i<0)i=f.indexOf('/v1.4.3/');
+  if(i>-1){rest=f.slice(i+8);var q=rest.indexOf('?');if(q>-1)rest=rest.slice(0,q);siloFail(rest,e.message);}
+},true);
+function css(h){var l=document.createElement('link');l.rel='stylesheet';l.href=BASE+h;
+l.onerror=function(){siloFail(h);};document.head.appendChild(l);}
+function jsSeq(){
+  var pending=JS_SEQ.length;
+  function oneDone(){if(--pending===0){if(window.console)console.log('[PF] '+VER+' critical '+JS_SEQ.length+' files loaded');jsLazy();jsCompanion();}}
+  if(pending===0){jsLazy();jsCompanion();return;}
+  JS_SEQ.forEach(function(n){var s=document.createElement('script');
+  /* DEFECT 1: JS_CHROME entries are absolute jsDelivr URLs — use verbatim. */
+  s.src=(n.indexOf('https://')===0)?n:BASE+n;
+  /* PWA (2026-10-07, fe/qc-gap-fixes): install.js is inlined in
+     bundle-core.js behind a double-execution guard — the standalone load
+     is redundant-but-guarded, so it defers (async); everything else stays
+     ordered (async=false). */
+  s.async=(typeof JS_PWA!=='undefined'&&JS_PWA.indexOf(n)>-1);
+  s.onload=oneDone;s.onerror=function(){
+    /* CDN MIRROR (2026-10-06): per-script second net — retry once on the
+       fallback CDN before giving up. */
+    if(s.src.indexOf(CDN_P)===0&&!s._fbr){s._fbr=1;s.src=s.src.replace(CDN_P,CDN_F);return;}
+    siloFail(n);oneDone();};
+  document.head.appendChild(s);});
+}
+function loadBundle(n,cb){
+  var s=document.createElement('script');s.src=BASE+n;s.async=true;
+  /* 2026-10-05 (fe/events-move): a lazy chunk can stage templates for EITHER
+     mounter — the homepage (PF.mountSilos) or a dedicated page
+     (PF.mountPageSilos, page-mount.js). Call both, guarded. */
+  s.onload=function(){try{if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}}catch(e){} if(cb)cb();};
+  s.onerror=function(){siloFail(n);if(cb)cb();};
+  document.head.appendChild(s);
+}
+/* Lazy section bundles: each .pf-sec-anchor (injected by home-v2.js on the
+   homepage, or by pages/page-mount.js for lazy PAGE_ORDERS entries such as
+   the /events map chunk) names its bundle in data-bundle. Observe per
+   section — a bundle loads when its section scrolls near the viewport.
+   sec1 is already in JS_SEQ. On /events, bundle-events-map.js (the
+   protest/event map) lazy-loads here; irl + townhall ride the blocking
+   bundle-events.js. Safety nets: 15s timeout loads everything; no-IO
+   fallback loads all. */
+/* KARL COMPANION (2026-10-07, fe/karl-companion): the site's voice — floating
+   contextual assistant on every page. Lazy chunk, fetched after idle so the
+   critical path stays clean. Kill: ?pf_off=karl-companion. */
+function jsCompanion(){
+  if(window.PF&&window.PF.skip&&window.PF.skip('karl-companion'))return;
+  if(window.__pfKarlCompanionLoading)return;window.__pfKarlCompanionLoading=1;
+  /* KARL PIN FIX (2026-10-07, v147): the companion bundle exists ONLY in the
+     v1.4.3 tree. On v1.1.0 pages (homepage — no #pf-v2) BASE points at the
+     V1 pin and loadBundle('core/bundle-karl-companion.js') 404s. Always load
+     from the V3 pin via absolute jsDelivr URL (verbatim, same pattern as
+     JS_CHROME), so Karl mounts on every page regardless of silo version.
+     The bundle is self-contained and fail-soft (PFKarlMuse/PFCallsign
+     guarded). */
+  function go(){try{
+    var s=document.createElement('script');s.async=true;
+    s.src=cdnHost+'swananas/MTCSTW-site-deploy@'+V3+'/v1.4.3/core/bundle-karl-companion.js';
+    s.onerror=function(){
+      if(s.src.indexOf(CDN_P)===0&&!s._fbr){s._fbr=1;s.src=s.src.replace(CDN_P,CDN_F);return;}
+      siloFail('core/bundle-karl-companion.js');
+    };
+    document.head.appendChild(s);
+  }catch(e){}}
+  if('requestIdleCallback' in window){try{requestIdleCallback(go,{timeout:9000});return;}catch(e){}}
+  setTimeout(go,4000);
+}
+function jsLazy(){
+  /* SPACE-AUDIT FIX 7 (2026-10-06): lazy hosts extended beyond #pf-v2 /
+     #pf-events — /call-it (markets) and /cell-war (battles) lazy-load their
+     single arcade silo on scroll instead of the full bundle. */
+  var host=document.getElementById('pf-v2')||document.getElementById('pf-events')||document.getElementById('pf-call-it')||document.getElementById('pf-cell-war')||document.getElementById('pf-liquidation');
+  if(!host){return;}
+  var anchors=host.querySelectorAll('.pf-sec-anchor[data-bundle]');
+  var pending={};
+  var list=[];
+  for(var i=0;i<anchors.length;i++){
+    var b=anchors[i].getAttribute('data-bundle');
+    if(b&&b!=='games/bundle-sec1.js'&&!pending[b]){pending[b]=1;list.push({a:anchors[i],b:b,done:false});}
+  }
+  if(!list.length)return;
+  function fireOne(it){
+    if(it.done)return;it.done=true;
+    loadBundle(it.b);
+  }
+  function fireAll(){for(var k=0;k<list.length;k++)fireOne(list[k]);}
+  if('IntersectionObserver' in window){
+    var obs=new IntersectionObserver(function(es){
+      for(var k=0;k<es.length;k++){
+        if(es[k]&&es[k].isIntersecting){
+          for(var j=0;j<list.length;j++){
+            if(list[j].a===es[k].target)fireOne(list[j]);
+          }
+        }
+      }
+    },{rootMargin:'800px'});
+    try{
+      for(var m=0;m<list.length;m++)obs.observe(list[m].a);
+    }catch(e){fireAll();return;}
+  }else{fireAll();return;}
+  setTimeout(function(){fireAll();},15000);
+}
+pfHints();pfSkeletons();CSS.forEach(css);cdnProbe();jsSeq();
+})();</script>

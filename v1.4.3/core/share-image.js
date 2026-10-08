@@ -260,6 +260,59 @@
     x.fillText('\u2605 SUBSCRIBER \u2605', W / 2, tagY);
     x.restore();
   }
+  /* BUTTER PASS (2026-10-07) — editorial paint kit: NYT infographic meets
+     propaganda poster. Ink-black gradient ground, serif headlines, tracked
+     authority labels, PFN red reserved for moments that matter, gold accents.
+     Visual-only: REG data, wrap, stamps, frames, share plumbing untouched. */
+  function butterGround(x, W, H, hairY) {
+    var g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#131316'); g.addColorStop(0.5, '#0a0a0c'); g.addColorStop(1, '#060607');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    var v = x.createRadialGradient(W / 2, H * 0.32, 90, W / 2, H / 2, H * 0.62);
+    v.addColorStop(0, 'rgba(245,234,214,0.035)'); v.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = v; x.fillRect(0, 0, W, H);
+    /* red gradient hairline — the one structural red accent */
+    var rg = x.createLinearGradient(0, 0, W, 0);
+    rg.addColorStop(0, 'rgba(193,18,31,0)'); rg.addColorStop(0.5, '#c1121f'); rg.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rg; x.fillRect(W * 0.08, hairY == null ? 34 : hairY, W * 0.84, 5);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(52, 52, W - 104, H - 104);
+  }
+  /* Manual letterspacing (canvas letterSpacing isn't universal): draws each
+     char, centered as a whole; returns total width. */
+  function butterTrack(x, text, cx, y, ls) {
+    var chars = String(text).split(''), ws = [], total = 0, i, w;
+    for (i = 0; i < chars.length; i++) { w = x.measureText(chars[i]).width; ws.push(w); total += w; }
+    total += ls * Math.max(0, chars.length - 1);
+    var pen = cx - total / 2, prev = x.textAlign;
+    x.textAlign = 'left';
+    for (i = 0; i < chars.length; i++) { x.fillText(chars[i], pen, y); pen += ws[i] + ls; }
+    x.textAlign = prev;
+    return total;
+  }
+  /* Masthead: letterspaced authority label with flanking red diamonds. */
+  function butterMast(x, W, y) {
+    x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
+    var tw = butterTrack(x, 'THE PROPAGANDA FACTORY', W / 2, y, 8);
+    x.fillStyle = '#c1121f';
+    [[W / 2 - tw / 2 - 48, y], [W / 2 + tw / 2 + 48, y]].forEach(function (p) {
+      x.save(); x.translate(p[0], p[1] - 10); x.rotate(Math.PI / 4); x.fillRect(-7, -7, 14, 14); x.restore();
+    });
+  }
+  function butterSerif(x, px) { x.font = 'bold ' + px + 'px Georgia, "Times New Roman", serif'; }
+  /* Footer stack: hairline rule, CTA, source line. Every poster carries its
+     source citation (here: the network itself + generation date). */
+  function butterFoot(x, W, H, ctaY, siteY, srcY) {
+    var rg = x.createLinearGradient(0, 0, W, 0);
+    rg.addColorStop(0, 'rgba(201,191,168,0)'); rg.addColorStop(0.5, '#5a5344'); rg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = rg; x.fillRect(W * 0.16, ctaY - 118, W * 0.68, 2);
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
+    butterTrack(x, 'MTCSTW.COM', W / 2, siteY, 10);
+    /* 2026-10-03: share-image CTA standard — 'JOIN THE FIGHT.' (red, bold). */
+    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, ctaY);
+    x.fillStyle = '#8a8471'; x.font = '400 28px Arial,sans-serif';
+    x.fillText(dateStr() + ' \u00b7 THE PROPAGANDA FACTORY NETWORK', W / 2, srcY);
+  }
   /* A9 (2026-10-04): 9:16 (1080x1920) story-safe poster layout. Composes the
      same REG entry (title/tag/lines/cta) as the classic poster — REG entries
      may also set storyPre (eyebrow line, e.g. the quiz's "MY SLR MATCH IS")
@@ -272,23 +325,20 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    butterGround(x, W, H, 120);
     x.textAlign = 'center';
     var y = 300;
-    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 150;
+    butterMast(x, W, y); y += 150;
     if (g.storyPre) {
-      x.fillStyle = '#c9bfa8'; x.font = '700 44px Arial,sans-serif';
-      wrap(x, g.storyPre, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 60; });
+      x.fillStyle = '#e8b923'; x.font = '700 40px Arial,sans-serif';
+      wrap(x, g.storyPre, W - 240).slice(0, 2).forEach(function (l) { butterTrack(x, l, W / 2, y, 4); y += 60; });
       y += 20;
     }
-    x.fillStyle = '#c1121f'; x.font = '900 104px "Arial Black",Arial,sans-serif';
-    wrap(x, g.title, W - 240).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 120; });
+    x.fillStyle = '#c1121f'; butterSerif(x, 100);
+    wrap(x, g.title, W - 240).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 118; });
     y += 30;
-    x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
-    wrap(x, g.tag, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 58; });
+    x.fillStyle = '#f5ead6'; x.font = 'italic bold 44px Georgia, "Times New Roman", serif';
+    wrap(x, g.tag, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 60; });
     y += 40;
     x.fillStyle = '#c9bfa8'; x.font = '400 38px Arial,sans-serif';
     (g.lines || []).slice(0, 5).forEach(function (t) {
@@ -298,14 +348,16 @@
     y += 60;
     x.font = '900 46px "Arial Black",Arial,sans-serif';
     var tw = x.measureText(g.cta).width + 110;
-    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 62, tw, 100);
+    var bg = x.createLinearGradient(0, y - 62, 0, y + 38);
+    bg.addColorStop(0, '#d81f2c'); bg.addColorStop(1, '#a30e19');
+    x.fillStyle = bg; x.fillRect(W / 2 - tw / 2, y - 62, tw, 100);
     x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 10);
     var stamp = spreadStamp();
     if (stamp) {
       cv._pfStamped = true; /* story poster carries its own stamp */
       y += 110;
-      x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
-      wrap(x, stamp, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+      x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+      wrap(x, stamp, W - 240).slice(0, 2).forEach(function (l) { butterTrack(x, l, W / 2, y, 3); y += 44; });
     }
     if (linkLabel) {
       y += 70;
@@ -313,12 +365,7 @@
       wrap(x, 'LINK STICKER \u2192 ' + linkLabel, W - 240).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
     }
     /* share-image CTA standard: JOIN THE FIGHT. with MTCSTW.COM. */
-    x.fillStyle = '#c1121f'; x.font = '900 48px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 300);
-    x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 236);
-    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
-    x.fillText(dateStr(), W / 2, H - 180);
+    butterFoot(x, W, H, H - 300, H - 376, H - 244);
     /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
     if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 244);
     return cv;
@@ -333,18 +380,15 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
+    butterGround(x, W, H);
     x.textAlign = 'center';
     var y = 160;
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 120;
-    x.fillStyle = '#c1121f'; x.font = '900 86px "Arial Black",Arial,sans-serif';
-    wrap(x, g.title, W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 100; });
+    butterMast(x, W, y); y += 120;
+    x.fillStyle = '#c1121f'; butterSerif(x, 84);
+    wrap(x, g.title, W - 170).slice(0, 3).forEach(function (l) { x.fillText(l, W / 2, y); y += 98; });
     y += 24;
-    x.fillStyle = '#f5ead6'; x.font = '700 42px Arial,sans-serif';
-    wrap(x, g.tag, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 56; });
+    x.fillStyle = '#f5ead6'; x.font = 'italic bold 42px Georgia, "Times New Roman", serif';
+    wrap(x, g.tag, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 58; });
     y += 34;
     x.fillStyle = '#c9bfa8'; x.font = '400 36px Arial,sans-serif';
     (g.lines || []).slice(0, 4).forEach(function (t) {
@@ -354,23 +398,20 @@
     y += 46;
     x.font = '900 42px "Arial Black",Arial,sans-serif';
     var tw = x.measureText(g.cta).width + 100;
-    x.fillStyle = '#c1121f'; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
+    var bg = x.createLinearGradient(0, y - 56, 0, y + 36);
+    bg.addColorStop(0, '#d81f2c'); bg.addColorStop(1, '#a30e19');
+    x.fillStyle = bg; x.fillRect(W / 2 - tw / 2, y - 56, tw, 92);
     x.fillStyle = '#ffffff'; x.fillText(g.cta, W / 2, y + 8);
     var stamp = spreadStamp();
     if (stamp) {
       cv._pfStamped = true; /* generic poster carries its own stamp */
       y += 92;
-      x.fillStyle = '#c1121f'; x.font = '700 30px Arial,sans-serif';
-      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 42; });
+      x.fillStyle = '#e8b923'; x.font = '700 30px Arial,sans-serif';
+      wrap(x, stamp, W - 170).slice(0, 2).forEach(function (l) { butterTrack(x, l, W / 2, y, 3); y += 42; });
     }
-    x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 168);
     /* 2026-10-03: share-image CTA standard — every share image carries
        'JOIN THE FIGHT.' (red, bold) above/below MTCSTW.COM. */
-    x.fillStyle = '#c1121f'; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
-    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
-    x.fillText(dateStr(), W / 2, H - 58);
+    butterFoot(x, W, H, H - 168, H - 236, H - 116);
     /* R29 (2026-10-05): subscriber frame option, gated on subscriber status. */
     if (opts && opts.frame === 'subscriber') subFrame(x, W, H, 120);
     return cv;

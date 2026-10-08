@@ -1,1 +1,6176 @@
-!function(){"use strict";var e=window.PF,t=!(!e||e.skip("cell-identity"));var n="undefined"!=typeof window&&window.PF_BACKEND_URL||"";function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function a(t){try{if(e&&e.toast)return void e.toast(t)}catch(e){}}function r(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function o(t,i,a){if(n){try{if(window.PF&&e.authGetJSONP)return void e.authGetJSONP(n,t,i,a);var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&i&&!i.auth_secret&&(i.auth_secret=r)}catch(e){}var o=new Uint32Array(1);try{window.crypto&&crypto.getRandomValues?crypto.getRandomValues(o):o[0]=Math.floor(4294967295*Math.random())}catch(e){o[0]=Math.floor(4294967295*Math.random())}var s="pfIdCb"+o[0],l=document.createElement("script"),c=!1,d=null;window[s]=function(e){f(e)},l.onerror=function(){f(null)},d=setTimeout(function(){f(null)},12e3);var p="?action="+encodeURIComponent(t);for(var u in i)null!=i[u]&&""!==i[u]&&(p+="&"+encodeURIComponent(u)+"="+encodeURIComponent(i[u]));p+="&callback="+s,l.src=n+p,document.head.appendChild(l)}else a(null);function f(e){if(!c){c=!0,d&&(clearTimeout(d),d=null),window[s]=function(){};try{delete window[s]}catch(e){}l.parentNode&&l.parentNode.removeChild(l),a(e)}}}function s(t,i,a){var r=Object.assign({type:"cell",cell_action:t},i||{});if(window.PF&&e.authPost)e.authPost(n,r,a);else try{fetch(n,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)}).then(function(e){return e.json()}).then(function(e){o(e)}).catch(function(){o(null)})}catch(e){o(null)}function o(e){try{a(e||{ok:!1,err:"Network error."})}catch(e){}}}var l=[["labor","Labor"],["housing","Housing"],["healthcare","Healthcare"],["climate","Climate"],["racial-justice","Racial Justice"],["lgbtq","LGBTQ+"],["immigration","Immigration"],["voting-rights","Voting Rights"],["mutual-aid","Mutual Aid"],["anti-war","Anti-War"],["education","Education"],["reproductive-rights","Reproductive Rights"],["criminal-justice","Criminal Justice"],["disability-rights","Disability Rights"],["indigenous-rights","Indigenous Rights"],["digital-rights","Digital Rights"]],c=[["meme-warfare","Meme Warfare"],["earnest-organizers","Earnest Organizers"],["chaos-crew","Chaos Crew"],["night-owls","Night Owls"],["disciplined","Disciplined"],["welcoming","Welcoming"],["debate-pit","Debate Pit"],["artists","Artists"],["data-nerds","Data Nerds"],["street-team","Street Team"],["book-club","Book-Club Energy"],["hype-squad","Hype Squad"]],d=[["propaganda","Propaganda"],["data-collection","Data Collection"],["recruiting","Recruiting"],["local-action","Local Action"],["research","Research"]],p=[["daily","Daily"],["few-weekly","A few times a week"],["weekly","Weekly"],["biweekly","Every two weeks"],["monthly","Monthly"],["adhoc","Whenever it matters"]],u=[["open","Open — anyone can find the code and wire in"],["invite","Invite only — the code stays with the founder"],["application","Application — the founder reviews every request"]],f=[["","Any activity"],["NEW","New cells"],["BLAZING","Blazing"],["ACTIVE","Active"],["STEADY","Steady"],["DORMANT","Dormant"]],h=[["activity","Sort: activity"],["newest","Sort: newest"],["streak","Sort: streak"],["members","Sort: members"]],m={NEW:"NEW",BLAZING:"BLAZING",ACTIVE:"ACTIVE",STEADY:"STEADY",DORMANT:"DORMANT"},v=[{primary:"#c1121f",bg:"#0d0d0d",box:"#141010",cream:"#f5ead6",muted:"#c9bfa8"},{primary:"#e07a1f",bg:"#0d0b08",box:"#171009",cream:"#f5ead6",muted:"#c9b190"},{primary:"#8f0f1e",bg:"#0a0a0a",box:"#120a0a",cream:"#e8dcc8",muted:"#b0a48e"},{primary:"#ff2b2b",bg:"#080808",box:"#140b0b",cream:"#f5ead6",muted:"#c9bfa8"},{primary:"#b34a1f",bg:"#0c0a09",box:"#151010",cream:"#efe6d0",muted:"#bfae94"},{primary:"#d4a017",bg:"#0d0d0c",box:"#141310",cream:"#f5ead6",muted:"#c9bd9a"},{primary:"#dc143c",bg:"#0b0b0b",box:"#130d0f",cream:"#f5ead6",muted:"#c4b3a8"},{primary:"#ff5a1f",bg:"#0d0d0d",box:"#16100c",cream:"#fff3e0",muted:"#cbb79e"}];function g(e,t){if(e){e.innerHTML="";var n=function(e){var t=e&&null!=e.palette?Number(e.palette):-1;if(t>=0&&t<8)return v[t];var n,i=String(e&&(e.id||e.name)||"cell"),a=5381;for(n=0;n<i.length;n++)a=(a<<5)+a+i.charCodeAt(n)>>>0;return v[a%v.length]}(t),i=document.createElement("canvas");i.width=1080,i.height=1350;var r=i.getContext("2d");if(r){r.fillStyle=n.bg,r.fillRect(0,0,1080,1350),r.strokeStyle=n.primary,r.lineWidth=14,r.strokeRect(20,20,1040,1310),r.strokeStyle=n.cream,r.lineWidth=3,r.strokeRect(44,44,992,1262);var o=130;f("★ THE PROPAGANDA FACTORY ★",o,"700 32px Arial,sans-serif",n.primary),o+=84,h(String(t&&t.name||"MY CELL").toUpperCase(),'900 84px "Arial Black",Arial,sans-serif',900,2).forEach(function(e){f(e,o,'900 84px "Arial Black",Arial,sans-serif',n.primary),o+=98}),o+=10;var s=String(t&&t.motto||"").trim();s&&(h("“"+s+"”","italic 700 40px Arial,sans-serif",880,2).forEach(function(e){f(e,o,"italic 700 40px Arial,sans-serif",n.cream),o+=56}),o+=20);var l=String(t&&t.activity||"").toUpperCase();l&&(f("⚡ "+l+" ⚡",o,'900 40px "Arial Black",Arial,sans-serif',n.primary),o+=70);var c=(t&&t.causes||[]).map(function(e){return"string"==typeof e?e:e.label||e.key||""}).filter(Boolean).slice(0,3);c.length&&(f(c.join(" · ").toUpperCase(),o,"700 34px Arial,sans-serif",n.muted),o+=60);var d=String(t&&t.state||"").toUpperCase();d&&(f("OPERATING IN "+d,o,"700 34px Arial,sans-serif",n.muted),o+=60);try{window.PFShare&&PFShare.stampCallsign&&PFShare.stampCallsign(i)}catch(e){}i.style.cssText="max-width:100%;height:auto;border:2px solid "+n.primary,e.appendChild(i);var p=document.createElement("button");p.className="id-btn sm",p.style.marginTop="8px",p.textContent="DOWNLOAD BANNER",p.addEventListener("click",function(){try{var e=document.createElement("canvas");e.width=1080,e.height=1350,e.getContext("2d").drawImage(i,0,0);try{window.PFShare&&PFShare.stampCallsign&&PFShare.stampCallsign(e)}catch(e){}var n=document.createElement("a");n.href=e.toDataURL("image/png"),n.download="cell-banner-"+String(t&&t.name||"cell").toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png",document.body.appendChild(n),n.click(),n.remove()}catch(e){a("Banner download failed on this browser.")}}),e.appendChild(p);var u=document.createElement("button");u.className="id-btn sm",u.style.marginTop="8px",u.style.marginLeft="8px",u.textContent="SHARE BANNER",u.addEventListener("click",function(){try{var e=document.createElement("canvas");e.width=1080,e.height=1350,e.getContext("2d").drawImage(i,0,0);try{window.PFShare&&PFShare.stampCallsign&&PFShare.stampCallsign(e)}catch(e){}window.PFShare&&PFShare.shareImage?PFShare.shareImage(e,"cell-identity-card.png","My Cell Identity","cell-identity",{link:"/cells"}):a("Sharing is warming up — use DOWNLOAD BANNER for now.")}catch(e){a("Share failed — use DOWNLOAD BANNER instead.")}}),e.appendChild(u)}}function f(e,t,n,i){r.font=n,r.fillStyle=i,r.textAlign="center",r.fillText(e,540,t)}function h(e,t,n,i){r.font=t,r.textAlign="center";var a=String(e||"").split(/\s+/),o=[],s="";return a.forEach(function(e){var t=s?s+" "+e:e;r.measureText(t).width>n&&s?(o.push(s),s=e):s=t}),s&&o.push(s),o.slice(0,i||2)}}function b(e,t){return e.map(function(e){return'<option value="'+i(e[0])+'"'+(String(t||"")===e[0]?" selected":"")+">"+i(e[1])+"</option>"}).join("")}function w(e,t){var n=r();o("cell_applications_list",{cell_id:e,callsign:n.callsign,device:n.device},function(e){t(e||{ok:!1,err:"Network error."})})}function y(t,n,i,a){var o=r(),l={callsign:o.callsign,device:o.device,cell_id:t,target:n,approve:i?"1":"0"};try{var c=window.PF&&e.getAuthSecret?e.getAuthSecret():"";c&&(l.auth_secret=c)}catch(e){}s("cell_application_review",l,function(e){a(e||{ok:!1,err:"Network error."})})}function x(e){var t='<div class="id-apprev">';return(e=e||[]).length?(e.forEach(function(e){var n=String(e&&e.callsign||""),a=String(e&&e.note||""),r=function(e){try{var t=new Date(Number(e)||0);return t&&t.getTime()?t.toLocaleString():""}catch(e){return""}}(e&&e.ts);t+='<div class="id-approw"><span class="id-appwho"><b>'+i(n)+"</b>"+(r?'<span class="id-hint">'+i(r)+"</span>":"")+"</span>"+(a?'<div class="id-appnote">'+i(a)+"</div>":"")+'<div class="id-approwbtns"><button type="button" class="id-btn sm go" data-idapprove="'+i(n)+'">APPROVE</button><button type="button" class="id-btn sm ghost" data-iddeny="'+i(n)+'">DENY</button></div></div>'}),t+="</div>"):t+='<div class="id-hint">No pending applications.</div></div>'}if(t&&"undefined"!=typeof document&&!document.getElementById("pf-cell-identity-css"))try{var k=document.createElement("style");k.id="pf-cell-identity-css",k.textContent=".id-wiz{border:1px solid #333;border-radius:8px;padding:14px;background:#0d0d0d;}.id-steps{display:flex;gap:6px;margin-bottom:12px;}.id-dot{width:26px;height:26px;border-radius:50%;border:1px solid #555;display:flex;align-items:center;justify-content:center;font-size:12px;color:#888;}.id-dot.on{border-color:#c1121f;color:#f5ead6;font-weight:bold;}.id-dot.done{border-color:#c1121f;background:#c1121f;color:#fff;}.id-wiz h4{margin:4px 0 10px;color:#f5ead6;}.id-sub{margin:12px 0 6px;font-weight:bold;color:#c9bfa8;font-size:13px;}.id-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}.id-chip{border:1px solid #555;background:#141414;color:#f5ead6;border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;}.id-chip.on{border-color:#c1121f;background:#c1121f;color:#fff;}.id-hint{font-size:12px;color:#888;margin:4px 0 8px;}.id-in,.id-sel{display:block;width:100%;box-sizing:border-box;margin:6px 0;padding:9px;border:1px solid #444;border-radius:6px;background:#141414;color:#f5ead6;font-size:14px;}.id-in.sm,.id-sel.sm{width:auto;display:inline-block;margin:2px;padding:7px;font-size:13px;}textarea.id-in{resize:vertical;}.id-radio{display:flex;gap:8px;align-items:flex-start;margin:8px 0;padding:8px;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:13px;color:#f5ead6;}.id-pals{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;}.id-pal{width:44px;height:44px;border-radius:8px;border:2px solid #444;cursor:pointer;}.id-pal.on{border-color:#f5ead6;}.id-review{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;font-size:14px;color:#f5ead6;}.id-review div{margin:4px 0;}.id-motto{font-style:italic;color:#c9bfa8;}.id-charter{border-left:3px solid #c1121f;padding-left:8px;color:#c9bfa8;}.id-err{color:#ff6b6b;font-size:13px;margin:8px 0;}.id-nav{display:flex;gap:8px;margin-top:12px;}.id-btn{background:#c1121f;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-weight:bold;cursor:pointer;font-size:14px;}.id-btn.sm{padding:6px 12px;font-size:12px;}.id-btn.ghost{background:transparent;border:1px solid #555;color:#f5ead6;}.id-btn.go{background:#1f7a33;}.id-btn:disabled{opacity:.45;cursor:not-allowed;}.id-backfill{border:1px dashed #c1121f;border-radius:8px;padding:12px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;background:#140b0b;}.id-backfill b{color:#f5ead6;}.id-filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center;}.id-cardid{margin-top:8px;}.id-tags{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0;}.id-tag{font-size:11px;border-radius:12px;padding:3px 9px;border:1px solid #555;color:#c9bfa8;}.id-tag.cause{border-color:#c1121f;color:#f5ead6;}.id-tag.vibe{border-color:#8f6fd8;color:#d9ccff;}.id-tag.spec{border-color:#c9a227;color:#f5d76e;}.id-why{font-size:13px;color:#f5ead6;margin:6px 0;font-style:italic;}.id-why.big{font-size:15px;}.id-meta{display:flex;gap:6px;margin:4px 0;}.id-act{font-size:11px;font-weight:bold;color:#1f7a33;border:1px solid #1f7a33;border-radius:4px;padding:2px 7px;}.id-entry{font-size:11px;color:#888;border:1px solid #444;border-radius:4px;padding:2px 7px;}.id-badge{font-size:11px;color:#888;}.id-badge.dim{opacity:.6;}.id-incomplete{font-size:12px;color:#888;border:1px dashed #444;border-radius:6px;padding:8px;margin:6px 0;}.id-apprev{margin-top:8px;}.id-approw{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;background:#111;}.id-appwho{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#f5ead6;font-size:14px;}.id-appnote{color:#c9bfa8;font-size:13px;margin:6px 0;font-style:italic;}.id-approwbtns{display:flex;gap:8px;margin-top:8px;}.id-detail{margin-top:10px;}.id-rows{margin:8px 0;}.id-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #222;color:#c9bfa8;}.id-row b{color:#f5ead6;}.id-trophies{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}.id-trophy{font-size:12px;border:1px solid #c9a227;border-radius:12px;padding:3px 10px;color:#f5d76e;}",document.head.appendChild(k)}catch(e){}window.PFCellIdentity={enabled:function(){return t},SETS:{CAUSES:l,VIBES:c,SPECIALTIES:d,CADENCES:p,ENTRIES:u,ACTIVITIES:f,SORTS:h},PALETTES:v,mountWizard:function(n,o){if(!t||!n)return!1;var f="edit"===(o=o||{}).mode?"edit":"create",h={step:1,name:"",state:"",causes:[],vibes:[],customVibe:"",specialties:[],cadence:"",entry:"",charter:"",motto:"",region:"",palette:-1,err:"",busy:!1};function m(e,t,n,a){return'<div class="id-chips">'+e.map(function(e){var n=t.indexOf(e[0])>=0;return'<button type="button" class="id-chip'+(n?" on":"")+'" data-idk="'+a+'" data-idv="'+i(e[0])+'" aria-pressed="'+n+'">'+i(e[1])+"</button>"}).join("")+'</div><div class="id-hint">Pick up to '+n+".</div>"}function b(){return 1===h.step?h.name.trim().length>=3:2===h.step?h.causes.length>=1:3===h.step?h.vibes.length>=1||h.customVibe.trim().length>=1:4!==h.step||h.specialties.length>=1&&!!h.cadence&&!!h.entry}function w(){var e='<div class="id-wiz">';if(e+='<div class="id-steps">'+[1,2,3,4,5,6].map(function(e){return'<span class="id-dot'+(e===h.step?" on":"")+(e<h.step?" done":"")+'">'+e+"</span>"}).join("")+"</div>",1===h.step?e+="<h4>"+("edit"===f?"Cell basics":"Name your cell")+'</h4><input class="id-in" id="idName" maxlength="24" placeholder="CELL NAME (3-24 characters)" value="'+i(h.name)+'" autocomplete="off"><select class="id-sel" id="idState" aria-label="STATE AFFILIATION">'+(o.stateOptsHTML||"")+'</select><div class="id-hint">State affiliation unlocks location tasks and policymaker bounties.</div>':2===h.step?e+="<h4>What does this cell fight for?</h4>"+m(l,h.causes,3,"causes")+'<div class="id-hint">Pick the causes recruits will find you by.</div>':3===h.step?e+="<h4>What is the vibe?</h4>"+m(c,h.vibes,3,"vibes")+'<input class="id-in" id="idCustomVibe" maxlength="24" placeholder="Or name your own vibe (optional)" value="'+i(h.customVibe)+'" autocomplete="off">':4===h.step?e+='<h4>How does this cell work?</h4><div class="id-sub">Specialty — pick up to 2</div>'+m(d,h.specialties,2,"specialties")+'<div class="id-sub">Meeting cadence</div><div class="id-chips">'+p.map(function(e){return'<button type="button" class="id-chip'+(h.cadence===e[0]?" on":"")+'" data-idk="cadence" data-idv="'+i(e[0])+'">'+i(e[1])+"</button>"}).join("")+'</div><div class="id-sub">Entry style</div>'+u.map(function(e){return'<label class="id-radio"><input type="radio" name="identry" value="'+i(e[0])+'"'+(h.entry===e[0]?" checked":"")+"><span><b>"+i(e[1].split(" — ")[0])+"</b> — "+i(e[1].split(" — ")[1]||"")+"</span></label>"}).join(""):5===h.step?e+='<h4>Give it a voice and a look</h4><textarea class="id-in" id="idCharter" maxlength="280" rows="3" placeholder="Charter — what this cell stands for (optional, 280 max)">'+i(h.charter)+'</textarea><input class="id-in" id="idMotto" maxlength="80" placeholder="Motto — the line on the banner (optional)" value="'+i(h.motto)+'" autocomplete="off"><input class="id-in" id="idRegion" maxlength="40" placeholder="Region — coarse only, e.g. Gulf Coast (optional)" value="'+i(h.region)+'" autocomplete="off"><div class="id-sub">Banner colors — pick a look</div><div class="id-pals">'+v.map(function(e,t){return'<button type="button" class="id-pal'+(h.palette===t?" on":"")+'" data-idpal="'+t+'" title="Look '+(t+1)+'" style="background:linear-gradient(135deg,'+e.primary+" 50%,"+e.bg+' 50%)"></button>'}).join("")+"</div>":e+="<h4>"+("edit"===f?"Review your identity":"Review your cell")+'</h4><div class="id-review"><div><b>'+i(h.name||"(unnamed)")+"</b>"+(h.state?" · "+i(h.state):"")+"</div><div>"+h.causes.map(function(e){return y(l,e)}).join(", ")+"</div><div>"+h.vibes.map(function(e){return y(c,e)}).join(", ")+(h.customVibe?" · “"+i(h.customVibe)+"”":"")+"</div><div>"+h.specialties.map(function(e){return y(d,e)}).join(", ")+" · "+i(y(p,h.cadence))+" · "+i(y(u,h.entry))+"</div>"+(h.motto?'<div class="id-motto">“'+i(h.motto)+"”</div>":"")+(h.charter?'<div class="id-charter">'+i(h.charter)+"</div>":"")+'</div><div id="idKitPrev"></div>',h.err&&(e+='<div class="id-err">'+i(h.err)+"</div>"),e+='<div class="id-nav">',h.step>1&&(e+='<button type="button" class="id-btn ghost" data-idnav="back">BACK</button>'),h.step<6?e+='<button type="button" class="id-btn" data-idnav="next"'+(b()?"":" disabled")+">NEXT</button>":e+='<button type="button" class="id-btn go" data-idnav="submit"'+(h.busy?" disabled":"")+">"+(h.busy?"WORKING…":"edit"===f?"SAVE IDENTITY":"FORM CELL")+"</button>",e+="</div></div>",n.innerHTML=e,6===h.step){var t=n.querySelector("#idKitPrev");t&&g(t,{id:o.cellId||"preview",name:h.name||"YOUR CELL",motto:h.motto,palette:h.palette,causes:h.causes.map(function(e){return y(l,e)}),activity:"NEW",state:h.state})}!function(){n.querySelectorAll("[data-idk]").forEach(function(e){e.addEventListener("click",function(){var t=e.getAttribute("data-idk"),n=e.getAttribute("data-idv"),i="causes"===t||"vibes"===t?3:"specialties"===t?2:1;if("cadence"===t)return h.cadence=h.cadence===n?"":n,void w();var r=h[t],o=r.indexOf(n);if(o>=0)r.splice(o,1);else{if(r.length>=i)return void a("Pick up to "+i+".");r.push(n)}w()})}),n.querySelectorAll("[data-idpal]").forEach(function(e){e.addEventListener("click",function(){h.palette=Number(e.getAttribute("data-idpal")),w()})}),["idName","idCustomVibe","idCharter","idMotto","idRegion"].forEach(function(e){var t=n.querySelector("#"+e);t&&t.addEventListener("input",function(){x(),k()})});var e=n.querySelector("#idState");e&&e.addEventListener("change",function(){x(),k()});n.querySelectorAll('input[name="identry"]').forEach(function(e){e.addEventListener("change",function(){x(),k()})}),n.querySelectorAll("[data-idnav]").forEach(function(e){e.addEventListener("click",function(){var t=e.getAttribute("data-idnav");if("back"===t&&h.step>1)x(),h.err="",h.step--,w();else if("next"===t){if(x(),!b())return h.err="Define this step to continue — a cell with no identity can't form.",void w();h.err="",h.step++,w()}else"submit"===t&&function(){if(x(),"create"===f&&!(h.name.trim().length>=3&&h.causes.length&&(h.vibes.length||h.customVibe.trim())&&h.specialties.length&&h.cadence&&h.entry))return h.err="Define the full identity to form the cell.",void w();if(h.busy=!0,h.err="",w(),!r().callsign)return h.busy=!1,h.err="Claim a callsign first (Daily Orders), then form your cell.",void w();if("edit"===f){var e=E();e.cell_id=o.cellId,s("cell_identity_set",e,function(e){if(h.busy=!1,!e||!e.ok)return h.err=e&&e.err||"Network error.",void w();a("Cell identity saved.");try{document.dispatchEvent(new CustomEvent("pf-cell-identity-saved",{detail:{cellId:o.cellId}}))}catch(e){}o.onDone&&o.onDone(e.identity)})}else s("cell_create",E(),function(e){if(h.busy=!1,!e||!e.ok)return h.err=e&&e.err||"Network error.",void w();a("Cell "+(e.cell&&e.cell.name)+" formed. Recruit your four.");try{document.dispatchEvent(new CustomEvent("pf-cell-formed",{detail:{cell:e.cell||null}}))}catch(e){}o.onDone&&o.onDone(e.cell)})}()})})}();try{6===h.step&&window.PFShareEverywhere&&PFShareEverywhere.bar(n,"cell-identity",{link:"/cells"})}catch(e){}}function y(e,t){for(var n=0;n<e.length;n++)if(e[n][0]===t)return e[n][1];return t}function x(){var e=function(e){var t=n.querySelector("#"+e);return t?String(t.value||""):""};if(1===h.step){h.name=e("idName");var t=n.querySelector("#idState");h.state=t?String(t.value||""):""}if(3===h.step&&(h.customVibe=e("idCustomVibe")),5===h.step&&(h.charter=e("idCharter"),h.motto=e("idMotto"),h.region=e("idRegion")),4===h.step){var i=n.querySelector('input[name="identry"]:checked');i&&(h.entry=i.value)}}function k(){var e=n.querySelector('[data-idnav="next"]');e&&(b()?e.removeAttribute("disabled"):e.setAttribute("disabled",""))}function E(){var t=r(),n={callsign:t.callsign,device:t.device,name:h.name.trim(),state:h.state,causes:h.causes.slice(),vibes:h.vibes.slice(),specialties:h.specialties.slice(),meeting_cadence:h.cadence,entry_style:h.entry,charter:h.charter.trim(),motto:h.motto.trim(),region:h.region.trim(),palette:h.palette};h.customVibe.trim()&&(n.custom_vibe=h.customVibe.trim());try{var i=window.PF&&e.getAuthSecret?e.getAuthSecret():"";i&&(n.auth_secret=i)}catch(e){}return n}return o.initial&&Object.keys(o.initial).forEach(function(e){void 0!==h[e]&&(h[e]=o.initial[e])}),w(),!0},mountKit:function(e,n){return!(!t||!e)&&(g(e,n||{}),!0)},paintKit:g,backfillBannerHTML:function(e){return'<div class="id-backfill"><div><b>YOUR CELL HAS NO IDENTITY YET</b><div class="id-hint">Recruits can\'t find what they can\'t see. Define '+i(e||"your cell")+'\'s causes, vibe and colors — two minutes.</div></div><button type="button" class="id-btn sm" data-idbackfill="1">DEFINE IT</button></div>'},filterRowHTML:function(e){return'<div class="id-filters"><input class="id-in sm" id="idFQ" maxlength="32" placeholder="Search by name" value="'+i((e=e||{}).q||"")+'"><select class="id-sel sm" id="idFCause" aria-label="Filter by cause"><option value="">All causes</option>'+b(l,e.cause)+'</select><select class="id-sel sm" id="idFVibe" aria-label="Filter by vibe"><option value="">All vibes</option>'+b(c,e.vibe)+'</select><select class="id-sel sm" id="idFSpec" aria-label="Filter by specialty"><option value="">All specialties</option>'+b(d,e.specialty)+'</select><select class="id-sel sm" id="idFEntry" aria-label="Filter by entry style"><option value="">Any entry</option>'+b(u.map(function(e){return[e[0],e[0].charAt(0).toUpperCase()+e[0].slice(1)]}),e.entry)+'</select><select class="id-sel sm" id="idFAct" aria-label="Filter by activity">'+b(f,e.activity)+'</select><select class="id-sel sm" id="idFSort" aria-label="Sort">'+b(h,e.sort||"activity")+'</select><button type="button" class="id-btn sm" id="idFGo">FILTER</button></div>'},readFilterRow:function(e){function t(t){var n=e.querySelector("#"+t);return n?String(n.value||""):""}return{q:t("idFQ"),cause:t("idFCause"),vibe:t("idFVibe"),specialty:t("idFSpec"),entry:t("idFEntry"),activity:t("idFAct"),sort:t("idFSort")}},cardIdentityHTML:function(e){if(!(e=e||{}).profile_complete)return"<div class=\"id-incomplete\">PROFILE INCOMPLETE — this cell's identity hasn't been defined yet.</div>";var t='<div class="id-cardid">',n=[];(e.causes||[]).forEach(function(e){n.push('<span class="id-tag cause">'+i(e)+"</span>")}),(e.vibes||[]).forEach(function(e){n.push('<span class="id-tag vibe">'+i(e)+"</span>")}),(e.specialties||[]).forEach(function(e){n.push('<span class="id-tag spec">'+i(e)+"</span>")}),n.length&&(t+='<div class="id-tags">'+n.join("")+"</div>"),e.why&&(t+='<div class="id-why">'+i(e.why)+"</div>");var a=[];return e.activity&&m[e.activity]&&a.push('<span class="id-act">'+i(m[e.activity])+"</span>"),e.entry_style&&a.push('<span class="id-entry">'+i(String(e.entry_style).charAt(0).toUpperCase()+String(e.entry_style).slice(1))+"</span>"),a.length&&(t+='<div class="id-meta">'+a.join(" ")+"</div>"),t+="</div>"},joinAffordanceHTML:function(e){return e=e||{},(Number(e.member_count)||0)>=5?'<span class="id-badge dim">FULL</span>':"application"===e.entry_style?'<button type="button" class="id-btn sm" data-idapply="'+i(e.id)+'">APPLY</button>':e.invite_code?'<button type="button" class="id-btn sm" data-idjoin="'+i(e.invite_code)+'">JOIN</button>':'<span class="id-hint">invite only</span>'},detailIdentityHTML:function(e,t,n){var a='<div class="id-detail">';if(!t||!t.profile_complete)return a+='<div class="id-incomplete">PROFILE INCOMPLETE — '+(n?"define it so recruits can find this cell.":"this cell's identity hasn't been defined yet.")+"</div>",n&&(a+='<button type="button" class="id-btn sm" data-idbackfill="1">DEFINE IT</button>'),a+="</div>";var r=[];(t.causes||[]).forEach(function(e){r.push('<span class="id-tag cause">'+i(e.label||e)+"</span>")}),(t.vibes||[]).forEach(function(e){r.push('<span class="id-tag vibe">'+i(e.label||e)+"</span>")}),(t.specialties||[]).forEach(function(e){r.push('<span class="id-tag spec">'+i(e.label||e)+"</span>")}),a+='<div class="id-tags">'+r.join("")+"</div>",t.why&&(a+='<div class="id-why big">'+i(t.why)+"</div>");var o=[];return t.cadence_label&&o.push(["Meets",t.cadence_label]),t.entry_label&&o.push(["Entry",t.entry_label]),t.region&&o.push(["Region",t.region+" (coarse)"]),t.size_band&&o.push(["Size",t.size_band]),t.activity&&o.push(["Activity",t.activity+" (computed from real signals)"]),o.length&&(a+='<div class="id-rows">'+o.map(function(e){return'<div class="id-row"><span>'+i(e[0])+"</span><b>"+i(e[1])+"</b></div>"}).join("")+"</div>"),t.charter&&(a+='<div class="id-charter">'+i(t.charter)+"</div>"),t.trophies&&t.trophies.length&&(a+='<div class="id-trophies">'+t.trophies.map(function(e){return'<span class="id-trophy" title="'+i(e.detail||"")+'">🏆 '+i(e.label||"")+"</span>"}).join("")+"</div>"),a+='<div class="id-sub">Cell banner</div><div id="idKitHost"></div>',n&&(a+='<div style="margin-top:8px"><button type="button" class="id-btn sm" data-idbackfill="1">EDIT IDENTITY</button></div>'),a+="</div>"},loadIdentity:function(e,t){o("cell_identity_get",{cell_id:e},function(e){t(e&&e.ok?e.identity:null)})},applyToCell:function(t,n){var i=r();if(i.callsign){var a="";try{a=String(window.prompt("Why do you want in? (optional, 140 max)")||"").slice(0,140)}catch(e){}var o={callsign:i.callsign,device:i.device,cell_id:t,note:a};try{var l=window.PF&&e.getAuthSecret?e.getAuthSecret():"";l&&(o.auth_secret=l)}catch(e){}s("cell_apply",o,function(e){n(e||{ok:!1,err:"Network error."})})}else n({ok:!1,err:"Claim a callsign first."})},listApplications:w,reviewApplication:y,applicationReviewHTML:x,mountApplicationReview:function(e,t,n){if(n=n||{},!e)return!1;function r(){w(t,function(t){t&&t.ok?e.innerHTML=x(t.applications||[]):e.innerHTML='<div class="id-err">'+i(t&&t.err||"Couldn't load applications.")+"</div>"})}return e.innerHTML='<div class="id-hint">Loading applications&hellip;</div>',e.onclick=function(e){var i=e&&e.target?e.target:null;if(i&&i.getAttribute){var o=i.getAttribute("data-idapprove"),s=i.getAttribute("data-iddeny");if(o||s){var l=o||s,c=!!o;try{i.disabled=!0}catch(e){}y(t,l,c,function(e){if(e&&e.ok)a(c?"Approved "+l+".":"Denied "+l+"."),r();else{a(e&&e.err||"Review failed.");try{i.disabled=!1}catch(e){}}if(n.onChange)try{n.onChange(e)}catch(e){}})}}},r(),!0},esc:i,toast:a}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("cellhq")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var n=document.getElementById("pf-cell-hq");if(!n){var i=document.getElementById("pf-war-card");if(!i||!i.parentNode)return;(n=document.createElement("div")).id="pf-cell-hq",i.parentNode.insertBefore(n,i.nextSibling)}try{window.PF&&e.wins&&"function"==typeof e.wins.injectCellFeed&&e.wins.injectCellFeed(n)}catch(e){}var a=window.PF_BACKEND_URL,r=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]],o={cell_create:1,cell_join:1,cell_checkin:1,cell_cover:1,cell_leave:1,cell_rename:1,cell_update:1,cell_promote:1,cell_bounty_claim:1,cell_contribute:1,propbounty_post:1,propbounty_submit:1,propbounty_vote:1,propbounty_settle:1,propbounty_cancel:1};n.innerHTML='<style>#pf-cell-hq{max-width:860px;margin:0 auto;padding:8px 4px;font-family:inherit}.hq-head{border:3px solid #c1121f;background:#0a0a0a;color:#f5f0e6;padding:14px 16px;margin-bottom:10px}.hq-head h2{margin:0 0 4px;font-size:22px;letter-spacing:1px}.hq-tag{font-size:13px;opacity:.85}.hq-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}.hq-tab{flex:0 0 auto;background:#141414;color:#f5f0e6;border:2px solid #3a3a3a;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}.hq-tab.on{background:#c1121f;border-color:#c1121f}.hq-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}.hq-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}.hq-card h3{margin:0 0 6px;font-size:17px}.hq-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.hq-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}.hq-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:9px 14px;font-size:14px;cursor:pointer;margin:4px 4px 4px 0}.hq-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}.hq-btn.sm{padding:6px 10px;font-size:12px}.hq-btn:disabled{opacity:.45;cursor:default}.hq-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}.hq-load{padding:22px;text-align:center;opacity:.75;font-style:italic}.hq-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}.hq-err .hq-btn{margin-top:8px}.hq-mem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:14px}.hq-mem:last-child{border-bottom:0}.hq-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}.hq-badge.dim{background:#333}.hq-state{font-size:11px;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}.hq-stag{font-size:10px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}.hq-sel{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%;min-height:44px}.hq-bar{height:10px;background:#222;margin:4px 0 10px;position:relative}.hq-bar>div{height:10px;background:#c1121f}.hq-winner{border-color:#c1121f;background:#180a0a}.hq-strike-pol{border-color:#c1121f;background:#1a0505}.hq-badge.gold{background:#8a6d1f;color:#fff;border:1px solid #d4af37}.hq-badge.plain{margin-left:0;margin-right:6px}.hq-btn.hq-btn44{min-height:44px;display:inline-flex;align-items:center;padding:4px 18px;line-height:1.3}.hq-strike-sum{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px}.hq-order-t{margin:8px 0 4px;font-size:16px}.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}.hq-rally{border-color:#c1121f}.hq-rallyitem{border:2px solid #2e2e2e;background:#0d0d0d;padding:10px;margin:8px 0}.hq-rallytitle{font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}.hq-joiner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13.5px}.hq-in.linklike{flex:1;min-width:0;font-size:12px;font-family:monospace,monospace}@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}</style><div class="hq-head"><h2>&#9876; CELL HQ</h2><div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div><div class="hq-tag" style="margin-top:4px;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">WAR CALENDAR</a> — mobilizations, draws, and deadlines.</div></div><div class="hq-tabs" id="hqTabs"><button class="hq-tab on" data-tab="mine">MY CELLS</button><button class="hq-tab" data-tab="war">CELL WAR</button><button class="hq-tab" data-tab="browse">BROWSE</button><button class="hq-tab" data-tab="treasury">TREASURY</button></div><div class="hq-pane" id="hqPane"><div class="hq-load">Raising the cell network&hellip;</div></div>';var s={tab:"mine",mine:null,detail:null,detailPrestige:null,detailHealth:null,war:null,history:null,board:null,links:null,searchQ:"",searchState:"",searchRes:null,loading:{}},l={cid:"",j:null};n.querySelectorAll(".hq-tab").forEach(function(e){e.addEventListener("click",function(){n.querySelectorAll(".hq-tab").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),s.tab=e.getAttribute("data-tab"),M()})});var c={};n.addEventListener("click",function(t){var i=t.target;if(window.PFCellIdentity&&window.PFCellIdentity.enabled()&&i.closest){var r=i.closest("[data-idjoin],[data-idapply]");if(r&&n.contains(r)){var o=r.getAttribute("data-idjoin"),l=r.getAttribute("data-idapply");if(o){if(!g().callsign)return void v("Claim a callsign first.");try{r.disabled=!0}catch(e){}b("cell_join",y({code:String(o).toUpperCase().trim()}),function(e){try{r.disabled=!1}catch(e){}e&&e.ok?(v("Welcome to "+(e.cell&&e.cell.name?e.cell.name:"the cell")+"."),ee("mine")):v(N(e))})}else l&&window.PFCellIdentity.applyToCell(l,function(e){e&&e.ok?v("Application sent. The founder reviews every request."):v(N(e))});return}}if(i.closest){var d=i.closest("[data-rally]");if(d&&n.contains(d)){var p=d.getAttribute("data-rid"),u=d.getAttribute("data-rally");if("copy"===u){var f=c[String(p)];return void(f&&function(e){var t="🎯 RALLY CALL: "+String(e.title||"")+"\n"+String(e.body||"")+"\nTake it to your cell → https://www.mtcstw.com"+String(e.link||"/sick-left-radicals");function n(){v("Rally copied — take it to your cell.")}function i(){try{var e=document.createElement("textarea");e.value=t,e.style.position="fixed",e.style.opacity="0",document.body.appendChild(e),e.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(e),n()}catch(e){}}try{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t).then(n,i):i()}catch(e){i()}}(f))}if("taken"===u){try{d.disabled=!0}catch(e){}return void function(t,n,i){var r=g();if(!r.callsign)return v("Claim a callsign first."),void i(!1);var o="";try{o=window.PF&&e.getAuthSecret?e.getAuthSecret():""}catch(e){}var s={type:"creatorfeed",cf_action:"rally_act",callsign:r.callsign,auth_secret:o,id:t,op:n};function l(e){try{i(e&&e.ok)}catch(e){i(!1)}}if(a)try{fetch(a,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(s)}).then(function(e){return e.json()}).then(l,function(){l(null)})}catch(e){l(null)}else l(null)}(p,"taken",function(e){try{d.disabled=!1}catch(e){}if(e){v("Rally claimed — your cell is on it.");var t=d.closest(".hq-rallyitem");t&&t.parentNode&&t.parentNode.removeChild(t)}else v("The wire fought back. Nothing changed — retry.")})}}}for(;i&&i!==n&&!i.getAttribute("data-hq");)i=i.parentNode;if(i&&i!==n){var h=i.getAttribute("data-hq"),m=i.getAttribute("data-cell"),C=g();if("recruit-copy"===h){var T=document.getElementById("hqRecruitLink"),P=T?String(T.value||""):"";if(!P)return void v("No invite link yet.");var L=function(){v("Invite link copied. Go recruit.")},O=function(){try{if(T.focus(),T.select(),document.execCommand("copy"))return void L()}catch(e){}v("Copy this link: "+P)};try{navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(P).then(L,O):O()}catch(e){O()}}else if("back"===h)ee("mine");else if("detail"===h)s.detail=m,s.detailPrestige=null,s.detailHealth=null,s.tab="detail",M();else if("checkin"===h){if(!je())return;Be(!0),b("cell_checkin",y({cell_id:m}),function(e){Be(!1),e&&e.ok?(v("Checked in. Streak holds."),ee("mine")):v(N(e))})}else if("cover"===h){if(!je())return;if(!S("Cover this cellmate's missed check-in? Uses your one weekly cover."))return;Be(!0),b("cell_cover",y({cell_id:m}),function(e){Be(!1),e&&e.ok?(v("Covered. Nobody gets left behind."),ee("mine")):v(N(e))})}else if("strike-reroll"===h){if(!je())return;Be(!0),w("strike_reroll",y({cell_id:m}),function(e){if(Be(!1),e&&e.ok)v("New political strike order issued.");else if(v(N(e)),e&&(e.already_rerolled||e.rerolled_used||/already|r[eé]-roll/i.test(String(e.err||e.error||e.message||""))))return i.disabled=!0,void(i.textContent="RE-ROLLED THIS WEEK");G(n,m,!0)})}else if("strike-forge"===h){if(!je())return;var F={kind:i.getAttribute("data-ekind")||"",id:i.getAttribute("data-eid")||"",title:i.getAttribute("data-etitle")||"",url:i.getAttribute("data-eurl")||""};F.id||(F=null),function(e,t,n,i){var a={v:1,tab:"political",ts:Date.now(),entity:n?{kind:String(n.kind||""),id:String(n.id||""),title:String(n.title||""),url:String(n.url||"")}:null,strike:{cell_id:String(e||""),week_start:String(t||"").slice(0,10)}};try{localStorage.setItem("pf_forge_launch_v1",JSON.stringify(a))}catch(e){}try{document.dispatchEvent(new CustomEvent("pf-forge-launch",{detail:a}))}catch(e){}var r=U(i);"/political-hq"===r&&(r="/create#pf-poster");try{window.location.href=r}catch(e){}}(m,i.getAttribute("data-week")||"",F,"/create#pf-poster")}else if("bounties"===h){if(!je())return;Be(!0),b("cell_bounty_claim",y({}),function(e){Be(!1),e&&e.ok?(v("Bounties claimed: +"+(e.xp||0)+" XP."),ee("mine")):v(N(e))})}else if("warchest"===h||"warchest-custom"===h){if(!je())return;var D=s.mine&&s.mine.cell&&s.mine.cell.id||"";if(!D)return void v("Join a cell first.");var z=Number("warchest"===h?i.getAttribute("data-amt"):_("hqWarchestCustom"));if(!z||z<10||z>1e4)return void v("Amount must be 10–10000 XP.");if(!confirm("Contribute "+z+" XP to the cell war chest? This is spent, not a loan."))return;Be(!0),b("cell_contribute",y({cell_id:D,xp:z}),function(t){if(Be(!1),t&&t.ok){try{window.PF&&e.debitLocal&&e.debitLocal(null,z)}catch(e){}var n="War chest +"+z+" XP. Total: "+(t.total||0)+"/"+(t.goal||1e3)+".";t.milestone_unlocked&&(n+=" GOAL HIT — +5 XP checkin boost active 24h!"),v(n),s.tab="treasury",M()}else v(N(t))})}else if("dividend-pay"===h){if(!je())return;if(!s.mine||!(s.mine.is_founder||s.mine.is_officer||s.mine.is_treasurer))return void v("Only the founder, officers, and the treasurer can pay dividends.");var j=s.mine&&s.mine.cell&&s.mine.cell.id||"";if(!j)return void v("Join a cell first.");var B=q("hqDivAmt",0);if(!B||B<1)return void v("Enter an XP amount first.");var H=A(B);if(!H)return void v("Amount too small to split across all members.");var W="Pay dividend: "+H.per.toLocaleString()+" XP to each of "+H.n+" members ("+H.total.toLocaleString()+" XP total";if(H.leftover>0&&(W+=", "+H.leftover.toLocaleString()+" XP stays in the treasury"),!S(W+="). Confirm?"))return;Be(!0),x("dividend_pay",{cell_id:j,amount:B},function(e){Be(!1),e&&e.ok?($("hqDivMsg",!0,"Paid "+Number(e.distributed||0).toLocaleString()+" XP — "+Number(e.per_member||0).toLocaleString()+" XP to every member."),v("Dividend paid. "+Number(e.distributed||0).toLocaleString()+" XP out."),s.tab="treasury",M()):$("hqDivMsg",!1,N(e))})}else if("sponsor"===h){if(!je())return;if(!s.mine||!s.mine.is_founder&&!s.mine.is_officer)return void v("Only the founder and officers can sponsor from the treasury.");var X=s.mine&&s.mine.cell&&s.mine.cell.id||"";if(!X)return void v("Join a cell first.");var K=_("hqSpPool"),Y=q("hqSpAmt",0);if(!K)return void v("Pick a cause pool.");if(!Y||Y<1)return void v("Enter an XP amount first.");var V=s.mine.cell&&s.mine.cell.name||"your cell";if(!S("Sponsor "+Y.toLocaleString()+" XP from the "+V+" treasury to this cause? Officer move — spends real cell XP."))return;Be(!0),x("cause_sponsor",{cell_id:X,pool_id:K,amount:Y},function(e){(Be(!1),e&&e.ok)?($("hqSpMsg",!0,e.dup?"Already counted — double-tap ignored.":"Sponsored "+Number(e.amount||Y).toLocaleString()+" XP to "+(e.pool||"the cause")+" as "+(e.cell_name||V)+"."),v("Cause sponsored. The treasury backs the fight."),s.tab="treasury",M()):$("hqSpMsg",!1,N(e))})}else if("create"===h){if(!je())return;var J=_("hqNewName");if(J.length<3)return void v("Cell name needs 3-24 characters.");Be(!0),b("cell_create",y({name:J,state:_("hqNewState")}),function(e){Be(!1),e&&e.ok?(v("Cell founded. Invite code: "+(e.cell&&e.cell.invite_code?e.cell.invite_code:"")),ee("mine")):v(N(e))})}else if("join"===h){if(!je())return;var Q=_("hqJoinCode").toUpperCase();if(!Q)return void v("Enter an invite code.");Be(!0),b("cell_join",y({code:Q}),function(e){Be(!1),e&&e.ok?(v("Welcome to "+(e.cell&&e.cell.name?e.cell.name:"the cell")+"."),ee("mine")):v(N(e))})}else if("join-id"===h){if(!je())return;var te=window.prompt("Enter the invite code for this cell:");if(!te)return;Be(!0),b("cell_join",y({code:String(te).toUpperCase().trim()}),function(e){Be(!1),e&&e.ok?(v("Welcome to "+(e.cell&&e.cell.name?e.cell.name:"the cell")+"."),ee("mine")):v(N(e))})}else if("rename"===h){if(!je())return;var ne=window.prompt("New cell name (3-24 characters):");if(!ne||ne.trim().length<3)return;Be(!0),b("cell_rename",y({cell_id:m,name:ne.trim()}),function(e){Be(!1),e&&e.ok?(v("Cell renamed."),ee("detail")):v(N(e))})}else if("set-state"===h){if(!je())return;var ie=_("hqSetState");Be(!0),b("cell_update",y({cell_id:m,state:ie}),function(e){Be(!1),e&&e.ok?(v("State affiliation updated."),ee("detail")):v(N(e))})}else if("promote"===h){if(!je())return;var ae=i.getAttribute("data-target"),re=window.prompt("Set role for "+ae+' — type "officer", "member", "treasurer", or "warcaller":',"officer");if(!re)return;if("officer"!==(re=re.trim().toLowerCase())&&"member"!==re&&"treasurer"!==re&&"warcaller"!==re)return void v("Role must be officer, member, treasurer, or warcaller.");if(!S("Set "+ae+" as "+re+"?"))return;Be(!0),b("cell_promote",y({cell_id:m,target:ae,role:re}),function(e){Be(!1),e&&e.ok?(v(ae+" is now "+re+"."),s.detailPrestige=null,M()):v(N(e))})}else if("leave"===h){if(!je())return;if(!S("Leave this cell? Your streak with this cell ends here."))return;Be(!0),b("cell_leave",y({cell_id:m}),function(e){Be(!1),e&&e.ok?(v("You left the cell."),ee("mine")):v(N(e))})}else if("search"===h){s.searchQ=_("hqSearch"),s.searchState=_("hqSearchState"),window.PFCellIdentity&&window.PFCellIdentity.enabled()&&(s.idfCause=_("hqIdfCause"),s.idfVibe=_("hqIdfVibe"),s.idfSpec=_("hqIdfSpec"),s.idfEntry=_("hqIdfEntry"),s.idfAct=_("hqIdfAct"),s.idfSort=_("hqIdfSort"));var oe=document.getElementById("hqSearchRes");oe&&(oe.innerHTML=I("Searching&hellip;")),R(function(e){var t=document.getElementById("hqSearchRes");t&&(t.innerHTML=Z(e))})}else if("escrow-create"===h){if(!je())return;var se=_("hqEscTo"),le=q("hqEscAmt"),ce=_("hqEscWhy")||"cell bounty";if(!se)return void $("hqEscMsg",!1,"Pick a member.");if(!le)return void $("hqEscMsg",!1,"Enter an XP amount.");if(!S("Lock "+le+" XP in escrow for "+se+'?\n"'+ce+'"'))return;Be(!0),x("escrow_create",{from_cs:C.callsign,to_cs:se,amount:le,purpose:ce},function(e){Be(!1),e&&e.ok?($("hqEscMsg",!0,"Escrow locked. ID: "+e.id+" — SAVE THIS ID to release or refund."),v("Escrow locked.")):$("hqEscMsg",!1,N(e))})}else if("escrow-release"===h){if(!je())return;var de=_("hqEscId");if(!de)return void $("hqEscMsg",!1,"Enter the escrow ID.");if(!S("RELEASE escrow "+de+" to the recipient? This cannot be undone."))return;Be(!0),x("escrow_release",{escrow_id:de},function(e){Be(!1),e&&e.ok?($("hqEscMsg",!0,"Escrow released."),v("Escrow settled.")):$("hqEscMsg",!1,N(e))})}else if("escrow-refund"===h){if(!je())return;var pe=_("hqEscId");if(!pe)return void $("hqEscMsg",!1,"Enter the escrow ID.");if(!S("REFUND escrow "+pe+" back to the locker? This cannot be undone."))return;Be(!0),x("escrow_refund",{escrow_id:pe},function(e){Be(!1),e&&e.ok?($("hqEscMsg",!0,"Escrow refunded."),v("Escrow refunded.")):$("hqEscMsg",!1,N(e))})}else if("prize-create"===h){if(!je())return;var ue=_("hqPrizeTitle"),fe=q("hqPrizeTarget");if(ue.length<3)return void $("hqPrizeMsg",!1,"Give the pool a title.");if(!fe)return void $("hqPrizeMsg",!1,"Set a target XP amount.");if(!S('Create prize pool "'+ue+'" with a '+fe+" XP target?"))return;Be(!0),k("prize_create",{title:ue,target:fe},function(e){Be(!1),e&&e.ok?($("hqPrizeMsg",!0,"Pool created."),v("Prize pool live."),s.tab="treasury",M()):$("hqPrizeMsg",!1,N(e))})}else if("prize-contribute"===h){if(!je())return;var he=i.getAttribute("data-pool"),me=q("hqPc_"+he);if(!me)return void $("hqPrizeMsg",!1,"Enter an XP amount to contribute.");if(!S("Contribute "+me+" XP to this prize pool?"))return;Be(!0),k("prize_contribute",{pool_id:he,amount:me},function(e){Be(!1),e&&e.ok?($("hqPrizeMsg",!0,"Contributed. Pool now at "+e.raised+" XP."),v("Contribution locked in."),s.tab="treasury",M()):$("hqPrizeMsg",!1,N(e))})}else if("prize-award"===h){if(!je())return;if(!E())return void $("hqPrizeMsg",!1,"Awarding is admin-only — open the Vault to award prize pools.");var ve=i.getAttribute("data-pool"),ge=_("hqPa_"+ve).toLowerCase();if(!ge)return void $("hqPrizeMsg",!1,"Enter the winner's callsign.");if(!S("Award this pool to "+ge+"? The full pool pays out. This cannot be undone."))return;Be(!0),k("prize_award",{pool_id:ve,winner:ge},function(e){Be(!1),e&&e.ok?($("hqPrizeMsg",!0,"Awarded to "+ge+"."),v("Prize awarded."),s.tab="treasury",M()):$("hqPrizeMsg",!1,N(e))},{admin:!0})}else if("loan-offer"===h){if(!je())return;var be=_("hqLoanTo").toLowerCase(),we=q("hqLoanAmt"),ye=q("hqLoanInt"),xe=q("hqLoanDur",30);if(!be)return void $("hqLoanMsg",!1,"Enter the borrower's callsign.");if(!we)return void $("hqLoanMsg",!1,"Enter a principal XP amount.");if(ye>50)return void $("hqLoanMsg",!1,"Interest capped at 50%.");if(!S("Offer "+we+" XP loan to "+be+" at "+ye+"% for "+xe+" days?\nThe XP leaves your balance until repaid."))return;Be(!0),x("loan_offer",{lender:C.callsign,borrower:be,principal:we,interest_pct:ye,duration_days:xe},function(e){Be(!1),e&&e.ok?($("hqLoanMsg",!0,"Loan offered."),v("Loan offer sent."),s.tab="treasury",M()):$("hqLoanMsg",!1,N(e))})}else if("loan-accept"===h){if(!je())return;var ke=i.getAttribute("data-loan");if(!S("Accept this loan? The XP lands in your balance now; you repay principal + interest."))return;Be(!0),x("loan_accept",{loan_id:ke},function(e){Be(!1),e&&e.ok?(v("Loan accepted."),s.tab="treasury",M()):$("hqLoanMsg",!1,N(e))})}else if("loan-repay"===h){if(!je())return;var Ee=i.getAttribute("data-loan");if(!S("Repay this loan in full (principal + interest)?"))return;Be(!0),x("loan_repay",{loan_id:Ee},function(e){Be(!1),e&&e.ok?(v("Loan repaid. Clean slate."),s.tab="treasury",M()):$("hqLoanMsg",!1,N(e))})}else if("microloan"===h){if(!je())return;var Ce=_("hqMicroTo").toLowerCase(),Se=q("hqMicroAmt");if(!Ce)return void $("hqLoanMsg",!1,"Enter the recruit's callsign.");if(!Se||Se>100)return void $("hqLoanMsg",!1,"Microloans are 1-100 XP.");if(!S("Send "+Se+" XP microloan to "+Ce+"? (Recruit must be under 7 days old.)"))return;Be(!0),x("microloan_give",{sponsor:C.callsign,recruit:Ce,amount:Se},function(e){Be(!1),e&&e.ok?($("hqLoanMsg",!0,"Microloan sent."),v("Microloan sent.")):$("hqLoanMsg",!1,N(e))})}else if("pb-post"===h){if(!je())return;if(!s.mine||!s.mine.is_founder&&!s.mine.is_officer)return void $("hqPbMsg",!1,"Only the founder and officers can post bounties.");var qe=s.mine&&s.mine.cell&&s.mine.cell.id||"";if(!qe)return void $("hqPbMsg",!1,"Join a cell first.");var _e=_("hqPbPrompt");if(_e.length<3)return void $("hqPbMsg",!1,"Write a brief — at least 3 characters.");_e=_e.slice(0,280);var Ae=_("hqPbType").toLowerCase();({none:1,bill:1,rep:1,race:1,poll:1,nonprofit:1,campaign:1,prediction:1})[Ae]||(Ae="none");var Te=_("hqPbRef").slice(0,40);"none"===Ae&&(Te="");var Pe=q("hqPbPrize",50);25!==Pe&&50!==Pe&&100!==Pe&&(Pe=50);var Ie=q("hqPbDl",48);if(24!==Ie&&48!==Ie&&72!==Ie&&168!==Ie&&(Ie=48),!S("Post propaganda bounty for "+Pe+' XP? "'+_e+'"'))return;Be(!0),b("propbounty_post",y({cell_id:qe,prompt:_e,entity_type:Ae,entity_ref:Te,prize_xp:Pe,deadline_hours:Ie}),function(e){Be(!1),e&&e.ok?(v("Bounty posted. Forge away."),s.tab="treasury",M()):$("hqPbMsg",!1,N(e))})}else if("pb-submit"===h){if(!je())return;var Le=i.getAttribute("data-bounty"),Ne=_("hqPbUrl_"+Le),Re=_("hqPbTitle_"+Le).slice(0,80);if(!/^https?:\/\//i.test(Ne))return void $("hqPbMsg",!1,"Paste a valid link to your poster (http/https).");if(Re.length<2)return void $("hqPbMsg",!1,"Give your submission a title.");Be(!0),b("propbounty_submit",y({bounty_id:Le,asset_url:Ne,title:Re}),function(e){Be(!1),e&&e.ok?(v("Submitted. May the best poster win."),s.tab="treasury",M()):$("hqPbMsg",!1,N(e))})}else if("pb-vote"===h){if(!je())return;var Me=i.getAttribute("data-bounty"),Oe=i.getAttribute("data-sub");Be(!0),b("propbounty_vote",y({bounty_id:Me,submission_id:Oe}),function(e){Be(!1),e&&e.ok?(v("Vote counted."),s.tab="treasury",M()):$("hqPbMsg",!1,N(e))})}else if("pb-settle"===h){if(!je())return;if(!s.mine||!s.mine.is_founder&&!s.mine.is_officer)return void v("Officers only.");var Fe=i.getAttribute("data-bounty");if(!S("Settle this bounty early? Top-voted submission wins the XP. This cannot be undone."))return;Be(!0),b("propbounty_settle",y({bounty_id:Fe}),function(e){Be(!1),e&&e.ok?(v("Bounty settled."),s.tab="treasury",M()):$("hqPbMsg",!1,N(e))})}else if("pb-cancel"===h){if(!je())return;if(!s.mine||!s.mine.is_founder&&!s.mine.is_officer)return void v("Officers only.");var De=i.getAttribute("data-bounty");if(!S("Cancel this bounty? Submissions are discarded and no XP pays out."))return;Be(!0),b("propbounty_cancel",y({bounty_id:De}),function(e){Be(!1),e&&e.ok?(v("Bounty cancelled."),s.tab="treasury",M()):$("hqPbMsg",!1,N(e))})}else if("pledge"===h){if(!je())return;var ze=_("hqPledgeNote");if(!S("Pledge to the campaign? One-time, earns +25 XP."))return;Be(!0),function(t,n,i){var r=Object.assign({type:"campaign",c_action:t},y(n));function o(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}if(window.PF&&e.postAction)e.postAction("campaign","c_action",t,y(n),i);else if(a)try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(a,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),o(e)}).catch(function(){s._pfClear(),o(null)})}catch(e){o(null)}else o(null)}("campaign_pledge",{note:ze},function(e){Be(!1),e&&(e.ok||e.pledged)?($("hqPledgeMsg",!0,"Pledged. +25 XP. The wall holds."),v("Pledged."),s.tab="treasury",M()):$("hqPledgeMsg",!1,N(e))})}}function je(){return!!C.callsign||(v("Claim a callsign first."),!1)}function Be(e){try{i.disabled=!!e}catch(e){}}}),n.addEventListener("input",function(e){if(e.target&&"hqDivAmt"===e.target.id){var t=document.getElementById("hqDivPreview");t&&(t.innerHTML=function(e){var t=A(e);if(!t)return"Enter an amount to preview the split.";var n=t.per.toLocaleString()+" XP &times; "+t.n+" members = <b>"+t.total.toLocaleString()+" XP</b> distributed";return t.leftover>0&&(n+=" ("+t.leftover.toLocaleString()+" XP stays in the treasury)"),n}(q("hqDivAmt",0)))}}),n.addEventListener("keydown",function(e){if("Enter"===e.key&&e.target&&"hqSearch"===e.target.id){e.preventDefault(),s.searchQ=_("hqSearch");var t=document.getElementById("hqSearchRes");t&&(t.innerHTML=I("Searching&hellip;")),R(function(e){var t=document.getElementById("hqSearchRes");t&&(t.innerHTML=Z(e))})}});try{M()}catch(t){try{var d=P();d&&(d.innerHTML=L()),window.PF&&e.error("cell-hq","boot failed :: "+(t&&t.message||t))}catch(e){}}}function p(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function u(e){e=String(e||"").toUpperCase();for(var t=0;t<r.length;t++)if(r[t][0]===e)return r[t][1];return""}function f(e,t){for(var n='<option value="">'+p(t||"No state affiliation")+"</option>",i=0;i<r.length;i++)n+='<option value="'+r[i][0]+'"'+(e===r[i][0]?" selected":"")+">"+p(r[i][1])+"</option>";return n}function h(e){var t=e&&u(e.state);return t?'<span class="hq-state" title="State affiliation">OPERATING IN '+p(t.toUpperCase())+"</span>":""}function m(e){var t=e&&u(e.state);return t?'<span class="hq-stag" title="State-scoped">'+p(t.toUpperCase())+"</span>":""}function v(t){try{e.toast(t)}catch(e){}}function g(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function b(t,n,i){if(o[t])w(t,n,i);else if(a){if("cell_mine"===t||"propbounty_list"===t||"recruit_funnel"===t)try{var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&n&&!n.auth_secret&&(n.auth_secret=r)}catch(e){}var s="pfHqCb"+Math.floor(1e9*Math.random()),l=document.createElement("script"),c=!1;window[s]=function(e){u(e)},l.onerror=function(){u(null)};var d="?action="+encodeURIComponent(t);for(var p in n)null!=n[p]&&""!==n[p]&&(d+="&"+encodeURIComponent(p)+"="+encodeURIComponent(n[p]));d+="&callback="+s,l.src=a+d,document.head.appendChild(l),setTimeout(function(){u(null)},12e3)}else i(null);function u(e){if(!c){c=!0;try{delete window[s]}catch(e){}l.parentNode&&l.parentNode.removeChild(l),i(e)}}}function w(t,n,i){var r=Object.assign({type:"cell",cell_action:t},n||{});function o(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}if(window.PF&&e.postAction)e.postAction("cell","cell_action",t,n,i);else if(a)try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(a,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),o(e)}).catch(function(){s._pfClear(),o(null)})}catch(e){o(null)}else o(null)}function y(e){var t=g(),n=Object.assign({},e||{});return t.callsign&&(n.callsign=t.callsign),t.device&&(n.device=t.device),n}function x(t,n,i){var r=Object.assign({type:"finance",f_action:t},y(n));function o(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}if(window.PF&&e.postAction)e.postAction("finance","f_action",t,y(n),i);else if(a)try{var s=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(a,s).then(function(e){return e.json()}).then(function(e){s._pfClear(),o(e)}).catch(function(){s._pfClear(),o(null)})}catch(e){o(null)}else o(null)}function k(t,n,i,r){var o=r&&r.admin,s=Object.assign({type:"prize",p_action:t},y(n));function l(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}}if(window.PF&&e.postAction&&!o)e.postAction("prize","p_action",t,y(n),i);else if(a)try{var c={"Content-Type":"application/json"};if(o){var d=E();d&&(c["X-Admin-Secret"]=d)}var p=function(){var e={method:"POST",headers:c,body:JSON.stringify(s)},t=null,n=null;try{window.AbortController&&(t=new AbortController,e.signal=t.signal,n=setTimeout(function(){try{t.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(n)try{clearTimeout(n)}catch(e){}},e}();fetch(a,p).then(function(e){return e.json()}).then(function(e){p._pfClear(),l(e)}).catch(function(){p._pfClear(),l(null)})}catch(e){l(null)}else l(null)}function E(){try{return sessionStorage.getItem("pf_admin_secret")||""}catch(e){return""}}function C(t,n,i){if(a){if("bank_status"===t)try{var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&n&&!n.auth_secret&&(n.auth_secret=r)}catch(e){}var o="pfHqFin"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;window[o]=function(e){u(e)},s.onerror=function(){u(null)};var c="?action="+encodeURIComponent(t),d=y(n);for(var p in d)null!=d[p]&&""!==d[p]&&(c+="&"+encodeURIComponent(p)+"="+encodeURIComponent(d[p]));c+="&callback="+o,s.src=a+c,document.head.appendChild(s),setTimeout(function(){u(null)},12e3)}else i(null);function u(e){if(!l){l=!0;try{delete window[o]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),i(e)}}}function S(e){try{return window.confirm(e)}catch(e){return!1}}function q(e,t){var n=document.getElementById(e),i=n?Math.round(Number(n.value)||0):0;return i>0?i:t||0}function _(e){var t=document.getElementById(e);return t?String(t.value||"").trim():""}function A(e){var t=(s.mine&&s.mine.members||[]).length;if(!t||!e||e<1)return null;var n=Math.floor(e/t);if(n<1)return null;var i=n*t;return{n:t,per:n,total:i,leftover:e-i}}function T(e){return n.querySelector('.hq-tab[data-tab="'+e+'"]')}function P(){return document.getElementById("hqPane")}function I(e){return'<div class="hq-load">'+p(e||"Loading&hellip;")+"</div>"}function L(e){return'<div class="hq-err"><b>Couldn\'t reach HQ.</b><div class="hq-note">The network dropped the call. Nothing was lost.</div><button class="hq-btn sm" data-hq-retry="'+p(e||"")+'">RETRY</button></div>'}function N(e){return e?e.err||e.error||"Something broke on our end.":"Couldn't reach HQ. Check your connection."}function R(e){s.loading.search=!0,b("cell_search",{q:s.searchQ,state:s.searchState,cause:s.idfCause,vibe:s.idfVibe,specialty:s.idfSpec,entry:s.idfEntry,activity:s.idfAct,sort:s.idfSort},function(t){s.loading.search=!1,s.searchRes=t,e(t)})}function M(){var t=P();"mine"===s.tab?D(t):"detail"===s.tab?function(e){if(!g().callsign)return void(e.innerHTML='<div class="hq-card"><h3>Claim a callsign first</h3></div>');var t=s.detail;if(!t)return s.tab="mine",T("mine").classList.add("on"),T("detail"),void D(e);var n=s.mine,i=null,a=!1,r=!1;n&&n.cells&&(i=n.cells.filter(function(e){return e.id===t})[0]||null,r=!(!n.cell||n.cell.id!==t),a=!(!i||!i.is_founder));var o='<button class="hq-btn sm ghost" data-hq="back">&larr; MY CELLS</button><div class="hq-head" style="margin-top:8px"><h2>'+p(i?i.name:"Cell")+h(i)+'</h2><div class="hq-tag">Cell command detail</div></div>';o+='<div id="hqDetBody">'+I("Pulling cell intel&hellip;")+"</div>",e.innerHTML=o;try{window.PFShareEverywhere&&PFShareEverywhere.bar(e,"cell-hq",{link:"/cells"})}catch(e){}var d=document.getElementById("hqDetBody"),u=!1,m=!1,v=null,w=null;function x(){u&&m&&function(e,t,n,i,a,r,o){if(!(a&&a.ok||r&&r.ok))return e.innerHTML=L(),void O(e);var d="";window.PFCellIdentity&&window.PFCellIdentity.enabled()&&(d+='<div class="hq-card" id="hqIdentDetail"><h3>CELL IDENTITY</h3><div class="hq-note">Reading cell identity&hellip;</div></div>');if(a&&a.ok){var u=a.prestige||{};if(d+='<div class="hq-card"><h3>'+p(u.flame||"")+" "+p(u.tier_name||"UNRANKED")+' <span class="hq-note">power '+p(String(u.power||0))+"</span></h3>",u.benefits&&u.benefits.length?d+=u.benefits.map(function(e){return'<div class="hq-note">&bull; '+p(e)+"</div>"}).join(""):d+='<div class="hq-note">No tier yet — members earn prestige levels to raise cell power.</div>',u.next_tier){var h=u.next_tier.min?Math.min(100,Math.round((u.power||0)/u.next_tier.min*100)):0;d+='<div class="hq-note" style="margin-top:8px">Next: '+p(u.next_tier.name)+" — "+p(String(u.next_tier.need))+' power to go</div><div class="hq-bar"><div style="width:'+h+'%"></div></div>'}d+="</div>";var m=u.members||[],v={};i&&o&&o.members&&o.members.forEach(function(e){v[e.callsign]=e}),d+='<div class="hq-card"><h3>Roster ('+m.length+"/5)</h3>",m.length||(d+='<div class="hq-note">No members on record.</div>'),m.forEach(function(e){var i=v[e.callsign],a="";e.badge&&(a+='<span class="hq-badge dim">'+p(e.badge)+"</span>"),i&&i.checked_today&&(a+='<span class="hq-badge">IN TODAY</span>');var r=i&&i.role?String(i.role):"";t&&t.founder===e.callsign?a+='<span class="hq-badge">FOUNDER</span>':"officer"===r?a+='<span class="hq-badge">OFFICER</span>':"treasurer"===r?a+='<span class="hq-badge">TREASURER</span>':"warcaller"===r&&(a+='<span class="hq-badge">WARCALLER</span>');var o=!n||t&&t.founder===e.callsign?"":' <button class="hq-btn sm ghost" data-hq="promote" data-cell="'+p(s.detail)+'" data-target="'+p(e.callsign)+'">ROLE</button>';d+='<div class="hq-mem"><span><b>'+p(e.callsign)+"</b>"+a+"</span><span>"+o+"</span></div>"}),d+="</div>"}if(d+='<div class="hq-card" id="hqRecruit"><h3>RECRUIT</h3>'+I("Building your invite link&hellip;")+"</div>",r&&r.ok){var g=r.health||{},w=g.score||0;d+='<div class="hq-card"><h3>Cell health — '+w+'/100</h3><div class="hq-bar"><div style="width:'+Math.min(100,w)+'%"></div></div><div><span class="hq-stat">'+p(String(g.member_count||0))+' members</span><span class="hq-stat">'+p(String(g.checkins_last_7d||0))+' check-ins (7d)</span><span class="hq-stat">'+p(String(g.recruits_last_30d||0))+' recruits (30d)</span></div><div class="hq-note" style="margin-top:8px"><b>Recent pulse:</b> '+function(e){var t=[],n=e.checkins_last_7d||0,i=e.recruits_last_30d||0,a=e.member_count||0;n>=5*a?t.push("firing on all cylinders"):n>=2*a?t.push("warming up"):n>0?t.push("quiet — nudge your cellmates"):t.push("silent this week");i>0&&t.push(i+" new recruit"+(1===i?"":"s")+" in 30 days");return t.join(". ")+"."}(g)+"</div></div>"}n?d+='<div class="hq-card"><h3>Founder controls</h3><div class="hq-row"><button class="hq-btn sm" data-hq="rename" data-cell="'+p(s.detail)+'">RENAME</button><select class="hq-sel" id="hqSetState" aria-label="STATE AFFILIATION">'+f(String(t&&t.state||""),"No state affiliation")+'</select><button class="hq-btn sm" data-hq="set-state" data-cell="'+p(s.detail)+'">SET STATE</button><button class="hq-btn sm ghost" data-hq="leave" data-cell="'+p(s.detail)+'">DISBAND / LEAVE</button></div><div class="hq-note">Rename: 3&ndash;24 chars. State affiliation unlocks location tasks and policymaker bounties. Leaving as founder passes the torch or disbands the cell.</div></div>':t&&(d+='<div class="hq-card"><div class="hq-row"><button class="hq-btn sm ghost" data-hq="leave" data-cell="'+p(s.detail)+'">LEAVE CELL</button></div></div>');!H()&&t&&t.id&&(d+='<div id="hqStrikeBody">'+I("Issuing strike orders&hellip;")+"</div>");!J()&&t&&t.id&&(d+='<div id="hqRallyBody">'+I("Scanning rally calls&hellip;")+"</div>");e.innerHTML=d,!H()&&t&&t.id&&G(e,t.id,n);!J()&&t&&t.id&&function(e){var t=null;try{t=e.querySelector?e.querySelector("#hqRallyBody"):document.getElementById("hqRallyBody")}catch(e){}if(!t)return;b("rally_suggestions",{},function(e){if(e&&e.ok&&(e.suggestions||[]).length){var n='<div class="hq-card hq-rally"><h3>&#127919; Rally calls</h3><div class="hq-note" style="margin-bottom:8px">Creator milestones worth rallying around. Suggestion only — your cell, your call. Nothing posts itself.</div>';(e.suggestions||[]).forEach(function(e){n+='<div class="hq-rallyitem"><div class="hq-rallytitle">'+p(String(e.title||""))+'</div><div class="hq-note">'+p(String(e.body||""))+'</div><div class="hq-row"><button class="hq-btn sm" data-rally="copy" data-rid="'+p(String(e.id))+'">RALLY AROUND THIS &rarr;</button><button class="hq-btn sm ghost" data-rally="taken" data-rid="'+p(String(e.id))+'">MARK TAKEN</button></div></div>'}),n+="</div>",t.innerHTML=n;try{(e.suggestions||[]).forEach(function(e){c[String(e.id)]=e})}catch(e){}}else try{t.parentNode.removeChild(t)}catch(e){}})}(e);window.PFCellIdentity&&window.PFCellIdentity.enabled()&&t&&t.id&&j(e,t,n);l.cid===s.detail&&l.j&&z(e,t,l.j)}(d,i,a,r,v,w,n)}k=t,E=function(e){u=!0,v=e,x()},C="p_"+k,s.detailPrestige&&s.detailPrestige.cell_id===k?E(s.detailPrestige):(s.loading[C]=!0,b("cell_prestige",y({cell_id:k}),function(e){s.loading[C]=!1,e&&e.ok&&(s.detailPrestige=e),E(e)})),function(e,t){var n="h_"+e;s.detailHealth&&s.detailHealth.health&&s.detailHealth.health.cell_id===e?t(s.detailHealth):(s.loading[n]=!0,b("cell_health",y({cell_id:e}),function(e){s.loading[n]=!1,e&&e.ok&&(s.detailHealth=e),t(e)}))}(t,function(e){m=!0,w=e,x()}),l.cid=t,l.j=null,function(e,t){var n=g();if(!n.callsign||!e)return void t(null);b("recruit_funnel",y({cell_id:e}),function(e){t(e)})}(t,function(e){l.cid=t,l.j=e;var n=document.getElementById("hqDetBody");n&&"detail"===s.tab&&s.detail===t&&z(n,i,e)});var k,E,C}(t):"war"===s.tab?function(e){var t='<div class="hq-card"><h3>&#9876; How Cell War works</h3><div class="hq-note">Every Monday a new war week begins. Cells earn XP all week — the top cell is crowned champion and every member takes a <b>+10% XP bonus</b>. Bout fire feeds the war score too — one war, one leaderboard. Past weeks finalize automatically. <b>Weekly champions claim territory.</b> Fight as your callsign.</div></div>';t+='<div id="hqWarBody">'+I("Reading the war board&hellip;")+"</div>",e.innerHTML=t;var n=document.getElementById("hqWarBody"),i=!1,a=!1,r=!1,o=null,l=null,c=null;function d(){if(i&&a&&r){var e="";if(o&&o.ok){o.last_winner&&(e+='<div class="hq-card hq-winner"><h3>&#128081; Reigning champion — '+p(o.last_winner.cell_name||"")+'</h3><div class="hq-note">'+p(String(o.last_winner.xp_earned||0))+" XP last week. Dethrone them.</div></div>"),e+='<div class="hq-card"><h3>Week '+p(String(o.week_no||""))+" standings</h3>";var t=o.standings||[];t.length||(e+='<div class="hq-note">No cells on the board yet this week. Be the first to score.</div>'),t.forEach(function(t,n){var i=t.mine?'<span class="hq-badge">YOUR CELL</span>':"";e+='<div class="hq-mem"><span><b>#'+(n+1)+"</b> "+p(t.prestige_flame||"")+" "+p(t.name)+i+'</span><span class="hq-note">'+p(String(t.xp_earned||0))+" XP &middot; "+p(String(t.members_active||0))+"/"+p(String(t.members||0))+"</span></div>"}),e+="</div>"}else e+=L();c&&c.ok&&(c.odds||[]).length&&(e+='<div class="hq-card"><h3>&#127963; War Room — championship odds</h3><div class="hq-note">'+p(c.description||"CELL WAR")+" &middot; "+p(String(c.pool_total||0))+" XP in the pot. Odds move with the board. Viewing is free — stakes go down in the War Room.</div>",c.odds.slice(0,5).forEach(function(t,n){var i=t.pays>0?" &middot; pays "+p(String(t.pays))+"x ("+p(String(t.pool||0))+" XP in)":" &middot; no bets yet";e+='<div class="hq-mem"><span><b>#'+(n+1)+"</b> "+p(t.name||"")+'</span><span class="hq-note">'+p(String(t.implied||0))+"% implied"+i+"</span></div>"}),e+='<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div></div>'),l&&l.ok&&(l.winners||[]).length&&(e+='<div class="hq-card"><h3>Hall of fame</h3>',l.winners.forEach(function(t){var n="";try{n=new Date(t.week_start).toLocaleDateString()}catch(e){n=String(t.week_start||"")}e+='<div class="hq-mem"><span>&#128081; '+p(t.cell_name||"")+'</span><span class="hq-note">'+p(n)+" &middot; "+p(String(t.xp_earned||0))+" XP</span></div>"}),e+="</div>"),n.innerHTML=e,O(n)}}u=function(e){i=!0,o=e,d()},s.war&&Date.now()-s.war._t<6e4?u(s.war):(s.loading.war=!0,b("cellwar_standings",{},function(e){s.loading.war=!1,e&&e.ok&&(e._t=Date.now(),s.war=e),u(e)})),function(e){s.history?e(s.history):(s.loading.hist=!0,b("cellwar_history",{},function(t){s.loading.hist=!1,t&&t.ok&&(s.history=t),e(t)}))}(function(e){a=!0,l=e,d()}),function(e){s.market&&Date.now()-s.market._t<6e4?e(s.market):(s.loading.market=!0,b("cellwar_market",{},function(t){s.loading.market=!1,t&&t.ok&&(t._t=Date.now(),s.market=t),e(t)}))}(function(e){r=!0,c=e,d()});var u}(t):"browse"===s.tab?function(e){var t=window.PFCellIdentity&&window.PFCellIdentity.enabled(),n='<div class="hq-card"><h3>Find a cell</h3><div class="hq-row"><input class="hq-in" id="hqSearch" maxlength="32" placeholder="Search by name" value="'+p(s.searchQ)+'"><select class="hq-sel" id="hqSearchState" aria-label="FILTER BY STATE">'+f(s.searchState,"All states")+'</select><button class="hq-btn" data-hq="search">SEARCH</button></div>';if(t){var i=window.PFCellIdentity.SETS;n+='<div class="hq-row" style="margin-top:6px" id="hqIdfRow">'+Q("hqIdfCause","All causes",i.CAUSES,s.idfCause)+Q("hqIdfVibe","All vibes",i.VIBES,s.idfVibe)+Q("hqIdfSpec","All specialties",i.SPECIALTIES,s.idfSpec)+Q("hqIdfEntry","Any entry",[["open","Open"],["invite","Invite only"],["application","Application"]],s.idfEntry)+Q("hqIdfAct","Any activity",i.ACTIVITIES,s.idfAct)+(a="hqIdfSort",r=s.idfSort,o=window.PFCellIdentity&&window.PFCellIdentity.SETS&&window.PFCellIdentity.SETS.SORTS||[],l='<select class="hq-sel" id="'+a+'" aria-label="Sort results">',o.forEach(function(e){l+='<option value="'+p(e[0])+'"'+(String(r||"activity")===e[0]?" selected":"")+">"+p(e[1])+"</option>"}),l+'</select><div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>')}var a,r,o,l;n+='<div id="hqSearchRes" style="margin-top:8px">',s.loading.search?n+=I("Searching&hellip;"):s.searchRes&&(n+=Z(s.searchRes));n+="</div></div>",n+='<div id="hqBoardWrap">'+I("Loading leaderboard&hellip;")+"</div>",n+='<div id="hqLinksWrap">'+I("Mapping the network&hellip;")+"</div>",e.innerHTML=n;var c=document.getElementById("hqBoardWrap"),d=document.getElementById("hqLinksWrap");u=function(e){if(!e||!e.cells)return c.innerHTML=L(),void O(c);var t='<div class="hq-card"><h3>Top cells — week of '+p(String(e.week||""))+"</h3>";(e.cells||[]).slice(0,10).forEach(function(e,n){var i=e.verified?'<span class="hq-badge">VERIFIED</span>':"";t+='<div class="hq-mem"><span><b>#'+(n+1)+"</b> "+p(e.prestige_flame||"")+" "+p(e.name)+i+m(e)+'</span><span class="hq-note">'+p(String(e.streak||0))+"d streak &middot; "+p(String(e.members||0))+" members</span></div>"}),t+="</div>",c.innerHTML=t},s.board&&Date.now()-s.board._t<6e4?u(s.board):(s.loading.board=!0,b("cell_leaderboard",{},function(e){s.loading.board=!1,e&&(e._t=Date.now(),s.board=e),u(e)})),function(e){s.links&&Date.now()-s.links._t<12e4?e(s.links):(s.loading.links=!0,b("cell_links",{},function(t){s.loading.links=!1,t&&(t._t=Date.now(),s.links=t),e(t)}))}(function(e){if(!e)return d.innerHTML=L(),void O(d);d.innerHTML='<div class="hq-card"><h3>Chainlink network</h3><div><span class="hq-stat">'+p(String(e.cells||0))+' cells</span><span class="hq-stat">'+p(String(e.chainlinkers||0))+' chainlinkers</span><span class="hq-stat">'+p(String(e.main_pct||0))+'% in the main chain</span></div><div class="hq-note" style="margin-top:8px">Chainlinkers belong to 2+ cells and stitch the network together. Join a second cell to become one — +10 XP weekly bridge bonus.</div></div>'});var u}(t):"treasury"===s.tab&&function(t){if(!g().callsign)return void(t.innerHTML='<div class="hq-card"><h3>Claim a callsign first</h3><div class="hq-note">Treasury tools move real XP. Claim your callsign in Daily Orders first.</div></div>');var n=!(!s.mine||!s.mine.is_founder),i='<div class="hq-note" style="margin-bottom:10px">Cell treasury rails — <b>all amounts in XP</b> unless marked USD. Every money move asks you to confirm first.</div>';i+='<div id="hqTreasBody">'+I("Opening the vault&hellip;")+"</div>",t.innerHTML=i;var a=document.getElementById("hqTreasBody"),r={},o=["bank","loans","prizes","bonds","camp","wchest","treasury","causes","pbounty"],l=0;function c(){++l>=o.length&&function(t,n,i){var a="";a+='<div id="hqTreasuryPanel"></div>';var r=n.wchest,o=s.mine&&s.mine.cell&&s.mine.cell.id||"",l=s.mine&&s.mine.cell&&s.mine.cell.name||"your cell";if(r&&r.ok){var c=Math.min(100,Math.round(r.total/r.goal*100));a+='<div class="hq-card" style="border-color:#c9a227"><h3>&#9876;&#65039; Cell War Chest <span class="hq-note">'+p(l)+"</span></h3>",r.boost_active&&(a+='<div class="hq-note" style="color:#c9a227;font-weight:bold">&#9889; BOOST ACTIVE — +5 XP on every member checkin until boost expires.</div>'),a+='<div style="margin:8px 0"><div style="background:#222;border-radius:6px;height:14px;overflow:hidden"><div style="width:'+c+'%;height:100%;background:linear-gradient(90deg,#c9a227,#f5d76e)"></div></div><div class="hq-note" style="margin-top:4px"><b>'+p(String(r.total))+" / "+p(String(r.goal))+" XP</b> ("+c+"%)"+(r.goal_hit?' — <b style="color:#c9a227">GOAL HIT</b>':" — hit "+p(String(r.goal))+" XP to unlock +5 XP checkin boost for 24h")+"</div></div>",a+='<div class="hq-row" style="margin:8px 0;flex-wrap:wrap;gap:6px">'+[25,50,100,250].map(function(e){return'<button class="hq-btn sm" data-hq="warchest" data-amt="'+e+'">+'+e+" XP</button>"}).join("")+'<input class="hq-in sm" id="hqWarchestCustom" type="number" min="10" max="10000" placeholder="Custom" style="width:90px"><button class="hq-btn sm" data-hq="warchest-custom">Give</button></div>';var d=r.leaderboard||[];d.length&&(a+='<div class="hq-note"><b>Top contributors:</b> '+d.slice(0,5).map(function(e,t){return t+1+". "+p(e.callsign)+" ("+p(String(e.xp))+" XP)"}).join(" &middot; ")+"</div>"),(q=r.history||[]).length&&(a+='<div class="hq-note" style="margin-top:6px"><b>Recent:</b> '+q.slice(0,5).map(function(e){return p(e.callsign)+" +"+p(String(e.xp))}).join(" &middot; ")+"</div>"),a+="</div>"}else a+=o?'<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3>'+L()+"</div>":'<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3><div class="hq-note">Join a cell to contribute XP to its war chest.</div></div>';var u=n.treasury,f=(s.mine&&s.mine.members||[]).length;a+='<div class="hq-card" style="border-color:#7CFC00"><h3>&#128176; Dividend payouts <span class="hq-note">treasury &#8594; members</span></h3>';var h=!(!s.mine||!(s.mine.is_founder||s.mine.is_officer||s.mine.is_treasurer));if(u&&u.ok){a+='<div><span class="hq-stat"><b>'+Number(u.balance||0).toLocaleString()+" XP</b> treasury balance</span></div>",a+='<div class="hq-note">Pay the cell treasury out to members. <b>Equal split only</b> — every member gets the same XP; any leftover stays in the treasury. One payout per amount per day.</div>',a+=h&&f>0?'<div class="hq-row" style="margin-top:8px;flex-wrap:wrap"><input class="hq-in" id="hqDivAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px"><button class="hq-btn" data-hq="dividend-pay">PAY DIVIDEND</button></div><div id="hqDivPreview" class="hq-note" style="margin-top:6px">Enter an amount to preview the split.</div><div id="hqDivMsg"></div>':h?'<div class="hq-note">No members to pay yet.</div>':'<div class="hq-note">Only the founder, officers, and the treasurer can trigger dividend payouts.</div>';var v=(u.recent||[]).filter(function(e){return"dividend"===String(e.kind||"")});v.length&&(a+='<div class="hq-note" style="margin-top:8px"><b>Payout history:</b> '+v.slice(0,5).map(function(e){var t="";try{t=new Date(Number(e.ts)||0).toLocaleDateString()}catch(e){}return p(t)+" — "+Math.abs(Number(e.amount||0)).toLocaleString()+" XP split, ordered by "+p(e.callsign||"?")}).join(" &middot; ")+"</div>")}else a+=o?L():'<div class="hq-note">Join a cell to see its treasury.</div>';a+="</div>";var b=n.causes,w=!(!s.mine||!s.mine.is_founder&&!s.mine.is_officer),y=s.mine&&s.mine.cell&&s.mine.cell.id||"",x=s.mine&&s.mine.cell&&s.mine.cell.name||"your cell";if(a+='<div class="hq-card" style="border-color:#c1121f"><h3>&#9733; Sponsor a cause <span class="hq-note">treasury &#8594; cause pool</span></h3>',b&&b.ok){var k=b.pools||[];a+='<div class="hq-note">Put the cell treasury behind a cause — strike funds, bail funds, mutual aid. Sponsorships are attributed to <b>'+p(x)+"</b> on the cause board.</div>",w&&y&&k.length?a+='<div class="hq-row" style="margin-top:8px;flex-wrap:wrap"><select class="hq-in" id="hqSpPool" aria-label="Cause pool" style="max-width:230px">'+k.map(function(e){return'<option value="'+p(e.id)+'">'+p(e.name)+" ("+Number(e.balance||0).toLocaleString()+" XP)</option>"}).join("")+'</select><input class="hq-in" id="hqSpAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px"><button class="hq-btn" data-hq="sponsor">SPONSOR A CAUSE &rarr;</button></div><div id="hqSpMsg"></div>':a+=y?w?'<div class="hq-note">No cause pools yet.</div>':'<div class="hq-note">Only the founder and officers can move treasury funds. Earn a role, then sponsor.</div>':'<div class="hq-note">Join a cell to sponsor causes from its treasury.</div>';var C=b.sponsor_board||[];C.length&&(a+='<div class="hq-note" style="margin-top:8px"><b>Top sponsoring cells:</b> '+C.slice(0,5).map(function(e,t){return t+1+". "+p(e.cell_name)+" ("+Number(e.total||0).toLocaleString()+" XP)"}).join(" &middot; ")+"</div>")}else a+=y?L():'<div class="hq-note">Join a cell to see cause sponsorships.</div>';a+="</div>";var S=n.bank;if(S&&S.ok){var q;a+='<div class="hq-card"><h3>&#127974; Your war chest <span class="hq-note">(personal, not cell funds)</span></h3><div><span class="hq-stat"><b>'+p(String(S.balance||0))+' XP</b> balance</span><span class="hq-stat">'+p(String(S.rate_pct||0))+'% interest</span><span class="hq-stat">Deposits '+p(String(S.deposit_week_used||0))+"/"+p(String(S.deposit_week_cap||0))+" XP this week</span></div>",(q=S.history||[]).length&&(a+='<div class="hq-note" style="margin-top:8px"><b>Recent:</b> '+q.slice(0,5).map(function(e){var t=null!=e.amount?e.amount:null!=e.xp?e.xp:"";return p(String(e.kind||e.type||"move"))+" "+p(String(t))+" XP"}).join(" &middot; ")+"</div>"),a+="</div>"}else a+='<div class="hq-card"><h3>&#127974; Your war chest</h3>'+L()+"</div>";if(a+='<div class="hq-card"><h3>&#128179; Bounty escrow</h3><div class="hq-note">Lock XP in escrow for a cell bounty — released to the member on completion, refunded to you if it falls through. <b>Founder-only to create.</b> Save the escrow ID after creating — you need it to release or refund.</div>',i){var _=function(){var e=[];s.mine&&s.mine.members&&(e=s.mine.members.map(function(e){return e.callsign}));return e.length?e.map(function(e){return'<option value="'+p(e)+'">'+p(e)+"</option>"}).join(""):'<option value="">(no members loaded)</option>'}();a+='<div class="hq-row" style="margin-top:8px"><select class="hq-in" id="hqEscTo">'+_+'</select><input class="hq-in" id="hqEscAmt" type="number" min="1" placeholder="XP amount" style="width:120px"></div><div class="hq-row"><input class="hq-in" id="hqEscWhy" maxlength="120" placeholder="Bounty reason (e.g. 10K-view post)"><button class="hq-btn" data-hq="escrow-create">LOCK ESCROW</button></div>'}else a+='<div class="hq-note">Only the founder can lock new escrows.</div>';a+='<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqEscId" placeholder="ESCROW ID"><button class="hq-btn sm" data-hq="escrow-release">RELEASE</button><button class="hq-btn sm ghost" data-hq="escrow-refund">REFUND</button></div><div id="hqEscMsg"></div></div>';k=n.prizes&&n.prizes.ok&&n.prizes.pools||[];a+='<div class="hq-card"><h3>&#127942; Prize pools</h3><div class="hq-note">Fund competitions — best post of the week, top recruiter, streak champions. Members contribute XP; the pool creator awards the winner.</div>',i&&(a+='<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqPrizeTitle" maxlength="60" placeholder="Pool title (e.g. Best post this week)"><input class="hq-in" id="hqPrizeTarget" type="number" min="1" placeholder="Target XP" style="width:120px"><button class="hq-btn sm" data-hq="prize-create">CREATE POOL</button></div>');k.length?k.slice(0,6).forEach(function(e){var t=e.target?Math.min(100,Math.round((e.raised||0)/e.target*100)):0,n=E()?'<input class="hq-in" id="hqPa_'+p(e.id)+'" placeholder="winner callsign" style="width:140px"><button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+p(e.id)+'">AWARD</button>':"";a+='<div style="margin-top:10px"><b>'+p(e.title)+"</b>"+m(e)+' <span class="hq-note">by '+p(e.created_by||"?")+'</span><div class="hq-note">'+p(String(e.raised||0))+" / "+p(String(e.target||0))+' XP</div><div class="hq-bar"><div style="width:'+t+'%"></div></div><div class="hq-row"><input class="hq-in" id="hqPc_'+p(e.id)+'" type="number" min="1" placeholder="XP" style="width:90px"><button class="hq-btn sm" data-hq="prize-contribute" data-pool="'+p(e.id)+'">CONTRIBUTE</button>'+n+"</div></div>"}):a+='<div class="hq-note" style="margin-top:8px">No prize pools yet.</div>';a+='<div id="hqPrizeMsg"></div></div>';var A=!1;try{A=!!(window.PF&&e.skip&&e.skip("propbounty"))}catch(e){}if(!A){a+='<div class="hq-card" style="border-color:#c9a227"><style>.pb-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid #c9a227;color:#c9a227;letter-spacing:1px;white-space:nowrap}</style><h3>&#127919; Propaganda bounties <span class="hq-note">best poster wins — the cell votes</span></h3>';var T=n.pbounty,P=(g()||{}).callsign||"",I=!(!s.mine||!s.mine.is_founder&&!s.mine.is_officer);if(T&&T.ok){var N=T.bounties||[];a+='<div class="hq-note">The founder or an officer posts a brief. Members forge the poster, drop a link, and the cell votes — top poster takes the bounty.</div>',I&&o?a+='<div style="margin-top:8px;border-top:1px solid #2e2e2e;padding-top:10px"><b>Post a bounty</b><div class="hq-row" style="margin-top:6px"><textarea class="hq-in" id="hqPbPrompt" maxlength="280" rows="2" placeholder="Brief (280 max) — e.g. Best poster about H.R. 14 wins." style="flex:1;min-width:200px;resize:vertical"></textarea></div><div class="hq-row"><select class="hq-in" id="hqPbType" aria-label="Entity type">'+["none","bill","rep","race","poll","nonprofit","campaign","prediction"].map(function(e){return'<option value="'+e+'">'+e.charAt(0).toUpperCase()+e.slice(1)+"</option>"}).join("")+'</select><input class="hq-in" id="hqPbRef" maxlength="40" placeholder="Entity ref (e.g. H.R. 14)" style="width:170px"><select class="hq-in" id="hqPbPrize" aria-label="Prize tier"><option value="25">25 XP</option><option value="50" selected>50 XP</option><option value="100">100 XP</option></select><select class="hq-in" id="hqPbDl" aria-label="Deadline"><option value="24">24h</option><option value="48" selected>48h</option><option value="72">72h</option><option value="168">7d</option></select><button class="hq-btn sm" data-hq="pb-post">POST BOUNTY</button></div></div>':I||(a+='<div class="hq-note">Only the founder and officers can post bounties.</div>'),N.length?N.forEach(function(e){try{a+=function(e,t,n){var i=String(e.id||""),a=String(e.status||"open"),r='<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';r+='<div class="hq-row" style="justify-content:space-between"><span class="pb-badge">PROPAGANDA</span><span class="hq-note">'+p(function(e){var t=Number(e)||0;if(!t)return"no deadline";var n=t-Date.now();if(n<=0)return"expired";var i=Math.floor(n/36e5),a=Math.floor(i/24);return a>0?a+"d "+i%24+"h left":i>0?i+"h left":Math.max(1,Math.floor(n/6e4))+"m left"}(e.deadline))+"</span></div>",r+='<div style="margin:6px 0"><b>'+p(e.prompt||"")+"</b></div>",r+='<div class="hq-row">'+function(e,t){return e=String(e||"").toLowerCase(),t=String(t||"").trim(),"none"!==e&&e&&t?'<span class="hq-stat"><b>'+p(e.toUpperCase())+" &middot; "+p(t)+"</b></span>":""}(e.entity_type,e.entity_ref)+'<span class="hq-stat"><b>'+p(String(e.prize_xp||0))+' XP</b> prize</span><span class="hq-note">by '+p(e.created_by||"?")+"</span></div>","settled"===a&&(r+='<div class="hq-note" style="margin-top:8px;font-size:15px"><b>&#127942; @'+p(e.winner||"?")+" takes "+p(String(e.prize_xp||0))+" XP</b></div>");"cancelled"===a&&(r='<div style="margin-top:12px;opacity:.45">'+r);var o=(e.submissions||[]).slice().sort(function(e,t){return(Number(t.votes)||0)-(Number(e.votes)||0)}),s=!!e.my_vote;o.forEach(function(n){n._bounty=i,r+=function(e,t,n,i){var a=String(e.id||""),r=String(e.callsign||"").toLowerCase()===String(t||"").toLowerCase(),o=String(n||"")===a,s=i||r,l=s?'<button class="hq-btn sm" disabled>'+(o?"VOTED":"VOTE")+"</button>":'<button class="hq-btn sm" data-hq="pb-vote" data-bounty="'+p(String(e._bounty||""))+'" data-sub="'+p(a)+'">VOTE</button>';return'<div class="hq-mem"><span><b>'+p(e.title||"Untitled")+'</b> <span class="hq-note">by '+p(e.callsign||"?")+(r?" (you)":"")+" &mdash; "+p(String(e.votes||0))+" vote"+(1===Number(e.votes||0)?"":"s")+"</span></span><span>"+function(e){if(e=String(e||""),!/^https?:\/\//i.test(e))return"";var t=/\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(e),n='<a class="hq-btn sm ghost" style="text-decoration:none;display:inline-block" href="'+p(e)+'" target="_blank" rel="noopener">VIEW &#8599;</a>';return t?'<a href="'+p(e)+'" target="_blank" rel="noopener"><img src="'+p(e)+'" alt="submission" loading="lazy" style="max-width:120px;max-height:120px;border:2px solid #333;display:block;margin-bottom:6px"></a>'+n:n}(e.asset_url)+" "+l+"</span></div>"}(n,t,e.my_vote,s)}),"open"===a&&(e.my_submission?r+='<div class="hq-note" style="margin-top:8px">You submitted: <b>'+p(e.my_submission.title||e.my_submission)+"</b> — one submission per member.</div>":r+='<div class="hq-note" style="margin-top:8px">Forge it in the Poster Forge, post it anywhere, paste the link.</div><div class="hq-row" style="margin-top:4px"><input class="hq-in" id="hqPbUrl_'+p(i)+'" placeholder="https://… link to your poster" style="flex:1;min-width:180px"><input class="hq-in" id="hqPbTitle_'+p(i)+'" maxlength="80" placeholder="Title" style="width:150px"><button class="hq-btn sm" data-hq="pb-submit" data-bounty="'+p(i)+'">SUBMIT</button></div>',n&&(r+='<div class="hq-row" style="margin-top:6px"><button class="hq-btn sm" data-hq="pb-settle" data-bounty="'+p(i)+'">SETTLE EARLY</button><button class="hq-btn sm ghost" data-hq="pb-cancel" data-bounty="'+p(i)+'">CANCEL</button></div>'));"cancelled"===a&&(r+="</div>");return r}(e,P,I)}catch(e){}}):a+='<div class="hq-note" style="margin-top:8px">No propaganda bounties yet — the founder can post the first.</div>'}else a+=o?'<div class="hq-note">Propaganda bounties aren\'t live on the backend yet — this board lights up the moment the action ships. Nothing to do.</div>':'<div class="hq-note">Join a cell to post and vote on propaganda bounties.</div>';a+='<div id="hqPbMsg"></div></div>'}var R=n.loans&&n.loans.ok?n.loans:{as_lender:[],as_borrower:[]};a+='<div class="hq-card"><h3>&#129309; Cell loans</h3><div class="hq-note">XP loans between members. Lender sets principal, interest (max 50%), and duration. New recruits (under 7 days) can get microloans up to 100 XP.</div>',a+='<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqLoanTo" placeholder="borrower callsign" style="width:150px"><input class="hq-in" id="hqLoanAmt" type="number" min="1" placeholder="XP" style="width:90px"><input class="hq-in" id="hqLoanInt" type="number" min="0" max="50" placeholder="% int" style="width:80px"><input class="hq-in" id="hqLoanDur" type="number" min="1" max="365" placeholder="days" style="width:80px"><button class="hq-btn sm" data-hq="loan-offer">OFFER LOAN</button></div>',a+='<div class="hq-row"><input class="hq-in" id="hqMicroTo" placeholder="new recruit callsign" style="width:150px"><input class="hq-in" id="hqMicroAmt" type="number" min="1" max="100" placeholder="XP (max 100)" style="width:120px"><button class="hq-btn sm ghost" data-hq="microloan">SEND MICROLOAN</button></div>';var M=R.as_lender||[],F=R.as_borrower||[];M.length||F.length?(a+='<div class="hq-note" style="margin-top:8px"><b>Your loans</b></div>',M.forEach(function(e){e.repaid||(a+='<div class="hq-mem"><span>Lent <b>'+p(String(e.principal))+" XP</b> to "+p(e.borrower)+" (+"+p(String(e.interest_pct))+'%)</span><span class="hq-note">'+function(e){if(!e)return"";var t=Math.ceil((e-Date.now())/864e5);return t<0?"OVERDUE":0===t?"due today":"due in "+t+"d"}(e.due_at)+"</span></div>")}),F.forEach(function(e){if(!e.repaid){var t=e.principal+Math.round(e.principal*(e.interest_pct||0)/100);a+='<div class="hq-mem"><span>Borrowed <b>'+p(String(e.principal))+" XP</b> from "+p(e.lender)+" — repay "+p(String(t))+' XP</span><span><button class="hq-btn sm" data-hq="loan-accept" data-loan="'+p(e.id)+'">ACCEPT</button> <button class="hq-btn sm ghost" data-hq="loan-repay" data-loan="'+p(e.id)+'">REPAY</button></span></div>'}})):a+='<div class="hq-note" style="margin-top:8px">No active loans.</div>';a+='<div id="hqLoanMsg"></div></div>';var D=n.bonds&&n.bonds.ok&&n.bonds.bonds||[],z=D.filter(function(e){return!e.redeemed}).reduce(function(e,t){return e+(t.amount||0)},0);a+='<div class="hq-card"><h3>&#128178; War Bonds <span class="hq-note">(USD rail)</span></h3><div class="hq-note">Real-money bonds that fund the network. Buying happens in the store — no callsign needed, no friction. Your held bonds: <b>'+D.filter(function(e){return!e.redeemed}).length+"</b> "+(z?"("+p(String(z))+" XP value unredeemed)":"")+'</div><div class="hq-row" style="margin-top:8px"><a href="/store" class="hq-btn" style="text-decoration:none;display:inline-block">BACK THE FIGHT — BUY WAR BONDS</a></div></div>';var j=n.camp;if(a+='<div class="hq-card"><h3>&#128681; Campaign pledge</h3>',j&&(void 0===j.ok||j.ok)){var B=j.pledged;a+='<div><span class="hq-stat">'+p(String(j.pledges||j.pl||0))+' pledged</span><span class="hq-stat">'+p(String(j.actions||j.acts||0))+" actions logged</span></div>",a+=B?'<div class="hq-note" style="margin-top:8px">You\'re pledged. +25 XP earned. The wall holds because of you.</div>':'<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqPledgeNote" maxlength="140" placeholder="Why you fight (optional)"><button class="hq-btn sm" data-hq="pledge">PLEDGE +25 XP</button></div>'}else a+=L();a+='<div id="hqPledgeMsg"></div></div>',t.innerHTML=a,O(t);try{var H=t.querySelector("#hqTreasuryPanel");H&&window.PFTreasury&&window.PFTreasury.mount&&window.PFTreasury.mount(H,{cell_id:o,cell_name:l,is_officer:!(!s.mine||!s.mine.is_founder&&!s.mine.is_officer)})}catch(e){}}(a,r,n)}C("bank_status",{},function(e){r.bank=e,c()}),C("loan_list",{},function(e){r.loans=e,c()}),C("prize_list",{},function(e){r.prizes=e,c()}),C("bond_list",{},function(e){r.bonds=e,c()}),C("campaign_status",{},function(e){r.camp=e,c()}),C("cause_list",{},function(e){r.causes=e,c()});var d=s.mine&&s.mine.cell&&s.mine.cell.id||"";d?b("warchest_status",{cell_id:d},function(e){r.wchest=e,c()}):(r.wchest=null,c());d?b("treasury_balance",{cell_id:d},function(e){r.treasury=e,c()}):(r.treasury=null,c());d?b("propbounty_list",y({cell_id:d}),function(e){r.pbounty=e,c()}):(r.pbounty=null,c())}(t),O(t)}function O(e){e.querySelectorAll("[data-hq-retry]").forEach(function(e){e.addEventListener("click",function(){M()})})}function F(e,t){var n=e.is_founder,i=e.verified?'<span class="hq-badge">VERIFIED</span>':"",a=n?'<span class="hq-badge">FOUNDER</span>':"",r=e.checked_today?'<span class="hq-badge dim">CHECKED IN</span>':'<button class="hq-btn sm" data-hq="checkin" data-cell="'+p(e.id)+'">CHECK IN</button>';return'<div class="hq-card"><h3>'+p(e.name)+i+a+h(e)+'</h3><div><span class="hq-stat">'+p(String(e.streak||0))+'-day streak</span><span class="hq-stat">'+p(String(e.members||0))+'/5 members</span><span class="hq-stat">'+p(String(e.active_week||0))+" active this week</span>"+(e.prestige_tier?'<span class="hq-stat">'+p(e.prestige_flame||"")+" "+p(e.prestige_tier)+"</span>":"")+(e.invite_code?'<span class="hq-stat">Code: '+p(e.invite_code)+"</span>":"")+'</div><div class="hq-row" style="margin-top:8px">'+r+'<button class="hq-btn sm ghost" data-hq="detail" data-cell="'+p(e.id)+'">OPEN HQ</button></div></div>'}function D(t){var n;g().callsign?s.loading.mine?t.innerHTML=I("Raising the cell network&hellip;"):(n=function(e){if(!e)return t.innerHTML=L(),void O(t);if(!e||"missing credentials"!==e.err&&"unauthorized"!==e.err)if(e.err||!1===e.ok)t.innerHTML='<div class="hq-err"><b>'+p(N(e))+"</b></div>";else{var n="";if(e.in_cell){var i=e.cell||{};if(n+='<div class="hq-note" style="margin-bottom:10px">PRIMARY CELL</div>'+F({id:i.id,name:i.name,streak:i.streak,members:(e.members||[]).length,active_week:i.active_week,verified:i.verified,is_founder:e.is_founder,checked_today:e.checked_today,invite_code:i.invite_code,prestige_tier:i.prestige_tier,prestige_flame:i.prestige_flame,state:i.state}),e.cover_for&&(n+='<div class="hq-card"><h3>Cover available</h3><div class="hq-note">'+p(e.cover_for)+' missed yesterday. You can cover their streak — once per week.</div><button class="hq-btn sm" data-hq="cover" data-cell="'+p(i.id)+'">COVER '+p(e.cover_for)+"</button></div>"),e.bounties_pending&&e.bounties_pending.length){var a=e.bounty_xp||25;n+='<div class="hq-card"><h3>Recruit bounties ready</h3><div class="hq-note">'+e.bounties_pending.map(function(e){return p(e.from)+m(e)}).join(", ")+" checked in. Claim +"+a+' XP each.</div><button class="hq-btn sm" data-hq="bounties">CLAIM BOUNTIES</button></div>'}}else n+='<div class="hq-card"><h3>You\'re not in a cell yet</h3><div class="hq-note">Five callsigns. One streak. Nobody gets left behind. Found your own cell or join one with an invite code.</div></div>';var r=e.cells||[];r.length>1&&(n+='<div class="hq-note" style="margin:10px 0 6px">ALL YOUR CELLS ('+r.length+"/3 chainlink)</div>",r.forEach(function(t){e.cell&&t.id===e.cell.id||(n+=F(t))}));var o=window.PFCellIdentity&&window.PFCellIdentity.enabled();if(n+=o?'<div class="hq-card"><h3>Found a cell</h3><div id="hqIdentWizard"></div></div>':'<div class="hq-card"><h3>Found a cell</h3><div class="hq-note">3&ndash;24 characters. You become founder. Max 3 cells per callsign.</div><div class="hq-row"><input class="hq-in" id="hqNewName" maxlength="24" placeholder="Cell name"><select class="hq-sel" id="hqNewState" aria-label="STATE AFFILIATION">'+f("","No state affiliation")+'</select><button class="hq-btn" data-hq="create">FOUND CELL</button></div><div class="hq-note">State affiliation unlocks location tasks and policymaker bounties.</div></div>',n+='<div class="hq-card"><h3>Join with invite code</h3><div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase"><button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>',t.innerHTML=n,o){var s=document.getElementById("hqIdentWizard");s&&window.PFCellIdentity.mountWizard(s,{stateOptsHTML:f("","No state affiliation"),onDone:function(){ee("mine")}})}}else t.innerHTML='<div class="hq-card"><h3>Session check needed</h3><div class="hq-note">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come back &mdash; your HQ will be waiting.</div></div>'},s.mine&&s.mine._t&&Date.now()-s.mine._t<3e4?n(s.mine):(s.loading.mine=!0,b("cell_mine",y({}),function(e){s.loading.mine=!1,e&&(e._t=Date.now(),s.mine=e),n(e)}))):t.innerHTML='<div class="hq-card"><h3>Claim a callsign first</h3><div class="hq-note">Cells run on callsigns. Claim yours in Daily Orders, then come back — your HQ will be waiting.</div>'+function(){try{return window.PF&&e.recoverLinkHTML?e.recoverLinkHTML():""}catch(e){return""}}()+"</div>"}function z(e,t,n){var i=null;try{i=e.querySelector?e.querySelector("#hqRecruit"):document.getElementById("hqRecruit")}catch(e){}if(i){var a=function(e,t,n){var i=t&&t.my_link?String(t.my_link):"";if(!i){var a=e&&e.invite_code?String(e.invite_code):"";a&&n&&(i="https://www.mtcstw.com/cells?invite="+encodeURIComponent(a)+"&by="+encodeURIComponent(n))}return i}(t,n,g().callsign);if(n&&n.ok&&a){var r=Math.max(0,Number(n.clicks)||0),o=Math.max(0,Number(n.joins)||0),s='<h3>RECRUIT</h3><div class="hq-note">Your personal invite link &mdash; share it anywhere. Taps and joins count toward your cell&rsquo;s momentum.</div><div class="hq-row" style="margin-top:8px"><input class="hq-in linklike" id="hqRecruitLink" readonly value="'+p(a)+'" aria-label="Personal invite link" /><button class="hq-btn sm" data-hq="recruit-copy">COPY</button></div><div><span class="hq-stat">'+r+' taps</span><span class="hq-stat">'+o+" joined</span>"+(r>0?'<span class="hq-stat">'+Math.round(o/r*100)+"% tap &rarr; join</span>":"")+"</div>",l=n.joiners&&n.joiners.length?n.joiners:[];if(l.length){s+='<div class="hq-note" style="margin:10px 0 2px"><b>Fresh recruits</b></div>';for(var c=0;c<l.length&&c<10;c++){var d=l[c]||{};s+='<div class="hq-joiner"><span><b>'+p(d.callsign||"Unknown")+'</b></span><span class="hq-note">'+p(String(d.joined_day||""))+"</span></div>"}l.length>10&&(s+='<div class="hq-note">+'+(l.length-10)+" more</div>")}else s+='<div class="hq-note" style="margin-top:8px">No joins through your link yet &mdash; the first one starts the chain.</div>';i.innerHTML=s}else i.innerHTML='<h3>RECRUIT</h3><div class="hq-note">Recruit intel is offline right now. Your personal invite link will appear here when HQ reconnects.</div>'}}function j(e,t,n){var i=e.querySelector("#hqIdentDetail");i&&window.PFCellIdentity.loadIdentity(t.id,function(a){if(a){var r={id:t.id,name:t.name||"Cell",state:t.state||"",motto:a.motto||"",palette:a.palette,causes:a.causes||[],activity:a.activity||""};i.innerHTML="<h3>CELL IDENTITY</h3>"+window.PFCellIdentity.detailIdentityHTML(r,a,n);var o=i.querySelector("#idKitHost");o&&window.PFCellIdentity.mountKit(o,r);var s=i.querySelector("[data-idbackfill]");if(s&&s.addEventListener("click",function(){window.PFCellIdentity.mountWizard(i,{mode:"edit",cellId:t.id,stateOptsHTML:f(String(t.state||""),"No state affiliation"),initial:B(a,t),onDone:function(){M()}})}),n&&("application"===a.entry_style||(a.pending_applications||0)>0)){var l=a.pending_applications||0,c=document.createElement("div");c.id="hqAppReview",c.innerHTML="<h3>Pending applications"+(l?' <span class="hq-badge">'+p(String(l))+"</span>":"")+'</h3><div class="hq-note">Approve to wire them in, or deny to clear the request. 0 XP on every decision.</div><div id="hqAppReviewList"></div>',i.appendChild(c),window.PFCellIdentity.mountApplicationReview(c.querySelector("#hqAppReviewList"),t.id,{onChange:function(){j(e,t,n)}})}}else i.innerHTML='<h3>CELL IDENTITY</h3><div class="hq-note">Identity unavailable — try again later.</div>'})}function B(e,t){if(!e)return{name:t&&t.name||"",state:t&&t.state||""};var n=[],i="";return(e.vibes||[]).forEach(function(e){var t=e.key||e;0===String(t).indexOf("custom:")?i=String(t).slice(7):n.push(t)}),{name:t&&t.name||"",state:t&&t.state||"",causes:(e.causes||[]).map(function(e){return e.key||e}),vibes:n,customVibe:i,specialties:(e.specialties||[]).map(function(e){return e.key||e}),cadence:e.meeting_cadence||"",entry:e.entry_style||"",charter:e.charter||"",motto:e.motto||"",region:e.region||"",palette:null==e.palette?-1:Number(e.palette)}}function H(){try{return e.skip("strike")}catch(e){return!1}}function U(e){var t=String(null==e?"":e);return/^\/[a-zA-Z0-9\-_#?&=%.][a-zA-Z0-9\/\-_#?&=%.]*$/.test(t)?t:"/political-hq"}function W(e){if(!e||!e.state)return"";var t=String(e.state).toUpperCase().replace(/[^A-Z]/g,"").slice(0,2);return t?'<div class="hq-note" style="margin-bottom:6px"><b>'+p(t)+" targets</b></div>":""}function X(e,t,n){var i=function(e){var t=/^(\d+)\s*\/\s*(\d+)$/.exec(String(null==e?"":e));if(!t)return{x:0,y:0};var n=parseInt(t[1],10),i=parseInt(t[2],10);return isNaN(n)&&(n=0),isNaN(i)&&(i=0),{x:n,y:i}}(t),a=i.y>0?Math.min(100,Math.round(i.x/i.y*100)):0;e=Array.isArray(e)?e:[];return'<div class="hq-note"><b>'+i.x+"/"+i.y+' members completed</b></div><div class="hq-bar"><div style="width:'+a+'%"></div></div><details><summary class="hq-strike-sum">Who is done? ('+i.x+"/"+i.y+")</summary>"+function(e,t){return e&&e.length?e.map(function(e){var n=String(e&&e.callsign?e.callsign:"—"),i=!!t(e);return'<div class="hq-mem"><span><b>'+p(n)+'</b></span><span class="hq-note" style="font-size:16px">'+(i?"&#10003;":"&#9675;")+"</span></div>"}).join(""):'<div class="hq-note">No members on record.</div>'}(e,n)+"</details>"}function K(e,t,n){var i=e&&e.title?String(e.title):"Operations order",a=e&&e.detail?String(e.detail):"Awaiting the week’s briefing.",r=U(e&&e.deep_link),o='<div class="hq-card"><div class="hq-order-t"><b>'+p(i)+"</b></div>"+W(e&&e.task_ref)+'<div class="hq-order-d">'+p(a)+"</div>";return e&&e.reward&&String(e.reward).trim()&&(o+='<div class="hq-note" style="margin-bottom:8px">'+p(String(e.reward))+"</div>"),o+='<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+p(r)+'">TAKE ACTION &rarr;</a></div>'+X(t,n,function(e){return Number(e&&e.ops_done||0)>0})+"</div>"}function Y(t,n,i,a,r,o,s){var l=t&&t.task_ref||{},c=function(t){var n=(t&&t.task_ref||{}).entities;if(!Array.isArray(n)||!n.length)return null;var i=[];try{if(window.PF&&"function"==typeof e.pickFight&&!e.skip("pick-fight")){var a=e.pickFight();Array.isArray(a)&&(i=a)}}catch(e){}if(i.length)for(var r=0;r<n.length;r++)for(var o=n[r]&&n[r].areas||[],s=0;s<i.length;s++)if(o.indexOf(i[s])>=0)return n[r];return n[0]}(t),d=t&&t.detail?String(t.detail):"Forge one propaganda poster about this week’s fight target.",u='<div class="hq-card hq-strike-pol"><div class="hq-row"><span class="hq-badge gold plain">POLITICAL STRIKE</span><span class="hq-badge plain">CREATION</span></div><div class="hq-order-t"><b>FORGE A STRIKE POSTER</b></div>'+W(l)+(c?'<div class="hq-note" style="margin-bottom:6px"><b>TARGET: '+p(String(c.title||""))+"</b></div>":"")+(l.why_now?'<div class="hq-note" style="margin-bottom:6px"><b>WHY NOW:</b> '+p(String(l.why_now))+"</div>":"")+'<div class="hq-order-d">'+p(d)+"</div>";return l.bounty&&l.bounty.title?u+='<div class="hq-note" style="margin-bottom:8px">This also counts toward the <b>'+p(String(l.bounty.title))+'</b> bounty — <a href="/create?tab=bounties">open the bounty board &rarr;</a></div>':u+='<div class="hq-note" style="margin-bottom:8px">Bounty hunters: <a href="/create?tab=bounties">check the bounty board</a> for poster bounties on this fight.</div>',u+=c?'<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-forge" data-cell="'+p(r)+'" data-week="'+p(o||"")+'" data-ekind="'+p(String(c.kind||""))+'" data-eid="'+p(String(c.id||""))+'" data-etitle="'+p(String(c.title||""))+'" data-eurl="'+p(String(c.url||""))+'">FORGE THIS &rarr;</button></div>':'<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="/create#pf-poster">OPEN THE FORGE &rarr;</a></div>',u+='<div class="hq-note" style="margin-bottom:8px">The order itself grants zero XP — the forge’s normal poster/share legs pay out when you create.</div>',a&&(u+=s?'<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>':'<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="'+p(r)+'">RE-ROLL POLITICAL ORDER</button></div>'),u+=X(n,i,function(e){return!(!e||!e.political_done)})+"</div>"}function V(e,t,n){var i=e.orders||[],a={};i.forEach(function(e){e&&e.slot&&!a[e.slot]&&(a[e.slot]=e)});var r=a.ops1||a.ops||null,o=a.ops2||null,s=a.political||null,l=e.members||[],c=e.aggregate||{},d='<div class="hq-card"><h3>&#9876; Strike orders'+(e.week_start?' <span class="hq-note">week of '+p(String(e.week_start))+"</span>":"")+'</h3><div class="hq-note" style="margin-bottom:10px">Complete them as a cell. Progress counts for the whole crew.</div>'+K(r,l,c.ops)+K(o,l,c.ops)+function(e,t,n,i,a,r,o){if(e&&"creation"===e.task_type)return Y(e,t,n,i,a,r,o);var s=e&&e.title?String(e.title):"Political strike",l=e&&e.detail?String(e.detail):"Awaiting the week’s political strike order.",c=U(e&&e.deep_link),d="";i&&(d=o?'<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>':'<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="'+p(a)+'">RE-ROLL POLITICAL ORDER</button></div>');var u='<div class="hq-card hq-strike-pol"><div class="hq-row"><span class="hq-badge gold plain">POLITICAL STRIKE</span></div><div class="hq-order-t"><b>'+p(s)+"</b></div>"+W(e&&e.task_ref)+'<div class="hq-order-d">'+p(l)+"</div>";return e&&e.reward&&String(e.reward).trim()&&(u+='<div class="hq-note" style="margin-bottom:8px">'+p(String(e.reward))+"</div>"),u+'<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+p(c)+'">OPEN POLITICAL HQ &rarr;</a></div>'+d+X(t,n,function(e){return!(!e||!e.political_done)})+"</div>"}(s,l,c.political,t,n,e.week_start,!(!e.rerolled_used&&!e.already_rerolled))+"</div>";return d}function G(t,n,i){var a=null;try{a=t.querySelector("#hqStrikeBody")}catch(e){}if(a){var r=y({cell_id:n}),o=function(){try{if(window.PF&&"function"==typeof e.pickFight){var t=e.pickFight();if(t&&t.length)return t.join(",")}}catch(e){}return""}();o&&(r.fight_areas=o),b("strike_orders_get",r,function(e){if(e&&e.ok&&Array.isArray(e.orders))try{a.innerHTML=V(e,i,n)}catch(e){try{a.innerHTML='<div class="hq-card"><h3>&#9876; Strike orders</h3><div class="hq-note" style="margin-bottom:10px">The week’s cell missions deploy here.</div><div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div><div class="hq-note">Coming soon.</div></div><div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div><div class="hq-note">Coming soon.</div></div><div class="hq-card hq-strike-pol"><span class="hq-badge gold plain">POLITICAL STRIKE</span><div class="hq-order-t"><b>Coming soon</b></div><div class="hq-note">The standing political strike order deploys here.</div></div></div>'}catch(e){}}else try{a.innerHTML='<div class="hq-card"><h3>&#9876; Strike orders</h3><div class="hq-note" style="margin-bottom:10px">The week’s cell missions deploy here.</div><div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div><div class="hq-note">Coming soon.</div></div><div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div><div class="hq-note">Coming soon.</div></div><div class="hq-card hq-strike-pol"><span class="hq-badge gold plain">POLITICAL STRIKE</span><div class="hq-order-t"><b>Coming soon</b></div><div class="hq-note">The standing political strike order deploys here.</div></div></div>'}catch(e){}})}}function J(){try{return e.skip("cell-rally")}catch(e){return!1}}function Q(e,t,n,i){var a='<option value="">'+p(t)+"</option>";return(n||[]).forEach(function(e){a+='<option value="'+p(e[0])+'"'+(String(i||"")===e[0]?" selected":"")+">"+p(e[1])+"</option>"}),'<select class="hq-sel" id="'+e+'" aria-label="'+p(t)+'">'+a+"</select>"}function Z(e){if(!e)return L();var t=e.cells||[];if(!t.length)return'<div class="hq-note">No cells match. Try a shorter search — or found your own.</div>';var n=window.PFCellIdentity&&window.PFCellIdentity.enabled(),i="";return t.forEach(function(e){var t,a=e.verified?'<span class="hq-badge">VERIFIED</span>':"",r=(e.member_count||0)>=5,o=n?window.PFCellIdentity.cardIdentityHTML(e):"";t=r?'<span class="hq-badge dim">FULL</span>':n&&"application"===e.entry_style?'<button class="id-btn sm" data-idapply="'+p(e.id)+'">APPLY</button>':n&&e.invite_code?'<button class="id-btn sm" data-idjoin="'+p(e.invite_code)+'">JOIN</button>':n?'<span class="hq-note">invite only</span>':'<button class="hq-btn sm" data-hq="join-id" data-cell="'+p(e.id)+'">JOIN</button>',i+='<div class="hq-mem"><span><b>'+p(e.name)+"</b>"+a+m(e)+'<div class="hq-note">'+p(String(e.member_count||0))+"/5 members &middot; "+p(String(e.streak||0))+"d streak</div>"+o+"</span>"+t+"</div>"}),i}function $(e,t,n){var i=document.getElementById(e);i&&(i.innerHTML='<div class="hq-note" style="margin-top:6px;color:'+(t?"#7CFC00":"#ff6b6b")+'">'+p(n)+"</div>")}function ee(e){s.mine&&(s.mine._t=0),s.detailPrestige=null,s.detailHealth=null,s.tab=e||"mine",n.querySelectorAll(".hq-tab").forEach(function(e){e.classList.toggle("on",e.getAttribute("data-tab")===s.tab)}),M()}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("cell-kits")&&!window.pfCellKitDone){window.pfCellKitDone=!0;var t=["#pf-cell-kit{margin:14px 0}","#pf-cell-kit .ck-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:16px;margin-bottom:12px}","#pf-cell-kit .ck-k{font-size:11px;letter-spacing:3px;color:#e8b923;font-weight:700}","#pf-cell-kit .ck-t{font-weight:900;font-size:18px;color:#f5ead6;margin:4px 0;letter-spacing:1px}","#pf-cell-kit .ck-m{border-top:1px solid #2a2a2a;padding:10px 0}","#pf-cell-kit .ck-m:first-of-type{border-top:0}","#pf-cell-kit .ck-mt{font-weight:700;font-size:14px;color:#f5ead6}","#pf-cell-kit .ck-md{font-size:13px;color:#c9bfa8;margin:4px 0;line-height:1.5}","#pf-cell-kit .ck-xp{display:inline-block;background:#e8b923;color:#0d0d0d;font-weight:900;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:4px;margin-left:8px}","#pf-cell-kit .ck-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:13px;margin-top:6px}","#pf-cell-kit .ck-btn:disabled{opacity:.45;cursor:default}","#pf-cell-kit .ck-done{color:#7fc97f;font-weight:700;font-size:13px;margin-top:6px}","#pf-cell-kit .ck-note{font-size:12px;color:#8a7f68;margin-top:8px;line-height:1.5}","#pf-cell-kit .ck-err{font-size:13px;color:#e88;font-weight:700;margin-top:6px}"].join("\n"),n=0;!function e(){var i=document.getElementById("pf-cell-hq")||document.getElementById("pf-cells-page");i||n>=10?i&&function(){try{if(document.getElementById("pf-cell-kit-css"))return;var e=document.createElement("style");e.id="pf-cell-kit-css",e.textContent=t,document.head.appendChild(e)}catch(e){}var n=document.getElementById("pf-cell-hq")||document.getElementById("pf-cells-page");if(n){var i=document.createElement("div");n.appendChild(i),s(i)}}():(n++,setTimeout(e,500))}()}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function a(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function r(t,n,i){var r=function(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}};try{if(window.PF&&e.postAction){var o={};for(var s in n)o[s]=n[s];var l=a();return l.callsign&&(o.callsign=l.callsign),l.device&&(o.device=l.device),void e.postAction("cell","cell_action",t,o,r)}}catch(e){}r(null)}function o(e){var t=Math.max(0,Math.floor(e/1e3)),n=Math.floor(t/3600),i=Math.floor(t%3600/60);return n>0?n+"h "+i+"m left":i+"m left"}function s(t){a().callsign?r("cell_mine",{},function(n){if(n&&n.ok&&n.cells&&n.cells.length){var a=n.cells,l=a.length,c=[];l?a.forEach(function(n){r("kit_status",{cell_id:n.id},function(a){(l--,a&&a.ok&&a.kit&&!a.kit.expired)&&(a.kit.missions.filter(function(e){return e.can_claim}).length&&c.push({cell_id:n.id,cell_name:n.name||"Your cell",ms_left:a.kit.ms_left,missions:a.kit.missions}));if(l<=0){if(!c.length)return void(t.style.display="none");!function(t,n){for(var a='<div id="pf-cell-kit">',l=0;l<n.length;l++){var c=n[l];a+='<div class="ck-card" data-ck-cell="'+i(c.cell_id)+'">',a+='<div class="ck-k">STARTER KIT &middot; '+i(o(c.ms_left))+"</div>",a+='<div class="ck-t">'+i(c.cell_name)+"</div>",a+='<div class="ck-note">Fresh-cell boost: three starter missions, 48 hours. Recruits you bring in pay +25 XP each through the recruit bounty.</div>';for(var d=0;d<c.missions.length;d++){var p=c.missions[d];a+='<div class="ck-m"><span class="ck-mt">'+i(p.title)+'</span><span class="ck-xp">+'+p.xp+" XP</span>",a+='<div class="ck-md">'+i(p.detail)+"</div>",p.done?a+='<div class="ck-done">DONE — claimed.</div>':p.can_claim?a+='<button class="ck-btn" data-ck-claim="'+i(p.id)+'">CLAIM '+p.xp+' XP</button><div class="ck-msg"></div>':a+='<div class="ck-note">Complete the mission above, then claim.</div>',a+="</div>"}a+="</div>"}a+="</div>",t.innerHTML=a;for(var u=t.querySelectorAll("[data-ck-claim]"),f=0;f<u.length;f++)(function(n){n.addEventListener("click",function(){var a=n.closest("[data-ck-cell]"),o=a?a.getAttribute("data-ck-cell"):"",l=n.getAttribute("data-ck-claim"),c=a?a.querySelector(".ck-msg"):null;n.disabled=!0,r("kit_mission_claim",{cell_id:o,mission:l},function(a){if(a&&a.ok){if(!a.dup)return window.PF&&e.toast&&e.toast("STARTER MISSION — +"+(a.xp||10)+" XP"),void s(t);c&&(c.innerHTML='<div class="ck-done">Already claimed.</div>')}else{var r=a&&a.err||"error";c&&(c.innerHTML='<div class="ck-err">'+i("mission_incomplete"===r?"Not done yet — complete the mission first.":r)+"</div>"),n.disabled=!1}})})})(u[f])}(t,c)}})}):t.style.display="none"}else t.style.display="none"}):t.style.display="none"}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("treasury")&&!window.pfTreasuryLoaded){window.pfTreasuryLoaded=!0;var t=window.PF_BACKEND_URL,n=!1;window.PFTreasury={mount:c},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",d):setTimeout(d,0)}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function a(t){try{e.toast(t)}catch(e){}}function r(e){try{return Number(e||0).toLocaleString()}catch(t){return String(e||0)}}function o(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function s(e,n,i){function a(e){try{i(e)}catch(e){}}if(t){var r="pfTrzCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),s=!1;window[r]=function(e){d(e)},o.onerror=function(){d(null)};var l="?action="+encodeURIComponent(e);for(var c in n)null!=n[c]&&""!==n[c]&&(l+="&"+encodeURIComponent(c)+"="+encodeURIComponent(n[c]));l+="&callback="+r,o.src=t+l,document.head.appendChild(o),setTimeout(function(){d(null)},12e3)}else a(null);function d(e){if(!s){s=!0;try{delete window[r]}catch(e){}o.parentNode&&o.parentNode.removeChild(o),a(e)}}}function l(n,i,a){function r(e){try{a(e||{ok:!1,err:"Network error."})}catch(e){}}var s=o(),l={callsign:s.callsign,device:s.device};for(var c in i||{})l[c]=i[c];if(window.PF&&e.postAction)e.postAction("treasury","t_action",n,l,a);else if(t)try{var d={type:"treasury",t_action:n};for(var p in l)d[p]=l[p];var u="";try{u=window.PF&&e.getAuthSecret?e.getAuthSecret():""}catch(e){}u&&(d.auth_secret=u);var f={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)},h=null,m=null;try{window.AbortController&&(h=new AbortController,f.signal=h.signal,m=setTimeout(function(){try{h.abort()}catch(e){}},15e3))}catch(e){}fetch(t,f).then(function(e){return e.json()}).then(function(e){if(m)try{clearTimeout(m)}catch(e){}r(e)}).catch(function(){if(m)try{clearTimeout(m)}catch(e){}r(null)})}catch(e){r(null)}else r(null)}function c(d,p){!function(){if(!n){n=!0;var e=".trz-panel{max-width:860px;margin:0 auto;font-family:inherit;color:#f5f0e6}.trz-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}.trz-card.hot{border-color:#c9a227}.trz-card h3{margin:0 0 6px;font-size:17px;letter-spacing:.5px}.trz-note{font-size:12.5px;opacity:.8;line-height:1.5}.trz-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.trz-bal{font-size:30px;font-weight:900;color:#c9a227;margin:2px 0 6px}.trz-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}.trz-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:9px 14px;font-size:14px;cursor:pointer;margin:4px 4px 4px 0}.trz-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}.trz-btn.sm{padding:6px 10px;font-size:12px}.trz-btn:disabled{opacity:.45;cursor:default}.trz-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}.trz-in.sm{width:110px}.trz-bar{height:10px;background:#222;margin:4px 0 6px;position:relative;border-radius:5px;overflow:hidden}.trz-bar>div{height:10px;background:linear-gradient(90deg,#c9a227,#f5d76e)}.trz-pill{background:#1c1c1c;border:2px solid #3a3a3a;color:#f5f0e6;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;margin:4px 4px 4px 0}.trz-pill.on{background:#c1121f;border-color:#c1121f}.trz-act{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid #222;font-size:13px}.trz-act:last-child{border-bottom:0}.trz-pos{color:#7CFC00;font-weight:700}.trz-neg{color:#ff8a8a;font-weight:700}.trz-err{color:#ff6b6b;font-size:13px;margin-top:6px}.trz-ok{color:#7CFC00;font-size:13px;margin-top:6px}@media(max-width:560px){.trz-bal{font-size:24px}}",t=document.createElement("style");t.type="text/css",t.styleSheet?t.styleSheet.cssText=e:t.appendChild(document.createTextNode(e)),document.head.appendChild(t)}}(),p=p||{};var u=String(p.cell_id||""),f=String(p.cell_name||p.cell_id||"your cell"),h=!!p.is_officer,m="t"+Math.floor(1e9*Math.random());function v(e){return"trz_"+e+"_"+m}if(o().callsign)if(u){var g={bal:null,hist:null};d.innerHTML='<div class="trz-panel"><div class="trz-card"><div class="trz-note">Opening the vault&hellip;</div></div></div>';var b=0;s("treasury_balance",{cell_id:u},function(e){g.bal=e,w()}),s("treasury_history",{cell_id:u,days:30},function(e){g.hist=e,w()})}else d.innerHTML='<div class="trz-panel"><div class="trz-card"><h3>Cell Treasury</h3><div class="trz-note">Join a cell to fund its treasury and watch the war chest grow.</div></div></div>';else d.innerHTML='<div class="trz-panel"><div class="trz-card"><h3>Claim a callsign first</h3><div class="trz-note">Treasury tools move real XP. Claim your callsign in Daily Orders first.</div>'+function(){try{return window.PF&&e.recoverLinkHTML?e.recoverLinkHTML():""}catch(e){return""}}()+"</div></div>";function w(){++b>=2&&function(){var n=g.bal,s=g.hist;if(!n||!n.ok)return void(d.innerHTML='<div class="trz-panel"><div class="trz-card"><h3>Cell Treasury</h3><div class="trz-err">The vault would not open. Check your connection and try again.</div></div></div>');var c=Math.round(Number(n.balance)||0),p=Math.round(Number(n.capacity)||1e4),m=n.prestige_tier||"",b=p>0?Math.min(100,Math.round(c/p*100)):0,w=n.recent||[],k='<div class="trz-panel">';k+='<div class="trz-card hot"><h3>&#9876; CELL TREASURY <span class="trz-note">'+i(f)+'</span></h3><div class="trz-bal">'+r(c)+' XP</div><div class="trz-bar"><div style="width:'+b+'%"></div></div><div class="trz-note"><b>'+r(c)+" / "+r(p)+" XP</b> capacity"+(m?" &middot; "+i(m)+" tier":"")+" &middot; every XP here is member-funded, officer-spent.</div></div>",k+='<div class="trz-card"><h3>BALANCE TRAJECTORY <span class="trz-note">last 30 days</span></h3>',s&&s.ok&&s.points&&s.points.length>=2?(k+=function(e){if(!e||e.length<2)return"";var t=e.map(function(e){return Math.max(0,Number(e.balance)||0)}),n=Math.min.apply(null,t),a=Math.max.apply(null,t);function o(e){return(8+e/(t.length-1)*304).toFixed(1)}function s(e){return(102-(e-n)/(a-n)*94).toFixed(1)}a===n&&(a=n+1);var l=t.map(function(e,t){return o(t)+","+s(e)}).join(" "),c=o(0)+",102 "+l+" "+o(t.length-1)+",102",d=e[0].date||"",p=e[e.length-1].date||"",u=t[t.length-1]-t[0],f=u>=0?"#7CFC00":"#ff8a8a",h=u>=0?"+":"";return'<svg viewBox="0 0 320 132" style="width:100%;height:auto;display:block" role="img" aria-label="Treasury balance trajectory"><polygon points="'+c+'" fill="#c9a227" opacity="0.18"/><polyline points="'+l+'" fill="none" stroke="#c9a227" stroke-width="2.5"/><circle cx="'+o(t.length-1)+'" cy="'+s(t[t.length-1])+'" r="3.5" fill="#c9a227"/><text x="8" y="122" fill="#f5f0e6" font-size="9" opacity="0.7">'+i(d)+'</text><text x="312" y="122" fill="#f5f0e6" font-size="9" opacity="0.7" text-anchor="end">'+i(p)+'</text><text x="8" y="131" fill="'+f+'" font-size="10" font-weight="bold">'+h+r(u)+' XP / 30d</text><text x="312" y="131" fill="#f5f0e6" font-size="10" opacity="0.7" text-anchor="end">peak '+r(a)+"</text></svg>"}(s.points),k+='<div class="trz-note" style="margin-top:4px">Reconstructed from the treasury ledger — quiet days carry forward.</div>'):s&&!1===s.ok&&"no treasury"===s.err?k+='<div class="trz-note">No ledger history yet — the first funding starts the line.</div>':k+='<div class="trz-note">Trajectory unavailable right now — the balance above is live. It comes online with the next backend push.</div>';k+="</div>",k+='<div class="trz-card" style="border-color:#7CFC00"><h3>FUND THE TREASURY</h3><div class="trz-note">Throw XP into the cell war chest. Officers spend it on the fight — prizes, bounties, causes.</div><div class="trz-row" style="margin-top:8px">'+[25,50,100,250].map(function(e){return'<button class="trz-btn sm ghost" data-trz="chip" data-amt="'+e+'">+'+e+"</button>"}).join("")+'<input class="trz-in sm" id="'+v("fundAmt")+'" type="number" min="1" inputmode="numeric" placeholder="XP"><button class="trz-btn" data-trz="fund">FUND THE TREASURY</button></div><div class="trz-err" id="'+v("fundMsg")+'" style="display:none"></div></div>',k+='<div class="trz-card"><h3>SPEND <span class="trz-note">treasury &#8594; the fight</span></h3>',h?k+='<div class="trz-note">Where does it go?</div><div class="trz-row" style="margin:6px 0"><button class="trz-pill on" data-trz="dest" data-d="free">FREE-FORM PURPOSE</button><button class="trz-pill" data-trz="dest" data-d="cause">SPONSOR A CAUSE &rarr;</button></div><div id="'+v("destFree")+'"><div class="trz-row"><input class="trz-in sm" id="'+v("spAmt")+'" type="number" min="1" inputmode="numeric" placeholder="XP"><input class="trz-in" id="'+v("spPurp")+'" maxlength="200" placeholder="purpose (e.g. poster prize)" style="flex:1;min-width:180px"><button class="trz-btn" data-trz="spend">SPEND</button></div></div><div id="'+v("destCause")+'" style="display:none"><div class="trz-note" style="margin-bottom:6px">Deploy idle treasury XP to a cause pool — strike fund, bail fund, mutual aid. The cell&#39;s name rides the pool as sponsor and hits the war-room ticker.</div><div class="trz-row"><a class="trz-btn" style="text-decoration:none;display:inline-block" href="/ventures?cell='+i(u)+'&amp;sponsor=1">SPONSOR A CAUSE &rarr;</a></div></div><div class="trz-err" id="'+v("spMsg")+'" style="display:none"></div>':(k+='<div class="trz-note">Only the founder and officers can spend from the treasury. The backend enforces it — this panel shows the gate honestly.</div>',k+='<div class="trz-note" style="margin-top:6px">Officers can also stake treasury XP into the media nuke (burned, 2,500 XP/day cap). The backend enforces the officer gate.</div>');k+="</div>",h&&(k+='<div class="trz-card" style="border-color:#c1121f"><h3>&#9762; STAKE INTO THE BLAST</h3><div class="trz-note">Burn treasury XP into the media nuke: <b>1 XP = 1 charge</b>. The XP is <b>destroyed</b> — this is a sacrifice, not a spend.</div><div class="trz-note" style="margin-top:4px">Daily cap: <b>2,500 XP</b> per cell. The backend enforces the cap on every stake &mdash; over-cap stakes are rejected and refunded.</div><div class="trz-row" style="margin-top:8px"><input class="trz-in sm" id="'+v("stAmt")+'" type="number" min="1" max="2500" inputmode="numeric" placeholder="XP"><button class="trz-btn" data-trz="stake">STAKE INTO THE BLAST</button></div><div class="trz-err" id="'+v("stMsg")+'" style="display:none"></div></div>');k+='<div class="trz-card"><h3>RECENT ACTIVITY</h3>',w.length?w.slice(0,10).forEach(function(e){var t,n,a=Math.round(Number(e.amount)||0),o=a>=0?"trz-pos":"trz-neg",s="";try{s=new Date(Number(e.ts)||0).toLocaleDateString()}catch(e){}k+='<div class="trz-act"><span>'+i(e.callsign||"?")+" "+i((t=e.kind,"donate"===(n=String(t||""))?"funded":"sponsor"===n?"sponsored a cause":"dividend"===n?"dividend payout":0===n.indexOf("spend:")?"spent — "+n.slice(6).trim():0===n.indexOf("spend")?"spent":n||"move"))+'</span><span><span class="'+o+'">'+(a>=0?"+":"")+r(a)+' XP</span> <span class="trz-note">'+i(s)+"</span></span></div>"}):k+='<div class="trz-note">No moves yet. Fund the treasury and the ledger starts writing.</div>';k+="</div></div>",d.innerHTML=k,function(){function n(n){for(var i=n.target,s=null;i&&i!==d;){if(i.getAttribute&&i.getAttribute("data-trz")){s=i;break}i=i.parentNode}if(s){var c=s.getAttribute("data-trz");if("chip"!==c){if("dest"===c){for(var p=s.getAttribute("data-d"),f=d.querySelectorAll('[data-trz="dest"]'),h=0;h<f.length;h++)f[h].classList.toggle("on",f[h]===s);return document.getElementById(v("destFree")).style.display="free"===p?"block":"none",void(document.getElementById(v("destCause")).style.display="cause"===p?"block":"none")}if("fund"===c){var m=Math.round(Number(document.getElementById(v("fundAmt")).value)||0);if(y(v("fundMsg"),"",!0),m<=0)return void y(v("fundMsg"),"Enter an amount of XP.");if(!window.confirm("Fund the treasury with "+r(m)+" XP from your balance?"))return;return s.disabled=!0,void l("treasury_donate",{cell_id:u,amount:m},function(e){s.disabled=!1,e&&e.ok?(a("FUNDED "+r(m)+" XP. The war chest grows."),x()):y(v("fundMsg"),e&&e.err?String(e.err):"Transfer failed.")})}if("stake"===c){var g=Math.round(Number(document.getElementById(v("stAmt")).value)||0);if(y(v("stMsg"),"",!0),g<=0)return void y(v("stMsg"),"Enter an amount of XP.");if(g>2500)return void y(v("stMsg"),"The daily cap is 2,500 XP per cell.");if(!window.confirm("Burn "+r(g)+" XP from the treasury into the blast? This is a sacrifice — the XP is destroyed."))return;return s.disabled=!0,void function(n,i,a){function r(e){try{a(e||{ok:!1,err:"Network error."})}catch(e){}}var s=o();if(s.callsign){var l={callsign:s.callsign,device:s.device};for(var c in i||{})l[c]=i[c];if(window.PF&&e.postAction)e.postAction("nuke","n_action",n,l,a);else if(t)try{var d={type:"nuke",n_action:n};for(var p in l)d[p]=l[p];var u="";try{u=window.PF&&e.getAuthSecret?e.getAuthSecret():""}catch(e){}u&&(d.auth_secret=u);var f={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)},h=null,m=null;try{window.AbortController&&(h=new AbortController,f.signal=h.signal,m=setTimeout(function(){try{h.abort()}catch(e){}},15e3))}catch(e){}fetch(t,f).then(function(e){return e.json()}).then(function(e){if(m)try{clearTimeout(m)}catch(e){}r(e)}).catch(function(){if(m)try{clearTimeout(m)}catch(e){}r(null)})}catch(e){r(null)}else r(null)}else r({ok:!1,err:"Claim a callsign first."})}("nuke_stake",{cell_id:u,amount:g},function(e){if(s.disabled=!1,e&&e.ok)a("STAKED "+r(g)+" XP INTO THE BLAST. Sacrifice logged."),x();else{var t=e&&e.err?String(e.err):"Stake failed.";y(v("stMsg"),"officers only"===t?"Officers only — the backend said no.":t)}})}if("spend"===c){var b=Math.round(Number(document.getElementById(v("spAmt")).value)||0),w=String(document.getElementById(v("spPurp")).value||"").trim().slice(0,200);if(y(v("spMsg"),"",!0),b<=0)return void y(v("spMsg"),"Enter an amount.");if(!w)return void y(v("spMsg"),"Give the spend a purpose.");if(!window.confirm("Spend "+r(b)+" XP from the cell treasury on: "+w+"?"))return;return s.disabled=!0,void l("treasury_spend",{cell_id:u,amount:b,purpose:w},function(e){if(s.disabled=!1,e&&e.ok)a("SPENT "+r(b)+" XP — "+w+"."),x();else{var t=e&&e.err?String(e.err):"Spend failed.";y(v("spMsg"),"officers only"===t?"Officers only — the backend said no.":t)}})}}else{var k=document.getElementById(v("fundAmt"));k&&(k.value=s.getAttribute("data-amt"))}}}d.addEventListener("click",n)}()}()}function y(e,t,n){var i=document.getElementById(e);i&&(i.style.display=t?"block":"none",i.className=n?"trz-ok":"trz-err",i.textContent=t||"")}function x(){c(d,p)}}function d(){try{if(-1!==window.location.href.indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return;var n=document.getElementById("pf-treasury");if(!n||n.getAttribute("data-trz-mounted"))return;n.setAttribute("data-trz-mounted","1");var i=o();if(!i.callsign)return void c(n,{});var a="";try{a=window.PF&&e.getAuthSecret?e.getAuthSecret():""}catch(e){}s("cell_mine",{callsign:i.callsign,device:i.device,auth_secret:a},function(e){e&&e.ok&&e.cell&&e.cell;var t="";try{t=String(e&&e.cell&&(e.cell.id||e.cell.cell_id)||"")}catch(e){}var i="";try{i=String(e&&e.cell&&e.cell.name||"")}catch(e){}c(n,{cell_id:t,cell_name:i||t,is_officer:!(!e||!e.is_founder&&!e.is_officer)})})}catch(e){}}}(),function(){"use strict";var e=window.PF;e&&!e.skip("cell-war")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-cellwar">\n<div class="fe-block pf-override-block pf-silo" id="pf-cell-war">\n<div id="xCellWar"><div class="cw-load">Mustering the armies&hellip;</div></div>\n</div>\n<style>\n#pf-cell-war .cw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);border:3px solid #c1121f;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(193,18,31,.35);color:#f5ead6;font-family:Arial,sans-serif}\n#pf-cell-war .cw-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px}\n#pf-cell-war .cw-stakes{font-size:13px;letter-spacing:3px;color:#e8b64c;font-weight:800;margin-bottom:10px;text-transform:uppercase}\n#pf-cell-war h2{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-cell-war h2 .cw-week{color:#c1121f}\n#pf-cell-war .cw-count{font-family:\'Courier New\',monospace;font-size:15px;color:#ffb347;letter-spacing:1px;margin-bottom:14px}\n#pf-cell-war .cw-champ{background:#c1121f;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}\n#pf-cell-war .cw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}\n#pf-cell-war .cw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}\n#pf-cell-war .cw-row.cw-mine{border:2px solid #ffb347;background:#1e1508}\n#pf-cell-war .cw-pos{font-family:\'Arial Black\',Arial,sans-serif;font-size:20px;color:#c1121f;text-align:center}\n#pf-cell-war .cw-row.cw-mine .cw-pos{color:#ffb347}\n#pf-cell-war .cw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-cell-war .cw-sub{font-size:12px;color:#a89e88;margin-top:2px}\n#pf-cell-war .cw-sub .cw-flame{margin-right:4px}\n#pf-cell-war .cw-mine-tag{display:inline-block;background:#ffb347;color:#000;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}\n#pf-cell-war .cw-bar{height:8px;background:#2a2a2a;margin-top:6px;border:1px solid #444}\n#pf-cell-war .cw-bar i{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ff5a00)}\n#pf-cell-war .cw-xp{font-family:\'Courier New\',monospace;font-size:15px;font-weight:700;color:#ffb347;text-align:right;white-space:nowrap}\n#pf-cell-war .cw-cta{margin-top:16px}\n#pf-cell-war .cw-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}\n#pf-cell-war .cw-btn.cw-ghost{background:transparent;border-color:#c1121f;color:#f5ead6}\n#pf-cell-war .cw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}\n#pf-cell-war .cw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}\n#pf-cell-war .cw-load{color:#a89e88;font-size:14px;padding:20px}\n/* G6 (2026-10-04): War Room odds strip — live championship odds from\n   the war board + market escrow pools. Zero XP for viewing. */\n#pf-cell-war .cw-odds{margin:6px 0 8px;border:1px dashed #c1121f;padding:12px 10px;background:#100808}\n#pf-cell-war .cw-okick{font-size:11px;letter-spacing:3px;color:#ffb347;font-weight:800;margin-bottom:8px}\n#pf-cell-war .cw-orow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 4px;border-top:1px solid #2a2a2a;font-size:13px;text-align:left}\n#pf-cell-war .cw-oname{font-weight:800;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-cell-war .cw-oev{font-family:\'Courier New\',monospace;color:#ffb347;font-size:12px;white-space:nowrap}\n#pf-cell-war .cw-obet{display:inline-block;margin-top:10px;background:transparent;border:1px solid #ffb347;color:#ffb347;font-weight:800;font-size:12px;padding:8px 18px;text-decoration:none;letter-spacing:1px}\n#pf-cell-war .cw-ofree{font-size:11px;color:#a89e88;margin-top:8px}\n</style>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return {callsign:cs}; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfCwCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */\nfunction chicagoMidnightMs(dayStr,addDays){\n  try{\n    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;\n    var ymd=new Date(base).toISOString().slice(0,10);\n    var guess=Date.parse(ymd+"T12:00:00Z");\n    for(var i=0;i<3;i++){\n      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");\n      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);\n    }\n    return guess;\n  }catch(e){ return Date.now()+86400000; }\n}\nfunction fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }\nvar WAR_END=0, TICK=null;\nfunction tick(){\n  var el=document.getElementById("cwCount"); if(!el) return;\n  var ms=WAR_END-Date.now();\n  if(ms<0) ms=0;\n  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),\n      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);\n  el.textContent=d+"d "+h+"h "+m+"m "+s+"s REMAINING";\n}\nfunction goCells(){\n  /* 2026-10-03: the cells lobby lives at /cells now (was a homepage\n     scroll target). On /cells, smooth-scroll to the cells widget;\n     from anywhere else, navigate there. */\n  try{\n    var onCells=/\\/cells\\/?$/.test(window.location.pathname||\'\');\n    if(onCells){\n      var t=document.getElementById("pf-cells");\n      if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; }\n    }\n  }catch(e){}\n  try{ window.location.href="/cells"; }catch(e2){}\n}\nfunction render(j){\n  var host=document.getElementById("xCellWar"); if(!host) return;\n  if(!j||!j.ok){ host.innerHTML=\'<div class="cw-empty">The war drums are silent. Check back soon.</div>\'; return; }\n  WAR_END=chicagoMidnightMs(j.week_start,7);\n  var rows=(j.standings||[]).slice(0,5);\n  var top=rows.length?rows[0].xp_earned:1;\n  var h=\'<div class="cw-wrap">\';\n  h+=\'<div class="cw-kicker">MARQUEE EVENT</div>\';\n  h+=\'<h2>⚔️ Cell War <span class="cw-week">— Week \'+esc(j.week_no||"?")+\'</span></h2>\';\n  h+=\'<div class="cw-stakes">Weekly champions claim territory</div>\';\n  h+=\'<div class="cw-count" id="cwCount">--</div>\';\n  if(j.last_winner&&j.last_winner.cell_name){\n    h+=\'<div class="cw-champ">🏆 REIGNING CHAMPIONS: \'+esc(j.last_winner.cell_name)+\n       \'<small>\'+fmt(j.last_winner.xp_earned)+\' XP last week — members earn +\'+(j.champion_bonus_pct||10)+\'% XP all this week</small></div>\';\n    /* PLAY 10 — WINS THAT ECHO (2026-10-06): cell-war victory render ->\n       win event. RECOGNITION ONLY — the war prize (+150 XP/member winners,\n       +50 consolation) is paid by the backend under the locked XP table\n       (xp-locked-table-retuned-20261006.md §4.7, NO_MULT); this hook mints\n       zero XP. Dedupe key = the war week. */\n    try {\n      if (window.PF && PF.wins && typeof PF.wins.emit === \'function\') {\n        PF.wins.emit(\'cellwar_win\',\n          \'⚔️ \' + String(j.last_winner.cell_name) + \' TOOK THE CROWN\',\n          \'Cell War champions · Week \' + (j.week_no || \'?\') +\n            \' · +\' + (j.champion_bonus_pct || 10) + \'% XP all week\',\n          { dedupe: \'cellwar:\' + String(j.week_no || j.week_start || \'\') });\n      }\n    } catch (e) {}\n  }\n  if(rows.length){\n    for(var i=0;i<rows.length;i++){\n      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.xp_earned/top*100)):4;\n      h+=\'<div class="cw-row\'+(r.mine?\' cw-mine\':\'\')+\'">\';\n      h+=\'<div class="cw-pos">\'+(i+1)+\'</div>\';\n      h+=\'<div><div class="cw-name">\'+esc(r.name)+(r.mine?\'<span class="cw-mine-tag">YOUR CELL</span>\':\'\')+\'</div>\';\n      h+=\'<div class="cw-sub">\'+(r.prestige_flame?\'<span class="cw-flame">\'+esc(r.prestige_flame)+\'</span>\':"")+\n         (r.prestige_tier?esc(r.prestige_tier)+\' · \':"")+esc(r.members)+\' fighters\'+\n         (r.members_active?\' · \'+esc(r.members_active)+\' active\':\'\')+\'</div>\';\n      h+=\'<div class="cw-bar"><i style="width:\'+pct+\'%"></i></div></div>\';\n      h+=\'<div class="cw-xp">\'+fmt(r.xp_earned)+\' XP</div>\';\n      h+=\'</div>\';\n    }\n  }else{\n    h+=\'<div class="cw-empty">No shots fired yet this week.<br>Be the first cell on the board.</div>\';\n  }\n  /* G6: War Room championship odds strip — filled by renderMarket. */\n  h+=\'<div id="cwMarket"><div class="cw-load">Reading the War Room&hellip;</div></div>\';\n  var mine=(j.my_cells||[]).length>0;\n  h+=\'<div class="cw-cta">\';\n  if(mine){\n    h+=\'<button class="cw-btn" id="cwViewCell" type="button">RALLY MY CELL →</button>\';\n  }else{\n    h+=\'<button class="cw-btn" id="cwJoinCell" type="button">JOIN A CELL</button>\';\n    h+=\'<button class="cw-btn cw-ghost" id="cwBuildCell" type="button">BUILD YOUR CELL</button>\';\n  }\n  h+=\'</div>\';\n  h+=\'<div class="cw-note">Every XP you earn feeds your cell’s war score — bout fire counts too. \'+\n     \'Top cell Sunday midnight takes the crown, claims territory on the war map, and reigns with +10% XP all next week.</div>\';\n  h+=\'</div>\';\n  host.innerHTML=h;\n  /* share-out gaps #4: standings share painter (top cells + week). */\n  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,\'cellwar-standings\',{link:\'/cells\'}); }catch(e){}\n  if(TICK) clearInterval(TICK);\n  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);\n  var jb=document.getElementById("cwJoinCell"), bb=document.getElementById("cwBuildCell"), vb=document.getElementById("cwViewCell");\n  if(jb) jb.onclick=goCells;\n  if(bb) bb.onclick=goCells;\n  if(vb) vb.onclick=goCells;\n}\nfunction load(){\n  var id=ident();\n  api("cellwar_standings",{callsign:id.callsign},render);\n  /* G6: War Room championship odds — live from the war board. */\n  api("cellwar_market",{},renderMarket);\n}\nfunction renderMarket(j){\n  var el=document.getElementById("cwMarket"); if(!el) return;\n  var odds=(j&&j.ok&&j.odds)||[];\n  if(!odds.length){ el.innerHTML=\'<div class="cw-note">No odds yet — the market opens when cells hit the board.</div>\'; return; }\n  var h=\'<div class="cw-odds"><div class="cw-okick">🏛️ WAR ROOM — CHAMPIONSHIP ODDS</div>\';\n  for(var i=0;i<Math.min(5,odds.length);i++){\n    var o=odds[i];\n    var ev=esc(String(o.implied||0))+\'%\'+(o.pays>0?\' · pays \'+esc(String(o.pays))+\'x\':\'\');\n    h+=\'<div class="cw-orow"><div class="cw-oname">\'+(i+1)+\'. \'+esc(o.name||\'\')+\'</div><div class="cw-oev">\'+ev+\'</div></div>\';\n  }\n  h+=\'<a class="cw-obet" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM →</a>\';\n  h+=\'<div class="cw-ofree">Odds move with the war board. Viewing is free.</div></div>\';\n  el.innerHTML=h;\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("cell-war-front")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-cellwarfront">\n<div class="fe-block pf-override-block pf-silo" id="pf-cell-war-front">\n<div id="xCellWarFront"><div class="pf-load">Raising the propaganda front&hellip;</div></div>\n</div>\n<style>\n#pf-cell-war-front .pf-load{color:#a89e88;font-size:14px;padding:20px;text-align:center}\n#pf-cell-war-front .pw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#140b1c 60%,#0d0d0d 100%);border:3px solid #7b2ff7;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(123,47,247,.35);color:#f5ead6;font-family:Arial,sans-serif}\n#pf-cell-war-front .pw-kicker{font-size:12px;letter-spacing:4px;color:#7b2ff7;font-weight:800;margin-bottom:6px}\n#pf-cell-war-front h2{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-cell-war-front h2 .pw-week{color:#7b2ff7}\n#pf-cell-war-front .pw-sub{font-size:13px;color:#a89e88;margin-bottom:14px;line-height:1.5}\n#pf-cell-war-front .pw-champ{background:#7b2ff7;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}\n#pf-cell-war-front .pw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}\n#pf-cell-war-front .pw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}\n#pf-cell-war-front .pw-row.pw-mine{border:2px solid #c9a0ff;background:#17101f}\n#pf-cell-war-front .pw-pos{font-family:\'Arial Black\',Arial,sans-serif;font-size:20px;color:#7b2ff7;text-align:center}\n#pf-cell-war-front .pw-row.pw-mine .pw-pos{color:#c9a0ff}\n#pf-cell-war-front .pw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-cell-war-front .pw-sub2{font-size:12px;color:#a89e88;margin-top:2px}\n#pf-cell-war-front .pw-mine-tag{display:inline-block;background:#c9a0ff;color:#000;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}\n#pf-cell-war-front .pw-bar{height:8px;background:#2a2a2a;margin-top:6px;border:1px solid #444}\n#pf-cell-war-front .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#7b2ff7,#c9a0ff)}\n#pf-cell-war-front .pw-score{font-family:\'Courier New\',monospace;font-size:15px;font-weight:700;color:#c9a0ff;text-align:right;white-space:nowrap}\n#pf-cell-war-front .pw-cta{margin-top:16px}\n#pf-cell-war-front .pw-btn{display:inline-block;background:#7b2ff7;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}\n#pf-cell-war-front .pw-btn.pw-ghost{background:transparent;border-color:#7b2ff7;color:#f5ead6}\n#pf-cell-war-front .pw-btn:disabled{opacity:.5;cursor:default}\n#pf-cell-war-front .pw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}\n#pf-cell-war-front .pw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}\n#pf-cell-war-front .pw-standby{border:2px dashed #7b2ff7;padding:22px 16px;margin:6px 0}\n#pf-cell-war-front .pw-standby .pw-st-k{font-size:12px;letter-spacing:4px;color:#c9a0ff;font-weight:800;margin-bottom:8px}\n</style>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfPwCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction pfPost(body,cb){\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    var ctl=null; try{ ctl=new AbortController(); }catch(e){}\n    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);\n    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})\n      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung);}catch(e){} done(j); })\n      .catch(function(){ try{clearTimeout(hung);}catch(e){} done(null); });\n  }catch(e){ done(null); }\n}\n/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */\nfunction chicagoMidnightMs(dayStr,addDays){\n  try{\n    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;\n    var ymd=new Date(base).toISOString().slice(0,10);\n    var guess=Date.parse(ymd+"T12:00:00Z");\n    for(var i=0;i<3;i++){\n      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");\n      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);\n    }\n    return guess;\n  }catch(e){ return Date.now()+86400000; }\n}\nfunction fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }\nvar WAR_END=0, TICK=null, LAST=null;\nfunction tick(){\n  var el=document.getElementById("pwCount"); if(!el) return;\n  var ms=WAR_END-Date.now();\n  if(ms<0) ms=0;\n  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),\n      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);\n  el.textContent=d+"d "+h+"h "+m+"m "+s+"s REMAINING";\n}\nfunction toast(m){\n  try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{\n    var t=document.createElement("div"); t.textContent=m;\n    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#7b2ff7;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800);\n  }catch(e2){}\n}\nfunction joinFront(cellId,btn){\n  var id=ident();\n  if(!id.callsign){ toast("Claim a callsign first, then enlist your cell."); return; }\n  if(btn) btn.disabled=true;\n  pfPost({type:"cell",cell_action:"cellwar_front_join",callsign:id.callsign,device:id.device,cell_id:cellId},function(j){\n    if(j&&j.ok){ toast("Cell enlisted in the Propaganda Front."); load(); }\n    else{ toast("Couldn\'t enlist — "+((j&&j.err)||"try again")); if(btn) btn.disabled=false; }\n  });\n}\nfunction render(j){\n  var host=document.getElementById("xCellWarFront"); if(!host) return;\n  LAST=j||null;\n  if(!j||!j.ok){ host.innerHTML=\'<div class="pw-wrap"><div class="pw-empty">The front is quiet. Check back soon.</div></div>\'; return; }\n  WAR_END=chicagoMidnightMs(j.week_start,7);\n  var h=\'<div class="pw-wrap">\';\n  h+=\'<div class="pw-kicker">SIDE FRONT — OPT-IN</div>\';\n  h+=\'<h2>📯 Propaganda Front <span class="pw-week">— Week \'+esc(j.week_no||"?")+\'</span></h2>\';\n  h+=\'<div class="pw-sub">The Cell War’s political side front. Forged posters + completed bounties, scored <b>per fighter</b> — small cells can take this one.<br>Winner takes the PROPAGANDIST crown. Recognition only — zero XP.</div>\';\n  if(j.unavailable){\n    h+=\'<div class="pw-standby"><div class="pw-st-k">⏳ ON STANDBY</div>\'+\n       \'<div class="pw-empty">The forge and bounty rails are still mustering — this front opens when they go live.<br>The Cell War marches on regardless.</div></div>\';\n    h+=\'</div>\';\n    host.innerHTML=h;\n    /* Brand integration: share bar hook (preserved from the pre-Blossom pass). */\n    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,\'cell-war-front\',{link:\'/cells\'}); }catch(e){}\n    if(TICK) clearInterval(TICK);\n    tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);\n    return;\n  }\n  var rows=(j.fronts||[]);\n  var top=rows.length?rows[0].per_capita:1;\n  if(j.last_winner&&j.last_winner.cell_name){\n    h+=\'<div class="pw-champ">🏆 PROPAGANDIST CROWN: \'+esc(j.last_winner.cell_name)+\n       \'<small>\'+fmt(j.last_winner.output)+\' political assets last week — the crown is glory, not XP</small></div>\';\n    /* PLAY 10 — WINS THAT ECHO (2026-10-06): political-front victory render\n       -> win event. Recognition only — the crown is glory, not XP (module\n       copy); this hook mints zero XP. Dedupe key = the war week. */\n    try {\n      if (window.PF && PF.wins && typeof PF.wins.emit === \'function\') {\n        PF.wins.emit(\'cellwar_win\',\n          \'🏆 \' + String(j.last_winner.cell_name) + \' TOOK THE PROPAGANDIST CROWN\',\n          \'Political-front champions · \' + fmt(j.last_winner.output) + \' assets last week\',\n          { dedupe: \'cellwar-front:\' + String(j.week_no || j.week_start || \'\') });\n      }\n    } catch (e) {}\n  }\n  if(rows.length){\n    for(var i=0;i<rows.length;i++){\n      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.per_capita/top*100)):4;\n      var pc=(Math.round((Number(r.per_capita)||0)*100)/100).toFixed(2);\n      h+=\'<div class="pw-row\'+(r.mine?\' pw-mine\':\'\')+\'">\';\n      h+=\'<div class="pw-pos">\'+(i+1)+\'</div>\';\n      h+=\'<div><div class="pw-name">\'+esc(r.name)+(r.mine?\'<span class="pw-mine-tag">YOUR CELL</span>\':\'\')+\'</div>\';\n      h+=\'<div class="pw-sub2">\'+fmt(r.output)+\' assets · \'+esc(r.members)+\' fighters</div>\';\n      h+=\'<div class="pw-bar"><i style="width:\'+pct+\'%"></i></div></div>\';\n      h+=\'<div class="pw-score">\'+pc+\'<br><span style="font-size:10px;color:#a89e88">per fighter</span></div>\';\n      h+=\'</div>\';\n    }\n  }else{\n    h+=\'<div class="pw-empty">No cell has enlisted yet this week.<br>Be the first to raise the propaganda front.</div>\';\n  }\n  /* Enlist CTA: members of cells that haven\'t opted in. */\n  var id=ident();\n  var mine=j.my_cells||[], opted=j.opted_cells||[];\n  var can=[];\n  for(var mi=0;mi<mine.length;mi++){ if(opted.indexOf(mine[mi])===-1) can.push(mine[mi]); }\n  h+=\'<div class="pw-cta">\';\n  if(can.length&&id.callsign){\n    h+=\'<button class="pw-btn" id="pwJoin" type="button">ENLIST MY CELL →</button>\';\n  }else if(!id.callsign){\n    h+=\'<div class="pw-note">Claim a callsign and join a cell to enlist it in the front.</div>\';\n  }\n  h+=\'</div>\';\n  h+=\'<div class="pw-note">Every poster forged via political plugins and every bounty your fighters complete feeds your cell’s per-fighter score. \'+\n     \'Top cell Sunday midnight takes the PROPAGANDIST crown — glory only, zero XP. Opt-in is per week; the front defaults OFF.</div>\';\n  /* Brand integration (2026-10-06, fix 5): cross-pillar handoffs — wired\n     declaratively by the share-everywhere scanner (same branded styling). */\n  h+=\'<div data-pf-handoff="share-intel"></div><div data-pf-handoff="take-cell"></div>\';\n  h+=\'</div>\';\n  host.innerHTML=h;\n  if(TICK) clearInterval(TICK);\n  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);\n  var jb=document.getElementById("pwJoin");\n  if(jb) jb.onclick=function(){ joinFront(can[0],jb); };\n}\nfunction load(){\n  var id=ident();\n  api("cellwar_front_standings",{callsign:id.callsign},render);\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("diplo")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-diplo">\n<div class="fe-block pf-override-block pf-silo" id="pf-diplo">\n<h2>Cell Diplomacy</h2>\n<div class="c-tag">Cells are powers. Forge alliances. Build coalitions. Declare rivalries.</div>\n<div id="xDiplo"><div class="c-load">Reading the map&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). Auto-attach for the\n     auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */\n  if(action==="cell_mine"){\n    try{\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfDpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(dAction,params,cb){\n  var body=Object.assign({type:"diplo",d_action:dAction},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar CELL=null, RELS=null, REQ=null, AUTHFAIL=false;\nvar KINDS={alliance:"ALLIANCE",coalition:"COALITION",rivalry:"RIVALRY"};\n/* merger_proposal REMOVED 2026-10-04 (PM decision #5, cells wave) — returns\n   post-launch. Historical rows keep a clean label via kindLabel below; the\n   propose option is gone and the backend rejects the kind with \'bad kind\'. */\nfunction load(){\n  var id=ident(), done=false;\n  function fin(){ if(done)return; done=true; render(); }\n  setTimeout(fin,15000);\n  AUTHFAIL=false;\n  if(!id.callsign){ CELL=null; RELS=null; REQ=null; fin(); return; }\n  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){\n    /* C3 (2026-10-03): no/invalid auth_secret — the callsign session isn\'t\n       authenticated. Flag it so render() shows the logged-out gate, not the\n       wrong "not in a cell yet" state. */\n    if(j&&(j.err==="missing credentials"||j.err==="unauthorized")){ AUTHFAIL=true; CELL=null; RELS=null; REQ=null; fin(); return; }\n    CELL=(j&&j.cell)||null;\n    if(!CELL){ RELS=null; REQ=null; fin(); return; }\n    var n=0;\n    function one(){ n++; if(n>=2) fin(); }\n    api("diplomacy_list",{cell_id:CELL.id},function(r){ RELS=r; one(); });\n    api("diplomacy_requests",{cell_id:CELL.id},function(r){ REQ=r; one(); });\n  });\n}\nfunction kindLabel(k){\n  /* Historical merger rows keep a clean label (proposal path removed). */\n  if(k==="merger_proposal") return "MERGER";\n  return KINDS[k]||String(k||"").toUpperCase();\n}\nfunction render(){\n  var el=document.getElementById("xDiplo"); if(!el) return;\n  var id=ident(), h="";\n  if(!id.callsign){\n    el.innerHTML=PF.gateHTML(\'Diplomacy is conducted between cells.\',\'to enlist and shape the map\');\n    return;\n  }\n  if(AUTHFAIL){\n    el.innerHTML=\'<div class="c-gate">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come shape the map.</div>\';\n    return;\n  }\n  if(!CELL){\n    el.innerHTML=\'<div class="c-gate">You are not in a cell yet. Join or found one in the Cells silo &mdash; then return to forge its foreign policy.</div>\';\n    return;\n  }\n  var rels=(RELS&&RELS.relations)||[];\n  var inc=(REQ&&REQ.incoming)||[], out=(REQ&&REQ.outgoing)||[];\n  var pendInc=inc.filter(function(x){ return x.status==="pending"; });\n  h+=\'<div class="dp-frame">YOUR CELL: <b>\'+esc(CELL.name||CELL.id)+\'</b> &mdash; every relation on this map was drawn by a commander.</div>\';\n  /* --- relations --- */\n  h+=\'<div class="x-pane"><h4>Standing relations (\'+rels.length+\')</h4>\';\n  if(!rels.length){ h+=\'<div class="x-note">No relations yet. A cell alone is a cell exposed.</div>\'; }\n  for(var i=0;i<rels.length;i++){\n    var r=rels[i];\n    h+=\'<div class="dp-rel"><div class="dp-rtitle">\'+kindLabel(r.kind)+\' &mdash; \'+esc(r.other_cell)+\'</div>\'\n      +\'<button class="c-btn dp-end" data-aid="\'+esc(r.id)+\'">END</button></div>\';\n  }\n  h+=\'</div>\';\n  /* --- incoming --- */\n  h+=\'<div class="x-pane"><h4>Incoming requests (\'+pendInc.length+\')</h4>\';\n  if(!pendInc.length){ h+=\'<div class="x-note">No pending embassies.</div>\'; }\n  for(var k=0;k<pendInc.length;k++){\n    var q=pendInc[k];\n    h+=\'<div class="dp-rel"><div class="dp-rtitle">\'+kindLabel(q.kind)+\' &mdash; from <b>\'+esc(q.from_cell)+\'</b></div>\'\n      +\'<div class="x-note">\'+esc(q.message||"No message.")+\'</div>\'\n      +\'<button class="c-btn dp-acc" data-rid="\'+esc(q.id)+\'" data-kind="\'+esc(q.kind)+\'" data-from="\'+esc(q.from_cell)+\'">ACCEPT</button>\'\n      +\'<button class="c-btn dp-dec" data-rid="\'+esc(q.id)+\'">DECLINE</button></div>\';\n  }\n  h+=\'</div>\';\n  /* --- propose --- */\n  h+=\'<div class="x-pane"><h4>Open an embassy</h4>\'\n    +\'<div class="x-note">Only cell founders, officers, and warcallers can propose. Choose the target cell and the kind of relation.</div>\'\n    +\'<input aria-label="Target cell ID or name" class="c-in" id="dpTarget" maxlength="64" placeholder="Target cell ID or name">\'\n    +\'<select class="c-in" id="dpKind">\'\n    +\'<option value="alliance">ALLIANCE &mdash; fight together, share the spoils</option>\'\n    +\'<option value="coalition">COALITION &mdash; coordinate across many cells</option>\'\n    +\'<option value="rivalry">RIVALRY &mdash; name your enemy, raise the stakes</option>\'\n    /* merger_proposal option removed 2026-10-04 (PM decision #5) — post-launch */\n    +\'</select>\'\n    +\'<textarea class="c-in" id="dpMsg" maxlength="500" rows="2" placeholder="Message to their commanders (optional)"></textarea>\'\n    +\'<button class="c-btn" id="dpProposeBtn">SEND PROPOSAL</button><div class="c-err" id="dpProposeErr"></div></div>\';\n  /* --- outgoing --- */\n  var pendOut=out.filter(function(x){ return x.status==="pending"; });\n  h+=\'<div class="x-pane"><h4>Your embassies (\'+pendOut.length+\' pending)</h4>\';\n  if(!pendOut.length){ h+=\'<div class="x-note">No open proposals.</div>\'; }\n  for(var m=0;m<Math.min(pendOut.length,10);m++){\n    var o=pendOut[m];\n    h+=\'<div class="dp-rel"><div class="dp-rtitle">\'+kindLabel(o.kind)+\' &rarr; \'+esc(o.to_cell)+\'</div>\'\n      +\'<div class="x-note">Status: \'+esc(o.status)+\'</div></div>\';\n  }\n  h+=\'</div>\';\n  el.innerHTML=h;\n  /* --- wire --- */\n  function wire(cls,fn){ var bs=el.querySelectorAll(cls); for(var i=0;i<bs.length;i++){ (function(b){ b.addEventListener("click",fn); })(bs[i]); } }\n  wire(".dp-acc",function(){\n    var rid=this.getAttribute("data-rid"), kind=this.getAttribute("data-kind"),\n        from=this.getAttribute("data-from"), id2=ident();\n    /* G12 (2026-10-04): declaration ceremony. Accepting a rivalry fires the\n       DECLARE confirm — war drums, ticker-visible to the whole movement.\n       Alliances/coalitions get the same flow, quieter. Zero XP. */\n    if(kind==="rivalry"){ ceremony(rid,from,id2,true); }\n    else if(kind==="alliance"||kind==="coalition"){ ceremony(rid,from,id2,false); }\n    else { doAccept(rid,id2); }\n  });\n  wire(".dp-dec",function(){\n    var rid=this.getAttribute("data-rid"), id2=ident();\n    post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:false},function(r){\n      if(r&&r.ok){ toast("Request declined."); load(); } else { toast((r&&r.err)||"Failed."); }\n    });\n  });\n  wire(".dp-end",function(){\n    var aid=this.getAttribute("data-aid"), id2=ident();\n    if(!confirm("End this relation? Their commanders will see it broken.")) return;\n    post("diplomacy_end",{callsign:id2.callsign,device:id2.device,alliance_id:aid},function(r){\n      if(r&&r.ok){ toast("Relation ended."); load(); } else { toast((r&&r.err)||"Failed."); }\n    });\n  });\n  var pb=el.querySelector("#dpProposeBtn");\n  if(pb){ pb.addEventListener("click",function(){\n    var t=document.getElementById("dpTarget").value.trim(), k2=document.getElementById("dpKind").value;\n    var msg=document.getElementById("dpMsg").value.trim(), er=document.getElementById("dpProposeErr");\n    if(!t){ er.textContent="Name the target cell."; return; }\n    er.textContent="";\n    var id2=ident();\n    post("diplomacy_propose",{callsign:id2.callsign,device:id2.device,from_cell:CELL.id,to_cell:t,kind:k2,message:msg},function(r){\n      if(r&&r.ok){ toast("Proposal sent."); load(); } else { er.textContent=(r&&r.err)||"Failed."; }\n    });\n  }); }\n}\n/* G12 declaration ceremony (2026-10-04). war=true: the DECLARE WAR confirm\n   for rivalries — dramatic, ticker-visible. war=false: quieter pact confirm\n   for alliances/coalitions. Zero XP; pure narration/status. */\nfunction doAccept(rid,id2){\n  post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:true},function(r){\n    if(r&&r.ok){ toast("Relation forged."); load(); } else { toast((r&&r.err)||"Failed."); }\n  });\n}\nfunction ceremony(rid,from,id2,war){\n  var title = war ? "⚔ DECLARE WAR" : "FORGE THE PACT";\n  var body = war\n    ? "CELL <b>"+esc(from||"")+"</b> has challenged your cell. Accepting writes the declaration to the war-room ticker — the whole movement sees it. Rally your fighters."\n    : "Accepting seals the pact with CELL <b>"+esc(from||"")+"</b>. A quieter line in the ticker — but the map remembers.";\n  var yes = war ? "⚔ DECLARE WAR" : "FORGE IT";\n  var no = war ? "STAND DOWN" : "HOLD";\n  var ov=document.createElement("div");\n  ov.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.82);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px";\n  var card=document.createElement("div");\n  card.style.cssText="max-width:440px;background:"+(war?"#1c0707":"#0d0d0d")+";border:3px solid "+(war?"#c1121f":"#8a8a8a")+\n    ";padding:26px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif;box-shadow:0 0 24px rgba(193,18,31,.35)";\n  card.innerHTML=\'<div style="font-size:22px;font-weight:800;letter-spacing:2px;margin-bottom:12px;color:\'+(war?"#ff5a00":"#f5ead6")+\'">\'+title+\'</div>\'+\n    \'<div style="font-size:14px;line-height:1.6;margin-bottom:20px">\'+body+\'</div>\'+\n    \'<button id="pfCerYes" style="background:\'+(war?"#c1121f":"#2a2a2a")+\';color:#fff;font-weight:800;font-size:15px;padding:12px 26px;border:2px solid #fff;margin:4px;cursor:pointer;letter-spacing:1px">\'+yes+\'</button>\'+\n    \'<button id="pfCerNo" style="background:transparent;color:#a89e88;font-size:13px;padding:12px 18px;border:1px solid #555;margin:4px;cursor:pointer">\'+no+\'</button>\';\n  ov.appendChild(card);\n  document.body.appendChild(ov);\n  function close(){ try{ ov.remove(); }catch(e){} }\n  card.querySelector("#pfCerYes").addEventListener("click",function(){ close(); doAccept(rid,id2); });\n  card.querySelector("#pfCerNo").addEventListener("click",close);\n  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("contracts")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-contracts">\n<div class="fe-block pf-override-block" id="pf-contracts">\n<h2>Mercenary Contracts</h2>\n<div class="c-tag">Camps hire cells. Cells get paid in real XP.</div>\n<div id="xBody"><div class="c-load">Opening the contract board&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ PF.toast(m); }catch(e){} }\nfunction api(action,params,cb,isGet){\n  if(!BACKEND){ cb(null); return; }\n  if(isGet){\n    /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */\n    if(action==="contract_mine"){\n      try{\n        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n      }catch(e){}\n    }\n    var fn="pfCxCb"+Math.floor(Math.random()*1e9);\n    var s=document.createElement("script"), done=false;\n    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n    window[fn]=function(j){ finish(j); };\n    s.onerror=function(){ finish(null); };\n    var q="?action="+encodeURIComponent(action);\n    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n    setTimeout(function(){ finish(null); },12000);\n    return;\n  }\n  /* POST: real CORS fetch (worker sends Access-Control-Allow-Origin: *).\n     The backend verdict is parsed and passed to cb — wire() shows j.err\n     ("not enough XP", "board full", ...) instead of failing silently.\n     Fire-and-forget no-cors is kept ONLY as a last resort if the real\n     fetch itself throws (network down). */\n  var body=Object.assign({type:"contract",c_action:action},params);\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function posted(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} setTimeout(function(){ load(); },1500); }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); posted(j); })\n      .catch(function(){\n        _po._pfClear();\n        try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:bodyStr}).catch(function(){}); }catch(e2){}\n        posted(null);\n      });\n  }catch(e){ posted(null); }\n}\nvar GOAL_UNITS={share_raid:"shares",recruit_drive:"recruits",perfect_week:"days"};\n/* Friendly copy for WRITE paths (2026-10-03 M27): raw snake_case backend\n   codes route through the same propaganda-voice map the read paths use.\n   Never show a raw code to users. */\nfunction cxWriteErr(e,fb){\n  var s=String(e==null?"":e).trim();\n  var fall=fb||"The wire fought back. Nothing changed — retry.";\n  if(!s||/network error/i.test(s)) return fall;\n  var map={\n    "invalid_code":"That code doesn\'t open anything. Check it and try again.",\n    "already_accepted":"Already locked in. One shot per cell.",\n    "bad callsign":"That callsign didn\'t check out. Re-claim it in Enlistment Ranks, then retry.",\n    "db error":"The ledger hiccuped. Retry in a moment.",\n    "refund failed":"The refund didn\'t land. Contact MTCSTW with your contract ID.",\n    "unknown goal":"That goal isn\'t on the board. Pick one from the list."\n  };\n  if(map[s]) return map[s];\n  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */\n  return s; /* backend prose already human-readable */\n}\n/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */\nfunction busyBtn(btn,on){\n  try{\n    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent="WORKING…"; }\n    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }\n  }catch(e){}\n}\nvar board=null, mine=null, busy=false, loadTries=0, MARKET=null;\n/* R35 (2026-10-04): cross-cell labor market — the public contracts_board\n   (W6B-1: {ok,contracts:[{id,cell,title,reward,status}]}) rendered as a\n   market strip with ticker cross-links. Independent of the main board:\n   loads in parallel, paints when it lands, hides until the action ships. */\nfunction paintMarket(){\n  var host=document.getElementById("xMarket"); if(!host) return;\n  var list=[];\n  try{ if(MARKET&&MARKET.contracts) list=MARKET.contracts; }catch(e){}\n  if(!list.length){ host.style.display="none"; return; }\n  var h=\'<h4>Open contracts — cross-cell market</h4>\'\n    +\'<div class="x-note">Work posted across every cell. Take it, finish it, get paid.</div>\';\n  for(var i=0;i<Math.min(list.length,8);i++){\n    var c=list[i]||{};\n    h+=\'<div class="x-contract"><div class="x-chead">\'+esc(c.title||c.id||"contract")+\'</div>\'\n      +\'<div class="x-csub">cell <b>\'+esc(c.cell||"?")+\'</b> &middot; reward <b>\'+Number(c.reward||0)+\' XP</b>\'\n      +(c.status?\' &middot; \'+esc(String(c.status).toUpperCase()):"")\n      +\' &middot; <a href="#pf-warrticker" style="color:#dc143c;">TRACK ON TICKER &rarr;</a></div></div>\';\n  }\n  host.innerHTML=h;\n}\nfunction loadMarket(){\n  api("contracts_board",{},function(j){\n    MARKET=(j&&j.ok)?j:null;\n    paintMarket();\n  },true);\n}\nfunction load(){\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(busy) return; busy=true; loadTries++;\n  var done=false;\n  function fin(){\n    if(done) return; done=true; busy=false;\n    render();\n  }\n  /* Safety: if JSONP hangs, unstick and show retry. */\n  setTimeout(function(){ if(!done){ done=true; busy=false; render(); } },15000);\n  api("contract_list",{},function(b){\n    if(done) return;\n    board=b;\n    api("contract_mine",{callsign:id.callsign},function(m){\n      if(done) return;\n      mine=m; fin();\n    },true);\n  },true);\n}\nfunction renderGate(){\n  var el=document.getElementById("xBody"); if(!el) return;\n  el.innerHTML=PF.gateHTML(\'Contracts run on callsigns.\',\'to take contracts\');\n}\nfunction founderCells(){\n  var out=[];\n  try{ (mine&&mine.my_cells||[]).forEach(function(c){ if(c.founder===ident().callsign) out.push(c); }); }catch(e){}\n  return out;\n}\nfunction render(){\n  var el=document.getElementById("xBody"); if(!el) return;\n  var id=ident();\n  if(!id.callsign){ renderGate(); return; }\n  if(!board||!mine){\n    el.innerHTML=\'<div class="c-load">Opening the contract board&hellip;</div>\'\n      +\'<div style="margin-top:8px"><button class="c-btn" id="xRetry">Retry</button></div>\';\n    var rb=document.getElementById("xRetry");\n    if(rb) rb.onclick=function(){ board=null; mine=null; load(); };\n    return;\n  }\n  loadMarket();\n  var h=\'\';\n  /* R35: the public market strip renders first, above the camp panel. */\n  h+=\'<div class="x-pane" id="xMarket"><div class="c-load">Scanning the market&hellip;</div></div>\';\n  /* --- camp panel --- */\n  var camp=(mine&&mine.my_camp)||null, bal=(mine&&typeof mine.balance==="number")?mine.balance:null;\n  h+=\'<div class="x-pane"><h4>Your camp</h4>\';\n  if(camp){\n    h+=\'<div class="x-campname">\'+esc(camp.name)+\'</div>\';\n    h+=\'<div class="x-bal">War chest: <b>\'+(bal==null?"?":bal)+\' XP</b> (backend ledger)</div>\';\n    h+=\'<div class="x-note">Post a contract and the escrow comes out of this chest. Earn more XP anywhere on the site to grow it.</div>\';\n  } else {\n    h+=\'<div class="x-note">Found a camp to hire cells. One camp per callsign.</div>\';\n    h+=\'<input aria-label="CAMP NAME" id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">\';\n    h+=\'<br><button class="c-btn" id="xFound">Found camp</button><div class="c-err" id="xFoundErr"></div>\';\n  }\n  h+=\'</div>\';\n  /* --- pledge panel (cell founders) --- */\n  var fc=founderCells();\n  if(fc.length){\n    h+=\'<div class="x-pane"><h4>Pledge a cell</h4><div class="x-note">Point one of your cells at a camp. Pledged cells can take that camp\\\'s contracts.</div>\';\n    h+=\'<select id="xPledgeCell">\'+fc.map(function(c){return \'<option value="\'+esc(c.id)+\'">\'+esc(c.name)+\'</option>\';}).join("")+\'</select> \';\n    h+=\'<select id="xPledgeCamp">\'+((board.camps||[]).map(function(c){return \'<option value="\'+esc(c.name)+\'">\'+esc(c.name)+\'</option>\';}).join("")||\'<option value="">— no camps yet —</option>\')+\'</select> \';\n    h+=\'<button class="c-btn" id="xPledge">Pledge</button><div class="c-err" id="xPledgeErr"></div></div>\';\n  }\n  /* --- contract board --- */\n  h+=\'<div class="x-pane"><h4>Contract board</h4>\';\n  var open=(board.contracts||[]).filter(function(t){return t.status==="open"||t.status==="accepted";});\n  if(!open.length) h+=\'<div class="x-empty">No live contracts. The board waits for its first war chest.</div>\';\n  open.forEach(function(t){\n    var unit=GOAL_UNITS[t.goal]||"";\n    h+=\'<div class="x-contract"><div class="x-chead">\'+esc(t.goal_label)+\' — \'+t.target+\' \'+esc(unit)+\'</div>\';\n    h+=\'<div class="x-csub">by camp <b>\'+esc(t.camp)+\'</b> &middot; bounty <b>\'+t.bounty+\' XP</b> per member\';\n    h+=t.status==="accepted"?\' &middot; <span class="x-acc">TAKEN by \'+esc(t.cell_name||"a cell")+\'</span>\':\' &middot; <span class="x-openb">OPEN</span>\';\n    h+=\'</div>\';\n    if(t.status==="open"&&fc.length){\n      h+=\'<button class="c-btn x-accept" data-id="\'+esc(t.id)+\'">Accept for my cell</button>\';\n    }\n    h+=\'</div>\';\n  });\n  h+=\'</div>\';\n  /* --- post form (camp owners) --- */\n  if(camp){\n    h+=\'<div class="x-pane"><h4>Post a contract</h4><div class="x-note">One live contract per camp. Escrow is locked when a cell accepts.</div>\';\n    h+=\'<select id="xGoal"><option value="share_raid">SHARE RAID (5-500 shares / 7d)</option><option value="recruit_drive">RECRUIT DRIVE (1-50 recruits / 7d)</option><option value="perfect_week">PERFECT WEEK (3-7 check-in days)</option></select> \';\n    h+=\'<input aria-label="TARGET" id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> \';\n    h+=\'<input aria-label="BOUNTY XP" id="xContractBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> \';\n    h+=\'<button class="c-btn" id="xPost">Post</button><div class="c-err" id="xPostErr"></div></div>\';\n  }\n  /* --- my contracts + claimable --- */\n  var claimable=mine.claimable||[];\n  if(claimable.length){\n    h+=\'<div class="x-pane x-claim"><h4>Payouts waiting</h4>\';\n    claimable.forEach(function(c){\n      h+=\'<div class="x-payout"><span>\'+esc(c.camp)+\' contract complete — <b>\'+c.bounty+\' XP</b></span> \';\n      h+=\'<button class="c-btn x-claimbtn" data-id="\'+esc(c.id)+\'" data-b="\'+c.bounty+\'">Claim</button></div>\';\n    });\n    h+=\'</div>\';\n  }\n  var posted=(mine.mine||[]);\n  if(posted.length){\n    h+=\'<div class="x-pane"><h4>My contracts</h4>\';\n    posted.forEach(function(t){\n      h+=\'<div class="x-myrow"><span>\'+esc(t.goal_label)+\' — \'+t.target+\' &middot; \'+t.bounty+\' XP &middot; <b>\'+esc(t.status.toUpperCase())+\'</b></span>\';\n      if(t.status==="open"||t.status==="accepted") h+=\' <button class="c-btn x-cancel" data-id="\'+esc(t.id)+\'">Cancel</button>\';\n      h+=\'</div>\';\n    });\n    h+=\'</div>\';\n  }\n  /* --- camps directory --- */\n  if((board.camps||[]).length){\n    h+=\'<div class="x-pane"><h4>Camps</h4>\';\n    (board.camps||[]).forEach(function(c){\n      h+=\'<div class="x-myrow"><span><b>\'+esc(c.name)+\'</b> — \'+c.cells.length+\' cells, \'+c.members+\' fighters</span></div>\';\n    });\n    h+=\'</div>\';\n  }\n  el.innerHTML=h;\n  wire();\n  paintMarket();\n}\nfunction wire(){\n  var b;\n  b=document.getElementById("xFound");\n  if(b) b.onclick=function(){\n    var btn=this, nm=document.getElementById("xCampName").value, err=document.getElementById("xFoundErr"), id=ident();\n    err.textContent="";\n    busyBtn(btn,true);\n    api("camp_found",{callsign:id.callsign,device:id.device,name:nm},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }\n      toast("Camp "+j.camp+" founded. The board is yours.");\n    });\n  };\n  b=document.getElementById("xPledge");\n  if(b) b.onclick=function(){\n    var btn=this, err=document.getElementById("xPledgeErr"), id=ident();\n    err.textContent="";\n    busyBtn(btn,true);\n    api("camp_pledge",{callsign:id.callsign,device:id.device,\n      cell_id:document.getElementById("xPledgeCell").value,\n      camp:document.getElementById("xPledgeCamp").value},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }\n      toast("Cell pledged to "+j.camp+".");\n    });\n  };\n  b=document.getElementById("xPost");\n  if(b) b.onclick=function(){\n    var btn=this, err=document.getElementById("xPostErr"), id=ident();\n    err.textContent="";\n    busyBtn(btn,true);\n    api("contract_post",{callsign:id.callsign,device:id.device,\n      goal:document.getElementById("xGoal").value,\n      target:document.getElementById("xTarget").value,\n      bounty:document.getElementById("xContractBounty").value},function(j){\n      busyBtn(btn,false);\n      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }\n      toast("Contract posted. Cells, come and get it.");\n    });\n  };\n  var acc=document.querySelectorAll(".x-accept");\n  for(var i=0;i<acc.length;i++)(function(btn){\n    btn.onclick=function(){\n      var fcs=founderCells();\n      if(!fcs.length){ toast("Found or join a cell first."); return; }\n      var pick=fcs.length===1?fcs[0].id:prompt("Accept for which cell? (1-"+fcs.length+")\\n"+fcs.map(function(c,ix){return (ix+1)+". "+c.name;}).join("\\n"));\n      var cellId=fcs.length===1?fcs[0].id:(fcs[parseInt(pick,10)-1]||{}).id;\n      if(!cellId) return;\n      var id=ident();\n      busyBtn(btn,true);\n      api("contract_accept",{callsign:id.callsign,device:id.device,\n        cell_id:cellId,contract_id:btn.getAttribute("data-id")},function(j){\n        busyBtn(btn,false);\n        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Accept failed")); load(); return; }\n        toast("Contract accepted. "+j.escrow+" XP escrowed — go earn it.");\n      });\n    };\n  })(acc[i]);\n  var cl=document.querySelectorAll(".x-claimbtn");\n  for(var k=0;k<cl.length;k++)(function(btn){\n    btn.onclick=function(){\n      var id=ident(), cid=btn.getAttribute("data-id"), bnty=parseInt(btn.getAttribute("data-b"),10)||0;\n      busyBtn(btn,true);\n      api("contract_claim",{callsign:id.callsign,device:id.device,contract_id:cid},function(j){\n        if(j&&j.ok){\n          try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}\n          try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}\n        } else { toast(cxWriteErr(j&&j.err,"Claim failed")); busyBtn(btn,false); }\n        setTimeout(load,1500);\n      });\n    };\n  })(cl[k]);\n  var cx=document.querySelectorAll(".x-cancel");\n  for(var m=0;m<cx.length;m++)(function(btn){\n    btn.onclick=function(){\n      var id=ident();\n      busyBtn(btn,true);\n      api("contract_cancel",{callsign:id.callsign,device:id.device,contract_id:btn.getAttribute("data-id")},function(j){\n        busyBtn(btn,false);\n        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Cancel failed")); }\n        else toast("Contract cancelled. Escrow refunded.");\n        load();\n      });\n    };\n  })(cx[m]);\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(!busy) load(); }, 120000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("war-card")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var n=document.getElementById("pf-war-card");if(n){var i,a=window.PF_BACKEND_URL,r=null,o=null;!function(){var e=u().map(function(e){return'<option value="'+c(e.slug)+'">'+c(e.name)+" &mdash; "+e.score+"</option>"}).join("");n.innerHTML='<div class="c-warwrap" id="pf-warcard"><h2>Creator war card</h2><div class="c-tag">Your cell doesn\'t build itself. Mint your war card, post it everywhere, turn followers into fighters.</div><div class="c-wgrid"><label>WHICH CREATOR ARE YOU?<select id="wRoster"><option value="">&mdash; pick your profile &mdash;</option>'+e+'</select></label><label>YOUR WAR CALLSIGN<input aria-label="e.g. NIGHT OWL" id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label><label>TOTAL FOLLOWERS<input aria-label="e.g. 250K" id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label><label>YEARS IN THE FIGHT<input aria-label="e.g. 6" id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label></div><div class="c-wgrid3"><label>STRENGTH 1<input aria-label="e.g. Rapid-response memes" id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label><label>STRENGTH 2<input aria-label="e.g. Street interviews" id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label><label>STRENGTH 3<input aria-label="e.g. Mutual-aid drives" id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label></div><div class="c-wmeta"><span id="wCells">CELLS: &hellip;</span><span id="wCode"></span></div><div class="c-wvar" style="margin:0.8rem 0;padding:0.7rem;border:2px dashed #c1121f;"><div style="font-size:0.75rem;letter-spacing:0.18em;color:#c1121f;font-weight:900;margin-bottom:0.4rem;">POSTER VARIANT</div><label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="standard" checked style="margin-right:0.5rem;">STANDARD WAR CARD</label><label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="cell" style="margin-right:0.5rem;">BUILD A CELL &mdash; recruit poster with your cell invite link</label></div><div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button><button class="c-btn" id="wSave">Save image</button></div><div class="c-err" id="wErr"></div></div>';var t=document.getElementById("wRoster"),i=document.getElementById("wCall");t.onchange=function(){var e=u().filter(function(e){return e.slug===t.value})[0];e&&!i.value&&(i.value=e.name.toUpperCase().replace(/[^A-Z0-9 ]/g,"").slice(0,32)),g()},i.oninput=function(){g()},document.getElementById("wShare").onclick=function(){b("share")},document.getElementById("wSave").onclick=function(){b("save")},g()}();try{if(["pf-war-card","pf-academy-hq","pf-cell-hq","pf-dash-hq"].forEach(function(e){var t=document.getElementById(e),n=t&&t.closest?t.closest(".fe-block"):null;n&&n.classList&&!n.classList.contains("pf-fe-hq")&&n.classList.add("pf-fe-hq")}),/\/request-access(\/|$|\?)/.test(location.pathname||"")){var s=document.getElementById("pf-war-card"),l=s&&s.closest?s.closest(".fe-block"):null;l&&l.classList&&!l.classList.contains("pf-fe-wc")&&l.classList.add("pf-fe-wc")}}catch(e){}p("cell_leaderboard",{},function(e){r=e,g()}),(i=function(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}()).callsign&&p("cell_mine",{callsign:i.callsign,device:i.device},function(e){o=e,g()})}}function c(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function d(t){try{e.toast(t)}catch(e){}}function p(t,n,i){if(a){if("cell_mine"===t)try{var r=window.PF&&e.getAuthSecret?e.getAuthSecret():"";r&&n&&!n.auth_secret&&(n.auth_secret=r)}catch(e){}var o="pfWarCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;window[o]=function(e){p(e)},s.onerror=function(){p(null)};var c="?action="+encodeURIComponent(t);for(var d in n)null!=n[d]&&""!==n[d]&&(c+="&"+encodeURIComponent(d)+"="+encodeURIComponent(n[d]));c+="&callback="+o,s.src=a+c,document.head.appendChild(s),setTimeout(function(){p(null)},12e3)}else i(null);function p(e){if(!l){l=!0;try{delete window[o]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),i(e)}}}function u(){try{return e.ROSTER||[]}catch(e){return[]}}function f(e){if(!(e=String(e||"").toLowerCase()))return 0;var t=0;try{(r&&r.cells||[]).forEach(function(n){String(n.founder||"").toLowerCase()===e&&t++})}catch(e){}try{o&&o.in_cell&&!o.is_founder&&t++}catch(e){}return t}function h(e){try{return document.getElementById(e).value.trim()}catch(e){return""}}function m(){try{var e=document.querySelector('input[name="wVar"]:checked');return e?String(e.value):"standard"}catch(e){return"standard"}}function v(){var e=h("wRoster"),t=u().filter(function(t){return t.slug===e})[0]||null,n=h("wCall");return!n&&t&&(n=t.name),{roster:t,callsign:n,followers:h("wFol"),years:h("wYrs"),strengths:[h("wS1"),h("wS2"),h("wS3")].filter(Boolean),cells:f(n),code:o&&o.in_cell&&o.cell?o.cell.invite_code:"",variant:m()}}function g(){var e=v(),t=document.getElementById("wCells"),n=document.getElementById("wCode");t&&(t.textContent="CELLS: "+(r?e.cells:"…")),n&&(n.textContent=e.code?"INVITE CODE ON CARD: "+e.code:"NO CELL YET — FORM ONE TO STAMP YOUR INVITE CODE")}function b(t){var n=document.getElementById("wErr");n&&(n.textContent="");var i=v();i.roster?i.callsign?(d("Minting your war card…"),("cell"===i.variant?w:y)(i,function(a){if(a){var r=!(!a||!a._pfPhoto),o=String(i.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase(),s=("cell"===i.variant?"build-a-cell-":"war-card-")+o+(r?".jpg":".png"),l=r?{format:"image/jpeg",quality:.85}:null;"share"===t&&"cell"===i.variant&&((l=l||{}).link=function(t){var n="https://www.mtcstw.com/cells";t&&(n+="?cell="+encodeURIComponent(String(t)));try{window.PF&&"function"==typeof e.shareUrl&&(n=e.shareUrl(n))}catch(e){}return n}(i.code));try{if(!window.PFShare)return void(n&&(n.textContent="Share engine still loading."));"share"===t?PFShare.shareImage(a,s,i.callsign+" — Creator War Card","war-card",l):PFShare.saveImage(a,s,"war-card",l)}catch(e){n&&(n.textContent="Share unavailable here.")}}else d("Canvas unavailable — try again.")})):n&&(n.textContent="Give your war card a callsign."):n&&(n.textContent="Pick your creator profile first.")}function w(e,t){var n=1080,i=1350,a=document.createElement("canvas");a.width=n,a.height=i;var r=a.getContext("2d");if(r){r.fillStyle="#0b0b0c",r.fillRect(0,0,n,i),r.strokeStyle="#c1121f",r.lineWidth=14,r.strokeRect(20,20,1040,1310),r.strokeStyle="#f5ead6",r.lineWidth=3,r.strokeRect(44,44,992,1262),p("★ SICK LEFT RADICALS ★",104,"700 30px Arial,sans-serif","#c1121f"),p("BUILD A CELL",168,'900 84px "Arial Black",Arial,sans-serif',"#f5ead6");var o=252;d(e.callsign,'900 60px "Arial Black",Arial,sans-serif',920,2).forEach(function(e){p(e,o,'900 60px "Arial Black",Arial,sans-serif',"#c1121f"),o+=74}),e.roster&&e.roster.handle&&(p(e.roster.handle,o,"700 30px Arial,sans-serif","#c9bfa8"),o+=48),p("FIVE CALLSIGNS. ONE STREAK.",o+=24,"700 38px Arial,sans-serif","#f5ead6"),p("NOBODY LEFT BEHIND.",o+=52,"700 38px Arial,sans-serif","#f5ead6"),o+=92;var s=String(e.code||"").trim();s?(p("YOUR INVITE CODE",o,"700 30px Arial,sans-serif","#c9bfa8"),o+=24,r.strokeStyle="#c1121f",r.lineWidth=6,r.strokeRect(260,o,560,150),r.fillStyle="#141010",r.fillRect(260,o,560,150),p(s,o+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f"),p("WIRE IN AT:",o+=206,"700 30px Arial,sans-serif","#c9bfa8"),o+=52,d("MTCSTW.COM/CELLS?CELL="+s,"700 34px Arial,sans-serif",920,2).forEach(function(e){p(e,o,"700 34px Arial,sans-serif","#f5ead6"),o+=48}),o+=36):(d("NO CELL YET — FOUND YOURS AT MTCSTW.COM/CELLS","700 34px Arial,sans-serif",880,2).forEach(function(e){p(e,o,"700 34px Arial,sans-serif","#f5ead6"),o+=48}),o+=36),p("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",o,"700 26px Arial,sans-serif","#f5ead6"),o+=100;var l=s?"JOIN MY CELL":"BUILD YOUR CELL";r.font='900 44px "Arial Black",Arial,sans-serif';var c=r.measureText(l).width+110;r.fillStyle="#c1121f",r.fillRect(540-c/2,o-58,c,94),p(l,o+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff"),p("MTCSTW.COM",1182,'900 48px "Arial Black",Arial,sans-serif',"#c1121f"),p("JOIN THE FIGHT.",1242,'900 44px "Arial Black",Arial,sans-serif',"#c1121f"),t(a)}else t(null);function d(e,t,n,i){r.font=t,r.textAlign="center";var a=String(e||"").split(/\s+/),o=[],s="";return a.forEach(function(e){var t=s?s+" "+e:e;r.measureText(t).width>n&&s?(o.push(s),s=e):s=t}),s&&o.push(s),o.slice(0,i||2)}function p(e,t,n,i){r.font=n,r.fillStyle=i,r.textAlign="center",r.fillText(e,540,t)}}function y(e,t){var n=1080,i=1350,a=document.createElement("canvas");a.width=n,a.height=i;var r=a.getContext("2d");if(r){r.fillStyle="#0b0b0c",r.fillRect(0,0,n,i),r.strokeStyle="#c1121f",r.lineWidth=14,r.strokeRect(20,20,1040,1310),r.strokeStyle="#f5ead6",r.lineWidth=3,r.strokeRect(44,44,992,1262),h("★ SICK LEFT RADICALS ★",104,"700 30px Arial,sans-serif","#c1121f"),h("CREATOR WAR CARD",160,'900 60px "Arial Black",Arial,sans-serif',"#f5ead6");var o=320,s=320,l=380,c=190,d=e.roster&&e.roster.img?String(e.roster.img):"";if(!d)return m(),void v();var p=!1,u=new Image;setTimeout(g,3500),u.onload=function(){if(!p){p=!0;try{var e=u.naturalWidth||u.width,t=u.naturalHeight||u.height;if(e&&t){var n=Math.max(o/e,s/t),i=e*n,d=t*n;r.save(),r.beginPath(),r.rect(l,c,o,s),r.clip(),r.drawImage(u,l+(o-i)/2,c+(s-d)/2,i,d),r.restore();try{a._pfPhoto=!0}catch(e){}}else m()}catch(e){m()}v()}},u.onerror=g;try{u.crossOrigin="anonymous"}catch(e){}try{u.src=d}catch(e){g()}}else t(null);function f(e,t,n,i){r.font=t,r.textAlign="center";var a=String(e||"").split(/\s+/),o=[],s="";return a.forEach(function(e){var t=s?s+" "+e:e;r.measureText(t).width>n&&s?(o.push(s),s=e):s=t}),s&&o.push(s),o.slice(0,i||2)}function h(e,t,n,i){r.font=n,r.fillStyle=i,r.textAlign="center",r.fillText(e,540,t)}function m(){r.fillStyle="#1a1a1c",r.fillRect(l,c,o,s),h("★",422,"900 190px Arial,sans-serif","#c1121f")}function v(){r.strokeStyle="#c1121f",r.lineWidth=8,r.strokeRect(l,c,o,s);var n=596;f(e.callsign,'900 72px "Arial Black",Arial,sans-serif',920,2).forEach(function(e){h(e,n,'900 72px "Arial Black",Arial,sans-serif',"#f5ead6"),n+=84}),e.roster&&e.roster.handle&&(h(e.roster.handle,n,"700 30px Arial,sans-serif","#c1121f"),n+=44),h("PROPAGANDA SCORE "+(e.roster?e.roster.score:"—"),n,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"),n+=66,r.fillStyle="#c1121f",r.fillRect(80,n,920,96),r.fillStyle="#f5ead6",r.textAlign="center",[[String(e.cells),"CELLS"],[e.followers||"—","FOLLOWERS"],[e.years||"—","YRS ACTIVE"]].forEach(function(e,t){var i=80+920*(t+.5)/3;r.font='900 42px "Arial Black",Arial,sans-serif',r.fillText(e[0],i,n+44),r.font="700 22px Arial,sans-serif",r.fillText(e[1],i,n+80)}),n+=136,e.strengths.length&&(h("KEY STRENGTHS",n,'900 32px "Arial Black",Arial,sans-serif',"#f5ead6"),n+=48,e.strengths.slice(0,3).forEach(function(e){f("★ "+e,"700 30px Arial,sans-serif",860,1).forEach(function(e){h(e,n,"700 30px Arial,sans-serif","#f5ead6"),n+=42})}),n+=8),h(e.code?"JOIN MY CELL: "+e.code:"BUILD YOUR CELL AT MTCSTW.COM",1222,'900 42px "Arial Black",Arial,sans-serif',"#c1121f"),h("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",1268,"700 24px Arial,sans-serif","#f5ead6"),t(a)}function g(){p||(p=!0,m(),v())}}}(),function(){"use strict";var e=window.PF;e&&!e.skip("war-map")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-warmap">\n<div class="fe-block pf-override-block pf-silo" id="pf-war-map">\n<div id="xWarMap"><div class="wm-load">Surveying the front&hellip;</div></div>\n</div>\n<style>\n#pf-war-map .wm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#200808 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:700px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}\n#pf-war-map .wm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}\n#pf-war-map .wm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}\n#pf-war-map h2{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:32px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}\n#pf-war-map .wm-week{font-family:\'Courier New\',monospace;font-size:14px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}\n#pf-war-map .wm-live{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;padding:8px 18px;margin:6px 0 12px;animation:wmPulse 1.6s infinite;border:2px solid #fff}\n@keyframes wmPulse{0%,100%{box-shadow:0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 22px rgba(193,18,31,.9)}}\n#pf-war-map .wm-leader{border:2px solid #ffb347;background:linear-gradient(90deg,#2a1503,#3a1e05);padding:12px;margin:0 0 14px}\n#pf-war-map .wm-leader .wm-crown{font-size:22px}\n#pf-war-map .wm-leader .wm-lname{font-family:\'Arial Black\',Arial,sans-serif;font-size:20px;color:#ffb347;letter-spacing:1px;margin:2px 0}\n#pf-war-map .wm-leader .wm-lsub{font-size:12px;color:#d8c9a3;letter-spacing:1px}\n#pf-war-map .wm-row{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:10px 12px;margin-bottom:8px;text-align:left;position:relative}\n#pf-war-map .wm-row.wm-mine{border:2px solid #ffb347;background:rgba(42,21,3,.85)}\n#pf-war-map .wm-pos{font-family:\'Arial Black\',Arial,sans-serif;font-size:22px;color:#c1121f;text-align:center;text-shadow:1px 1px 0 #000}\n#pf-war-map .wm-row.wm-mine .wm-pos{color:#ffb347}\n#pf-war-map .wm-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}\n#pf-war-map .wm-tag{display:inline-block;background:#ffb347;color:#000;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;vertical-align:middle}\n#pf-war-map .wm-sub{font-size:12px;color:#b3a687;margin-top:2px}\n#pf-war-map .wm-bar{height:9px;background:#1c1c1c;margin-top:7px;border:1px solid #555}\n#pf-war-map .wm-bar i{display:block;height:100%;background:linear-gradient(90deg,#7a0c14,#c1121f,#ff5a00)}\n#pf-war-map .wm-pts{font-family:\'Courier New\',monospace;font-size:16px;font-weight:700;color:#ffb347;text-align:right;white-space:nowrap}\n#pf-war-map .wm-pts small{display:block;font-size:10px;color:#b3a687;font-weight:400;letter-spacing:1px}\n#pf-war-map .wm-minebox{border:2px dashed #ffb347;background:rgba(42,21,3,.6);padding:10px 12px;margin:12px 0;font-size:13px;color:#f5ead6;letter-spacing:.5px}\n#pf-war-map .wm-minebox b{color:#ffb347}\n#pf-war-map .wm-flips{margin:14px 0 4px;text-align:left}\n#pf-war-map .wm-flips h4{font-size:11px;letter-spacing:3px;color:#c1121f;margin:0 0 8px;font-weight:800}\n#pf-war-map .wm-flip{display:block;background:rgba(20,20,20,.8);border-left:4px solid #c1121f;padding:8px 10px;margin-bottom:6px;font-size:13px;color:#f5ead6;text-decoration:none}\n#pf-war-map .wm-flip:hover{background:rgba(40,12,12,.9)}\n#pf-war-map .wm-flip .wm-ago{font-size:11px;color:#b3a687;margin-left:6px;font-family:\'Courier New\',monospace}\n#pf-war-map .wm-legend{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}\n#pf-war-map .wm-legend b{color:#f5ead6}\n#pf-war-map .wm-count{font-family:\'Courier New\',monospace;font-size:13px;color:#ffb347;letter-spacing:1px;margin:8px 0 4px}\n#pf-war-map .wm-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}\n#pf-war-map .wm-load{color:#b3a687;font-size:14px;padding:20px}\n#pf-war-map .wm-cta{margin-top:14px}\n#pf-war-map .wm-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:14px;padding:12px 28px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}\n#pf-war-map .wm-btn.wm-ghost{background:transparent;border-color:#c1121f;color:#f5ead6}\n</style>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return cs; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private-adjacent read: the mine block needs auth. Prefer the shared\n     authGetJSONP; fall back to attaching auth_secret manually. */\n  try{\n    if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n  }catch(e){}\n  try{\n    var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n  }catch(e2){}\n  var fn="pfWmCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false, timer=null;\n  function finish(j){ if(done)return; done=true;\n    if(timer){clearTimeout(timer);timer=null;}\n    try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  timer=setTimeout(function(){ finish(null); },12000);\n}\n/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */\nfunction chicagoMidnightMs(dayStr,addDays){\n  try{\n    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;\n    var ymd=new Date(base).toISOString().slice(0,10);\n    var guess=Date.parse(ymd+"T12:00:00Z");\n    for(var i=0;i<3;i++){\n      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");\n      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);\n    }\n    return guess;\n  }catch(e){ return Date.now()+86400000; }\n}\nfunction fmtDate(ymd){\n  try{\n    var p=String(ymd).slice(0,10).split("-");\n    var M=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];\n    return M[+p[1]-1]+" "+(+p[2]);\n  }catch(e){ return String(ymd||""); }\n}\nfunction ago(ts){\n  var s=Math.max(0,Math.floor((Date.now()-ts)/1000));\n  if(s<60) return s+"s AGO";\n  var m=Math.floor(s/60); if(m<60) return m+"m AGO";\n  var h=Math.floor(m/60); if(h<24) return h+"h AGO";\n  return Math.floor(h/24)+"d AGO";\n}\nfunction fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }\nvar WAR_END=0, TICK=null;\nfunction tick(){\n  var el=document.getElementById("wmCount"); if(!el) return;\n  var ms=WAR_END-Date.now(); if(ms<0) ms=0;\n  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),\n      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);\n  el.textContent="MAP RESETS IN "+d+"d "+h+"h "+m+"m "+s+"s";\n}\nfunction goCells(){\n  try{\n    var onCells=/\\/cells\\/?$/.test(window.location.pathname||\'\');\n    if(onCells){\n      var t=document.getElementById("pf-cells");\n      if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; }\n    }\n  }catch(e){}\n  try{ window.location.href="/cells"; }catch(e2){}\n}\nfunction render(j){\n  var host=document.getElementById("xWarMap"); if(!host) return;\n  if(!j||!j.ok){ host.innerHTML=\'<div class="wm-empty">The war drums are silent. Check back soon.</div>\'; return; }\n  WAR_END=chicagoMidnightMs(j.week_id,7);\n  var rows=j.standings||[];\n  var top=rows.length?rows[0].points:1;\n  var mine=j.mine||null;\n  var h=\'<div class="wm-wrap">\';\n  h+=\'<div class="wm-kicker">FRONTLINES &middot; WEEKLY TERRITORY WAR</div>\';\n  h+=\'<h2>⚔️ Cell War Map</h2>\';\n  h+=\'<div class="wm-week">WEEK OF \'+esc(fmtDate(j.week_id))+\'</div>\';\n  h+=\'<div class="wm-count" id="wmCount">--</div>\';\n  if(j.live_fire){\n    h+=\'<div><span class="wm-live">⚡ LIVE-FIRE 2X — ALL FRONTS ACTIVE</span></div>\';\n  }\n  if(rows.length){\n    var L=rows[0];\n    h+=\'<div class="wm-leader"><div class="wm-crown">👑</div>\'+\n       \'<div class="wm-lname">\'+esc(L.cell_name)+\'</div>\'+\n       \'<div class="wm-lsub">HOLDING THE FRONT — \'+fmt(L.points)+\' TERRITORY PTS</div></div>\';\n    for(var i=0;i<rows.length;i++){\n      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.points/top*100)):4;\n      var isMine=!!(mine&&mine.cell_id&&mine.cell_id===r.cell_id);\n      h+=\'<div class="wm-row\'+(isMine?\' wm-mine\':\'\')+\'">\';\n      h+=\'<div class="wm-pos">\'+(i+1)+\'</div>\';\n      h+=\'<div><div class="wm-name">\'+esc(r.cell_name)+(isMine?\'<span class="wm-tag">YOUR CELL</span>\':\'\')+\'</div>\';\n      h+=\'<div class="wm-sub">\'+fmt(r.fighters)+\' fighter\'+(r.fighters===1?\'\':\'s\')+\' scoring</div>\';\n      h+=\'<div class="wm-bar"><i style="width:\'+pct+\'%"></i></div></div>\';\n      h+=\'<div class="wm-pts">\'+fmt(r.points)+\'<small>TERRITORY</small></div>\';\n      h+=\'</div>\';\n    }\n  }else{\n    h+=\'<div class="wm-empty">The front is quiet.<br>No territory claimed yet this week.<br>Be the first cell on the board.</div>\';\n  }\n  if(mine&&mine.cell_id){\n    h+=\'<div class="wm-minebox">YOUR CELL <b>\'+esc(mine.cell_name||mine.cell_id)+\'</b> — RANK #\'+(mine.rank||\'?\')+\n       \' — <b>\'+fmt(mine.points)+\'</b> PTS <span style="color:#b3a687">(cap \'+mine.week_cap+\'/wk)</span></div>\';\n  }else{\n    h+=\'<div class="wm-cta"><button class="wm-btn" id="wmJoinCell" type="button">JOIN A CELL</button>\'+\n       \'<button class="wm-btn wm-ghost" id="wmBuildCell" type="button">BUILD YOUR CELL</button></div>\';\n  }\n  var flips=j.recent_flips||[];\n  if(flips.length){\n    h+=\'<div class="wm-flips"><h4>📋 SECTOR FLIPS</h4>\';\n    for(var f=0;f<flips.length;f++){\n      var fl=flips[f];\n      h+=\'<a class="wm-flip" href="/cells">\'+esc(fl.name)+\'<span class="wm-ago">\'+esc(ago(fl.ts))+\'</span></a>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div class="wm-legend"><b>HOW TERRITORY IS WON:</b> Route March +1 &middot; Ambush claim +2 &middot; \'+\n     \'Post-proof bounty +3 &middot; Recruit conversion +5 &middot; action in a flash window +1.<br>\'+\n     \'During an All Fronts operation everything <b>doubles</b>. Fresh map every Monday.\'+\n     \'<br><b>Honorific:</b> territory points are never XP and can never be converted.</div>\';\n  h+=\'</div>\';\n  host.innerHTML=h;\n  /* 2026-10-06 share-everywhere. */\n  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,\'war-map\',{link:\'/cells\'}); }catch(e){}\n  if(TICK) clearInterval(TICK);\n  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);\n  var jb=document.getElementById("wmJoinCell"), bb=document.getElementById("wmBuildCell");\n  if(jb) jb.onclick=goCells;\n  if(bb) bb.onclick=goCells;\n}\nfunction load(){\n  api("warmap_status",{callsign:ident()},render);\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("cell-territory-map")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-territory-map">\n<div class="fe-block pf-override-block pf-silo" id="pf-territory-map">\n<div id="xTerritoryMap"><div class="tm-load">Charting the territory&hellip;</div></div>\n</div>\n<style>\n#pf-territory-map .tm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#1a0d0d 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:760px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}\n#pf-territory-map .tm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}\n#pf-territory-map .tm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}\n#pf-territory-map h2{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}\n#pf-territory-map .tm-week{font-family:\'Courier New\',monospace;font-size:13px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}\n#pf-territory-map .tm-map{width:100%;height:auto;display:block;margin:6px auto 4px;max-width:640px}\n#pf-territory-map .tm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:14px 0 4px;text-align:left}\n#pf-territory-map .tm-leg{display:flex;align-items:center;gap:9px;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:8px 10px}\n#pf-territory-map .tm-leg.tm-minecell{border:2px solid #ffd700}\n#pf-territory-map .tm-sw{flex:0 0 auto;width:18px;height:18px;border:1px solid #000}\n#pf-territory-map .tm-lname{font-weight:800;font-size:13.5px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n#pf-territory-map .tm-lsub{font-size:11.5px;color:#b3a687}\n#pf-territory-map .tm-tag{display:inline-block;background:#ffd700;color:#000;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;vertical-align:middle}\n#pf-territory-map .tm-note{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}\n#pf-territory-map .tm-note b{color:#f5ead6}\n#pf-territory-map .tm-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}\n#pf-territory-map .tm-load{color:#b3a687;font-size:14px;padding:20px}\n#pf-territory-map .tm-cta{margin-top:14px;font-size:13.5px;color:#f5ead6}\n#pf-territory-map .tm-cta a{color:#ffb347;font-weight:800}\n</style>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return cs; }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Mine block is private-adjacent: prefer the shared auth JSONP, fall back\n     to attaching auth_secret manually. */\n  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; } }catch(e){}\n  try{ var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec; }catch(e2){}\n  var fn="pfTerrCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false, timer=null;\n  function finish(j){ if(done)return; done=true;\n    if(timer){clearTimeout(timer);timer=null;}\n    try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  timer=setTimeout(function(){ finish(null); },12000);\n}\nfunction fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }\n/* Simplified US tile grid: [code, col, row], 12 cols x 10 rows. */\nvar TILES=[\n["AK",0,0],["HI",11,0],\n["ME",11,1],\n["VT",1,2],["NH",2,2],\n["WA",0,3],["ND",3,3],["MN",4,3],["WI",5,3],["MI",6,3],\n["OR",0,4],["ID",1,4],["MT",2,4],["SD",3,4],["IA",4,4],["IL",5,4],["IN",6,4],["OH",7,4],["PA",8,4],["NY",9,4],\n["NV",1,5],["WY",2,5],["NE",3,5],["MO",4,5],["KY",5,5],["WV",6,5],["VA",7,5],["NJ",8,5],["CT",9,5],["RI",10,5],["MA",11,5],\n["CA",0,6],["UT",2,6],["CO",3,6],["KS",4,6],["TN",5,6],["NC",6,6],["SC",7,6],["DC",8,6],["MD",9,6],["DE",10,6],\n["AZ",2,7],["NM",3,7],["OK",4,7],["AR",5,7],["MS",6,7],["AL",7,7],["GA",8,7],\n["TX",3,8],["LA",4,8],\n["FL",7,9]\n];\nvar NAMES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};\nvar PALETTE=["#c1121f","#e76f51","#f4a261","#e9c46a","#2a9d8f","#577590","#9b5de5","#f15bb5","#00bbf9","#80ed99"];\nfunction cellColor(id){ var h=0,s=String(id||""); for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return PALETTE[h%PALETTE.length]; }\nfunction render(j){\n  var host=document.getElementById("xTerritoryMap"); if(!host) return;\n  var h=\'<div class="tm-wrap">\';\n  h+=\'<div class="tm-kicker">CELLS 2.0</div>\';\n  h+=\'<h2>Territory Map</h2>\';\n  if(!j||!j.ok){\n    /* Fail-soft: backend down or action unknown — honest offline state,\n       map never half-renders. */\n    host.innerHTML=h+\'<div class="tm-empty">The territory map is offline right now.<br>Check back soon.</div></div>\';\n    return;\n  }\n  if(j.week_id){ h+=\'<div class="tm-week">WEEK OF \'+esc(String(j.week_id))+\'</div>\'; }\n  var regs=(j.regions&&j.regions.length)?j.regions:[];\n  var byState={};\n  for(var i=0;i<regs.length;i++){ var rr=regs[i]; if(rr&&rr.state) byState[String(rr.state).toUpperCase()]=rr; }\n  var mine=(j.mine&&j.mine.cell_id)?j.mine:null;\n  var mineState=mine&&mine.state?String(mine.state).toUpperCase():"";\n  var seen={}, leg=[];\n  var svg=\'<svg class="tm-map" viewBox="0 0 600 500" role="img" aria-label="Cell territory map by state">\';\n  for(var t=0;t<TILES.length;t++){\n    var code=TILES[t][0], x=TILES[t][1]*50, y=TILES[t][2]*50;\n    var reg=byState[code];\n    var fill="#3a3a3a", stroke="#555", txtFill="#9a9a9a";\n    var isMineCell=false, isHome=(mineState&&mineState===code);\n    var tip=(NAMES[code]||code)+" — uncontested this week";\n    if(reg&&reg.cell_id){\n      fill=cellColor(reg.cell_id); stroke="#0b0b0c"; txtFill="#ffffff";\n      tip=(NAMES[code]||code)+" — "+(reg.cell_name||reg.cell_id)+" ("+fmt(reg.points||0)+" pts)";\n      if(mine&&reg.cell_id===mine.cell_id) isMineCell=true;\n      if(!seen[reg.cell_id]){ seen[reg.cell_id]=1;\n        leg.push({cell_id:reg.cell_id,cell_name:reg.cell_name||reg.cell_id,pts:Number(reg.points)||0,states:1,mine:isMineCell}); }\n      else { for(var l=0;l<leg.length;l++){ if(leg[l].cell_id===reg.cell_id){ leg[l].pts+=Number(reg.points)||0; leg[l].states++; if(isMineCell) leg[l].mine=true; } } }\n    }\n    var bStroke=isMineCell?"#ffd700":stroke, bW=isMineCell?3:1.5;\n    var dash=(isHome&&!isMineCell)?\' stroke-dasharray="5 3"\':"";\n    if(isHome&&!isMineCell) bStroke="#ffd700";\n    svg+=\'<g><title>\'+esc(tip)+\'</title>\'+\n      \'<rect x="\'+x+\'" y="\'+y+\'" width="46" height="46" fill="\'+fill+\'" stroke="\'+bStroke+\'" stroke-width="\'+bW+\'"\'+dash+\'/>\'+\n      \'<text x="\'+(x+23)+\'" y="\'+(y+27)+\'" text-anchor="middle" font-size="11" font-weight="800" fill="\'+txtFill+\'" font-family="Arial,sans-serif">\'+esc(code)+\'</text></g>\';\n  }\n  svg+=\'</svg>\';\n  h+=svg;\n  leg.sort(function(a,b){ return b.pts-a.pts; });\n  if(leg.length){\n    h+=\'<div class="tm-legend">\';\n    var maxLeg=12;\n    for(var m=0;m<leg.length&&m<maxLeg;m++){\n      var c=leg[m];\n      h+=\'<div class="tm-leg\'+(c.mine?\' tm-minecell\':\'\')+\'"><span class="tm-sw" style="background:\'+cellColor(c.cell_id)+\'"></span>\'+\n        \'<span><span class="tm-lname">\'+esc(c.cell_name)+(c.mine?\'<span class="tm-tag">MY CELL</span>\':\'\')+\'</span><br>\'+\n        \'<span class="tm-lsub">\'+c.states+\' state\'+(c.states===1?\'\':\'s\')+\' &middot; \'+fmt(c.pts)+\' pts</span></span></div>\';\n    }\n    if(leg.length>maxLeg){ h+=\'<div class="tm-leg"><span class="tm-lsub">+\'+(leg.length-maxLeg)+\' more cells holding turf</span></div>\'; }\n    h+=\'</div>\';\n  }else{\n    h+=\'<div class="tm-empty">No territory claimed yet this week.<br>Be the first cell to plant a flag.</div>\';\n  }\n  if(!mine){\n    h+=\'<div class="tm-cta">Not holding turf yet? <a href="/cells">Join a cell</a> and put your state on the map.</div>\';\n  }\n  h+=\'<div class="tm-note"><b>HOW TURF IS WON:</b> each state goes to the cell calling it home with the most territory points that week.<br>\'+\n    \'<b>Honorific:</b> territory is recognition only — never XP, never convertible.<br>\'+\n    \'State turf is self-declared by each cell. No one is tracked, mapped, or followed.</div>\';\n  h+=\'</div>\';\n  host.innerHTML=h;\n  /* 2026-10-06 share-everywhere: share/save + network row on the map. */\n  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,\'territory-map\',{link:\'/cells\'}); }catch(e){}\n}\nfunction load(){\n  api("territory_map_status",{callsign:ident()},render);\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("cell-comp-seasons")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-cellcomp-seasons">\n<div class="fe-block pf-override-block pf-silo" id="pf-cellcomp-seasons">\n<div id="xCellCompSeasons"><div class="cs-load">Opening the season books&hellip;</div></div>\n</div>\n<style>\n#pf-cellcomp-seasons .cs-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#141006 55%,#0b0b0c 100%);border:3px solid #c9a227;padding:26px 22px;max-width:760px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(201,162,39,.35), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}\n#pf-cellcomp-seasons .cs-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}\n#pf-cellcomp-seasons .cs-kicker{font-size:12px;letter-spacing:5px;color:#c9a227;font-weight:800;margin-bottom:6px}\n#pf-cellcomp-seasons h2{font-family:\'Arial Black\',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}\n#pf-cellcomp-seasons .cs-season{font-family:\'Courier New\',monospace;font-size:13px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}\n#pf-cellcomp-seasons .cs-prog{max-width:420px;margin:10px auto 4px}\n#pf-cellcomp-seasons .cs-proglabel{font-size:12px;letter-spacing:2px;color:#f5ead6;margin-bottom:5px}\n#pf-cellcomp-seasons .cs-bar{height:10px;background:#1c1c1c;border:1px solid #555}\n#pf-cellcomp-seasons .cs-bar i{display:block;height:100%;background:linear-gradient(90deg,#8a6d1f,#c9a227,#ffe27a)}\n#pf-cellcomp-seasons .cs-metric{margin:16px 0 4px;text-align:left}\n#pf-cellcomp-seasons .cs-metric h3{font-size:14px;letter-spacing:3px;color:#c9a227;margin:0 0 8px;font-weight:800;text-transform:uppercase}\n#pf-cellcomp-seasons .cs-row{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:9px 12px;margin-bottom:7px;text-align:left}\n#pf-cellcomp-seasons .cs-row.cs-first{border:2px solid #c9a227;background:rgba(42,32,6,.85)}\n#pf-cellcomp-seasons .cs-pos{font-family:\'Arial Black\',Arial,sans-serif;font-size:20px;color:#c9a227;text-align:center;text-shadow:1px 1px 0 #000}\n#pf-cellcomp-seasons .cs-name{font-weight:800;font-size:14.5px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}\n#pf-cellcomp-seasons .cs-sub{font-size:11.5px;color:#b3a687;margin-top:2px}\n#pf-cellcomp-seasons .cs-pts{font-family:\'Courier New\',monospace;font-size:16px;font-weight:700;color:#ffe27a;text-align:right;white-space:nowrap}\n#pf-cellcomp-seasons .cs-pts small{display:block;font-size:10px;color:#b3a687;font-weight:400;letter-spacing:1px}\n#pf-cellcomp-seasons .cs-champs{margin:18px 0 4px;text-align:left;border-top:1px solid #4a4a4a;padding-top:14px}\n#pf-cellcomp-seasons .cs-champs h3{font-size:14px;letter-spacing:3px;color:#c9a227;margin:0 0 8px;font-weight:800}\n#pf-cellcomp-seasons .cs-champ{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:9px 12px;margin-bottom:7px}\n#pf-cellcomp-seasons .cs-champ .cs-cname{font-weight:800;font-size:14px;color:#f5ead6}\n#pf-cellcomp-seasons .cs-champ .cs-csub{font-size:11.5px;color:#b3a687;font-family:\'Courier New\',monospace}\n#pf-cellcomp-seasons .cs-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}\n#pf-cellcomp-seasons .cs-load{color:#b3a687;font-size:14px;padding:20px}\n#pf-cellcomp-seasons .cs-note{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}\n#pf-cellcomp-seasons .cs-note b{color:#f5ead6}\n</style>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfCsCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false, timer=null;\n  function finish(j){ if(done)return; done=true;\n    if(timer){clearTimeout(timer);timer=null;}\n    try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  timer=setTimeout(function(){ finish(null); },12000);\n}\nfunction fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }\nfunction fmtDate(sealed){\n  try{\n    var ms=Number(sealed); if(ms>0&&ms<1e12) ms=ms*1000;\n    if(!(ms>0)) return "";\n    return new Date(ms).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});\n  }catch(e){ return ""; }\n}\nfunction metricLabel(m){\n  var s=String(m||"").replace(/[_-]+/g," ").replace(/\\s+/g," ").trim();\n  if(!s) return "COMPETITION";\n  return s.toUpperCase();\n}\nvar ST=null, HI=null, gS=false, gH=false;\nfunction render(){\n  var host=document.getElementById("xCellCompSeasons"); if(!host) return;\n  if(!gS||!gH) return;\n  var h=\'<div class="cs-wrap">\';\n  h+=\'<div class="cs-kicker">CELLS 2.0</div>\';\n  h+=\'<h2>Competition Seasons</h2>\';\n  var okS=!!(ST&&ST.ok), okH=!!(HI&&HI.ok);\n  if(!okS&&!okH){\n    /* Fail-soft: both reads down — honest offline state. */\n    host.innerHTML=h+\'<div class="cs-empty">The season books are offline right now.<br>Check back soon.</div></div>\';\n    return;\n  }\n  if(okS){\n    var seasonId=String(ST.season_id||ST.week_id||"");\n    /* Backend contract: week_index / season_weeks (not week_no / weeks_total). */\n    var wkTot=Math.max(1,Number(ST.season_weeks)||4);\n    var wkNo=Math.max(1,Math.min(wkTot,Number(ST.week_index)||1));\n    h+=\'<div class="cs-season">SEASON \'+(seasonId?esc(seasonId):\'LIVE\')+\'</div>\';\n    h+=\'<div class="cs-prog"><div class="cs-proglabel">WEEK \'+wkNo+\' OF \'+wkTot+\'</div>\'+\n      \'<div class="cs-bar"><i style="width:\'+Math.round(wkNo/wkTot*100)+\'%"></i></div></div>\';\n    /* Backend contract: metrics is an OBJECT keyed by metric name, each value\n       {metric_label, standings:[...]} — not an array of {metric, rows}. */\n    var mKeys=(ST.metrics&&typeof ST.metrics==="object")?Object.keys(ST.metrics):[];\n    if(!mKeys.length){\n      h+=\'<div class="cs-empty">No competitions scored yet this season.<br>Get your cell in the fight.</div>\';\n    }\n    for(var mi=0;mi<mKeys.length;mi++){\n      var mk=mKeys[mi], m=(ST.metrics[mk]||{}), rows=(m.standings&&m.standings.length)?m.standings:[];\n      h+=\'<div class="cs-metric"><h3>\'+esc(m.metric_label||metricLabel(mk))+\'</h3>\';\n      if(!rows.length){ h+=\'<div class="cs-empty">No scores yet.</div>\'; }\n      for(var i=0;i<rows.length;i++){\n        var r=rows[i]||{};\n        h+=\'<div class="cs-row\'+(i===0?\' cs-first\':\'\')+\'">\';\n        h+=\'<div class="cs-pos">\'+(i+1)+\'</div>\';\n        h+=\'<div><div class="cs-name">\'+(i===0?\'\\uD83D\\uDC51 \':\'\')+esc(r.cell_name||r.cell_id||\'Cell\')+\'</div>\'+\n          \'<div class="cs-sub">\'+fmt(r.total_cnt||0)+\' total scored (tiebreak)</div></div>\';\n        h+=\'<div class="cs-pts">\'+fmt(r.weekly_wins||0)+\'<small>SEASON PTS</small></div>\';\n        h+=\'</div>\';\n      }\n      h+=\'</div>\';\n    }\n  }\n  if(okH){\n    var seasons=(HI.seasons&&HI.seasons.length)?HI.seasons:[];\n    h+=\'<div class="cs-champs"><h3>\\uD83C\\uDFC6 Past Champions</h3>\';\n    if(!seasons.length){ h+=\'<div class="cs-empty">No sealed seasons yet — the first crown is still up for grabs.</div>\'; }\n    for(var s=0;s<seasons.length;s++){\n      var cs=seasons[s]||{};\n      var dt=fmtDate(cs.sealed_at);\n      h+=\'<div class="cs-champ"><span><span class="cs-cname">\\uD83D\\uDC51 \'+esc(cs.champion_cell_name||cs.champion_cell_id||\'Unknown cell\')+\'</span><br>\'+\n        \'<span class="cs-csub">SEASON \'+esc(String(cs.season_id||\'\'))+(dt?\' · SEALED \'+esc(dt):\'\')+\'</span></span></div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div class="cs-note"><b>HOW SEASONS WORK:</b> four Chicago-Monday weeks, one block. Each weekly competition win = 1 season point; ties break on total scored across the season.<br>\'+\n    \'<b>Crowns and honor only</b> — seasons never mint XP and never will.</div>\';\n  h+=\'</div>\';\n  host.innerHTML=h;\n}\nfunction load(){\n  gS=false; gH=false; ST=null; HI=null;\n  api("cellcomp_season_status",{},function(j){ ST=j; gS=true; render(); });\n  api("cellcomp_season_history",{},function(j){ HI=j; gH=true; render(); });\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("review-pool")){try{if(-1!==(window.location.href||"").indexOf("/config/"))return;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return}catch(e){}var n=document.getElementById("pf-review-pool");if(n){var i=!(!e||!e.skip)&&e.skip("bank-meta"),a={bill:"BILL",rep:"REP",race:"RACE",org:"ORG",poll:"POLL",prediction:"PREDICTION",campaign:"CAMPAIGN"},r=window.PF_BACKEND_URL;n.innerHTML='<style>#pf-review-pool{max-width:860px;margin:0 auto;padding:8px 4px;font-family:inherit}.rp-head{border:3px solid #c1121f;background:#0a0a0a;color:#f5f0e6;padding:14px 16px;margin-bottom:10px}.rp-head h2{margin:0 0 4px;font-size:22px;letter-spacing:1px}.rp-tag{font-size:13px;opacity:.85}.rp-blind{border:2px dashed #c1121f;background:#120606;color:#f5f0e6;padding:10px 12px;margin:0 0 10px;font-size:13.5px;line-height:1.5}.rp-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}.rp-tab{flex:0 0 auto;background:#141414;color:#f5f0e6;border:2px solid #3a3a3a;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}.rp-tab.on{background:#c1121f;border-color:#c1121f}.rp-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}.rp-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}.rp-card h3{margin:0 0 6px;font-size:17px}.rp-chips{margin:0 0 10px}.rp-chip{display:inline-block;font-size:11px;letter-spacing:1px;font-weight:700;background:#1c1c1c;border:1px solid #c1121f;color:#f5f0e6;padding:4px 9px;margin:0 6px 6px 0}.rp-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.rp-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}.rp-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:12px 22px;font-size:16px;cursor:pointer;margin:4px 4px 4px 0;letter-spacing:1px}.rp-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}.rp-btn.sm{padding:7px 12px;font-size:13px;letter-spacing:0}.rp-btn:disabled{opacity:.45;cursor:default}.rp-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}.rp-load{padding:22px;text-align:center;opacity:.75;font-style:italic}.rp-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}.rp-note{font-size:12.5px;opacity:.8;line-height:1.5}.rp-artifact{background:#000;border:2px solid #333;margin:0 0 10px;text-align:center}.rp-artifact img,.rp-artifact video{max-width:100%;max-height:420px;display:block;margin:0 auto}.rp-caption{font-size:16px;line-height:1.55;margin:0 0 10px;white-space:pre-wrap}.rp-cite{background:#101010;border:1px solid #2c2c2c;padding:8px 10px;margin:6px 0;font-size:13px}.rp-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}.rp-badge.dim{background:#333}.rp-badge.gold{background:#c9a227;color:#0a0a0a}.rp-cellflag{display:inline-block;border:2px solid #c9a227;color:#f5d76e;font-size:12px;font-weight:700;padding:3px 10px;margin-bottom:8px;letter-spacing:1px}.rp-timer{background:#180a0a;border:2px solid #c1121f;padding:8px 12px;font-weight:700;font-size:14px;margin:0 0 10px}.rp-settle{border:2px solid #c9a227;background:#0f0d05;padding:12px;margin:10px 0;font-size:15px}.rp-row-hist{display:flex;justify-content:space-between;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:13px;flex-wrap:wrap}.rp-row-hist:last-child{border-bottom:0}.rp-agree-up{color:#7CFF9B}.rp-agree-dn{color:#ff8a8a}.rp-trend{display:flex;gap:3px;align-items:flex-end;margin-top:6px}.rp-trend i{display:block;width:14px;background:#c1121f}.rp-lead{display:flex;justify-content:space-between;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:14px}.rp-lead:last-child{border-bottom:0}.rp-next-wrap{text-align:center;padding:26px 8px}.rp-next-wrap .rp-btn{font-size:19px;padding:16px 34px}.rp-qual{background:#141414;border:2px solid #c9a227;padding:14px;margin:0 0 12px}@media(max-width:560px){.rp-pane{padding:10px}.rp-head h2{font-size:19px}}</style><div class="rp-head"><h2>&#9878; REVIEW POOL</h2><div class="rp-tag">Community review of the Content Bank. Real eyes, real stakes.</div></div><div class="rp-blind">&#9878; <b>Judge the work, not the worker.</b> You can\'t see who made this &mdash; that\'s the point.</div><div class="rp-tabs" id="rpTabs"><button class="rp-tab on" data-tab="review">REVIEW</button><button class="rp-tab" data-tab="leaders">LEADERBOARDS</button><button class="rp-tab" data-tab="history">YOUR REVIEWS</button></div><div class="rp-pane" id="rpPane"><div class="rp-load">Raising the review pool&hellip;</div></div>';var o={tab:"review",status:null,assignment:null,view:"discovery",voteRes:null,leaders:null,cellBoard:null,history:null,timerIv:null},s=[["DUPLICATE","A version of this already entered the Content Bank in the last 30 days."],["EMPTY","The submission arrived without an artifact or caption to judge."],["CITATION_FAIL","A claimed citation didn't check out — the link is dead or the source doesn't back the claim."],["OFF_BRAND","Not on-brand for the network — punchy toward power, never punching down."],["SPAM","Reads as spam or filler, not made to agitate."],["PROOF_FAIL","A proof link for the poster leg didn't verify — broken, blocked, or missing the marker."]];n.querySelectorAll(".rp-tab").forEach(function(e){e.addEventListener("click",function(){n.querySelectorAll(".rp-tab").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),o.tab=e.getAttribute("data-tab"),w()})});try{e.reviewPoolT={metaChips:E}}catch(e){}w()}}function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function c(e){var t=String(e||"").trim();return/^https?:\/\//i.test(t)?t:""}function d(){var e="",t="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{t=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:t}}function p(t,n,i){var a=function(e){try{i(e||{ok:!1,err:"Network error."})}catch(e){}};if(window.PF&&e.postAction)e.postAction("review","rv_action",t,n,a);else if(r)try{var o=Object.assign({type:"review",rv_action:t},n||{}),s={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)},l=null,c=null;try{window.AbortController&&(l=new AbortController,s.signal=l.signal,c=setTimeout(function(){try{l.abort()}catch(e){}},15e3))}catch(e){}fetch(r,s).then(function(e){return e.json()}).then(function(e){c&&clearTimeout(c),a(e)}).catch(function(){c&&clearTimeout(c),a(null)})}catch(e){a(null)}else a(null)}function u(e){var t=d(),n=Object.assign({},e||{});return t.callsign&&(n.callsign=t.callsign),t.device&&(n.device=t.device),n}function f(e,t,n){if(r){var i="pfRevCb"+Math.floor(1e9*Math.random()),a=document.createElement("script"),o=!1;window[i]=function(e){c(e)},a.onerror=function(){c(null)};var s="?action="+encodeURIComponent(e);for(var l in t)null!=t[l]&&""!==t[l]&&(s+="&"+encodeURIComponent(l)+"="+encodeURIComponent(t[l]));s+="&callback="+i,a.src=r+s,document.head.appendChild(a),setTimeout(function(){c(null)},12e3)}else n(null);function c(e){if(!o){o=!0;try{delete window[i]}catch(e){}a.parentNode&&a.parentNode.removeChild(a),n(e)}}}function h(){return document.getElementById("rpPane")}function m(e){return'<div class="rp-load">'+l(e||"Loading&hellip;")+"</div>"}function v(e){return'<div class="rp-err"><b>Couldn\'t reach the pool.</b><div class="rp-note">The network dropped the call. Nothing was lost.</div><button class="rp-btn sm" data-rp-retry="'+l(e||"")+'">RETRY</button></div>'}function g(t,n){return t?function(t,n){try{if(e&&e.errCopy)return e.errCopy(t,n)}catch(e){}return t&&(t.err||t.error)||n||"Something broke."}(t,n):"Couldn't reach the pool. Check your connection."}function b(e){(e||h()).querySelectorAll("[data-rp-retry]").forEach(function(e){e.addEventListener("click",function(){w()})})}function w(){x();var e=h();"review"===o.tab?function(e){if(!d().callsign)return void(e.innerHTML='<div class="rp-card"><h3>Claim a callsign first</h3><div class="rp-note">Review power is identity-bound. Claim your callsign in Daily Orders, then come back — the pool will be waiting.</div></div>');if("decided"===o.view&&o.voteRes)return void q(e);if("pending"===o.view&&o.voteRes)return void _(e);if("reviewing"===o.view&&o.assignment)return void C(e);t=function(t){if(!t||!1===t.ok)return t&&"no_callsign"===t.err?void(e.innerHTML='<div class="rp-card"><h3>Claim a callsign first</h3></div>'):(e.innerHTML=v(),void b(e));t.qualified?"empty"!==o.view?(e.innerHTML=function(e){var t=e.stats||{},n=e.health||{},i=e.claims||[],a="";return i.length&&(a+='<div class="rp-card"><h3>Your open claims ('+i.length+"/3)</h3>",i.forEach(function(e,t){a+='<div class="rp-timer" data-rp-exp="'+l(String(e.expires_at))+'" data-rp-idx="'+t+'">Counting down&hellip;</div>'}),a+='<div class="rp-row"><button class="rp-btn sm ghost" data-rp="resume" data-sub="'+l(String(i[0].submission_id))+'">RESUME CLAIM</button></div><div class="rp-note">Unvoted claims expire back into the pool — your stake comes back when you let one lapse. Voting is how you earn.</div></div>'),a+='<div class="rp-card"><div><span class="rp-stat"><b>'+l(String(n.open_count||0))+'</b> open in the pool</span><span class="rp-stat"><b>'+l(String(t.reviews_cast||0))+'</b> reviews cast</span><span class="rp-stat"><b>'+l(String(t.agreement_rate||0))+'%</b> agreement rate</span><span class="rp-stat"><b>'+l(String(t.xp_earned_reviewing||0))+" XP</b> earned reviewing</span></div>",null!=n.median_minutes&&(a+='<div style="margin-top:6px"><span class="rp-stat">Pool health: median '+l(String(n.median_minutes))+" min to decision</span></div>"),(null!=t.cell_contrib||e.cell&&e.cell.name)&&(a+='<div class="rp-note" style="margin-top:8px">&#9876; <b>Cell layer:</b> your reviews count toward <b>'+l(e.cell&&e.cell.name?e.cell.name:"your cell")+"</b>'s accuracy-board standing"+(null!=t.cell_contrib?" — <b>"+l(String(t.cell_contrib))+"</b> of your reviews have fed it":"")+".</div>"),a+="</div>",a+='<div class="rp-next-wrap"><button class="rp-btn" data-rp="next">REVIEW NEXT</button><div class="rp-note" style="margin-top:10px">One button. No browsing, no cherry-picking — the server assigns. Claiming stakes <b>5 XP</b>: agree with consensus and it comes back +2; vote against and the stake is lost.</div></div>'}(t),function(e){var t=e.querySelector('[data-rp="next"]');t&&t.addEventListener("click",k);var n=e.querySelector('[data-rp="resume"]');n&&n.addEventListener("click",function(){k()}),y(e)}(e)):function(e,t){t&&t.health,e.innerHTML='<div class="rp-next-wrap"><div class="rp-card" style="text-align:left"><h3>The pool is empty</h3><div class="rp-note">Every submission has its reviewers. This is what a healthy pool looks like — the Content Bank drains fast because reviewers show up. Check back after the next drop, or bring a creator into the network and give the pool something to judge.</div></div><button class="rp-btn ghost" data-rp="refresh">CHECK AGAIN</button></div>',e.querySelector('[data-rp="refresh"]').addEventListener("click",function(){o.view="discovery",o.status=null,w()})}(e,t):e.innerHTML=function(e){var t=e.need||[],n='<div class="rp-qual"><h3>Review power is earned</h3><div class="rp-note">The pool opens to reviewers who are invested. Here\'s what\'s still open:</div><div style="margin-top:8px">';return n+='<div class="rp-stat">'+(-1!==t.indexOf("ENLISTED")?"<b>&#9673; ENLISTED rite</b> — complete it in Daily Orders":"<b>&#9679; ENLISTED rite</b> — done")+"</div>",n+='<div class="rp-stat">'+(-1!==t.indexOf("500XP")?"<b>&#9673; 500 lifetime XP</b> — you're at "+l(String(e.lifetime_xp||0))+" XP":"<b>&#9679; 500 lifetime XP</b> — met")+"</div>",n+='</div><div class="rp-note" style="margin-top:8px">Why the gate? Claiming a review stakes 5 XP — skin in the game. Honest reviewing is profitable; lazy voting loses XP. The gate keeps the pool honest.</div></div>'}(t)},d().callsign?!n&&o.status&&o.status._t&&Date.now()-o.status._t<3e4?t(o.status):p("review_status",u({}),function(e){e&&(e._t=Date.now(),o.status=e),t(e)}):t({ok:!1,err:"no_callsign"});var t,n}(e):"leaders"===o.tab?function(e){e.innerHTML=m("Reading the boards&hellip;");var t=!1,n=!1,i=null,a=null;function r(){if(t&&n){var r="";r+='<div class="rp-card"><h3>Top reviewers — accuracy &times; volume</h3><div class="rp-note">Ranked by <b>accuracy &times; volume</b> — never raw count. A hundred lazy votes don\'t outrank ten sharp ones. Status only — no XP attached.</div>';var o=i&&i.reviewers||[];o.length||(r+='<div class="rp-note" style="margin-top:8px">No reviewers on the board yet. Be the first.</div>'),o.slice(0,20).forEach(function(e,t){var n=e.mine?'<span class="rp-badge">YOU</span>':"";r+='<div class="rp-lead"><span><b>#'+(null!=e.rank?e.rank:t+1)+"</b> "+l(e.name||"?")+n+'</span><span class="rp-note">'+l(String(e.accuracy||0))+"% &times; "+l(String(e.volume||0))+" = <b>"+l(String(e.score||0))+"</b></span></div>"}),r+="</div>",r+='<div class="rp-card"><h3>Cell accuracy board</h3><div class="rp-note">Cells ranked by their members\' review accuracy. Your honest votes lift your cell — your lazy ones sink it.</div>';var s=a&&a.cells||[];s.length||(r+='<div class="rp-note" style="margin-top:8px">No cells on the board yet.</div>'),s.slice(0,20).forEach(function(e,t){var n=e.mine?'<span class="rp-badge">YOUR CELL</span>':"";r+='<div class="rp-lead"><span><b>#'+(null!=e.rank?e.rank:t+1)+"</b> "+l(e.name||"?")+n+'</span><span class="rp-note">'+l(String(e.accuracy||0))+"% &times; "+l(String(e.volume||0))+" = <b>"+l(String(e.score||0))+"</b></span></div>"}),r+="</div>",e.innerHTML=r}}s=function(e){t=!0,i=e,r()},o.leaders&&o.leaders._t&&Date.now()-o.leaders._t<12e4?s(o.leaders):f("review_leaderboard",{},function(e){e&&e.ok&&(e._t=Date.now(),o.leaders=e),s(e)}),function(e){o.cellBoard&&o.cellBoard._t&&Date.now()-o.cellBoard._t<12e4?e(o.cellBoard):f("review_cell_board",{},function(t){t&&t.ok&&(t._t=Date.now(),o.cellBoard=t),e(t)})}(function(e){n=!0,a=e,r()});var s}(e):"history"===o.tab&&function(e){if(!d().callsign)return void(e.innerHTML='<div class="rp-card"><h3>Claim a callsign first</h3></div>');e.innerHTML=m("Pulling your review record&hellip;"),t=function(t){if(!t||!1===t.ok)return e.innerHTML=v(),void b(e);var n=t.reviews||[],i='<div class="rp-card"><h3>Your reviews ('+n.length+")</h3>";n.length||(i+='<div class="rp-note">No reviews yet. Hit REVIEW NEXT and put your eyes to work.</div>'),n.forEach(function(e){var t,n="accept"===String(e.vote||"").toLowerCase()?'<span class="rp-badge gold">ACCEPT</span>':'<span class="rp-badge">REJECT</span>',a=String(e.outcome||"pending").toLowerCase(),r="accepted"===a?'<span class="rp-agree-up">ACCEPTED</span>':"rejected"===a?'<span class="rp-agree-dn">REJECTED</span>':'<span class="rp-badge dim">PENDING</span>',o=e.settlement||{};t="pending"===a?'<span class="rp-note">settlement pending</span>':o.agreed?'<span class="rp-agree-up">+'+l(String(null!=o.stake_returned?o.stake_returned:5))+" stake +"+l(String(null!=o.reward_xp?o.reward_xp:2))+" XP</span>":'<span class="rp-agree-dn">stake lost ('+l(String(null!=o.lost_xp?o.lost_xp:5))+" XP)</span>";var s="";try{s=new Date(Number(e.ts)||0).toLocaleDateString()}catch(e){s=""}i+='<div class="rp-row-hist"><span>'+n+" "+r+' <span class="rp-note">'+l(s)+(e.reason_code?" &middot; "+l(e.reason_code):"")+"</span></span><span>"+t+' <span class="rp-note">'+l(String(null!=e.agreement_rate?e.agreement_rate:""))+(null!=e.agreement_rate?"%":"")+"</span></span></div>"}),i+="</div>";var a=t.trend||[];if(a.length>1){i+='<div class="rp-card"><h3>Agreement-rate trend</h3><div class="rp-trend">';var r=Math.max.apply(null,a.concat([100]));a.forEach(function(e){var t=Math.max(4,Math.round((Number(e)||0)/r*60));i+='<i style="height:'+t+'px" title="'+l(String(e))+'%"></i>'}),i+='</div><div class="rp-note">'+l(String(a[0]))+"% &rarr; "+l(String(a[a.length-1]))+"% across your last "+a.length+" reviews.</div></div>"}e.innerHTML=i},n=!0,d().callsign?n||!o.history?p("review_history",u({}),function(e){e&&e.ok&&(o.history=e),t(e)}):t(o.history):t({ok:!1,err:"no_callsign"});var t,n}(e),b(e)}function y(e){function t(){var t=!1;(e||h()).querySelectorAll("[data-rp-exp]").forEach(function(e){var n=(Number(e.getAttribute("data-rp-exp"))||0)-Date.now();if(n<=0)e.innerHTML="Expired — re-opened to the pool. Your stake was returned.";else{t=!0;var i=Math.floor(n/1e3),a=Math.floor(i/3600),r=Math.floor(i%3600/60),o=i%60;e.innerHTML="Vote within <b>"+a+"h "+r+"m "+o+"s</b> — your stake rides on this vote."}}),t||x()}x(),t(),o.timerIv=setInterval(t,1e3)}function x(){o.timerIv&&(clearInterval(o.timerIv),o.timerIv=null)}function k(){o.view="claiming",h().innerHTML=m("The pool is dealing you a submission&hellip;"),p("review_next",u({}),function(t){if(!t||!1===t.ok){o.view="discovery";var n=g(t,"Claim failed.");return t&&"max_claims"===t.err&&(n="You already hold 3 open claims — the anti-squat cap. Vote on one first."),t&&"rate_limited"===t.err&&(n="Daily review cap reached (10/day). Come back tomorrow — the pool will be here."),!t||"not_qualified"!==t.err&&"review_banned"!==t.err||(n="Review power revoked or not yet earned. Check the requirements above."),h().innerHTML='<div class="rp-err"><b>'+l(n)+'</b></div><button class="rp-btn sm" data-rp="back">BACK TO THE POOL</button>',b(h()),void h().querySelector('[data-rp="back"]').addEventListener("click",function(){o.view="discovery",o.status=null,w()})}if(t.empty)return o.view="empty",o.status=null,void w();o.assignment=t.assignment,o.view="reviewing",function(t){try{if(e&&e.toast)return void e.toast(t)}catch(e){}try{var n=document.createElement("div");n.textContent=t,n.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(n),setTimeout(function(){n.remove()},2800)}catch(e){}}("−"+(null!=t.stake_xp?t.stake_xp:5)+" XP staked"),C(h())})}function E(e){var t='<div class="rp-chips">';return e.entity_type&&e.entity_id?t+='<span class="rp-chip">'+l(a[String(e.entity_type)]||String(e.entity_type).toUpperCase())+" &middot; "+l(e.entity_id)+"</span>":e.entity_id&&(t+='<span class="rp-chip">'+l(e.entity_id)+"</span>"),e.issue_area&&(t+='<span class="rp-chip">ISSUE &middot; '+l(e.issue_area)+"</span>"),t+="</div>"}function C(e){var t=o.assignment;if(!t)return o.view="discovery",void w();var n="";t.cell_priority&&(n+='<div class="rp-cellflag">&#9876; FROM YOUR CELL</div><div class="rp-note" style="margin-bottom:10px">A cellmate made this. Judge it <b>harder</b>, not softer — your cell\'s accuracy standing rides on honest votes.</div>'),n+='<div class="rp-card">';var a=c(t.artifact_url);a&&(n+='<div class="rp-artifact">',"video"===t.artifact_kind?n+='<video src="'+l(a)+'" controls preload="metadata"></video>':"text"===t.artifact_kind?n+='<div class="rp-caption" style="text-align:left;padding:10px">'+l(t.artifact_text||t.caption||"")+"</div>":n+='<img src="'+l(a)+'" alt="Submission artifact">',n+="</div>"),t.caption&&"text"!==t.artifact_kind&&(n+='<div class="rp-caption">'+l(t.caption)+"</div>");try{if(!i){var r=t.political_meta||t.meta||null;r&&(r.entity_id||r.issue_area)&&(n+=E(r))}}catch(e){}var d=t.citations||[];d.length&&(n+='<h3 style="margin-top:6px">Citations</h3>',d.forEach(function(e){var t=c(e.url),i=t?'<a href="'+l(t)+'" target="_blank" rel="noopener">'+l(e.url)+"</a>":"<span>"+l(e.url||"")+"</span>";n+='<div class="rp-cite">'+(e.verified_read?'<span class="rp-badge gold">VERIFIED READ</span>':'<span class="rp-badge dim">UNVERIFIED</span>')+" <b>"+l(e.label||e.title||"Source")+"</b><br>"+i+"</div>"}));var p=t.proof_links||[];p.length&&(n+='<h3 style="margin-top:6px">Proof links</h3>',p.forEach(function(e){var t=String(e.status||"unchecked").toLowerCase(),i="ok"===t?'<span class="rp-badge gold">VERIFIED</span>':"fail"===t?'<span class="rp-badge">FAILED</span>':'<span class="rp-badge dim">UNCHECKED</span>',a=c(e.url),r=a?'<a href="'+l(a)+'" target="_blank" rel="noopener">'+l(e.url)+"</a>":"<span>"+l(e.url||"")+"</span>";n+='<div class="rp-cite">'+i+" <b>"+l(e.label||"Proof")+"</b><br>"+r+"</div>"})),n+="</div>",t.expires_at&&(n+='<div class="rp-timer" data-rp-exp="'+l(String(t.expires_at))+'">Counting down&hellip;</div>'),n+='<div class="rp-card"><h3>Your verdict</h3><div class="rp-row"><button class="rp-btn" data-rp="accept">ACCEPT</button><button class="rp-btn ghost" data-rp="reject">REJECT</button></div><div id="rpRejectBox" style="display:none;margin-top:10px"><div class="rp-note" style="margin-bottom:6px">Rejection needs a reason — the maker sees the reason, never your name.</div><select class="rp-in" id="rpReason" aria-label="Rejection reason"><option value="">Pick a reason&hellip;</option>'+s.map(function(e){return'<option value="'+e[0]+'">'+e[0]+" — "+l(e[1])+"</option>"}).join("")+'</select><input class="rp-in" id="rpNote" maxlength="280" placeholder="Optional note to the maker (280 chars)" style="width:100%"><div class="rp-row" style="margin-top:6px"><button class="rp-btn sm" data-rp="reject-confirm">CONFIRM REJECT</button></div></div><div id="rpVoteMsg"></div></div>',e.innerHTML=n,y(e),e.querySelector('[data-rp="accept"]').addEventListener("click",function(){S("accept")}),e.querySelector('[data-rp="reject"]').addEventListener("click",function(){var e=document.getElementById("rpRejectBox");e&&(e.style.display="none"===e.style.display?"block":"none")}),e.querySelector('[data-rp="reject-confirm"]').addEventListener("click",function(){var e=document.getElementById("rpReason"),t=e?e.value:"";if(t){var n=document.getElementById("rpNote");S("reject",t,n?n.value:"")}else{var i=document.getElementById("rpVoteMsg");i&&(i.innerHTML="<div class=\"rp-err\">Pick a reason code — rejection without one isn't a verdict, it's a shrug.</div>")}})}function S(e,t,n){var i=o.assignment;if(i){h().innerHTML=m("Recording your verdict&hellip;");var a=u({submission_id:i.submission_id,vote:e});t&&(a.reason_code=t),n&&(a.note=String(n).slice(0,280)),p("review_vote",a,function(e){if(!e||!1===e.ok)return o.view="reviewing",h().innerHTML='<div class="rp-err"><b>'+l(g(e,"Vote failed."))+'</b><div class="rp-note">Your stake is safe — the vote never landed.</div></div><button class="rp-btn sm" data-rp="back2">BACK TO THE SUBMISSION</button>',void h().querySelector('[data-rp="back2"]').addEventListener("click",function(){C(h())});o.voteRes=e,o.assignment=null,o.status=null,o.history=null,e.decision_reached?(o.view="decided",q(h())):(o.view="pending",_(h()))})}}function q(e){var t=o.voteRes,n=t.settlement||{},i=!0===n.agreed,a='<div class="rp-card"><h3>Decision reached — '+("accepted"===String(t.outcome||"").toLowerCase()?'<span class="rp-agree-up">ACCEPTED</span>':'<span class="rp-agree-dn">REJECTED</span>')+"</h3>";a+=function(e,t){if(t)return'<div class="rp-settle">&#9679; <b>Stake returned + reward.</b> +'+l(String(null!=e.stake_returned?e.stake_returned:5))+" stake returned, +"+l(String(null!=e.reward_xp?e.reward_xp:2))+" XP reviewer reward. Honest vote, honest pay.</div>";return'<div class="rp-settle" style="border-color:#c1121f;background:#1a0505">&#9679; <b>Stake lost ('+l(String(null!=e.lost_xp?e.lost_xp:5))+" XP).</b> You voted against consensus — the stake is destroyed, not transferred. Review the criteria and come back sharper.</div>"}(n,i),null!=t.agreement_rate&&(a+='<div class="rp-note" style="margin-top:8px">Your running agreement rate: <b>'+l(String(t.agreement_rate))+"%</b> "+(t.agreement_rate>=71?"— honest reviewing is profitable territory.":"— tighten up: below ~71% and the stake eats you.")+"</div>"),a+='<div class="rp-row" style="margin-top:10px"><button class="rp-btn" data-rp="next2">REVIEW NEXT</button></div></div>',e.innerHTML=a,e.querySelector('[data-rp="next2"]').addEventListener("click",function(){o.view="discovery",o.voteRes=null,w()})}function _(e){var t=o.voteRes,n='<div class="rp-card"><h3>Vote recorded</h3><div class="rp-note">Your '+l(String(t.vote||"verdict"))+" is in. The pool needs "+l(String(null!=t.votes_needed?t.votes_needed:"more"))+' more eye(s) before this one settles — you\'ll see the outcome and settlement here and in Your Reviews.</div><div class="rp-note" style="margin-top:8px">Blind until quorum: no split, no names, nothing to game.</div><div class="rp-row" style="margin-top:10px"><button class="rp-btn" data-rp="next2">REVIEW NEXT</button></div></div>';e.innerHTML=n,e.querySelector('[data-rp="next2"]').addEventListener("click",function(){o.view="discovery",o.voteRes=null,w()})}}();
+/* PF v1.4.3 bundle-cells.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: cell-identity.js, cell-hq.js, cell-starter-kit.js, treasury.js, cell-war.js, cell-war-front.js, diplomacy.js, contracts.js, war-card.js, war-map.js, cell-territory-map.js, cell-comp-seasons.js, review-pool.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== cell-identity.js ===== */
+/* games/cell-identity.js | PF v1.4.3 | CELL IDENTITY — structured unique
+   qualities for cells: guided founding wizard, discovery-on-qualities,
+   identity kit (banner/colors/motto), founder backfill prompts.
+   CEO directive 2026-10-05 (Factory Mobilization, extends Engagement item #4):
+   discovery without distinctiveness is a phone book.
+   Backend: cell_identity_get/set, cell_apply, cell_application_review,
+   quality filters on cell_search (migration v117).
+   Rules: coarse location only (server-enforced), no PII, activity computed
+   from real signals — never self-reported. ZERO XP on every surface here
+   (no xpGrant, no PF.postAction, no XP copy).
+   KILL: ?pf_off=cell-identity or localStorage pf_disabled_v1='["cell-identity"]'
+   -> window.PFCellIdentity.enabled() is false and all mounts no-op, so
+   callers fall back to the pre-identity UI. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  var ENABLED = !!(PF && !PF.skip('cell-identity'));
+  /* Expose the flag even when killed so callers can branch safely. */
+  function enabled() { return ENABLED; }
+
+  var BACKEND = (typeof window !== 'undefined' && window.PF_BACKEND_URL) || '';
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function toast(m){ try{ if(PF&&PF.toast){ PF.toast(m); return; } }catch(e){} }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+
+  /* JSONP GET (public reads). Mirrors the cells.js api() convention. */
+  function api(action, params, cb){
+    if(!BACKEND){ cb(null); return; }
+    try{
+      if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+    var _cr=new Uint32Array(1);
+    try{ if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(_cr); else _cr[0]=Math.floor(Math.random()*4294967295); }catch(e){ _cr[0]=Math.floor(Math.random()*4294967295); }
+    var fn="pfIdCb"+_cr[0];
+    var s=document.createElement("script"), done=false, timer=null;
+    function finish(j){
+      if(done) return; done=true;
+      if(timer){ clearTimeout(timer); timer=null; }
+      window[fn]=function(){};
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s);
+      cb(j);
+    }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    timer=setTimeout(function(){ finish(null); },12000);
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn;
+    s.src=BACKEND+q;
+    document.head.appendChild(s);
+  }
+  /* CORS POST for POST_ONLY identity writes. */
+  function post(action, params, cb){
+    var body=Object.assign({type:"cell",cell_action:action},params||{});
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); })
+        .then(function(j){ done(j); })
+        .catch(function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+
+  /* ---------- Curated sets (mirror of src/cell-identity.js) ---------- */
+  var CAUSES=[["labor","Labor"],["housing","Housing"],["healthcare","Healthcare"],["climate","Climate"],["racial-justice","Racial Justice"],["lgbtq","LGBTQ+"],["immigration","Immigration"],["voting-rights","Voting Rights"],["mutual-aid","Mutual Aid"],["anti-war","Anti-War"],["education","Education"],["reproductive-rights","Reproductive Rights"],["criminal-justice","Criminal Justice"],["disability-rights","Disability Rights"],["indigenous-rights","Indigenous Rights"],["digital-rights","Digital Rights"]];
+  var VIBES=[["meme-warfare","Meme Warfare"],["earnest-organizers","Earnest Organizers"],["chaos-crew","Chaos Crew"],["night-owls","Night Owls"],["disciplined","Disciplined"],["welcoming","Welcoming"],["debate-pit","Debate Pit"],["artists","Artists"],["data-nerds","Data Nerds"],["street-team","Street Team"],["book-club","Book-Club Energy"],["hype-squad","Hype Squad"]];
+  var SPECIALTIES=[["propaganda","Propaganda"],["data-collection","Data Collection"],["recruiting","Recruiting"],["local-action","Local Action"],["research","Research"]];
+  var CADENCES=[["daily","Daily"],["few-weekly","A few times a week"],["weekly","Weekly"],["biweekly","Every two weeks"],["monthly","Monthly"],["adhoc","Whenever it matters"]];
+  var ENTRIES=[["open","Open — anyone can find the code and wire in"],["invite","Invite only — the code stays with the founder"],["application","Application — the founder reviews every request"]];
+  var ACTIVITIES=[["","Any activity"],["NEW","New cells"],["BLAZING","Blazing"],["ACTIVE","Active"],["STEADY","Steady"],["DORMANT","Dormant"]];
+  var SORTS=[["activity","Sort: activity"],["newest","Sort: newest"],["streak","Sort: streak"],["members","Sort: members"]];
+  var ACT_LABEL={NEW:"NEW",BLAZING:"BLAZING",ACTIVE:"ACTIVE",STEADY:"STEADY",DORMANT:"DORMANT"};
+
+  /* The 8 curated on-brand palettes (mirror of cells.js CELL_PALETTES).
+     Founder picks an index — never a free color, so there is no moderation
+     surface. -1 = derived from the cell id (existing recruit-poster idiom). */
+  var PALETTES=[
+    {primary:"#c1121f",bg:"#0d0d0d",box:"#141010",cream:"#f5ead6",muted:"#c9bfa8"},
+    {primary:"#e07a1f",bg:"#0d0b08",box:"#171009",cream:"#f5ead6",muted:"#c9b190"},
+    {primary:"#8f0f1e",bg:"#0a0a0a",box:"#120a0a",cream:"#e8dcc8",muted:"#b0a48e"},
+    {primary:"#ff2b2b",bg:"#080808",box:"#140b0b",cream:"#f5ead6",muted:"#c9bfa8"},
+    {primary:"#b34a1f",bg:"#0c0a09",box:"#151010",cream:"#efe6d0",muted:"#bfae94"},
+    {primary:"#d4a017",bg:"#0d0d0c",box:"#141310",cream:"#f5ead6",muted:"#c9bd9a"},
+    {primary:"#dc143c",bg:"#0b0b0b",box:"#130d0f",cream:"#f5ead6",muted:"#c4b3a8"},
+    {primary:"#ff5a1f",bg:"#0d0d0d",box:"#16100c",cream:"#fff3e0",muted:"#cbb79e"}
+  ];
+  function paletteFor(cell){
+    var p=(cell&&cell.palette!=null)?Number(cell.palette):-1;
+    if(p>=0&&p<8) return PALETTES[p];
+    var s=String((cell&&(cell.id||cell.name))||"cell"), h=5381, i;
+    for(i=0;i<s.length;i++){ h=((h<<5)+h+s.charCodeAt(i))>>>0; }
+    return PALETTES[h%PALETTES.length];
+  }
+
+  /* ================= GUIDED FOUNDING WIZARD =================
+     6 steps: name/state -> causes -> vibes -> specialty/cadence/entry ->
+     charter/motto/region/colors -> review. Required core: name, >=1 cause,
+     >=1 vibe, >=1 specialty, cadence, entry. A cell with no identity can't
+     complete founding — NEXT stays disabled until the core is defined.
+     Edit mode (backfill): loads the stored identity, SAVE -> cell_identity_set. */
+  function mountWizard(el, opts){
+    if(!ENABLED||!el) return false;
+    opts=opts||{};
+    var mode=opts.mode==="edit"?"edit":"create";
+    var W={step:1,name:"",state:"",causes:[],vibes:[],customVibe:"",specialties:[],
+      cadence:"",entry:"",charter:"",motto:"",region:"",palette:-1,err:"",busy:false};
+    if(opts.initial) Object.keys(opts.initial).forEach(function(k){ if(W[k]!==undefined) W[k]=opts.initial[k]; });
+
+    function chipRow(list, sel, max, key){
+      return '<div class="id-chips">'+list.map(function(it){
+        var on=sel.indexOf(it[0])>=0;
+        return '<button type="button" class="id-chip'+(on?" on":"")+'" data-idk="'+key+'" data-idv="'+esc(it[0])+'" aria-pressed="'+on+'">'+esc(it[1])+'</button>';
+      }).join("")+'</div><div class="id-hint">Pick up to '+max+'.</div>';
+    }
+    function stepValid(){
+      if(W.step===1) return W.name.trim().length>=3;
+      if(W.step===2) return W.causes.length>=1;
+      if(W.step===3) return W.vibes.length>=1||W.customVibe.trim().length>=1;
+      if(W.step===4) return W.specialties.length>=1&&!!W.cadence&&!!W.entry;
+      return true;
+    }
+    function render(){
+      var h='<div class="id-wiz">';
+      h+='<div class="id-steps">'+[1,2,3,4,5,6].map(function(n){
+        return '<span class="id-dot'+(n===W.step?" on":"")+(n<W.step?" done":"")+'">'+n+'</span>';
+      }).join("")+'</div>';
+      if(W.step===1){
+        h+='<h4>'+(mode==="edit"?"Cell basics":"Name your cell")+'</h4>'+
+          '<input class="id-in" id="idName" maxlength="24" placeholder="CELL NAME (3-24 characters)" value="'+esc(W.name)+'" autocomplete="off">'+
+          '<select class="id-sel" id="idState" aria-label="STATE AFFILIATION">'+(opts.stateOptsHTML||"")+'</select>'+
+          '<div class="id-hint">State affiliation unlocks location tasks and policymaker bounties.</div>';
+      }else if(W.step===2){
+        h+='<h4>What does this cell fight for?</h4>'+chipRow(CAUSES,W.causes,3,"causes")+
+          '<div class="id-hint">Pick the causes recruits will find you by.</div>';
+      }else if(W.step===3){
+        h+='<h4>What is the vibe?</h4>'+chipRow(VIBES,W.vibes,3,"vibes")+
+          '<input class="id-in" id="idCustomVibe" maxlength="24" placeholder="Or name your own vibe (optional)" value="'+esc(W.customVibe)+'" autocomplete="off">';
+      }else if(W.step===4){
+        h+='<h4>How does this cell work?</h4><div class="id-sub">Specialty — pick up to 2</div>'+chipRow(SPECIALTIES,W.specialties,2,"specialties")+
+          '<div class="id-sub">Meeting cadence</div><div class="id-chips">'+CADENCES.map(function(it){
+            return '<button type="button" class="id-chip'+(W.cadence===it[0]?" on":"")+'" data-idk="cadence" data-idv="'+esc(it[0])+'">'+esc(it[1])+'</button>';
+          }).join("")+'</div>'+
+          '<div class="id-sub">Entry style</div>'+ENTRIES.map(function(it){
+            return '<label class="id-radio"><input type="radio" name="identry" value="'+esc(it[0])+'"'+(W.entry===it[0]?" checked":"")+'><span><b>'+esc(it[1].split(" — ")[0])+'</b> — '+esc(it[1].split(" — ")[1]||"")+'</span></label>';
+          }).join("");
+      }else if(W.step===5){
+        h+='<h4>Give it a voice and a look</h4>'+
+          '<textarea class="id-in" id="idCharter" maxlength="280" rows="3" placeholder="Charter — what this cell stands for (optional, 280 max)">'+esc(W.charter)+'</textarea>'+
+          '<input class="id-in" id="idMotto" maxlength="80" placeholder="Motto — the line on the banner (optional)" value="'+esc(W.motto)+'" autocomplete="off">'+
+          '<input class="id-in" id="idRegion" maxlength="40" placeholder="Region — coarse only, e.g. Gulf Coast (optional)" value="'+esc(W.region)+'" autocomplete="off">'+
+          '<div class="id-sub">Banner colors — pick a look</div><div class="id-pals">'+PALETTES.map(function(pa,i){
+            return '<button type="button" class="id-pal'+(W.palette===i?" on":"")+'" data-idpal="'+i+'" title="Look '+(i+1)+'" style="background:linear-gradient(135deg,'+pa.primary+' 50%,'+pa.bg+' 50%)"></button>';
+          }).join("")+'</div>';
+      }else{
+        h+='<h4>'+(mode==="edit"?"Review your identity":"Review your cell")+'</h4><div class="id-review">'+
+          '<div><b>'+esc(W.name||"(unnamed)")+'</b>'+(W.state?' · '+esc(W.state):"")+'</div>'+
+          '<div>'+W.causes.map(function(k){return labelOf(CAUSES,k);}).join(", ")+'</div>'+
+          '<div>'+W.vibes.map(function(k){return labelOf(VIBES,k);}).join(", ")+(W.customVibe?' · “'+esc(W.customVibe)+'”':"")+'</div>'+
+          '<div>'+W.specialties.map(function(k){return labelOf(SPECIALTIES,k);}).join(", ")+' · '+esc(labelOf(CADENCES,W.cadence))+' · '+esc(labelOf(ENTRIES,W.entry))+'</div>'+
+          (W.motto?'<div class="id-motto">“'+esc(W.motto)+'”</div>':"")+
+          (W.charter?'<div class="id-charter">'+esc(W.charter)+'</div>':"")+
+          '</div><div id="idKitPrev"></div>';
+      }
+      if(W.err) h+='<div class="id-err">'+esc(W.err)+'</div>';
+      h+='<div class="id-nav">';
+      if(W.step>1) h+='<button type="button" class="id-btn ghost" data-idnav="back">BACK</button>';
+      if(W.step<6) h+='<button type="button" class="id-btn" data-idnav="next"'+(stepValid()?"":" disabled")+'>NEXT</button>';
+      else h+='<button type="button" class="id-btn go" data-idnav="submit"'+(W.busy?" disabled":"")+'>'+(W.busy?"WORKING…":(mode==="edit"?"SAVE IDENTITY":"FORM CELL"))+'</button>';
+      h+='</div></div>';
+      el.innerHTML=h;
+      if(W.step===6){ var kp=el.querySelector("#idKitPrev"); if(kp) paintKit(kp,previewCell()); }
+      wire();
+      /* 2026-10-06 share-everywhere: share the formed identity. */
+      try{ if(W.step===6&&window.PFShareEverywhere) PFShareEverywhere.bar(el,'cell-identity',{link:'/cells'}); }catch(e){}
+    }
+    function labelOf(list,k){ for(var i=0;i<list.length;i++) if(list[i][0]===k) return list[i][1]; return k; }
+    function previewCell(){
+      return {id:opts.cellId||"preview",name:W.name||"YOUR CELL",motto:W.motto,palette:W.palette,
+        causes:W.causes.map(function(k){return labelOf(CAUSES,k);}),
+        activity:"NEW",state:W.state};
+    }
+    function readInputs(){
+      var v=function(id){ var n=el.querySelector("#"+id); return n?String(n.value||""): ""; };
+      if(W.step===1){ W.name=v("idName"); var st=el.querySelector("#idState"); W.state=st?String(st.value||""):""; }
+      if(W.step===3){ W.customVibe=v("idCustomVibe"); }
+      if(W.step===5){ W.charter=v("idCharter"); W.motto=v("idMotto"); W.region=v("idRegion"); }
+      if(W.step===4){ var r=el.querySelector('input[name="identry"]:checked'); if(r) W.entry=r.value; }
+    }
+    function wire(){
+      el.querySelectorAll("[data-idk]").forEach(function(b){
+        b.addEventListener("click",function(){
+          var k=b.getAttribute("data-idk"), val=b.getAttribute("data-idv"), max=k==="causes"?3:(k==="vibes"?3:(k==="specialties"?2:1));
+          if(k==="cadence"){ W.cadence=(W.cadence===val?"":val); render(); return; }
+          var arr=W[k], ix=arr.indexOf(val);
+          if(ix>=0) arr.splice(ix,1);
+          else{ if(arr.length>=max){ toast("Pick up to "+max+"."); return; } arr.push(val); }
+          render();
+        });
+      });
+      el.querySelectorAll("[data-idpal]").forEach(function(b){
+        b.addEventListener("click",function(){ W.palette=Number(b.getAttribute("data-idpal")); render(); });
+      });
+      ["idName","idCustomVibe","idCharter","idMotto","idRegion"].forEach(function(id){
+        var n=el.querySelector("#"+id);
+        if(n) n.addEventListener("input",function(){ readInputs(); paintNav(); });
+      });
+      var st=el.querySelector("#idState");
+      if(st) st.addEventListener("change",function(){ readInputs(); paintNav(); });
+      el.querySelectorAll('input[name="identry"]').forEach(function(r){
+        r.addEventListener("change",function(){ readInputs(); paintNav(); });
+      });
+      el.querySelectorAll("[data-idnav]").forEach(function(b){
+        b.addEventListener("click",function(){
+          var nav=b.getAttribute("data-idnav");
+          if(nav==="back"&&W.step>1){ readInputs(); W.err=""; W.step--; render(); }
+          else if(nav==="next"){ readInputs(); if(!stepValid()){ W.err="Define this step to continue — a cell with no identity can't form."; render(); return; } W.err=""; W.step++; render(); }
+          else if(nav==="submit"){ submit(); }
+        });
+      });
+    }
+    function paintNav(){
+      var nb=el.querySelector('[data-idnav="next"]');
+      if(nb){ if(stepValid()) nb.removeAttribute("disabled"); else nb.setAttribute("disabled",""); }
+    }
+    function payload(){
+      var id=ident();
+      var p={callsign:id.callsign,device:id.device,name:W.name.trim(),state:W.state,
+        causes:W.causes.slice(),vibes:W.vibes.slice(),specialties:W.specialties.slice(),
+        meeting_cadence:W.cadence,entry_style:W.entry,charter:W.charter.trim(),
+        motto:W.motto.trim(),region:W.region.trim(),palette:W.palette};
+      if(W.customVibe.trim()) p.custom_vibe=W.customVibe.trim();
+      try{ var s=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s) p.auth_secret=s; }catch(e){}
+      return p;
+    }
+    function submit(){
+      readInputs();
+      if(mode==="create"&&!(W.name.trim().length>=3&&W.causes.length&& (W.vibes.length||W.customVibe.trim()) &&W.specialties.length&&W.cadence&&W.entry)){
+        W.err="Define the full identity to form the cell."; render(); return;
+      }
+      W.busy=true; W.err=""; render();
+      var id=ident();
+      if(!id.callsign){ W.busy=false; W.err="Claim a callsign first (Daily Orders), then form your cell."; render(); return; }
+      if(mode==="edit"){
+        var sp=payload(); sp.cell_id=opts.cellId;
+        post("cell_identity_set",sp,function(j){
+          W.busy=false;
+          if(!j||!j.ok){ W.err=(j&&j.err)||"Network error."; render(); return; }
+          toast("Cell identity saved.");
+          try{ document.dispatchEvent(new CustomEvent("pf-cell-identity-saved",{detail:{cellId:opts.cellId}})); }catch(e){}
+          if(opts.onDone) opts.onDone(j.identity);
+        });
+      }else{
+        post("cell_create",payload(),function(j){
+          W.busy=false;
+          if(!j||!j.ok){ W.err=(j&&j.err)||"Network error."; render(); return; }
+          toast("Cell "+(j.cell&&j.cell.name)+" formed. Recruit your four.");
+          try{ document.dispatchEvent(new CustomEvent("pf-cell-formed",{detail:{cell:j.cell||null}})); }catch(e){}
+          if(opts.onDone) opts.onDone(j.cell);
+        });
+      }
+    }
+    render();
+    return true;
+  }
+
+  /* ================= IDENTITY KIT =================
+     Canvas banner per cell: palette, name, motto, activity band, causes.
+     Stamped with PFShare.stampCallsign (idempotent, existing pattern) —
+     keep the bottom 70px clear for the strip. Download = 0 XP (display). */
+  function paintKit(host, cell){
+    if(!host) return;
+    host.innerHTML="";
+    var pal=paletteFor(cell);
+    var cv=document.createElement("canvas"); cv.width=1080; cv.height=1350;
+    var x=cv.getContext("2d"); if(!x) return;
+    function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,540,y); }
+    function wrap(text,font,maxW,maxLines){
+      x.font=font; x.textAlign="center";
+      var words=String(text||"").split(/\s+/), lines=[], cur="";
+      words.forEach(function(w){ var t=cur?cur+" "+w:w;
+        if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t; });
+      if(cur) lines.push(cur);
+      return lines.slice(0,maxLines||2);
+    }
+    x.fillStyle=pal.bg; x.fillRect(0,0,1080,1350);
+    x.strokeStyle=pal.primary; x.lineWidth=14; x.strokeRect(20,20,1040,1310);
+    x.strokeStyle=pal.cream; x.lineWidth=3; x.strokeRect(44,44,992,1262);
+    var y=130;
+    center("★ THE PROPAGANDA FACTORY ★",y,"700 32px Arial,sans-serif",pal.primary); y+=84;
+    wrap(String((cell&&cell.name)||"MY CELL").toUpperCase(),'900 84px "Arial Black",Arial,sans-serif',900,2).forEach(function(l){ center(l,y,'900 84px "Arial Black",Arial,sans-serif',pal.primary); y+=98; });
+    y+=10;
+    var motto=String((cell&&cell.motto)||"").trim();
+    if(motto){ wrap("“"+motto+"”","italic 700 40px Arial,sans-serif",880,2).forEach(function(l){ center(l,y,"italic 700 40px Arial,sans-serif",pal.cream); y+=56; }); y+=20; }
+    var acts=String((cell&&cell.activity)||"").toUpperCase();
+    if(acts){ center("⚡ "+acts+" ⚡",y,'900 40px "Arial Black",Arial,sans-serif',pal.primary); y+=70; }
+    var causes=(cell&&cell.causes)||[];
+    var cl=causes.map(function(c){ return typeof c==="string"?c:(c.label||c.key||""); }).filter(Boolean).slice(0,3);
+    if(cl.length){ center(cl.join(" · ").toUpperCase(),y,"700 34px Arial,sans-serif",pal.muted); y+=60; }
+    var st=String((cell&&cell.state)||"").toUpperCase();
+    if(st){ center("OPERATING IN "+st,y,"700 34px Arial,sans-serif",pal.muted); y+=60; }
+    /* Stamp: FIGHTING AS <CALLSIGN>, idempotent. */
+    try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(cv); }catch(e){}
+    cv.style.cssText="max-width:100%;height:auto;border:2px solid "+pal.primary;
+    host.appendChild(cv);
+    var dl=document.createElement("button");
+    dl.className="id-btn sm"; dl.style.marginTop="8px"; dl.textContent="DOWNLOAD BANNER";
+    dl.addEventListener("click",function(){
+      try{
+        var c2=document.createElement("canvas"); c2.width=1080; c2.height=1350;
+        var x2=c2.getContext("2d"); x2.drawImage(cv,0,0);
+        try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(c2); }catch(e){}
+        var a=document.createElement("a");
+        a.href=c2.toDataURL("image/png");
+        a.download="cell-banner-"+String((cell&&cell.name)||"cell").toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
+        document.body.appendChild(a); a.click(); a.remove();
+      }catch(e){ toast("Banner download failed on this browser."); }
+    });
+    host.appendChild(dl);
+    /* share-out gaps #5: share/export the identity card IMAGE (not just download). */
+    var sh=document.createElement("button");
+    sh.className="id-btn sm"; sh.style.marginTop="8px"; sh.style.marginLeft="8px"; sh.textContent="SHARE BANNER";
+    sh.addEventListener("click",function(){
+      try{
+        var c3=document.createElement("canvas"); c3.width=1080; c3.height=1350;
+        var x3=c3.getContext("2d"); x3.drawImage(cv,0,0);
+        try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(c3); }catch(e){}
+        if(window.PFShare&&PFShare.shareImage){
+          PFShare.shareImage(c3,"cell-identity-card.png","My Cell Identity","cell-identity",{link:"/cells"});
+        } else toast("Sharing is warming up — use DOWNLOAD BANNER for now.");
+      }catch(e){ toast("Share failed — use DOWNLOAD BANNER instead."); }
+    });
+    host.appendChild(sh);
+  }
+  function mountKit(el, cell){
+    if(!ENABLED||!el) return false;
+    paintKit(el, cell||{});
+    return true;
+  }
+
+  /* ================= BACKFILL PROMPT =================
+     Invitational, never shaming, never a penalty: incomplete cells simply
+     don't match quality filters. Founder-only surface. */
+  function backfillBannerHTML(cellName){
+    return '<div class="id-backfill"><div><b>YOUR CELL HAS NO IDENTITY YET</b>'+
+      '<div class="id-hint">Recruits can\'t find what they can\'t see. Define '+esc(cellName||"your cell")+'\'s causes, vibe and colors — two minutes.</div></div>'+
+      '<button type="button" class="id-btn sm" data-idbackfill="1">DEFINE IT</button></div>';
+  }
+
+  /* ================= DISCOVERY ON QUALITIES ================= */
+  function optList(list, sel){
+    return list.map(function(it){
+      return '<option value="'+esc(it[0])+'"'+(String(sel||"")===it[0]?" selected":"")+'>'+esc(it[1])+'</option>';
+    }).join("");
+  }
+  /* Filter row for the discovery surface. `f` = {q,state,cause,vibe,specialty,entry,activity,sort}. */
+  function filterRowHTML(f){
+    f=f||{};
+    return '<div class="id-filters">'+
+      '<input class="id-in sm" id="idFQ" maxlength="32" placeholder="Search by name" value="'+esc(f.q||"")+'">'+
+      '<select class="id-sel sm" id="idFCause" aria-label="Filter by cause"><option value="">All causes</option>'+optList(CAUSES,f.cause)+'</select>'+
+      '<select class="id-sel sm" id="idFVibe" aria-label="Filter by vibe"><option value="">All vibes</option>'+optList(VIBES,f.vibe)+'</select>'+
+      '<select class="id-sel sm" id="idFSpec" aria-label="Filter by specialty"><option value="">All specialties</option>'+optList(SPECIALTIES,f.specialty)+'</select>'+
+      '<select class="id-sel sm" id="idFEntry" aria-label="Filter by entry style"><option value="">Any entry</option>'+optList(ENTRIES.map(function(e){return [e[0],e[0].charAt(0).toUpperCase()+e[0].slice(1)];}),f.entry)+'</select>'+
+      '<select class="id-sel sm" id="idFAct" aria-label="Filter by activity">'+optList(ACTIVITIES,f.activity)+'</select>'+
+      '<select class="id-sel sm" id="idFSort" aria-label="Sort">'+optList(SORTS,f.sort||"activity")+'</select>'+
+      '<button type="button" class="id-btn sm" id="idFGo">FILTER</button></div>';
+  }
+  function readFilterRow(root){
+    function v(id){ var n=root.querySelector("#"+id); return n?String(n.value||""):""; }
+    return {q:v("idFQ"),cause:v("idFCause"),vibe:v("idFVibe"),specialty:v("idFSpec"),entry:v("idFEntry"),activity:v("idFAct"),sort:v("idFSort")};
+  }
+  /* One discovery card's identity block. Incomplete cells get the honest
+     state — never invented qualities, never penalty copy. */
+  function cardIdentityHTML(c){
+    c=c||{};
+    if(!c.profile_complete){
+      return '<div class="id-incomplete">PROFILE INCOMPLETE — this cell\'s identity hasn\'t been defined yet.</div>';
+    }
+    var h='<div class="id-cardid">';
+    var chips=[];
+    (c.causes||[]).forEach(function(x){ chips.push('<span class="id-tag cause">'+esc(x)+'</span>'); });
+    (c.vibes||[]).forEach(function(x){ chips.push('<span class="id-tag vibe">'+esc(x)+'</span>'); });
+    (c.specialties||[]).forEach(function(x){ chips.push('<span class="id-tag spec">'+esc(x)+'</span>'); });
+    if(chips.length) h+='<div class="id-tags">'+chips.join("")+'</div>';
+    if(c.why) h+='<div class="id-why">'+esc(c.why)+'</div>';
+    var meta=[];
+    if(c.activity&&ACT_LABEL[c.activity]) meta.push('<span class="id-act">'+esc(ACT_LABEL[c.activity])+'</span>');
+    if(c.entry_style) meta.push('<span class="id-entry">'+esc(String(c.entry_style).charAt(0).toUpperCase()+String(c.entry_style).slice(1))+'</span>');
+    if(meta.length) h+='<div class="id-meta">'+meta.join(" ")+'</div>';
+    h+='</div>';
+    return h;
+  }
+  /* Join affordance per entry style (0 XP — the Engagement review verdict:
+     joining pays nothing; the inviter's recruit stack is untouched). */
+  function joinAffordanceHTML(c){
+    c=c||{};
+    var full=(Number(c.member_count)||0)>=5;
+    if(full) return '<span class="id-badge dim">FULL</span>';
+    if(c.entry_style==="application")
+      return '<button type="button" class="id-btn sm" data-idapply="'+esc(c.id)+'">APPLY</button>';
+    if(c.invite_code)
+      return '<button type="button" class="id-btn sm" data-idjoin="'+esc(c.invite_code)+'">JOIN</button>';
+    return '<span class="id-hint">invite only</span>';
+  }
+
+  /* Full identity section for a cell detail view. Founder gets edit + kit;
+     everyone gets the honest profile (or the honest incomplete state). */
+  function detailIdentityHTML(cell, identity, isFounder){
+    var h='<div class="id-detail">';
+    if(!identity||!identity.profile_complete){
+      h+='<div class="id-incomplete">PROFILE INCOMPLETE — '+
+        (isFounder?'define it so recruits can find this cell.':'this cell\'s identity hasn\'t been defined yet.')+'</div>';
+      if(isFounder) h+='<button type="button" class="id-btn sm" data-idbackfill="1">DEFINE IT</button>';
+      h+='</div>';
+      return h;
+    }
+    var chips=[];
+    (identity.causes||[]).forEach(function(x){ chips.push('<span class="id-tag cause">'+esc(x.label||x)+'</span>'); });
+    (identity.vibes||[]).forEach(function(x){ chips.push('<span class="id-tag vibe">'+esc(x.label||x)+'</span>'); });
+    (identity.specialties||[]).forEach(function(x){ chips.push('<span class="id-tag spec">'+esc(x.label||x)+'</span>'); });
+    h+='<div class="id-tags">'+chips.join("")+'</div>';
+    if(identity.why) h+='<div class="id-why big">'+esc(identity.why)+'</div>';
+    var rows=[];
+    if(identity.cadence_label) rows.push(["Meets",identity.cadence_label]);
+    if(identity.entry_label) rows.push(["Entry",identity.entry_label]);
+    if(identity.region) rows.push(["Region",identity.region+" (coarse)"]);
+    if(identity.size_band) rows.push(["Size",identity.size_band]);
+    if(identity.activity) rows.push(["Activity",identity.activity+" (computed from real signals)"]);
+    if(rows.length) h+='<div class="id-rows">'+rows.map(function(r){
+      return '<div class="id-row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>'; }).join("")+'</div>';
+    if(identity.charter) h+='<div class="id-charter">'+esc(identity.charter)+'</div>';
+    if(identity.trophies&&identity.trophies.length){
+      h+='<div class="id-trophies">'+identity.trophies.map(function(t){
+        return '<span class="id-trophy" title="'+esc(t.detail||"")+'">🏆 '+esc(t.label||"")+'</span>'; }).join("")+'</div>';
+    }
+    h+='<div class="id-sub">Cell banner</div><div id="idKitHost"></div>';
+    if(isFounder) h+='<div style="margin-top:8px"><button type="button" class="id-btn sm" data-idbackfill="1">EDIT IDENTITY</button></div>';
+    h+='</div>';
+    return h;
+  }
+  function loadIdentity(cellId, cb){
+    api("cell_identity_get",{cell_id:cellId},function(j){ cb(j&&j.ok?j.identity:null); });
+  }
+
+  /* Apply to an application-entry cell (0 XP). */
+  function applyToCell(cellId, cb){
+    var id=ident();
+    if(!id.callsign){ cb({ok:false,err:"Claim a callsign first."}); return; }
+    var note="";
+    try{ note=String(window.prompt("Why do you want in? (optional, 140 max)")||"").slice(0,140); }catch(e){}
+    var p={callsign:id.callsign,device:id.device,cell_id:cellId,note:note};
+    try{ var s=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s) p.auth_secret=s; }catch(e){}
+    post("cell_apply",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
+  }
+
+  /* ---- Founder application review (QC FIX 2026-10-05, Finding 2 — HIGH) ----
+     The apply flow dead-ended at "Application sent": the backend review
+     action existed but no surface displayed the pending count or decided
+     applications. These back the founder-only review panel mounted by the
+     host (cell-hq.js detail view, gated on its existing isFounder check —
+     the server re-verifies founder on every call anyway). Zero XP here. */
+  function listApplications(cellId, cb){
+    var id=ident();
+    api("cell_applications_list",{cell_id:cellId,callsign:id.callsign,device:id.device},function(j){
+      cb(j||{ok:false,err:"Network error."});
+    });
+  }
+  function reviewApplication(cellId, target, approve, cb){
+    var id=ident();
+    var p={callsign:id.callsign,device:id.device,cell_id:cellId,target:target,approve:approve?"1":"0"};
+    try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) p.auth_secret=s2; }catch(e){}
+    post("cell_application_review",p,function(j){ cb(j||{ok:false,err:"Network error."}); });
+  }
+  function fmtTs(ts){
+    try{ var d=new Date(Number(ts)||0); if(!d||!d.getTime()) return ""; return d.toLocaleString(); }catch(e){ return ""; }
+  }
+  /* Pure markup for the pending list — callsign, note, timestamp per
+     application, approve/deny buttons. Honest empty state; never invented. */
+  function applicationReviewHTML(apps){
+    var h='<div class="id-apprev">';
+    apps=(apps||[]);
+    if(!apps.length){
+      h+='<div class="id-hint">No pending applications.</div></div>';
+      return h;
+    }
+    apps.forEach(function(a){
+      var cs=String((a&&a.callsign)||""), note=String((a&&a.note)||""), ts=fmtTs(a&&a.ts);
+      h+='<div class="id-approw"><span class="id-appwho"><b>'+esc(cs)+'</b>'+
+        (ts?'<span class="id-hint">'+esc(ts)+'</span>':"")+'</span>'+
+        (note?'<div class="id-appnote">'+esc(note)+'</div>':"")+
+        '<div class="id-approwbtns">'+
+        '<button type="button" class="id-btn sm go" data-idapprove="'+esc(cs)+'">APPROVE</button>'+
+        '<button type="button" class="id-btn sm ghost" data-iddeny="'+esc(cs)+'">DENY</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+    return h;
+  }
+  /* Fetch + render + wire approve/deny. opts.onChange fires after each
+     decision so the host can refresh its count. Failures surface honestly. */
+  function mountApplicationReview(host, cellId, opts){
+    opts=opts||{};
+    if(!host) return false;
+    host.innerHTML='<div class="id-hint">Loading applications&hellip;</div>';
+    function reload(){
+      listApplications(cellId,function(j){
+        if(!j||!j.ok){ host.innerHTML='<div class="id-err">'+esc((j&&j.err)||"Couldn't load applications.")+'</div>'; return; }
+        host.innerHTML=applicationReviewHTML(j.applications||[]);
+      });
+    }
+    host.onclick=function(ev){
+      var t=ev&&ev.target?ev.target:null;
+      if(!t||!t.getAttribute) return;
+      var ap=t.getAttribute("data-idapprove"), dn=t.getAttribute("data-iddeny");
+      if(!ap&&!dn) return;
+      var target=ap||dn, approve=!!ap;
+      try{ t.disabled=true; }catch(e){}
+      reviewApplication(cellId,target,approve,function(j){
+        if(j&&j.ok){ toast(approve?("Approved "+target+"."):("Denied "+target+".")); reload(); }
+        else { toast((j&&j.err)||"Review failed."); try{ t.disabled=false; }catch(e){} }
+        if(opts.onChange){ try{ opts.onChange(j); }catch(e){} }
+      });
+    };
+    reload();
+    return true;
+  }
+
+  /* Namespaced styles (id- prefix; injected once). */
+  if(ENABLED&&typeof document!=="undefined"&&!document.getElementById("pf-cell-identity-css")){
+    try{
+      var st=document.createElement("style"); st.id="pf-cell-identity-css";
+      st.textContent=
+        ".id-wiz{border:1px solid #333;border-radius:8px;padding:14px;background:#0d0d0d;}"+
+        ".id-steps{display:flex;gap:6px;margin-bottom:12px;}"+
+        ".id-dot{width:26px;height:26px;border-radius:50%;border:1px solid #555;display:flex;align-items:center;justify-content:center;font-size:12px;color:#888;}"+
+        ".id-dot.on{border-color:#c1121f;color:#f5ead6;font-weight:bold;}"+
+        ".id-dot.done{border-color:#c1121f;background:#c1121f;color:#fff;}"+
+        ".id-wiz h4{margin:4px 0 10px;color:#f5ead6;}"+
+        ".id-sub{margin:12px 0 6px;font-weight:bold;color:#c9bfa8;font-size:13px;}"+
+        ".id-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;}"+
+        ".id-chip{border:1px solid #555;background:#141414;color:#f5ead6;border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;}"+
+        ".id-chip.on{border-color:#c1121f;background:#c1121f;color:#fff;}"+
+        ".id-hint{font-size:12px;color:#888;margin:4px 0 8px;}"+
+        ".id-in,.id-sel{display:block;width:100%;box-sizing:border-box;margin:6px 0;padding:9px;border:1px solid #444;border-radius:6px;background:#141414;color:#f5ead6;font-size:14px;}"+
+        ".id-in.sm,.id-sel.sm{width:auto;display:inline-block;margin:2px;padding:7px;font-size:13px;}"+
+        "textarea.id-in{resize:vertical;}"+
+        ".id-radio{display:flex;gap:8px;align-items:flex-start;margin:8px 0;padding:8px;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:13px;color:#f5ead6;}"+
+        ".id-pals{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;}"+
+        ".id-pal{width:44px;height:44px;border-radius:8px;border:2px solid #444;cursor:pointer;}"+
+        ".id-pal.on{border-color:#f5ead6;}"+
+        ".id-review{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;font-size:14px;color:#f5ead6;}"+
+        ".id-review div{margin:4px 0;}"+
+        ".id-motto{font-style:italic;color:#c9bfa8;}"+
+        ".id-charter{border-left:3px solid #c1121f;padding-left:8px;color:#c9bfa8;}"+
+        ".id-err{color:#ff6b6b;font-size:13px;margin:8px 0;}"+
+        ".id-nav{display:flex;gap:8px;margin-top:12px;}"+
+        ".id-btn{background:#c1121f;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-weight:bold;cursor:pointer;font-size:14px;}"+
+        ".id-btn.sm{padding:6px 12px;font-size:12px;}"+
+        ".id-btn.ghost{background:transparent;border:1px solid #555;color:#f5ead6;}"+
+        ".id-btn.go{background:#1f7a33;}"+
+        ".id-btn:disabled{opacity:.45;cursor:not-allowed;}"+
+        ".id-backfill{border:1px dashed #c1121f;border-radius:8px;padding:12px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;background:#140b0b;}"+
+        ".id-backfill b{color:#f5ead6;}"+
+        ".id-filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center;}"+
+        ".id-cardid{margin-top:8px;}"+
+        ".id-tags{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0;}"+
+        ".id-tag{font-size:11px;border-radius:12px;padding:3px 9px;border:1px solid #555;color:#c9bfa8;}"+
+        ".id-tag.cause{border-color:#c1121f;color:#f5ead6;}"+
+        ".id-tag.vibe{border-color:#8f6fd8;color:#d9ccff;}"+
+        ".id-tag.spec{border-color:#c9a227;color:#f5d76e;}"+
+        ".id-why{font-size:13px;color:#f5ead6;margin:6px 0;font-style:italic;}"+
+        ".id-why.big{font-size:15px;}"+
+        ".id-meta{display:flex;gap:6px;margin:4px 0;}"+
+        ".id-act{font-size:11px;font-weight:bold;color:#1f7a33;border:1px solid #1f7a33;border-radius:4px;padding:2px 7px;}"+
+        ".id-entry{font-size:11px;color:#888;border:1px solid #444;border-radius:4px;padding:2px 7px;}"+
+        ".id-badge{font-size:11px;color:#888;}"+
+        ".id-badge.dim{opacity:.6;}"+
+        ".id-incomplete{font-size:12px;color:#888;border:1px dashed #444;border-radius:6px;padding:8px;margin:6px 0;}"+
+        /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+        ".id-apprev{margin-top:8px;}"+
+        ".id-approw{border:1px solid #333;border-radius:6px;padding:10px;margin:8px 0;background:#111;}"+
+        ".id-appwho{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:#f5ead6;font-size:14px;}"+
+        ".id-appnote{color:#c9bfa8;font-size:13px;margin:6px 0;font-style:italic;}"+
+        ".id-approwbtns{display:flex;gap:8px;margin-top:8px;}"+
+        ".id-detail{margin-top:10px;}"+
+        ".id-rows{margin:8px 0;}"+
+        ".id-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #222;color:#c9bfa8;}"+
+        ".id-row b{color:#f5ead6;}"+
+        ".id-trophies{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}"+
+        ".id-trophy{font-size:12px;border:1px solid #c9a227;border-radius:12px;padding:3px 10px;color:#f5d76e;}";
+      document.head.appendChild(st);
+    }catch(e){}
+  }
+
+  window.PFCellIdentity={
+    enabled:enabled,
+    SETS:{CAUSES:CAUSES,VIBES:VIBES,SPECIALTIES:SPECIALTIES,CADENCES:CADENCES,ENTRIES:ENTRIES,ACTIVITIES:ACTIVITIES,SORTS:SORTS},
+    PALETTES:PALETTES,
+    mountWizard:mountWizard,
+    mountKit:mountKit,
+    paintKit:paintKit,
+    backfillBannerHTML:backfillBannerHTML,
+    filterRowHTML:filterRowHTML,
+    readFilterRow:readFilterRow,
+    cardIdentityHTML:cardIdentityHTML,
+    joinAffordanceHTML:joinAffordanceHTML,
+    detailIdentityHTML:detailIdentityHTML,
+    loadIdentity:loadIdentity,
+    applyToCell:applyToCell,
+    /* QC FIX (2026-10-05, Finding 2): founder application-review panel. */
+    listApplications:listApplications,
+    reviewApplication:reviewApplication,
+    applicationReviewHTML:applicationReviewHTML,
+    mountApplicationReview:mountApplicationReview,
+    /* shared no-op-safe accessors for host modules */
+    esc:esc, toast:toast
+  };
+})();
+
+;
+
+/* ===== cell-hq.js ===== */
+/* games/cell-hq.js  |  PF v1.4.3 | CELL HQ — unified cell command dashboard.
+   One tabbed interface wiring EVERY cell backend action:
+     cell_mine, cell_create, cell_join, cell_checkin, cell_cover,
+     cell_leave, cell_rename, cell_promote, cell_bounty_claim,
+     cell_prestige, cell_health, cell_search, cell_leaderboard,
+     cell_links, cellwar_standings, cellwar_history
+   NOTE: cell_members and cell_activity are not backend actions. Member
+   rosters come from cell_mine (primary cell) + cell_prestige (any cell).
+   The "pulse" panel derives recent activity from cell_health.
+   Mounts into <div id="pf-cell-hq"></div>; falls back to inserting after
+   #pf-war-card when on Creator HQ without the dedicated mount.
+   Needs: core/00-bus.js (PF, PF.toast), core/03-global.js (PF_BACKEND_URL).
+   KILL: ?pf_off=cellhq  or  localStorage pf_disabled_v1='["cellhq"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cellhq")) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var mount = document.getElementById('pf-cell-hq');
+  if (!mount) {
+    var warCard = document.getElementById('pf-war-card');
+    if (!warCard || !warCard.parentNode) { return; }
+    mount = document.createElement('div');
+    mount.id = 'pf-cell-hq';
+    warCard.parentNode.insertBefore(mount, warCard.nextSibling);
+  }
+
+  /* PLAY 10 — WINS THAT ECHO (2026-10-06): inject the wins strip at the top
+     of the cell feed. Fail-open — absent PF.wins leaves the dashboard
+     exactly as before. Idempotent (bus guards on #pf-wins-cellfeed). */
+  try {
+    if (window.PF && PF.wins && typeof PF.wins.injectCellFeed === 'function') {
+      PF.wins.injectCellFeed(mount);
+    }
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var LS_HQ = 'pf_cellhq_v1';
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* CELLS STATE AFFILIATION (2026-10-05): 50 states + DC, copied verbatim
+     from civic.js STATES (bundle-cells ships cell-hq.js WITHOUT civic.js,
+     so the constant is duplicated here by design — keep both lists in sync;
+     see tests/cell-state-consistency.md). Fail-soft: every state read is
+     guarded, so cells from an old backend (no state field) render exactly
+     as before. */
+  var HQ_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];
+  function hqStateName(code){ code=String(code||"").toUpperCase();
+    for(var i=0;i<HQ_STATES.length;i++) if(HQ_STATES[i][0]===code) return HQ_STATES[i][1];
+    return ""; }
+  function hqStateOpts(sel,noLabel){
+    var h='<option value="">'+esc(noLabel||"No state affiliation")+'</option>';
+    for(var i=0;i<HQ_STATES.length;i++){
+      h+='<option value="'+HQ_STATES[i][0]+'"'+(sel===HQ_STATES[i][0]?' selected':'')+'>'+esc(HQ_STATES[i][1])+'</option>';
+    }
+    return h; }
+  function hqStateBadge(c){ /* "OPERATING IN TEXAS" on the cell header. */
+    var n=c&&hqStateName(c.state);
+    return n?'<span class="hq-state" title="State affiliation">OPERATING IN '+esc(n.toUpperCase())+'</span>':""; }
+  function hqStateTag(it){ /* compact "TEXAS" tag for task/bounty/listing rows. */
+    var n=it&&hqStateName(it.state);
+    return n?'<span class="hq-stag" title="State-scoped">'+esc(n.toUpperCase())+'</span>':""; }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+  function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+  /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
+  var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
+    cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
+    warchest_status:1, treasury_balance:1, propbounty_list:1, recruit_funnel:1 };
+  /* Mutations go through POST (CSRF-able via GET otherwise). */
+  var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
+    cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
+    cell_contribute:1, propbounty_post:1, propbounty_submit:1,
+    propbounty_vote:1, propbounty_settle:1, propbounty_cancel:1 };
+
+  function api(action, params, cb){
+    if (WRITE[action]) { postMut(action, params, cb); return; }
+    if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for the
+       auth-gated cell_mine, propbounty_list, and the member-gated
+       recruit_funnel (CELLS 2.0) — same PF.getAuthSecret() pattern as briefing.js. */
+    if(action==="cell_mine"||action==="propbounty_list"||action==="recruit_funnel"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfHqCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  function postMut(action, params, cb){
+    var body = Object.assign({ type:'cell', cell_action:action }, params||{});
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('cell','cell_action',action,params,cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  function withIdent(params){
+    var id = ident();
+    var p = Object.assign({}, params||{});
+    if (id.callsign) p.callsign = id.callsign;
+    if (id.device) p.device = id.device;
+    return p;
+  }
+
+  /* Finance mutations: {type:'finance', f_action}. Campaign: {type:'campaign', c_action}. */
+  function postFin(fAction, params, cb){
+    var body = Object.assign({ type:'finance', f_action:fAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('finance','f_action',fAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Prize mutations: {type:'prize', p_action}. 2026-10-03 conn fix: these were
+     posted via postFin as {type:'finance',f_action:'prize_*'} — dead
+     "unknown finance action" (backend routes prizes under type:'prize'). */
+  function postPrize(pAction, params, cb, opts){
+    var admin = opts && opts.admin;
+    var body = Object.assign({ type:'prize', p_action:pAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction && !admin) { PF.postAction('prize','p_action',pAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      var headers = { "Content-Type":"application/json" };
+      /* prize_award is backend ADMIN-class: needs the vault's session secret
+         or the router 403s. Fail closed without it. */
+      if (admin){ var _s = adminSecret(); if(_s) headers["X-Admin-Secret"]=_s; }
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:headers,body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Admin gate for prize_award: the vault prompts for the admin secret once
+     per session and keeps it in sessionStorage ("pf_admin_secret"). No
+     secret in this session = no admin path from this page, so the Award
+     control stays hidden and the click fails closed. */
+  function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
+  function postCamp(cAction, params, cb){
+    var body = Object.assign({ type:'campaign', c_action:cAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('campaign','c_action',cAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Finance reads available over JSONP GET. */
+  var FIN_READ = { bond_list:1, loan_list:1, prize_list:1, prize_contrib_list:1, bank_status:1, campaign_status:1 };
+  function finGet(action, params, cb){
+    if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+    if(action==="bank_status"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfHqFin"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    var pp = withIdent(params);
+    for(var k in pp){ if(pp[k]!=null&&pp[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(pp[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  /* Native confirm for money actions — no accidental taps. */
+  function moneyConfirm(msg){ try{ return window.confirm(msg); }catch(e){ return false; } }
+  function numIn(id, fb){
+    var el = document.getElementById(id);
+    var v = el ? Math.round(Number(el.value)||0) : 0;
+    return v > 0 ? v : (fb||0);
+  }
+  function strIn(id){
+    var el = document.getElementById(id);
+    return el ? String(el.value||'').trim() : '';
+  }
+  /* Dividend split preview: equal floor split across every member (matches
+     the backend dividend_pay — no weighted/by-contribution mode exists). */
+  function divSplit(amt){
+    var n = ((S.mine && S.mine.members) || []).length;
+    if (!n || !amt || amt < 1) return null;
+    var per = Math.floor(amt / n);
+    if (per < 1) return null;
+    var total = per * n;
+    return { n: n, per: per, total: total, leftover: amt - total };
+  }
+  function divPreviewHtml(amt){
+    var sp = divSplit(amt);
+    if (!sp) return 'Enter an amount to preview the split.';
+    var s = sp.per.toLocaleString()+' XP &times; '+sp.n+' members = <b>'+sp.total.toLocaleString()+' XP</b> distributed';
+    if (sp.leftover > 0) s += ' ('+sp.leftover.toLocaleString()+' XP stays in the treasury)';
+    return s;
+  }
+
+  /* ---------- shell ---------- */
+  var CSS = '<style>' +
+    '#pf-cell-hq{max-width:860px;margin:0 auto;padding:8px 4px;font-family:inherit}' +
+    '.hq-head{border:3px solid #c1121f;background:#0a0a0a;color:#f5f0e6;padding:14px 16px;margin-bottom:10px}' +
+    '.hq-head h2{margin:0 0 4px;font-size:22px;letter-spacing:1px}' +
+    '.hq-tag{font-size:13px;opacity:.85}' +
+    '.hq-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}' +
+    '.hq-tab{flex:0 0 auto;background:#141414;color:#f5f0e6;border:2px solid #3a3a3a;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}' +
+    '.hq-tab.on{background:#c1121f;border-color:#c1121f}' +
+    '.hq-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}' +
+    '.hq-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}' +
+    '.hq-card h3{margin:0 0 6px;font-size:17px}' +
+    '.hq-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
+    '.hq-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}' +
+    '.hq-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:9px 14px;font-size:14px;cursor:pointer;margin:4px 4px 4px 0}' +
+    '.hq-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}' +
+    '.hq-btn.sm{padding:6px 10px;font-size:12px}' +
+    '.hq-btn:disabled{opacity:.45;cursor:default}' +
+    '.hq-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}' +
+    '.hq-load{padding:22px;text-align:center;opacity:.75;font-style:italic}' +
+    '.hq-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}' +
+    '.hq-err .hq-btn{margin-top:8px}' +
+    '.hq-mem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:14px}' +
+    '.hq-mem:last-child{border-bottom:0}' +
+    '.hq-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}' +
+    '.hq-badge.dim{background:#333}' +
+    '.hq-state{font-size:11px;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-stag{font-size:10px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-sel{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%;min-height:44px}' +
+    '.hq-bar{height:10px;background:#222;margin:4px 0 10px;position:relative}' +
+    '.hq-bar>div{height:10px;background:#c1121f}' +
+    '.hq-winner{border-color:#c1121f;background:#180a0a}' +
+    '.hq-strike-pol{border-color:#c1121f;background:#1a0505}' +
+    '.hq-badge.gold{background:#8a6d1f;color:#fff;border:1px solid #d4af37}' +
+    '.hq-badge.plain{margin-left:0;margin-right:6px}' +
+    '.hq-btn.hq-btn44{min-height:44px;display:inline-flex;align-items:center;padding:4px 18px;line-height:1.3}' +
+    '.hq-strike-sum{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px}' +
+    '.hq-order-t{margin:8px 0 4px;font-size:16px}' +
+    '.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}' +
+    '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    /* PLAY 7 (2026-10-06): rally-call cards. Kill: ?pf_off=cell-rally. */
+    '.hq-rally{border-color:#c1121f}' +
+    '.hq-rallyitem{border:2px solid #2e2e2e;background:#0d0d0d;padding:10px;margin:8px 0}' +
+    '.hq-rallytitle{font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}' +
+    /* CELLS 2.0 — Recruit panel. */
+    '.hq-joiner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13.5px}' +
+    '.hq-in.linklike{flex:1;min-width:0;font-size:12px;font-family:monospace,monospace}' +
+    '@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}' +
+    '</style>';
+
+  mount.innerHTML = CSS +
+    '<div class="hq-head"><h2>&#9876; CELL HQ</h2>' +
+    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div>' +
+    '<div class="hq-tag" style="margin-top:4px;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">WAR CALENDAR</a> — mobilizations, draws, and deadlines.</div></div>' +
+    '<div class="hq-tabs" id="hqTabs">' +
+    '<button class="hq-tab on" data-tab="mine">MY CELLS</button>' +
+    '<button class="hq-tab" data-tab="war">CELL WAR</button>' +
+    '<button class="hq-tab" data-tab="browse">BROWSE</button>' +
+    '<button class="hq-tab" data-tab="treasury">TREASURY</button>' +
+    '</div>' +
+    '<div class="hq-pane" id="hqPane"><div class="hq-load">Raising the cell network&hellip;</div></div>';
+
+  var S = {
+    tab: 'mine',
+    mine: null,          /* cell_mine response */
+    detail: null,        /* selected cell_id */
+    detailPrestige: null,
+    detailHealth: null,
+    war: null,
+    history: null,
+    board: null,
+    links: null,
+    searchQ: '',
+    searchState: '',
+    searchRes: null,
+    loading: {}
+  };
+  /* CELLS 2.0 (2026-10-05): recruit funnel cache — keyed by cell so a slow
+     recruit_funnel read can never corrupt or delay the main detail paint. */
+  var RF = { cid: '', j: null };
+
+  function tabEl(n){ return mount.querySelector('.hq-tab[data-tab="'+n+'"]'); }
+  function pane(){ return document.getElementById('hqPane'); }
+
+  mount.querySelectorAll('.hq-tab').forEach(function(b){
+    b.addEventListener('click', function(){
+      mount.querySelectorAll('.hq-tab').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      S.tab = b.getAttribute('data-tab');
+      render();
+    });
+  });
+
+  function loading(msg){
+    return '<div class="hq-load">'+esc(msg||'Loading&hellip;')+'</div>';
+  }
+  function netErr(retry){
+    return '<div class="hq-err"><b>Couldn\'t reach HQ.</b><div class="hq-note">The network dropped the call. Nothing was lost.</div>' +
+      '<button class="hq-btn sm" data-hq-retry="'+esc(retry||'')+'">RETRY</button></div>';
+  }
+  function friendlyErr(j){
+    if (!j) return "Couldn't reach HQ. Check your connection.";
+    return j.err || j.error || 'Something broke on our end.';
+  }
+
+  /* ---------- data loaders ---------- */
+  function loadMine(cb){
+    if (S.mine && S.mine._t && Date.now()-S.mine._t < 30000) { cb(S.mine); return; }
+    S.loading.mine = true;
+    api('cell_mine', withIdent({}), function(j){
+      S.loading.mine = false;
+      if (j) { j._t = Date.now(); S.mine = j; }
+      cb(j);
+    });
+  }
+  function loadPrestige(cellId, cb){
+    var key = 'p_'+cellId;
+    if (S.detailPrestige && S.detailPrestige.cell_id === cellId) { cb(S.detailPrestige); return; }
+    S.loading[key] = true;
+    api('cell_prestige', withIdent({cell_id: cellId}), function(j){
+      S.loading[key] = false;
+      if (j && j.ok) S.detailPrestige = j;
+      cb(j);
+    });
+  }
+  function loadHealth(cellId, cb){
+    var key = 'h_'+cellId;
+    if (S.detailHealth && S.detailHealth.health && S.detailHealth.health.cell_id === cellId) { cb(S.detailHealth); return; }
+    S.loading[key] = true;
+    api('cell_health', withIdent({cell_id: cellId}), function(j){
+      S.loading[key] = false;
+      if (j && j.ok) S.detailHealth = j;
+      cb(j);
+    });
+  }
+  function loadWar(cb){
+    if (S.war && Date.now()-S.war._t < 60000) { cb(S.war); return; }
+    S.loading.war = true;
+    api('cellwar_standings', {}, function(j){
+      S.loading.war = false;
+      if (j && j.ok) { j._t = Date.now(); S.war = j; }
+      cb(j);
+    });
+  }
+  function loadHistory(cb){
+    if (S.history) { cb(S.history); return; }
+    S.loading.hist = true;
+    api('cellwar_history', {}, function(j){
+      S.loading.hist = false;
+      if (j && j.ok) S.history = j;
+      cb(j);
+    });
+  }
+  /* G6 (2026-10-04): War Room cell-war odds. Read-only — zero XP for
+     viewing; stakes go through the layer's wager_place escrow. */
+  function loadMarket(cb){
+    if (S.market && Date.now()-S.market._t < 60000) { cb(S.market); return; }
+    S.loading.market = true;
+    api('cellwar_market', {}, function(j){
+      S.loading.market = false;
+      if (j && j.ok) { j._t = Date.now(); S.market = j; }
+      cb(j);
+    });
+  }
+  function loadBoard(cb){
+    if (S.board && Date.now()-S.board._t < 60000) { cb(S.board); return; }
+    S.loading.board = true;
+    api('cell_leaderboard', {}, function(j){
+      S.loading.board = false;
+      if (j) { j._t = Date.now(); S.board = j; }
+      cb(j);
+    });
+  }
+  function loadLinks(cb){
+    if (S.links && Date.now()-S.links._t < 120000) { cb(S.links); return; }
+    S.loading.links = true;
+    api('cell_links', {}, function(j){
+      S.loading.links = false;
+      if (j) { j._t = Date.now(); S.links = j; }
+      cb(j);
+    });
+  }
+  function doSearch(cb){
+    S.loading.search = true;
+    /* api() drops "" — unfiltered discovery behaves exactly as before.
+       CELL IDENTITY (2026-10-05): quality filters pass through to the
+       cell_search filters (cause/vibe/specialty/entry/activity).
+       QC FIX (2026-10-05, Finding 3): sort passes through too ("" -> the
+       backend's default activity ordering). */
+    api('cell_search', { q: S.searchQ, state: S.searchState,
+      cause: S.idfCause, vibe: S.idfVibe, specialty: S.idfSpec,
+      entry: S.idfEntry, activity: S.idfAct, sort: S.idfSort }, function(j){
+      S.loading.search = false;
+      S.searchRes = j;
+      cb(j);
+    });
+  }
+  function invalidateMine(){ if (S.mine) S.mine._t = 0; }
+
+  /* ---------- render dispatch ---------- */
+  function render(){
+    var p = pane();
+    if (S.tab === 'mine') renderMine(p);
+    else if (S.tab === 'detail') renderDetail(p);
+    else if (S.tab === 'war') renderWar(p);
+    else if (S.tab === 'browse') renderBrowse(p);
+    else if (S.tab === 'treasury') renderTreasury(p);
+    wireRetries(p);
+  }
+  function wireRetries(root){
+    root.querySelectorAll('[data-hq-retry]').forEach(function(b){
+      b.addEventListener('click', function(){ render(); });
+    });
+  }
+
+  /* ---------- TAB 1: MY CELLS ---------- */
+  function cellCard(c, mine){
+    var isF = c.is_founder;
+    var vBadge = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+    var fBadge = isF ? '<span class="hq-badge">FOUNDER</span>' : '';
+    var chk = c.checked_today ? '<span class="hq-badge dim">CHECKED IN</span>'
+      : '<button class="hq-btn sm" data-hq="checkin" data-cell="'+esc(c.id)+'">CHECK IN</button>';
+    return '<div class="hq-card"><h3>'+esc(c.name)+vBadge+fBadge+hqStateBadge(c)+'</h3>' +
+      '<div><span class="hq-stat">'+esc(String(c.streak||0))+'-day streak</span>' +
+      '<span class="hq-stat">'+esc(String(c.members||0))+'/5 members</span>' +
+      '<span class="hq-stat">'+esc(String(c.active_week||0))+' active this week</span>' +
+      (c.prestige_tier ? '<span class="hq-stat">'+esc(c.prestige_flame||'')+' '+esc(c.prestige_tier)+'</span>' : '') +
+      (c.invite_code ? '<span class="hq-stat">Code: '+esc(c.invite_code)+'</span>' : '') + '</div>' +
+      '<div class="hq-row" style="margin-top:8px">'+chk +
+      '<button class="hq-btn sm ghost" data-hq="detail" data-cell="'+esc(c.id)+'">OPEN HQ</button></div></div>';
+  }
+
+  function renderMine(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3>' +
+        '<div class="hq-note">Cells run on callsigns. Claim yours in Daily Orders, then come back — your HQ will be waiting.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
+      return;
+    }
+    if (S.loading.mine){ p.innerHTML = loading('Raising the cell network&hellip;'); return; }
+    loadMine(function(j){
+      if (!j){ p.innerHTML = netErr(); wireRetries(p); return; }
+      /* C3 (2026-10-03): no/invalid auth_secret means the callsign session
+         isn't authenticated — show the logged-out state, not a raw
+         "missing credentials" error (a wrong state). */
+      if (j && (j.err==="missing credentials"||j.err==="unauthorized")){
+        p.innerHTML = '<div class="hq-card"><h3>Session check needed</h3>' +
+          '<div class="hq-note">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come back &mdash; your HQ will be waiting.</div></div>';
+        return;
+      }
+      if (j.err || j.ok === false){ p.innerHTML = '<div class="hq-err"><b>'+esc(friendlyErr(j))+'</b></div>'; return; }
+      var h = '';
+      if (!j.in_cell){
+        h += '<div class="hq-card"><h3>You\'re not in a cell yet</h3>' +
+          '<div class="hq-note">Five callsigns. One streak. Nobody gets left behind. ' +
+          'Found your own cell or join one with an invite code.</div></div>';
+      } else {
+        var prim = j.cell || {};
+        h += '<div class="hq-note" style="margin-bottom:10px">PRIMARY CELL</div>' + cellCard({
+          id: prim.id, name: prim.name, streak: prim.streak, members: (j.members||[]).length,
+          active_week: prim.active_week, verified: prim.verified, is_founder: j.is_founder,
+          checked_today: j.checked_today, invite_code: prim.invite_code,
+          prestige_tier: prim.prestige_tier, prestige_flame: prim.prestige_flame,
+          state: prim.state
+        });
+        if (j.cover_for){
+          h += '<div class="hq-card"><h3>Cover available</h3>' +
+            '<div class="hq-note">'+esc(j.cover_for)+' missed yesterday. You can cover their streak — once per week.</div>' +
+            '<button class="hq-btn sm" data-hq="cover" data-cell="'+esc(prim.id)+'">COVER '+esc(j.cover_for)+'</button></div>';
+        }
+        if (j.bounties_pending && j.bounties_pending.length){
+          var bx = j.bounty_xp || 25;
+          h += '<div class="hq-card"><h3>Recruit bounties ready</h3><div class="hq-note">' +
+            j.bounties_pending.map(function(b){ return esc(b.from)+hqStateTag(b); }).join(', ') +
+            ' checked in. Claim +'+bx+' XP each.</div>' +
+            '<button class="hq-btn sm" data-hq="bounties">CLAIM BOUNTIES</button></div>';
+        }
+      }
+      var cells = j.cells || [];
+      if (cells.length > 1){
+        h += '<div class="hq-note" style="margin:10px 0 6px">ALL YOUR CELLS ('+cells.length+'/3 chainlink)</div>';
+        cells.forEach(function(c){
+          if (j.cell && c.id === j.cell.id) return; /* primary already shown */
+          h += cellCard(c);
+        });
+      }
+      /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
+         form — a cell with no identity can't complete founding. Kill-switch
+         (?pf_off=cell-identity) falls back to the original blank form. */
+      var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+      h += identOn
+        ? '<div class="hq-card"><h3>Found a cell</h3><div id="hqIdentWizard"></div></div>'
+        : '<div class="hq-card"><h3>Found a cell</h3>' +
+        '<div class="hq-note">3&ndash;24 characters. You become founder. Max 3 cells per callsign.</div>' +
+        '<div class="hq-row"><input class="hq-in" id="hqNewName" maxlength="24" placeholder="Cell name">' +
+        '<select class="hq-sel" id="hqNewState" aria-label="STATE AFFILIATION">'+hqStateOpts("","No state affiliation")+'</select>' +
+        '<button class="hq-btn" data-hq="create">FOUND CELL</button></div>' +
+        '<div class="hq-note">State affiliation unlocks location tasks and policymaker bounties.</div></div>';
+      h += '<div class="hq-card"><h3>Join with invite code</h3>' +
+        '<div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase">' +
+        '<button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>';
+      p.innerHTML = h;
+      if (identOn){
+        var wzel = document.getElementById('hqIdentWizard');
+        if (wzel) window.PFCellIdentity.mountWizard(wzel, {
+          stateOptsHTML: hqStateOpts("","No state affiliation"),
+          onDone: function(){ refreshMineThen('mine'); }});
+      }
+    });
+  }
+
+  /* ---------- TAB 2: CELL DETAIL ---------- */
+  function renderDetail(p){
+    var id = ident();
+    if (!id.callsign){ p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3></div>'; return; }
+    var cid = S.detail;
+    if (!cid){ S.tab='mine'; tabEl('mine').classList.add('on'); tabEl('detail'); renderMine(p); return; }
+    var mine = S.mine, cell = null, isFounder = false, isPrimary = false;
+    if (mine && mine.cells){
+      cell = mine.cells.filter(function(c){ return c.id===cid; })[0] || null;
+      isPrimary = !!(mine.cell && mine.cell.id===cid);
+      isFounder = !!(cell && cell.is_founder);
+    }
+    var cname = cell ? cell.name : 'Cell';
+    var h = '<button class="hq-btn sm ghost" data-hq="back">&larr; MY CELLS</button>' +
+      '<div class="hq-head" style="margin-top:8px"><h2>'+esc(cname)+hqStateBadge(cell)+'</h2>' +
+      '<div class="hq-tag">Cell command detail</div></div>';
+    h += '<div id="hqDetBody">'+loading('Pulling cell intel&hellip;')+'</div>';
+    p.innerHTML = h;
+    /* 2026-10-06 share-everywhere. */
+    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(p,'cell-hq',{link:'/cells'}); }catch(e){}
+    var body = document.getElementById('hqDetBody');
+    /* Parallel: prestige + health. */
+    var gotP = false, gotH = false, jP = null, jH = null;
+    function maybePaint(){
+      if (!gotP || !gotH) return;
+      paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine);
+    }
+    loadPrestige(cid, function(j){ gotP=true; jP=j; maybePaint(); });
+    loadHealth(cid, function(j){ gotH=true; jH=j; maybePaint(); });
+    /* CELLS 2.0 — Recruit funnel rides alongside, NEVER in the paint gate:
+       a missing/slow recruit_funnel on an old backend must not delay HQ. */
+    RF.cid = cid; RF.j = null;
+    loadFunnel(cid, function(j){
+      RF.cid = cid; RF.j = j;
+      var b2 = document.getElementById('hqDetBody');
+      if (b2 && S.tab==='detail' && S.detail===cid) paintRecruitInto(b2, cell, j);
+    });
+  }
+
+  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine){
+    if ((!jP || !jP.ok) && (!jH || !jH.ok)){
+      body.innerHTML = netErr(); wireRetries(body); return;
+    }
+    var h = '';
+    /* CELL IDENTITY (2026-10-05): identity + kit block first — what this
+       cell is, before the prestige numbers. Filled by paintIdentityBlock
+       after the main paint; honest incomplete state when undefined. */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+      h += '<div class="hq-card" id="hqIdentDetail"><h3>CELL IDENTITY</h3>' +
+        '<div class="hq-note">Reading cell identity&hellip;</div></div>';
+    }
+    /* Prestige block. */
+    if (jP && jP.ok){
+      var pr = jP.prestige || {};
+      h += '<div class="hq-card"><h3>'+esc(pr.flame||'')+' '+esc(pr.tier_name||'UNRANKED')+' <span class="hq-note">power '+esc(String(pr.power||0))+'</span></h3>';
+      if (pr.benefits && pr.benefits.length){
+        h += pr.benefits.map(function(b){ return '<div class="hq-note">&bull; '+esc(b)+'</div>'; }).join('');
+      } else {
+        h += '<div class="hq-note">No tier yet — members earn prestige levels to raise cell power.</div>';
+      }
+      if (pr.next_tier){
+        var pct = pr.next_tier.min ? Math.min(100, Math.round((pr.power||0)/pr.next_tier.min*100)) : 0;
+        h += '<div class="hq-note" style="margin-top:8px">Next: '+esc(pr.next_tier.name)+' — '+esc(String(pr.next_tier.need))+' power to go</div>' +
+          '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>';
+      }
+      h += '</div>';
+      /* Members (roster from prestige, check-in state from cell_mine when primary). */
+      var mems = pr.members || [];
+      var chkBy = {};
+      if (isPrimary && mine && mine.members){
+        mine.members.forEach(function(m){ chkBy[m.callsign]=m; });
+      }
+      h += '<div class="hq-card"><h3>Roster ('+mems.length+'/5)</h3>';
+      if (!mems.length){ h += '<div class="hq-note">No members on record.</div>'; }
+      mems.forEach(function(m){
+        var st = chkBy[m.callsign];
+        var badges = '';
+        if (m.badge) badges += '<span class="hq-badge dim">'+esc(m.badge)+'</span>';
+        if (st && st.checked_today) badges += '<span class="hq-badge">IN TODAY</span>';
+        /* G11 (2026-10-04): role badges — titles are status, show them.
+           Role rides cell_mine members (st.role); founder from cell.founder. */
+        var mrole = st && st.role ? String(st.role) : '';
+        if (cell && cell.founder === m.callsign) badges += '<span class="hq-badge">FOUNDER</span>';
+        else if (mrole === 'officer') badges += '<span class="hq-badge">OFFICER</span>';
+        else if (mrole === 'treasurer') badges += '<span class="hq-badge">TREASURER</span>';
+        else if (mrole === 'warcaller') badges += '<span class="hq-badge">WARCALLER</span>';
+        var promBtn = (isFounder && !(cell && cell.founder===m.callsign))
+          ? ' <button class="hq-btn sm ghost" data-hq="promote" data-cell="'+esc(S.detail)+'" data-target="'+esc(m.callsign)+'">ROLE</button>' : '';
+        h += '<div class="hq-mem"><span><b>'+esc(m.callsign)+'</b>'+badges+'</span><span>'+promBtn+'</span></div>';
+      });
+      h += '</div>';
+    }
+    /* CELLS 2.0 — Recruit panel placeholder. paintRecruitInto fills it when
+       recruit_funnel resolves (or immediately from the RF cache on repaint). */
+    h += '<div class="hq-card" id="hqRecruit"><h3>RECRUIT</h3>'+loading('Building your invite link&hellip;')+'</div>';
+    /* Health + pulse block. */
+    if (jH && jH.ok){
+      var hh = jH.health || {};
+      var score = hh.score || 0;
+      h += '<div class="hq-card"><h3>Cell health — '+score+'/100</h3>' +
+        '<div class="hq-bar"><div style="width:'+Math.min(100,score)+'%"></div></div>' +
+        '<div><span class="hq-stat">'+esc(String(hh.member_count||0))+' members</span>' +
+        '<span class="hq-stat">'+esc(String(hh.checkins_last_7d||0))+' check-ins (7d)</span>' +
+        '<span class="hq-stat">'+esc(String(hh.recruits_last_30d||0))+' recruits (30d)</span></div>' +
+        '<div class="hq-note" style="margin-top:8px"><b>Recent pulse:</b> ' + pulseLine(hh) + '</div></div>';
+    }
+    /* Founder controls. */
+    if (isFounder){
+      h += '<div class="hq-card"><h3>Founder controls</h3><div class="hq-row">' +
+        '<button class="hq-btn sm" data-hq="rename" data-cell="'+esc(S.detail)+'">RENAME</button>' +
+        '<select class="hq-sel" id="hqSetState" aria-label="STATE AFFILIATION">'+hqStateOpts(String(cell&&cell.state||""),"No state affiliation")+'</select>' +
+        '<button class="hq-btn sm" data-hq="set-state" data-cell="'+esc(S.detail)+'">SET STATE</button>' +
+        '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">DISBAND / LEAVE</button>' +
+        '</div><div class="hq-note">Rename: 3&ndash;24 chars. State affiliation unlocks location tasks and policymaker bounties. Leaving as founder passes the torch or disbands the cell.</div></div>';
+    } else if (cell) {
+      h += '<div class="hq-card"><div class="hq-row">' +
+        '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">LEAVE CELL</button></div></div>';
+    }
+    /* G12 (2026-10-05): strike orders — rotating cell missions with a
+       standing political slot. Renders into a placeholder; the payload is
+       async and fail-soft (coming-soon cards) so it never blocks HQ. */
+    if (!strikeOff() && cell && cell.id){
+      h += '<div id="hqStrikeBody">'+loading('Issuing strike orders&hellip;')+'</div>';
+    }
+    /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+       Placeholder; paintRallyCalls fills it async and fail-soft. */
+    if (!rallyOff() && cell && cell.id){
+      h += '<div id="hqRallyBody">'+loading('Scanning rally calls&hellip;')+'</div>';
+    }
+    body.innerHTML = h;
+    if (!strikeOff() && cell && cell.id){ paintStrikeOrders(body, cell.id, isFounder); }
+    if (!rallyOff() && cell && cell.id){ paintRallyCalls(body); }
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && cell && cell.id){
+      paintIdentityBlock(body, cell, isFounder);
+    }
+    /* CELLS 2.0 — fill the Recruit panel from cache when the funnel beat
+       the paint (otherwise the loadFunnel callback paints it on arrival). */
+    if (RF.cid === S.detail && RF.j){ paintRecruitInto(body, cell, RF.j); }
+  }
+
+  /* CELLS 2.0 (2026-10-05): recruitment funnel (member-gated). Contract:
+     GET recruit_funnel -> {ok, my_link, clicks, joins, joiners:[{callsign, joined_day}]}.
+     Fail-soft: a falsy/failed read leaves the panel in an honest offline
+     state; it never blocks or breaks the rest of HQ. */
+  function loadFunnel(cid, cb){
+    var id = ident();
+    if (!id.callsign || !cid){ cb(null); return; }
+    api("recruit_funnel", withIdent({cell_id: cid}), function(j){ cb(j); });
+  }
+  function inviteLinkFor(cell, j, callsign){
+    var link = (j && j.my_link) ? String(j.my_link) : "";
+    if (!link){
+      var code = cell && cell.invite_code ? String(cell.invite_code) : "";
+      if (code && callsign){
+        link = "https://www.mtcstw.com/cells?invite="+encodeURIComponent(code)+
+               "&by="+encodeURIComponent(callsign);
+      }
+    }
+    return link;
+  }
+  function paintRecruitInto(body, cell, j){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRecruit') : document.getElementById('hqRecruit'); }catch(e){}
+    if (!box) return;
+    var id = ident();
+    var link = inviteLinkFor(cell, j, id.callsign);
+    if (!j || !j.ok || !link){
+      box.innerHTML = '<h3>RECRUIT</h3><div class="hq-note">Recruit intel is offline right now. Your personal invite link will appear here when HQ reconnects.</div>';
+      return;
+    }
+    var clicks = Math.max(0, Number(j.clicks)||0), joins = Math.max(0, Number(j.joins)||0);
+    var h = '<h3>RECRUIT</h3>' +
+      '<div class="hq-note">Your personal invite link &mdash; share it anywhere. Taps and joins count toward your cell&rsquo;s momentum.</div>' +
+      '<div class="hq-row" style="margin-top:8px"><input class="hq-in linklike" id="hqRecruitLink" readonly value="'+esc(link)+'" aria-label="Personal invite link" />' +
+      '<button class="hq-btn sm" data-hq="recruit-copy">COPY</button></div>' +
+      '<div><span class="hq-stat">'+clicks+' taps</span><span class="hq-stat">'+joins+' joined</span>' +
+      (clicks>0 ? '<span class="hq-stat">'+Math.round(joins/clicks*100)+'% tap &rarr; join</span>' : '') + '</div>';
+    var joiners = (j.joiners && j.joiners.length) ? j.joiners : [];
+    if (joiners.length){
+      h += '<div class="hq-note" style="margin:10px 0 2px"><b>Fresh recruits</b></div>';
+      for (var i=0;i<joiners.length && i<10;i++){
+        var jr = joiners[i]||{};
+        h += '<div class="hq-joiner"><span><b>'+esc(jr.callsign||'Unknown')+'</b></span><span class="hq-note">'+esc(String(jr.joined_day||''))+'</span></div>';
+      }
+      if (joiners.length>10) h += '<div class="hq-note">+'+(joiners.length-10)+' more</div>';
+    } else {
+      h += '<div class="hq-note" style="margin-top:8px">No joins through your link yet &mdash; the first one starts the chain.</div>';
+    }
+    box.innerHTML = h;
+  }
+
+  /* CELL IDENTITY (2026-10-05): detail-view identity block — full profile
+     (tags, why-line, cadence/entry/region/size, charter, trophies), the
+     downloadable banner kit, and the founder's DEFINE IT / EDIT IDENTITY
+     backfill entry. 0 XP on every surface here. */
+  function paintIdentityBlock(body, cell, isFounder){
+    var box = body.querySelector('#hqIdentDetail');
+    if (!box) return;
+    window.PFCellIdentity.loadIdentity(cell.id, function(ident2){
+      if (!ident2){ box.innerHTML = '<h3>CELL IDENTITY</h3><div class="hq-note">Identity unavailable — try again later.</div>'; return; }
+      var cellLike = { id: cell.id, name: cell.name || 'Cell', state: cell.state || '',
+        motto: ident2.motto || '', palette: ident2.palette,
+        causes: ident2.causes || [], activity: ident2.activity || '' };
+      box.innerHTML = '<h3>CELL IDENTITY</h3>' +
+        window.PFCellIdentity.detailIdentityHTML(cellLike, ident2, isFounder);
+      var kh = box.querySelector('#idKitHost');
+      if (kh) window.PFCellIdentity.mountKit(kh, cellLike);
+      var bb = box.querySelector('[data-idbackfill]');
+      if (bb) bb.addEventListener('click', function(){
+        window.PFCellIdentity.mountWizard(box, { mode: 'edit', cellId: cell.id,
+          stateOptsHTML: hqStateOpts(String(cell.state||''), "No state affiliation"),
+          initial: hqIdentityToInitial(ident2, cell),
+          onDone: function(){ render(); }});
+      });
+      /* QC FIX (2026-10-05, Finding 2 — HIGH): the apply flow dead-ended at
+         "Application sent" — the founder had no review surface. Founder-only
+         pending-applications panel: the count rides the identity payload
+         (pending_applications); the list + approve/deny mount below. Gated
+         on the existing isFounder check; the server re-verifies founder on
+         every call (cell_applications_list + cell_application_review). */
+      if (isFounder && (ident2.entry_style === 'application' || (ident2.pending_applications || 0) > 0)){
+        var apN = ident2.pending_applications || 0;
+        var apBox = document.createElement('div');
+        apBox.id = 'hqAppReview';
+        apBox.innerHTML = '<h3>Pending applications' +
+          (apN ? ' <span class="hq-badge">'+esc(String(apN))+'</span>' : '') + '</h3>' +
+          '<div class="hq-note">Approve to wire them in, or deny to clear the request. 0 XP on every decision.</div>' +
+          '<div id="hqAppReviewList"></div>';
+        box.appendChild(apBox);
+        window.PFCellIdentity.mountApplicationReview(
+          apBox.querySelector('#hqAppReviewList'), cell.id,
+          { onChange: function(){ paintIdentityBlock(body, cell, isFounder); } });
+      }
+    });
+  }
+  function hqIdentityToInitial(ident2, cell){
+    if (!ident2) return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'' };
+    var vibes = [], custom = '';
+    (ident2.vibes||[]).forEach(function(v){
+      var k = v.key || v;
+      if (String(k).indexOf('custom:') === 0) custom = String(k).slice(7);
+      else vibes.push(k);
+    });
+    return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'',
+      causes: (ident2.causes||[]).map(function(x){ return x.key || x; }),
+      vibes: vibes, customVibe: custom,
+      specialties: (ident2.specialties||[]).map(function(x){ return x.key || x; }),
+      cadence: ident2.meeting_cadence || '', entry: ident2.entry_style || '',
+      charter: ident2.charter || '', motto: ident2.motto || '', region: ident2.region || '',
+      palette: (ident2.palette == null ? -1 : Number(ident2.palette)) };
+  }
+
+  function pulseLine(hh){
+    var parts = [];
+    var ci = hh.checkins_last_7d||0, rc = hh.recruits_last_30d||0, mc = hh.member_count||0;
+    if (ci >= mc*5) parts.push('firing on all cylinders');
+    else if (ci >= mc*2) parts.push('warming up');
+    else if (ci > 0) parts.push('quiet — nudge your cellmates');
+    else parts.push('silent this week');
+    if (rc > 0) parts.push(rc+' new recruit'+(rc===1?'':'s')+' in 30 days');
+    return parts.join('. ') + '.';
+  }
+
+  /* ---------- STRIKE ORDERS (2026-10-05) ---------- */
+  /* Rotating cell-level missions: 2 operational + 1 standing political.
+     Contract: GET ?action=strike_orders_get&cell_id=&callsign= ->
+     {ok, week_start, orders:[{slot,title,detail,deep_link,task_type,task_ref}],
+      members:[{callsign,ops_done,political_done}], aggregate:{ops:"x/y",political:"x/y"}}
+     POST {type:'cell',cell_action:'strike_reroll',cell_id,callsign} (founder).
+     Optional ?fight_areas=a,b (weave #6, 2026-10-05): the member's local
+     pick-your-fight areas (PF.pickFight(), localStorage pf_pick_fight_v1 —
+     may not be loaded yet -> param omitted -> canonical plan). Backend uses
+     it ONLY to reorder the political rotation as a read-time view; slot
+     count, XP (zero), reroll, and rotation guarantees are untouched.
+     Fail-soft: anything missing -> coming-soon placeholders. Never a stuck
+     spinner. KILL: ?pf_off=strike. No new XP copy — only backend-supplied
+     reward labels are shown. */
+  function strikeOff(){ try { return PF.skip('strike'); } catch (e){ return false; } }
+
+  function strikeFightAreas(){
+    /* Pick-your-fight preference, defensive: the fe/pick-your-fight module
+       may not be deployed/loaded yet — then no param is sent and the
+       backend serves the canonical plan. [] / never-chosen = no filter. */
+    try {
+      if (window.PF && typeof PF.pickFight === 'function') {
+        var f = PF.pickFight();
+        if (f && f.length) return f.join(',');
+      }
+    } catch (e){}
+    return '';
+  }
+
+  function strikeXY(s){
+    var m = /^(\d+)\s*\/\s*(\d+)$/.exec(String(s==null?'':s));
+    if (!m) return {x:0,y:0};
+    var x = parseInt(m[1],10), y = parseInt(m[2],10);
+    if (isNaN(x)) x = 0; if (isNaN(y)) y = 0;
+    return {x:x, y:y};
+  }
+  function strikeSafeLink(u){
+    var s = String(u==null?'':u);
+    /* Relative site paths only; second char may not be '/' (no //host). */
+    if (/^\/[a-zA-Z0-9\-_#?&=%.][a-zA-Z0-9\/\-_#?&=%.]*$/.test(s)) return s;
+    return '/political-hq';
+  }
+  function strikeStateScope(tr){
+    /* Stateless wording: only scope the order when the API gave a state. */
+    if (!tr || !tr.state) return '';
+    var st = String(tr.state).toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);
+    if (!st) return '';
+    return '<div class="hq-note" style="margin-bottom:6px"><b>'+esc(st)+' targets</b></div>';
+  }
+  function strikeMemberRows(mems, doneFor){
+    if (!mems || !mems.length) return '<div class="hq-note">No members on record.</div>';
+    return mems.map(function(m){
+      var cs = String(m && m.callsign ? m.callsign : '—');
+      var done = !!doneFor(m);
+      return '<div class="hq-mem"><span><b>'+esc(cs)+'</b></span>' +
+        '<span class="hq-note" style="font-size:16px">'+(done?'&#10003;':'&#9675;')+'</span></div>';
+    }).join('');
+  }
+  function strikeProgress(mems, aggStr, doneFor){
+    var a = strikeXY(aggStr);
+    var pct = a.y > 0 ? Math.min(100, Math.round(a.x / a.y * 100)) : 0;
+    var mems = Array.isArray(mems) ? mems : [];
+    return '<div class="hq-note"><b>'+a.x+'/'+a.y+' members completed</b></div>' +
+      '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
+      '<details><summary class="hq-strike-sum">Who is done? ('+a.x+'/'+a.y+')</summary>' +
+      strikeMemberRows(mems, doneFor) + '</details>';
+  }
+  function strikeOpsCard(o, mems, agg){
+    var title = o && o.title ? String(o.title) : 'Operations order';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s briefing.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var h = '<div class="hq-card"><div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">TAKE ACTION &rarr;</a></div>' +
+      strikeProgress(mems, agg, function(m){ return Number(m && m.ops_done || 0) > 0; }) +
+      '</div>';
+    return h;
+  }
+  /* ---------- CREATION TASK (2026-10-05, fe/strike-orders-creative) ----------
+     The political slot sometimes becomes a creation task: forge one poster
+     about a live bound entity. Entity selection: task_ref.entities (bound
+     server-side, state-scoped first); when pick-your-fight data exists, the
+     fight-relevant entity wins, otherwise entities[0]. FORGE THIS deep-links
+     into the Poster Forge via the pf-forge-launch handoff (localStorage for
+     cross-page + CustomEvent same-page); the forge shows the "Forging ammo
+     for X" confirmation state and tags the poster leg so completion is
+     entity-bound. Zero XP from the order itself — the forge's normal
+     poster/share legs pay out. */
+  function strikeForgeEntity(o){
+    var tr = (o && o.task_ref) || {};
+    var ents = tr.entities;
+    if (!Array.isArray(ents) || !ents.length) return null;
+    var fights = [];
+    try {
+      if (window.PF && typeof PF.pickFight === 'function' && !PF.skip('pick-fight')){
+        var f = PF.pickFight();
+        if (Array.isArray(f)) fights = f;
+      }
+    } catch (e) {}
+    if (fights.length){
+      for (var i = 0; i < ents.length; i++){
+        var areas = (ents[i] && ents[i].areas) || [];
+        for (var k = 0; k < fights.length; k++){
+          if (areas.indexOf(fights[k]) >= 0) return ents[i];
+        }
+      }
+    }
+    return ents[0];
+  }
+  function strikeForgeLaunch(cellId, weekStart, ent, deepLink){
+    var payload = { v: 1, tab: 'political', ts: Date.now(),
+      entity: ent ? { kind: String(ent.kind || ''), id: String(ent.id || ''),
+        title: String(ent.title || ''), url: String(ent.url || '') } : null,
+      strike: { cell_id: String(cellId || ''), week_start: String(weekStart || '').slice(0, 10) } };
+    try { localStorage.setItem('pf_forge_launch_v1', JSON.stringify(payload)); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent('pf-forge-launch', { detail: payload })); } catch (e2) {}
+    var dest = strikeSafeLink(deepLink);
+    if (dest === '/political-hq') dest = '/create#pf-poster';
+    try { window.location.href = dest; } catch (e3) {}
+  }
+  function strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    var tr = (o && o.task_ref) || {};
+    var ent = strikeForgeEntity(o);
+    var detail = o && o.detail ? String(o.detail) : 'Forge one propaganda poster about this week\u2019s fight target.';
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<span class="hq-badge plain">CREATION</span></div>' +
+      '<div class="hq-order-t"><b>FORGE A STRIKE POSTER</b></div>' +
+      strikeStateScope(tr) +
+      (ent ? '<div class="hq-note" style="margin-bottom:6px"><b>TARGET: ' + esc(String(ent.title || '')) + '</b></div>' : '') +
+      (tr.why_now ? '<div class="hq-note" style="margin-bottom:6px"><b>WHY NOW:</b> ' + esc(String(tr.why_now)) + '</div>' : '') +
+      '<div class="hq-order-d">' + esc(detail) + '</div>';
+    /* Bounty cross-link: entity-matched bounty when the backend found one;
+       otherwise the generic bounty board. Never invents a bounty. */
+    if (tr.bounty && tr.bounty.title){
+      h += '<div class="hq-note" style="margin-bottom:8px">This also counts toward the <b>' + esc(String(tr.bounty.title)) + '</b> bounty — ' +
+        '<a href="/create?tab=bounties">open the bounty board &rarr;</a></div>';
+    } else {
+      h += '<div class="hq-note" style="margin-bottom:8px">Bounty hunters: <a href="/create?tab=bounties">check the bounty board</a> for poster bounties on this fight.</div>';
+    }
+    if (ent){
+      h += '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-forge" data-cell="' + esc(cellId) + '"' +
+        ' data-week="' + esc(weekStart || '') + '"' +
+        ' data-ekind="' + esc(String(ent.kind || '')) + '" data-eid="' + esc(String(ent.id || '')) + '"' +
+        ' data-etitle="' + esc(String(ent.title || '')) + '" data-eurl="' + esc(String(ent.url || '')) + '">FORGE THIS &rarr;</button></div>';
+    } else {
+      /* Fail-soft: bound set missing client-side -> plain forge deep-link, never a dead card. */
+      h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="/create#pf-poster">OPEN THE FORGE &rarr;</a></div>';
+    }
+    h += '<div class="hq-note" style="margin-bottom:8px">The order itself grants zero XP — the forge\u2019s normal poster/share legs pay out when you create.</div>';
+    if (isFounder){
+      h += rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="' + esc(cellId) + '">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    h += strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) + '</div>';
+    return h;
+  }
+  function strikePolCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    if (o && o.task_type === 'creation')
+      return strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled);
+    var title = o && o.title ? String(o.title) : 'Political strike';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s political strike order.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var reroll = '';
+    if (isFounder){
+      reroll = rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="'+esc(cellId)+'">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span></div>' +
+      '<div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">OPEN POLITICAL HQ &rarr;</a></div>' +
+      reroll +
+      strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) +
+      '</div>';
+    return h;
+  }
+  function strikeSoonHtml(){
+    /* Fail-soft placeholders — panel always renders, never breaks HQ. */
+    return '<div class="hq-card"><h3>&#9876; Strike orders</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">The week\u2019s cell missions deploy here.</div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card hq-strike-pol"><span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<div class="hq-order-t"><b>Coming soon</b></div>' +
+      '<div class="hq-note">The standing political strike order deploys here.</div></div></div>';
+  }
+  function strikeHtml(j, isFounder, cellId){
+    var orders = j.orders || [];
+    var bySlot = {};
+    orders.forEach(function(o){ if (o && o.slot && !bySlot[o.slot]) bySlot[o.slot] = o; });
+    var ops1 = bySlot.ops1 || bySlot.ops || null;
+    var ops2 = bySlot.ops2 || null;
+    var pol = bySlot.political || null;
+    var mems = j.members || [];
+    var agg = j.aggregate || {};
+    var wk = j.week_start ? ' <span class="hq-note">week of '+esc(String(j.week_start))+'</span>' : '';
+    var h = '<div class="hq-card"><h3>&#9876; Strike orders'+wk+'</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">Complete them as a cell. Progress counts for the whole crew.</div>' +
+      strikeOpsCard(ops1, mems, agg.ops) +
+      strikeOpsCard(ops2, mems, agg.ops) +
+      strikePolCard(pol, mems, agg.political, isFounder, cellId, j.week_start, !!(j.rerolled_used || j.already_rerolled)) +
+      '</div>';
+    return h;
+  }
+  function paintStrikeOrders(root, cellId, isFounder){
+    var slot = null;
+    try { slot = root.querySelector('#hqStrikeBody'); } catch (e){}
+    if (!slot) return;
+    var sq = withIdent({cell_id: cellId});
+    var sfa = strikeFightAreas();
+    if (sfa) sq.fight_areas = sfa;
+    api('strike_orders_get', sq, function(j){
+      if (!j || !j.ok || !Array.isArray(j.orders)){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e){}
+        return;
+      }
+      try { slot.innerHTML = strikeHtml(j, isFounder, cellId); } catch (e){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e2){}
+      }
+    });
+  }
+
+  /* ---------- TAB 3: CELL WAR ---------- */
+  function renderWar(p){
+    var h = '<div class="hq-card"><h3>&#9876; How Cell War works</h3>' +
+      '<div class="hq-note">Every Monday a new war week begins. Cells earn XP all week — ' +
+      'the top cell is crowned champion and every member takes a <b>+10% XP bonus</b>. ' +
+      'Bout fire feeds the war score too — one war, one leaderboard. ' +
+      'Past weeks finalize automatically. <b>Weekly champions claim territory.</b> ' +
+      'Fight as your callsign.</div></div>';
+    h += '<div id="hqWarBody">'+loading('Reading the war board&hellip;')+'</div>';
+    p.innerHTML = h;
+    var body = document.getElementById('hqWarBody');
+    var gotS=false, gotH=false, gotM=false, jS=null, jHh=null, jM=null;
+    function paint(){
+      if(!gotS||!gotH||!gotM) return;
+      var out = '';
+      if (jS && jS.ok){
+        if (jS.last_winner){
+          out += '<div class="hq-card hq-winner"><h3>&#128081; Reigning champion — '+esc(jS.last_winner.cell_name||'')+'</h3>' +
+            '<div class="hq-note">'+esc(String(jS.last_winner.xp_earned||0))+' XP last week. Dethrone them.</div></div>';
+        }
+        out += '<div class="hq-card"><h3>Week '+esc(String(jS.week_no||''))+' standings</h3>';
+        var st = jS.standings||[];
+        if (!st.length) out += '<div class="hq-note">No cells on the board yet this week. Be the first to score.</div>';
+        st.forEach(function(r, i){
+          var mine = r.mine ? '<span class="hq-badge">YOUR CELL</span>' : '';
+          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(r.prestige_flame||'')+' '+esc(r.name)+mine+'</span>' +
+            '<span class="hq-note">'+esc(String(r.xp_earned||0))+' XP &middot; '+esc(String(r.members_active||0))+'/'+esc(String(r.members||0))+'</span></div>';
+        });
+        out += '</div>';
+      } else {
+        out += netErr();
+      }
+      /* G6: War Room odds strip — implied championship chance from the
+         war board + the market's own escrow pools. Viewing is free; the
+         staking itself lives in the War Room on /arcade. */
+      if (jM && jM.ok && (jM.odds||[]).length){
+        out += '<div class="hq-card"><h3>&#127963; War Room — championship odds</h3>' +
+          '<div class="hq-note">'+esc(jM.description||'CELL WAR')+' &middot; '+esc(String(jM.pool_total||0))+' XP in the pot. ' +
+          'Odds move with the board. Viewing is free — stakes go down in the War Room.</div>';
+        jM.odds.slice(0,5).forEach(function(o, i){
+          var pays = o.pays > 0 ? ' &middot; pays '+esc(String(o.pays))+'x ('+esc(String(o.pool||0))+' XP in)' : ' &middot; no bets yet';
+          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(o.name||'')+'</span>' +
+            '<span class="hq-note">'+esc(String(o.implied||0))+'% implied'+pays+'</span></div>';
+        });
+        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div></div>';
+      }
+      if (jHh && jHh.ok && (jHh.winners||[]).length){
+        out += '<div class="hq-card"><h3>Hall of fame</h3>';
+        jHh.winners.forEach(function(w){
+          var d = '';
+          try{ d = new Date(w.week_start).toLocaleDateString(); }catch(e){ d = String(w.week_start||''); }
+          out += '<div class="hq-mem"><span>&#128081; '+esc(w.cell_name||'')+'</span>' +
+            '<span class="hq-note">'+esc(d)+' &middot; '+esc(String(w.xp_earned||0))+' XP</span></div>';
+        });
+        out += '</div>';
+      }
+      body.innerHTML = out;
+      wireRetries(body);
+    }
+    loadWar(function(j){ gotS=true; jS=j; paint(); });
+    loadHistory(function(j){ gotH=true; jHh=j; paint(); });
+    loadMarket(function(j){ gotM=true; jM=j; paint(); });
+  }
+
+  /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+     Suggestion ONLY: "RALLY AROUND THIS →" copies a rally message to the
+     clipboard (take-to-cell handoff — the leader pastes it wherever the
+     cell organizes). Nothing auto-posts to any cell. "MARK TAKEN" lets a
+     cell claim the call so others see it was picked up.
+     KILL: ?pf_off=cell-rally. Fail-soft: a failed read leaves no section —
+     it never blocks or breaks HQ. */
+  var rallyCache = {};
+  function rallyOff(){ try { return PF.skip('cell-rally'); } catch (e){ return false; } }
+  function rallyCopyText(s){
+    var msg = '🎯 RALLY CALL: ' + String(s.title||'') + '\n' + String(s.body||'') +
+      '\nTake it to your cell → https://www.mtcstw.com' + String(s.link||'/sick-left-radicals');
+    function done(){ toast('Rally copied — take it to your cell.'); }
+    function fallback(){
+      try{
+        var ta=document.createElement('textarea'); ta.value=msg;
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }catch(e){}
+    }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(msg).then(done, fallback);
+      } else fallback();
+    }catch(e){ fallback(); }
+  }
+  function rallyActPost(rid, op, cb){
+    var id = ident();
+    if(!id.callsign){ toast('Claim a callsign first.'); cb(false); return; }
+    var sec='';
+    try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():''; }catch(e){}
+    var body={type:'creatorfeed', cf_action:'rally_act', callsign:id.callsign, auth_secret:sec, id:rid, op:op};
+    function done(j){ try{ cb(j&&j.ok); }catch(e){ cb(false); } }
+    if(!BACKEND){ done(null); return; }
+    try{
+      fetch(BACKEND,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(done, function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+  function paintRallyCalls(body){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRallyBody') : document.getElementById('hqRallyBody'); }catch(e){}
+    if(!box) return;
+    api('rally_suggestions', {}, function(j){
+      /* Fail-soft: no suggestions (or a failed read) = no section at all. */
+      if(!j || !j.ok || !(j.suggestions||[]).length){ try{ box.parentNode.removeChild(box); }catch(e){} return; }
+      var h='<div class="hq-card hq-rally"><h3>&#127919; Rally calls</h3>'+
+        '<div class="hq-note" style="margin-bottom:8px">Creator milestones worth rallying around. '+
+        'Suggestion only — your cell, your call. Nothing posts itself.</div>';
+      (j.suggestions||[]).forEach(function(s){
+        h+='<div class="hq-rallyitem"><div class="hq-rallytitle">'+esc(String(s.title||''))+'</div>'+
+          '<div class="hq-note">'+esc(String(s.body||''))+'</div>'+
+          '<div class="hq-row"><button class="hq-btn sm" data-rally="copy" data-rid="'+esc(String(s.id))+'">RALLY AROUND THIS &rarr;</button>'+
+          '<button class="hq-btn sm ghost" data-rally="taken" data-rid="'+esc(String(s.id))+'">MARK TAKEN</button></div></div>';
+      });
+      h+='</div>';
+      box.innerHTML=h;
+      try{ (j.suggestions||[]).forEach(function(s){ rallyCache[String(s.id)]=s; }); }catch(e){}
+    });
+  }
+
+  /* ---------- TAB 4: BROWSE ---------- */
+  function renderBrowse(p){
+    /* CELL IDENTITY (2026-10-05): discovery on qualities — quality filters
+       layer under the name/state search. Kill-switch falls back to the
+       original search row only. */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+    var h = '<div class="hq-card"><h3>Find a cell</h3>' +
+      '<div class="hq-row"><input class="hq-in" id="hqSearch" maxlength="32" placeholder="Search by name" value="'+esc(S.searchQ)+'">' +
+      '<select class="hq-sel" id="hqSearchState" aria-label="FILTER BY STATE">'+hqStateOpts(S.searchState,"All states")+'</select>' +
+      '<button class="hq-btn" data-hq="search">SEARCH</button></div>';
+    if (identOn){
+      var SETS = window.PFCellIdentity.SETS;
+      h += '<div class="hq-row" style="margin-top:6px" id="hqIdfRow">' +
+        idfSel('hqIdfCause','All causes',SETS.CAUSES,S.idfCause) +
+        idfSel('hqIdfVibe','All vibes',SETS.VIBES,S.idfVibe) +
+        idfSel('hqIdfSpec','All specialties',SETS.SPECIALTIES,S.idfSpec) +
+        idfSel('hqIdfEntry','Any entry',[["open","Open"],["invite","Invite only"],["application","Application"]],S.idfEntry) +
+        idfSel('hqIdfAct','Any activity',SETS.ACTIVITIES,S.idfAct) +
+        /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but no
+           host ever sent it — the sort control lives in the filter row. */
+        sortSelHtml('hqIdfSort', S.idfSort) +
+        '<div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>';
+    }
+    h += '<div id="hqSearchRes" style="margin-top:8px">';
+    if (S.loading.search) h += loading('Searching&hellip;');
+    else if (S.searchRes) h += searchHtml(S.searchRes);
+    h += '</div></div>';
+    h += '<div id="hqBoardWrap">'+loading('Loading leaderboard&hellip;')+'</div>';
+    h += '<div id="hqLinksWrap">'+loading('Mapping the network&hellip;')+'</div>';
+    p.innerHTML = h;
+    var bw = document.getElementById('hqBoardWrap'), lw = document.getElementById('hqLinksWrap');
+    loadBoard(function(j){
+      if (!j || !j.cells){ bw.innerHTML = netErr(); wireRetries(bw); return; }
+      var out = '<div class="hq-card"><h3>Top cells — week of '+esc(String(j.week||''))+'</h3>';
+      (j.cells||[]).slice(0,10).forEach(function(c, i){
+        var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+        out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(c.prestige_flame||'')+' '+esc(c.name)+v+hqStateTag(c)+'</span>' +
+          '<span class="hq-note">'+esc(String(c.streak||0))+'d streak &middot; '+esc(String(c.members||0))+' members</span></div>';
+      });
+      out += '</div>';
+      bw.innerHTML = out;
+    });
+    loadLinks(function(j){
+      if (!j){ lw.innerHTML = netErr(); wireRetries(lw); return; }
+      lw.innerHTML = '<div class="hq-card"><h3>Chainlink network</h3>' +
+        '<div><span class="hq-stat">'+esc(String(j.cells||0))+' cells</span>' +
+        '<span class="hq-stat">'+esc(String(j.chainlinkers||0))+' chainlinkers</span>' +
+        '<span class="hq-stat">'+esc(String(j.main_pct||0))+'% in the main chain</span></div>' +
+        '<div class="hq-note" style="margin-top:8px">Chainlinkers belong to 2+ cells and stitch the network together. ' +
+        'Join a second cell to become one — +10 XP weekly bridge bonus.</div></div>';
+    });
+  }
+
+  /* CELL IDENTITY (2026-10-05): one quality-filter select for discovery. */
+  function idfSel(id, label, list, cur){
+    var o = '<option value="">'+esc(label)+'</option>';
+    (list||[]).forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return '<select class="hq-sel" id="'+id+'" aria-label="'+esc(label)+'">'+o+'</select>';
+  }
+  /* QC FIX (2026-10-05, Finding 3): sort select for the browse filter row.
+     The curated SORTS list carries its own labels; "" means the backend's
+     default (activity) ordering, so no blank option is needed. */
+  function sortSelHtml(id, cur){
+    var list = (window.PFCellIdentity && window.PFCellIdentity.SETS && window.PFCellIdentity.SETS.SORTS) || [];
+    var o = '<select class="hq-sel" id="'+id+'" aria-label="Sort results">';
+    list.forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"activity")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return o + '</select>';
+  }
+  function searchHtml(j){
+    if (!j) return netErr();
+    var cells = j.cells || [];
+    if (!cells.length) return '<div class="hq-note">No cells match. Try a shorter search — or found your own.</div>';
+    /* CELL IDENTITY (2026-10-05): identity cards — the "why this cell" line,
+       quality tags, activity band. Incomplete profiles get the honest
+       state, never invented qualities. Join affordance follows entry style;
+       joining pays 0 XP (Engagement review verdict). */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+    var out = '';
+    cells.forEach(function(c){
+      var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+      var full = (c.member_count||0) >= 5;
+      var idBlock = identOn ? window.PFCellIdentity.cardIdentityHTML(c) : '';
+      var joinHtml;
+      if (full) joinHtml = '<span class="hq-badge dim">FULL</span>';
+      else if (identOn && c.entry_style === 'application')
+        joinHtml = '<button class="id-btn sm" data-idapply="'+esc(c.id)+'">APPLY</button>';
+      else if (identOn && c.invite_code)
+        joinHtml = '<button class="id-btn sm" data-idjoin="'+esc(c.invite_code)+'">JOIN</button>';
+      else if (identOn)
+        joinHtml = '<span class="hq-note">invite only</span>';
+      else
+        joinHtml = '<button class="hq-btn sm" data-hq="join-id" data-cell="'+esc(c.id)+'">JOIN</button>';
+      out += '<div class="hq-mem"><span><b>'+esc(c.name)+'</b>'+v+hqStateTag(c) +
+        '<div class="hq-note">'+esc(String(c.member_count||0))+'/5 members &middot; '+esc(String(c.streak||0))+'d streak</div>'+idBlock+'</span>' +
+        joinHtml + '</div>';
+    });
+    return out;
+  }
+
+  /* ---------- TAB 5: TREASURY ----------
+     Financial rails for cells. Honest scoping:
+     - bank_status is PER-CALLSIGN (your personal war chest), not cell-scoped.
+     - escrow / prize / loan / microloan are XP-denominated between callsigns.
+       Founders use them FOR the cell (bounties, competitions, member aid).
+     - War Bonds are the USD rail — link out, zero friction, no gating.
+     ALL money actions use native confirm(). XP everywhere except bonds (USD).
+     Language rule: pledge / contribute / back / fund — never the d-word. */
+  /* ---------- PROPAGANDA BOUNTIES (helpers — pure, extracted by tests/propbounty.verify.cjs) ----------
+     Best-poster contests: founder/officer posts a brief, members forge in the
+     Poster Forge and submit a link, the cell votes, the winner takes the XP.
+     KILL: ?pf_off=propbounty (PF.skip("propbounty")) disables the card. */
+  function pbCountdown(ts){
+    var ms = Number(ts)||0;
+    if (!ms) return 'no deadline';
+    var d = ms - Date.now();
+    if (d <= 0) return 'expired';
+    var h = Math.floor(d/3600000), dd = Math.floor(h/24);
+    if (dd > 0) return dd+'d '+(h%24)+'h left';
+    if (h > 0) return h+'h left';
+    return Math.max(1, Math.floor(d/60000))+'m left';
+  }
+  function pbEntityChip(t, ref){
+    t = String(t||'').toLowerCase(); ref = String(ref||'').trim();
+    if (t === 'none' || !t || !ref) return '';
+    return '<span class="hq-stat"><b>'+esc(t.toUpperCase())+' &middot; '+esc(ref)+'</b></span>';
+  }
+  function pbThumb(url){
+    url = String(url||'');
+    if (!/^https?:\/\//i.test(url)) return '';
+    var isImg = /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(url);
+    var link = '<a class="hq-btn sm ghost" style="text-decoration:none;display:inline-block" href="'+esc(url)+'" target="_blank" rel="noopener">VIEW &#8599;</a>';
+    if (isImg) return '<a href="'+esc(url)+'" target="_blank" rel="noopener"><img src="'+esc(url)+'" alt="submission" loading="lazy" style="max-width:120px;max-height:120px;border:2px solid #333;display:block;margin-bottom:6px"></a>'+link;
+    return link;
+  }
+  /* One submission row. me = my callsign; votedId = submission id I voted for
+     (or truthy non-id); hasVoted = whether I already voted this bounty. */
+  function pbSubRow(s, me, votedId, hasVoted){
+    var sid = String(s.id||'');
+    var own = String(s.callsign||'').toLowerCase() === String(me||'').toLowerCase();
+    var thisVoted = String(votedId||'') === sid;
+    var dis = hasVoted || own;
+    var btn = dis
+      ? '<button class="hq-btn sm" disabled>'+(thisVoted?'VOTED':'VOTE')+'</button>'
+      : '<button class="hq-btn sm" data-hq="pb-vote" data-bounty="'+esc(String(s._bounty||''))+'" data-sub="'+esc(sid)+'">VOTE</button>';
+    return '<div class="hq-mem"><span><b>'+esc(s.title||'Untitled')+'</b> <span class="hq-note">by '+esc(s.callsign||'?')+(own?' (you)':'')+
+      ' &mdash; '+esc(String(s.votes||0))+' vote'+(Number(s.votes||0)===1?'':'s')+'</span></span>' +
+      '<span>'+pbThumb(s.asset_url)+' '+btn+'</span></div>';
+  }
+  /* One bounty block. me = my callsign; canMod = founder/officer. */
+  function pbBountyCard(b, me, canMod){
+    var bid = String(b.id||'');
+    var st = String(b.status||'open');
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';
+    h += '<div class="hq-row" style="justify-content:space-between"><span class="pb-badge">PROPAGANDA</span>' +
+      '<span class="hq-note">'+esc(pbCountdown(b.deadline))+'</span></div>';
+    h += '<div style="margin:6px 0"><b>'+esc(b.prompt||'')+'</b></div>';
+    h += '<div class="hq-row">'+pbEntityChip(b.entity_type, b.entity_ref) +
+      '<span class="hq-stat"><b>'+esc(String(b.prize_xp||0))+' XP</b> prize</span>' +
+      '<span class="hq-note">by '+esc(b.created_by||'?')+'</span></div>';
+    if (st === 'settled'){
+      h += '<div class="hq-note" style="margin-top:8px;font-size:15px"><b>&#127942; @'+esc(b.winner||'?')+
+        ' takes '+esc(String(b.prize_xp||0))+' XP</b></div>';
+    }
+    if (st === 'cancelled'){
+      h = '<div style="margin-top:12px;opacity:.45">'+h;
+    }
+    var subs = (b.submissions||[]).slice().sort(function(x,y){ return (Number(y.votes)||0)-(Number(x.votes)||0); });
+    var hasVoted = !!b.my_vote;
+    subs.forEach(function(s){ s._bounty = bid; h += pbSubRow(s, me, b.my_vote, hasVoted); });
+    if (st === 'open'){
+      if (b.my_submission){
+        h += '<div class="hq-note" style="margin-top:8px">You submitted: <b>'+esc(b.my_submission.title||b.my_submission)+'</b> — one submission per member.</div>';
+      } else {
+        h += '<div class="hq-note" style="margin-top:8px">Forge it in the Poster Forge, post it anywhere, paste the link.</div>' +
+          '<div class="hq-row" style="margin-top:4px">' +
+          '<input class="hq-in" id="hqPbUrl_'+esc(bid)+'" placeholder="https://… link to your poster" style="flex:1;min-width:180px">' +
+          '<input class="hq-in" id="hqPbTitle_'+esc(bid)+'" maxlength="80" placeholder="Title" style="width:150px">' +
+          '<button class="hq-btn sm" data-hq="pb-submit" data-bounty="'+esc(bid)+'">SUBMIT</button></div>';
+      }
+      if (canMod){
+        h += '<div class="hq-row" style="margin-top:6px">' +
+          '<button class="hq-btn sm" data-hq="pb-settle" data-bounty="'+esc(bid)+'">SETTLE EARLY</button>' +
+          '<button class="hq-btn sm ghost" data-hq="pb-cancel" data-bounty="'+esc(bid)+'">CANCEL</button></div>';
+      }
+    }
+    if (st === 'cancelled') h += '</div>';
+    return h;
+  }
+
+  function renderTreasury(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3>' +
+        '<div class="hq-note">Treasury tools move real XP. Claim your callsign in Daily Orders first.</div></div>';
+      return;
+    }
+    var isFounder = !!(S.mine && S.mine.is_founder);
+    var h = '<div class="hq-note" style="margin-bottom:10px">Cell treasury rails — <b>all amounts in XP</b> unless marked USD. ' +
+      'Every money move asks you to confirm first.</div>';
+    h += '<div id="hqTreasBody">'+loading('Opening the vault&hellip;')+'</div>';
+    p.innerHTML = h;
+    var body = document.getElementById('hqTreasBody');
+    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest, causes,
+       propaganda bounties. */
+    var R = {};
+    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury','causes','pbounty'];
+    var done = 0;
+    function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
+    finGet('bank_status', {}, function(j){ R.bank=j; each(); });
+    finGet('loan_list', {}, function(j){ R.loans=j; each(); });
+    finGet('prize_list', {}, function(j){ R.prizes=j; each(); });
+    finGet('bond_list', {}, function(j){ R.bonds=j; each(); });
+    finGet('campaign_status', {}, function(j){ R.camp=j; each(); });
+    /* R9 (2026-10-04): cause pools + sponsor board for the SPONSOR panel. */
+    finGet('cause_list', {}, function(j){ R.causes=j; each(); });
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    if (wcid) api('warchest_status', {cell_id: wcid}, function(j){ R.wchest=j; each(); });
+    else { R.wchest = null; each(); }
+    if (wcid) api('treasury_balance', {cell_id: wcid}, function(j){ R.treasury=j; each(); });
+    else { R.treasury = null; each(); }
+    /* Propaganda bounties are private to the cell — auth_secret rides the
+       same auto-attach path as cell_mine. Backend may not exist yet (BE
+       branch merges separately) — degrade to a placeholder card. */
+    if (wcid) api('propbounty_list', withIdent({cell_id: wcid}), function(j){ R.pbounty=j; each(); });
+    else { R.pbounty = null; each(); }
+  }
+
+  function paintTreasury(body, R, isFounder){
+    var h = '';
+    /* --- G7 (2026-10-04): standalone treasury panel container. games/treasury.js
+       mounts the fund + spend + balance-trajectory panel here via
+       window.PFTreasury.mount (called after body.innerHTML below). --- */
+    h += '<div id="hqTreasuryPanel"></div>';
+    /* --- 0. CELL WAR CHEST (pooled XP contributions) --- */
+    var w = R.wchest;
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var wcname = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    if (w && w.ok){
+      var pct = Math.min(100, Math.round((w.total / w.goal) * 100));
+      h += '<div class="hq-card" style="border-color:#c9a227"><h3>&#9876;&#65039; Cell War Chest <span class="hq-note">'+esc(wcname)+'</span></h3>';
+      if (w.boost_active){
+        h += '<div class="hq-note" style="color:#c9a227;font-weight:bold">&#9889; BOOST ACTIVE — +5 XP on every member checkin until boost expires.</div>';
+      }
+      h += '<div style="margin:8px 0"><div style="background:#222;border-radius:6px;height:14px;overflow:hidden">' +
+        '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#c9a227,#f5d76e)"></div></div>' +
+        '<div class="hq-note" style="margin-top:4px"><b>'+esc(String(w.total))+' / '+esc(String(w.goal))+' XP</b> ('+pct+'%)' +
+        (w.goal_hit ? ' — <b style="color:#c9a227">GOAL HIT</b>' : ' — hit '+esc(String(w.goal))+' XP to unlock +5 XP checkin boost for 24h') + '</div></div>';
+      h += '<div class="hq-row" style="margin:8px 0;flex-wrap:wrap;gap:6px">' +
+        [25,50,100,250].map(function(a){ return '<button class="hq-btn sm" data-hq="warchest" data-amt="'+a+'">+'+a+' XP</button>'; }).join('') +
+        '<input class="hq-in sm" id="hqWarchestCustom" type="number" min="10" max="10000" placeholder="Custom" style="width:90px">' +
+        '<button class="hq-btn sm" data-hq="warchest-custom">Give</button></div>';
+      var lb = w.leaderboard || [];
+      if (lb.length){
+        h += '<div class="hq-note"><b>Top contributors:</b> ' +
+          lb.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.callsign)+' ('+esc(String(x.xp))+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+      var hist = w.history || [];
+      if (hist.length){
+        h += '<div class="hq-note" style="margin-top:6px"><b>Recent:</b> ' +
+          hist.slice(0,5).map(function(x){ return esc(x.callsign)+' +'+esc(String(x.xp)); }).join(' &middot; ') + '</div>';
+      }
+      h += '</div>';
+    } else if (wcid){
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3>'+netErr()+'</div>';
+    } else {
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3><div class="hq-note">Join a cell to contribute XP to its war chest.</div></div>';
+    }
+    /* --- DIVIDEND PAYOUTS (treasury -> members, equal split) --- */
+    var tr = R.treasury;
+    var divN = ((S.mine && S.mine.members) || []).length;
+    h += '<div class="hq-card" style="border-color:#7CFC00"><h3>&#128176; Dividend payouts <span class="hq-note">treasury &#8594; members</span></h3>';
+    var canDiv = !!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer));
+    if (tr && tr.ok){
+      h += '<div><span class="hq-stat"><b>'+Number(tr.balance||0).toLocaleString()+' XP</b> treasury balance</span></div>';
+      h += '<div class="hq-note">Pay the cell treasury out to members. <b>Equal split only</b> — every member gets the same XP; any leftover stays in the treasury. One payout per amount per day.</div>';
+      if (canDiv && divN > 0){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<input class="hq-in" id="hqDivAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="dividend-pay">PAY DIVIDEND</button></div>' +
+          '<div id="hqDivPreview" class="hq-note" style="margin-top:6px">Enter an amount to preview the split.</div>' +
+          '<div id="hqDivMsg"></div>';
+      } else if (!canDiv){
+        h += '<div class="hq-note">Only the founder, officers, and the treasurer can trigger dividend payouts.</div>';
+      } else {
+        h += '<div class="hq-note">No members to pay yet.</div>';
+      }
+      var dhist = (tr.recent || []).filter(function(x){ return String(x.kind || '') === 'dividend'; });
+      if (dhist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Payout history:</b> ' +
+          dhist.slice(0,5).map(function(x){
+            var dp = '';
+            try { dp = new Date(Number(x.ts)||0).toLocaleDateString(); } catch(e){}
+            return esc(dp)+' — '+Math.abs(Number(x.amount||0)).toLocaleString()+' XP split, ordered by '+esc(x.callsign||'?');
+          }).join(' &middot; ') + '</div>';
+      }
+    } else if (wcid){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see its treasury.</div>';
+    }
+    h += '</div>';
+    /* --- R9 (2026-10-04): SPONSOR — cell treasury -> cause pool.
+       Officer-gated server-side (cause_sponsor); degrade gracefully for
+       non-officers (board visible, no form). Zero XP to the officer —
+       the treasury pays, never personal XP. */
+    var ca = R.causes;
+    var canSpon = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    var spCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var spName = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    h += '<div class="hq-card" style="border-color:#c1121f"><h3>&#9733; Sponsor a cause <span class="hq-note">treasury &#8594; cause pool</span></h3>';
+    if (ca && ca.ok){
+      var pools = ca.pools || [];
+      h += '<div class="hq-note">Put the cell treasury behind a cause — strike funds, bail funds, mutual aid. ' +
+        'Sponsorships are attributed to <b>'+esc(spName)+'</b> on the cause board.</div>';
+      if (canSpon && spCell && pools.length){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<select class="hq-in" id="hqSpPool" aria-label="Cause pool" style="max-width:230px">' +
+          pools.map(function(p2){ return '<option value="'+esc(p2.id)+'">'+esc(p2.name)+' ('+Number(p2.balance||0).toLocaleString()+' XP)</option>'; }).join('') +
+          '</select>' +
+          '<input class="hq-in" id="hqSpAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="sponsor">SPONSOR A CAUSE &rarr;</button></div>' +
+          '<div id="hqSpMsg"></div>';
+      } else if (!spCell){
+        h += '<div class="hq-note">Join a cell to sponsor causes from its treasury.</div>';
+      } else if (!canSpon){
+        h += '<div class="hq-note">Only the founder and officers can move treasury funds. Earn a role, then sponsor.</div>';
+      } else {
+        h += '<div class="hq-note">No cause pools yet.</div>';
+      }
+      var spBoard = ca.sponsor_board || [];
+      if (spBoard.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Top sponsoring cells:</b> ' +
+          spBoard.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.cell_name)+' ('+Number(x.total||0).toLocaleString()+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+    } else if (spCell){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see cause sponsorships.</div>';
+    }
+    h += '</div>';
+    /* --- 1. WAR CHEST (personal bank) --- */
+    var b = R.bank;
+    if (b && b.ok){
+      h += '<div class="hq-card"><h3>&#127974; Your war chest <span class="hq-note">(personal, not cell funds)</span></h3>' +
+        '<div><span class="hq-stat"><b>'+esc(String(b.balance||0))+' XP</b> balance</span>' +
+        '<span class="hq-stat">'+esc(String(b.rate_pct||0))+'% interest</span>' +
+        '<span class="hq-stat">Deposits '+esc(String(b.deposit_week_used||0))+'/'+esc(String(b.deposit_week_cap||0))+' XP this week</span></div>';
+      var hist = b.history || [];
+      if (hist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Recent:</b> ' +
+          hist.slice(0,5).map(function(x){
+            var amt = (x.amount!=null?x.amount:(x.xp!=null?x.xp:''));
+            return esc(String(x.kind||x.type||'move'))+' '+esc(String(amt))+' XP';
+          }).join(' &middot; ') + '</div>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="hq-card"><h3>&#127974; Your war chest</h3>'+netErr()+'</div>';
+    }
+
+    /* --- 2. BOUNTY ESCROW (founder locks XP for a member bounty) --- */
+    h += '<div class="hq-card"><h3>&#128179; Bounty escrow</h3>' +
+      '<div class="hq-note">Lock XP in escrow for a cell bounty — released to the member on completion, ' +
+      'refunded to you if it falls through. <b>Founder-only to create.</b> ' +
+      'Save the escrow ID after creating — you need it to release or refund.</div>';
+    if (isFounder){
+      var memOpts = escrowMemberOptions();
+      h += '<div class="hq-row" style="margin-top:8px">' +
+        '<select class="hq-in" id="hqEscTo">'+memOpts+'</select>' +
+        '<input class="hq-in" id="hqEscAmt" type="number" min="1" placeholder="XP amount" style="width:120px">' +
+        '</div><div class="hq-row">' +
+        '<input class="hq-in" id="hqEscWhy" maxlength="120" placeholder="Bounty reason (e.g. 10K-view post)">' +
+        '<button class="hq-btn" data-hq="escrow-create">LOCK ESCROW</button></div>';
+    } else {
+      h += '<div class="hq-note">Only the founder can lock new escrows.</div>';
+    }
+    h += '<div class="hq-row" style="margin-top:8px">' +
+      '<input class="hq-in" id="hqEscId" placeholder="ESCROW ID">' +
+      '<button class="hq-btn sm" data-hq="escrow-release">RELEASE</button>' +
+      '<button class="hq-btn sm ghost" data-hq="escrow-refund">REFUND</button></div>' +
+      '<div id="hqEscMsg"></div></div>';
+
+    /* --- 3. PRIZE POOLS (cell competitions) --- */
+    var pools = (R.prizes && R.prizes.ok && R.prizes.pools) || [];
+    h += '<div class="hq-card"><h3>&#127942; Prize pools</h3>' +
+      '<div class="hq-note">Fund competitions — best post of the week, top recruiter, streak champions. ' +
+      'Members contribute XP; the pool creator awards the winner.</div>';
+    if (isFounder){
+      h += '<div class="hq-row" style="margin-top:8px">' +
+        '<input class="hq-in" id="hqPrizeTitle" maxlength="60" placeholder="Pool title (e.g. Best post this week)">' +
+        '<input class="hq-in" id="hqPrizeTarget" type="number" min="1" placeholder="Target XP" style="width:120px">' +
+        '<button class="hq-btn sm" data-hq="prize-create">CREATE POOL</button></div>';
+    }
+    if (!pools.length){
+      h += '<div class="hq-note" style="margin-top:8px">No prize pools yet.</div>';
+    } else {
+      pools.slice(0,6).forEach(function(pl){
+        var pct = pl.target ? Math.min(100, Math.round((pl.raised||0)/pl.target*100)) : 0;
+        /* 2026-10-03: Award is admin-only (backend ADMIN-gated; the vault
+           holds the secret). Hide the control for non-admins — it 403s anyway. */
+        var awardCtl = adminSecret()
+          ? '<input class="hq-in" id="hqPa_'+esc(pl.id)+'" placeholder="winner callsign" style="width:140px">' +
+            '<button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+esc(pl.id)+'">AWARD</button>'
+          : '';
+        h += '<div style="margin-top:10px"><b>'+esc(pl.title)+'</b>'+hqStateTag(pl)+' <span class="hq-note">by '+esc(pl.created_by||'?')+'</span>' +
+          '<div class="hq-note">'+esc(String(pl.raised||0))+' / '+esc(String(pl.target||0))+' XP</div>' +
+          '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
+          '<div class="hq-row"><input class="hq-in" id="hqPc_'+esc(pl.id)+'" type="number" min="1" placeholder="XP" style="width:90px">' +
+          '<button class="hq-btn sm" data-hq="prize-contribute" data-pool="'+esc(pl.id)+'">CONTRIBUTE</button>' +
+          awardCtl + '</div></div>';
+      });
+    }
+    h += '<div id="hqPrizeMsg"></div></div>';
+
+    /* --- 3b. PROPAGANDA BOUNTIES (best-poster contests) --- */
+    var pbOff = false;
+    try { pbOff = !!(window.PF && PF.skip && PF.skip('propbounty')); } catch(e){}
+    if (!pbOff){
+      h += '<div class="hq-card" style="border-color:#c9a227"><style>.pb-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid #c9a227;color:#c9a227;letter-spacing:1px;white-space:nowrap}</style>' +
+        '<h3>&#127919; Propaganda bounties <span class="hq-note">best poster wins — the cell votes</span></h3>';
+      var pb = R.pbounty;
+      var me2 = (ident()||{}).callsign || '';
+      var canPbMod = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+      if (pb && pb.ok){
+        var blist = pb.bounties || [];
+        h += '<div class="hq-note">The founder or an officer posts a brief. Members forge the poster, drop a link, ' +
+          'and the cell votes — top poster takes the bounty.</div>';
+        if (canPbMod && wcid){
+          h += '<div style="margin-top:8px;border-top:1px solid #2e2e2e;padding-top:10px"><b>Post a bounty</b>' +
+            '<div class="hq-row" style="margin-top:6px"><textarea class="hq-in" id="hqPbPrompt" maxlength="280" rows="2" ' +
+            'placeholder="Brief (280 max) — e.g. Best poster about H.R. 14 wins." style="flex:1;min-width:200px;resize:vertical"></textarea></div>' +
+            '<div class="hq-row">' +
+            '<select class="hq-in" id="hqPbType" aria-label="Entity type">' +
+            ['none','bill','rep','race','poll','nonprofit','campaign','prediction'].map(function(t2){
+              return '<option value="'+t2+'">'+t2.charAt(0).toUpperCase()+t2.slice(1)+'</option>';
+            }).join('') + '</select>' +
+            '<input class="hq-in" id="hqPbRef" maxlength="40" placeholder="Entity ref (e.g. H.R. 14)" style="width:170px">' +
+            '<select class="hq-in" id="hqPbPrize" aria-label="Prize tier">' +
+            '<option value="25">25 XP</option><option value="50" selected>50 XP</option><option value="100">100 XP</option></select>' +
+            '<select class="hq-in" id="hqPbDl" aria-label="Deadline">' +
+            '<option value="24">24h</option><option value="48" selected>48h</option><option value="72">72h</option><option value="168">7d</option></select>' +
+            '<button class="hq-btn sm" data-hq="pb-post">POST BOUNTY</button></div></div>';
+        } else if (!canPbMod){
+          h += '<div class="hq-note">Only the founder and officers can post bounties.</div>';
+        }
+        if (!blist.length){
+          h += '<div class="hq-note" style="margin-top:8px">No propaganda bounties yet — the founder can post the first.</div>';
+        } else {
+          blist.forEach(function(b){ try { h += pbBountyCard(b, me2, canPbMod); } catch(x){} });
+        }
+      } else if (wcid){
+        /* Graceful degradation: backend action doesn't exist yet — card
+           stays, placeholder note, never throws. */
+        h += '<div class="hq-note">Propaganda bounties aren\'t live on the backend yet — ' +
+          'this board lights up the moment the action ships. Nothing to do.</div>';
+      } else {
+        h += '<div class="hq-note">Join a cell to post and vote on propaganda bounties.</div>';
+      }
+      h += '<div id="hqPbMsg"></div></div>';
+    }
+
+    /* --- 4. CELL LOANS (member aid in XP) --- */
+    var loans = (R.loans && R.loans.ok) ? R.loans : { as_lender:[], as_borrower:[] };
+    h += '<div class="hq-card"><h3>&#129309; Cell loans</h3>' +
+      '<div class="hq-note">XP loans between members. Lender sets principal, interest (max 50%), and duration. ' +
+      'New recruits (under 7 days) can get microloans up to 100 XP.</div>';
+    h += '<div class="hq-row" style="margin-top:8px">' +
+      '<input class="hq-in" id="hqLoanTo" placeholder="borrower callsign" style="width:150px">' +
+      '<input class="hq-in" id="hqLoanAmt" type="number" min="1" placeholder="XP" style="width:90px">' +
+      '<input class="hq-in" id="hqLoanInt" type="number" min="0" max="50" placeholder="% int" style="width:80px">' +
+      '<input class="hq-in" id="hqLoanDur" type="number" min="1" max="365" placeholder="days" style="width:80px">' +
+      '<button class="hq-btn sm" data-hq="loan-offer">OFFER LOAN</button></div>';
+    h += '<div class="hq-row"><input class="hq-in" id="hqMicroTo" placeholder="new recruit callsign" style="width:150px">' +
+      '<input class="hq-in" id="hqMicroAmt" type="number" min="1" max="100" placeholder="XP (max 100)" style="width:120px">' +
+      '<button class="hq-btn sm ghost" data-hq="microloan">SEND MICROLOAN</button></div>';
+    var al = loans.as_lender||[], ab = loans.as_borrower||[];
+    if (al.length || ab.length){
+      h += '<div class="hq-note" style="margin-top:8px"><b>Your loans</b></div>';
+      al.forEach(function(l){
+        if (l.repaid) return;
+        h += '<div class="hq-mem"><span>Lent <b>'+esc(String(l.principal))+' XP</b> to '+esc(l.borrower)+' (+'+esc(String(l.interest_pct))+'%)</span>' +
+          '<span class="hq-note">'+dueIn(l.due_at)+'</span></div>';
+      });
+      ab.forEach(function(l){
+        if (l.repaid) return;
+        var total = l.principal + Math.round(l.principal*(l.interest_pct||0)/100);
+        h += '<div class="hq-mem"><span>Borrowed <b>'+esc(String(l.principal))+' XP</b> from '+esc(l.lender)+' — repay '+esc(String(total))+' XP</span>' +
+          '<span><button class="hq-btn sm" data-hq="loan-accept" data-loan="'+esc(l.id)+'">ACCEPT</button> ' +
+          '<button class="hq-btn sm ghost" data-hq="loan-repay" data-loan="'+esc(l.id)+'">REPAY</button></span></div>';
+      });
+    } else {
+      h += '<div class="hq-note" style="margin-top:8px">No active loans.</div>';
+    }
+    h += '<div id="hqLoanMsg"></div></div>';
+
+    /* --- 5. WAR BONDS (USD rail — link only, zero friction) --- */
+    var bonds = (R.bonds && R.bonds.ok && R.bonds.bonds) || [];
+    var bTot = bonds.filter(function(x){ return !x.redeemed; }).reduce(function(a,x){ return a+(x.amount||0); },0);
+    h += '<div class="hq-card"><h3>&#128178; War Bonds <span class="hq-note">(USD rail)</span></h3>' +
+      '<div class="hq-note">Real-money bonds that fund the network. Buying happens in the store — ' +
+      'no callsign needed, no friction. Your held bonds: <b>'+bonds.filter(function(x){return !x.redeemed;}).length+'</b> ' +
+      (bTot ? '('+esc(String(bTot))+' XP value unredeemed)' : '') + '</div>' +
+      '<div class="hq-row" style="margin-top:8px">' +
+      '<a href="/store" class="hq-btn" style="text-decoration:none;display:inline-block">BACK THE FIGHT — BUY WAR BONDS</a></div></div>';
+
+    /* --- 6. CAMPAIGN PLEDGE --- */
+    var cs = R.camp;
+    h += '<div class="hq-card"><h3>&#128681; Campaign pledge</h3>';
+    if (cs && (cs.ok===undefined || cs.ok)){
+      var pledged = cs.pledged;
+      h += '<div><span class="hq-stat">'+esc(String(cs.pledges||cs.pl||0))+' pledged</span>' +
+        '<span class="hq-stat">'+esc(String(cs.actions||cs.acts||0))+' actions logged</span></div>';
+      if (pledged){
+        h += '<div class="hq-note" style="margin-top:8px">You\'re pledged. +25 XP earned. The wall holds because of you.</div>';
+      } else {
+        h += '<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqPledgeNote" maxlength="140" placeholder="Why you fight (optional)">' +
+          '<button class="hq-btn sm" data-hq="pledge">PLEDGE +25 XP</button></div>';
+      }
+    } else {
+      h += netErr();
+    }
+    h += '<div id="hqPledgeMsg"></div></div>';
+
+    body.innerHTML = h;
+    wireRetries(body);
+    /* G7 (2026-10-04): mount the standalone treasury panel (games/treasury.js)
+       into its container at the top of the TREASURY tab. Guarded — the tab
+       renders fine if treasury.js isn't in the bundle yet. */
+    try {
+      var _tp = body.querySelector('#hqTreasuryPanel');
+      if (_tp && window.PFTreasury && window.PFTreasury.mount)
+        window.PFTreasury.mount(_tp, { cell_id: wcid, cell_name: wcname,
+          is_officer: !!(S.mine && (S.mine.is_founder || S.mine.is_officer)) });
+    } catch (e) {}
+  }
+
+  function escrowMemberOptions(){
+    var mems = [];
+    if (S.mine && S.mine.members) mems = S.mine.members.map(function(m){ return m.callsign; });
+    if (!mems.length) return '<option value="">(no members loaded)</option>';
+    return mems.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+  }
+  function dueIn(ts){
+    if (!ts) return '';
+    var d = Math.ceil((ts - Date.now())/86400000);
+    if (d < 0) return 'OVERDUE';
+    if (d === 0) return 'due today';
+    return 'due in '+d+'d';
+  }
+  function treasMsg(id, ok, msg){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="hq-note" style="margin-top:6px;color:'+(ok?'#7CFC00':'#ff6b6b')+'">'+esc(msg)+'</div>';
+  }
+
+  /* ---------- event delegation ---------- */
+  function refreshMineThen(tab){
+    invalidateMine(); S.detailPrestige=null; S.detailHealth=null;
+    S.tab = tab || 'mine';
+    mount.querySelectorAll('.hq-tab').forEach(function(x){
+      x.classList.toggle('on', x.getAttribute('data-tab')===S.tab);
+    });
+    render();
+  }
+
+  mount.addEventListener('click', function(ev){
+    var t = ev.target;
+    /* CELL IDENTITY (2026-10-05): discovery actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       Join and apply both pay 0 XP (Engagement review verdict). */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && t.closest){
+      var ia = t.closest('[data-idjoin],[data-idapply]');
+      if (ia && mount.contains(ia)){
+        var jc = ia.getAttribute('data-idjoin'), ac = ia.getAttribute('data-idapply');
+        if (jc){
+          var idj = ident();
+          if (!idj.callsign){ toast('Claim a callsign first.'); return; }
+          try{ ia.disabled = true; }catch(e){}
+          api('cell_join', withIdent({code:String(jc).toUpperCase().trim()}), function(j){
+            try{ ia.disabled = false; }catch(e){}
+            if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+            else toast(friendlyErr(j));
+          });
+        } else if (ac){
+          window.PFCellIdentity.applyToCell(ac, function(j){
+            if (j && j.ok) toast('Application sent. The founder reviews every request.');
+            else toast(friendlyErr(j));
+          });
+        }
+        return;
+      }
+    }
+    /* PLAY 7 (2026-10-06): rally-call actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       "RALLY AROUND THIS →" copies the rally message (take-to-cell
+       handoff — nothing auto-posts). "MARK TAKEN" claims the call. */
+    if (t.closest){
+      var ra = t.closest('[data-rally]');
+      if (ra && mount.contains(ra)){
+        var rid = ra.getAttribute('data-rid'), rop = ra.getAttribute('data-rally');
+        if (rop === 'copy'){
+          var rs = rallyCache[String(rid)];
+          if (rs) rallyCopyText(rs);
+          return;
+        }
+        if (rop === 'taken'){
+          try{ ra.disabled = true; }catch(e){}
+          rallyActPost(rid, 'taken', function(wasOk){
+            try{ ra.disabled = false; }catch(e2){}
+            if (wasOk){
+              toast('Rally claimed — your cell is on it.');
+              var card = ra.closest('.hq-rallyitem');
+              if (card && card.parentNode) card.parentNode.removeChild(card);
+            } else toast('The wire fought back. Nothing changed — retry.');
+          });
+          return;
+        }
+      }
+    }
+    while (t && t !== mount && !t.getAttribute('data-hq')) t = t.parentNode;
+    if (!t || t === mount) return;
+    var a = t.getAttribute('data-hq');
+    var cellId = t.getAttribute('data-cell');
+    var id = ident();
+
+    function needCs(){
+      if (!id.callsign){ toast('Claim a callsign first.'); return false; }
+      return true;
+    }
+    function busy(dis){ try{ t.disabled = !!dis; }catch(e){} }
+
+    /* CELLS 2.0 (2026-10-05): copy the personal invite link from the
+       Recruit panel. Clipboard with a select+execCommand fallback; never
+       throws, never blocks. */
+    if (a==='recruit-copy'){
+      var rInp=document.getElementById('hqRecruitLink');
+      var rVal=rInp?String(rInp.value||""):"";
+      if(!rVal){ toast('No invite link yet.'); return; }
+      var rDone=function(){ toast('Invite link copied. Go recruit.'); };
+      var rFallback=function(){
+        try{ rInp.focus(); rInp.select();
+          if(document.execCommand('copy')){ rDone(); return; }
+        }catch(e2){}
+        toast('Copy this link: '+rVal);
+      };
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(rVal).then(rDone,rFallback);
+        } else rFallback();
+      }catch(e3){ rFallback(); }
+    }
+    else if (a==='back'){ refreshMineThen('mine'); }
+    else if (a==='detail'){ S.detail=cellId; S.detailPrestige=null; S.detailHealth=null; S.tab='detail'; render(); }
+    else if (a==='checkin'){
+      if(!needCs()) return; busy(true);
+      api('cell_checkin', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Checked in. Streak holds.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='cover'){
+      if(!needCs()) return;
+      if(!moneyConfirm('Cover this cellmate\'s missed check-in? Uses your one weekly cover.')) return;
+      busy(true);
+      api('cell_cover', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Covered. Nobody gets left behind.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='strike-reroll'){
+      /* G12 (2026-10-05): founder-only re-roll of the political strike order. */
+      if(!needCs()) return; busy(true);
+      postMut('strike_reroll', withIdent({cell_id: cellId}), function(j){
+        busy(false);
+        if (j && j.ok){
+          toast('New political strike order issued.');
+        } else {
+          toast(friendlyErr(j));
+          if (j && (j.already_rerolled || j.rerolled_used || /already|r[eé]-roll/i.test(String(j.err||j.error||j.message||'')))){
+            t.disabled = true; t.textContent = 'RE-ROLLED THIS WEEK';
+            return;
+          }
+        }
+        /* Re-pull the orders so the card + counts are fresh. */
+        paintStrikeOrders(mount, cellId, true);
+      });
+    }
+    else if (a==='strike-forge'){
+      /* fe/strike-orders-creative: FORGE THIS — deep-link into the Poster
+         Forge with the bound entity pre-loaded (pf-forge-launch handoff). */
+      if(!needCs()) return;
+      var fEnt = {
+        kind: t.getAttribute('data-ekind') || '',
+        id: t.getAttribute('data-eid') || '',
+        title: t.getAttribute('data-etitle') || '',
+        url: t.getAttribute('data-eurl') || ''
+      };
+      if (!fEnt.id) fEnt = null;
+      strikeForgeLaunch(cellId, t.getAttribute('data-week') || '', fEnt, '/create#pf-poster');
+    }
+    else if (a==='bounties'){
+      if(!needCs()) return; busy(true);
+      api('cell_bounty_claim', withIdent({}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounties claimed: +'+(j.xp||0)+' XP.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='warchest' || a==='warchest-custom'){
+      if(!needCs()) return;
+      var wcid2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!wcid2){ toast('Join a cell first.'); return; }
+      var wamt = a==='warchest' ? Number(t.getAttribute('data-amt')) : Number(strIn('hqWarchestCustom'));
+      if (!wamt || wamt < 10 || wamt > 10000){ toast('Amount must be 10–10000 XP.'); return; }
+      if (!confirm('Contribute '+wamt+' XP to the cell war chest? This is spent, not a loan.')) return;
+      busy(true);
+      api('cell_contribute', withIdent({cell_id: wcid2, xp: wamt}), function(j){
+        busy(false);
+        if (j && j.ok){
+          /* Backend already debited via xpGrant in cell_contribute.
+             Mirror the spend on the local ledger for instant UX
+             (no pf-xp dispatch — that would mirror to backend and
+             double-debit). */
+          try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,wamt); }catch(e){}
+          var msg = 'War chest +'+wamt+' XP. Total: '+(j.total||0)+'/'+(j.goal||1000)+'.';
+          if (j.milestone_unlocked) msg += ' GOAL HIT — +5 XP checkin boost active 24h!';
+          toast(msg);
+          S.tab='treasury'; render();
+        }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='dividend-pay'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer))){
+        toast('Only the founder, officers, and the treasurer can pay dividends.'); return;
+      }
+      var dcell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!dcell2){ toast('Join a cell first.'); return; }
+      var damt = numIn('hqDivAmt', 0);
+      if (!damt || damt < 1){ toast('Enter an XP amount first.'); return; }
+      var dsp = divSplit(damt);
+      if (!dsp){ toast('Amount too small to split across all members.'); return; }
+      var dmsg = 'Pay dividend: '+dsp.per.toLocaleString()+' XP to each of '+dsp.n+' members ('+
+        dsp.total.toLocaleString()+' XP total';
+      if (dsp.leftover > 0) dmsg += ', '+dsp.leftover.toLocaleString()+' XP stays in the treasury';
+      dmsg += '). Confirm?';
+      if (!moneyConfirm(dmsg)) return;
+      busy(true);
+      postFin('dividend_pay', {cell_id: dcell2, amount: damt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          treasMsg('hqDivMsg', true, 'Paid '+Number(j.distributed||0).toLocaleString()+' XP — '+
+            Number(j.per_member||0).toLocaleString()+' XP to every member.');
+          toast('Dividend paid. '+Number(j.distributed||0).toLocaleString()+' XP out.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqDivMsg', false, friendlyErr(j));
+      });
+    }
+    /* R9 (2026-10-04): SPONSOR — treasury -> cause pool. Officer-gated
+       server-side; the backend debits the treasury, never the officer. */
+    else if (a==='sponsor'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        toast('Only the founder and officers can sponsor from the treasury.'); return;
+      }
+      var scell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!scell2){ toast('Join a cell first.'); return; }
+      var spid = strIn('hqSpPool');
+      var samt = numIn('hqSpAmt', 0);
+      if (!spid){ toast('Pick a cause pool.'); return; }
+      if (!samt || samt < 1){ toast('Enter an XP amount first.'); return; }
+      var spcname = (S.mine.cell && S.mine.cell.name) || 'your cell';
+      if (!moneyConfirm('Sponsor '+samt.toLocaleString()+' XP from the '+spcname+' treasury to this cause? Officer move — spends real cell XP.')) return;
+      busy(true);
+      postFin('cause_sponsor', {cell_id: scell2, pool_id: spid, amount: samt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          var smsg = j.dup ? 'Already counted — double-tap ignored.' :
+            'Sponsored '+Number(j.amount||samt).toLocaleString()+' XP to '+(j.pool||'the cause')+' as '+(j.cell_name||spcname)+'.';
+          treasMsg('hqSpMsg', true, smsg);
+          toast('Cause sponsored. The treasury backs the fight.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqSpMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='create'){
+      if(!needCs()) return;
+      var nm = strIn('hqNewName');
+      if (nm.length < 3){ toast('Cell name needs 3-24 characters.'); return; }
+      busy(true);
+      /* strIn drops nothing: "" state means unaffiliated (backend nullable). */
+      api('cell_create', withIdent({name:nm, state:strIn('hqNewState')}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Cell founded. Invite code: '+(j.cell&&j.cell.invite_code?j.cell.invite_code:'')); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='join'){
+      if(!needCs()) return;
+      var code = strIn('hqJoinCode').toUpperCase();
+      if (!code){ toast('Enter an invite code.'); return; }
+      busy(true);
+      api('cell_join', withIdent({code:code}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='join-id'){
+      if(!needCs()) return;
+      /* Browse join: need invite code — search results don't carry it.
+         Ask for the code directly. */
+      var c2 = window.prompt('Enter the invite code for this cell:');
+      if (!c2) return;
+      busy(true);
+      api('cell_join', withIdent({code:String(c2).toUpperCase().trim()}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='rename'){
+      if(!needCs()) return;
+      var nn = window.prompt('New cell name (3-24 characters):');
+      if (!nn || nn.trim().length < 3) return;
+      busy(true);
+      api('cell_rename', withIdent({cell_id:cellId, name:nn.trim()}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Cell renamed.'); refreshMineThen('detail'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='set-state'){
+      /* Founder: change the cell's state affiliation. cell_update is a WRITE
+         action -> postMut POST, so an empty string transmits (clears the
+         affiliation); fail-soft on old backends (no such action): the error
+         shows and the affiliation rendering is untouched. */
+      if(!needCs()) return;
+      var sv = strIn('hqSetState');
+      busy(true);
+      api('cell_update', withIdent({cell_id:cellId, state:sv}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('State affiliation updated.'); refreshMineThen('detail'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='promote'){
+      if(!needCs()) return;
+      var tgt = t.getAttribute('data-target');
+      /* G11 (2026-10-04): founder-only role assignment — one role per member. */
+      var role = window.prompt('Set role for '+tgt+' — type "officer", "member", "treasurer", or "warcaller":','officer');
+      if (!role) return;
+      role = role.trim().toLowerCase();
+      if (role!=='officer' && role!=='member' && role!=='treasurer' && role!=='warcaller'){ toast('Role must be officer, member, treasurer, or warcaller.'); return; }
+      if(!moneyConfirm('Set '+tgt+' as '+role+'?')) return;
+      busy(true);
+      api('cell_promote', withIdent({cell_id:cellId, target:tgt, role:role}), function(j){
+        busy(false);
+        if (j && j.ok){ toast(tgt+' is now '+role+'.'); S.detailPrestige=null; render(); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='leave'){
+      if(!needCs()) return;
+      if(!moneyConfirm('Leave this cell? Your streak with this cell ends here.')) return;
+      busy(true);
+      api('cell_leave', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('You left the cell.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='search'){
+      S.searchQ = strIn('hqSearch');
+      S.searchState = strIn('hqSearchState');
+      /* CELL IDENTITY (2026-10-05): persist quality filters in S so a
+         re-render keeps them. */
+      if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+        S.idfCause = strIn('hqIdfCause'); S.idfVibe = strIn('hqIdfVibe');
+        S.idfSpec = strIn('hqIdfSpec'); S.idfEntry = strIn('hqIdfEntry');
+        S.idfAct = strIn('hqIdfAct');
+        /* QC FIX (2026-10-05, Finding 3): persist the sort choice so a
+           re-render keeps it. */
+        S.idfSort = strIn('hqIdfSort');
+      }
+      var res = document.getElementById('hqSearchRes');
+      if (res) res.innerHTML = loading('Searching&hellip;');
+      doSearch(function(j){
+        var r2 = document.getElementById('hqSearchRes');
+        if (r2) r2.innerHTML = searchHtml(j);
+      });
+    }
+    /* ----- treasury actions ----- */
+    else if (a==='escrow-create'){
+      if(!needCs()) return;
+      var to = strIn('hqEscTo'), amt = numIn('hqEscAmt'), why = strIn('hqEscWhy')||'cell bounty';
+      if (!to){ treasMsg('hqEscMsg', false, 'Pick a member.'); return; }
+      if (!amt){ treasMsg('hqEscMsg', false, 'Enter an XP amount.'); return; }
+      if(!moneyConfirm('Lock '+amt+' XP in escrow for '+to+'?\n"'+why+'"')) return;
+      busy(true);
+      postFin('escrow_create', {from_cs:id.callsign, to_cs:to, amount:amt, purpose:why}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow locked. ID: '+j.id+' — SAVE THIS ID to release or refund.'); toast('Escrow locked.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='escrow-release'){
+      if(!needCs()) return;
+      var eid = strIn('hqEscId');
+      if (!eid){ treasMsg('hqEscMsg', false, 'Enter the escrow ID.'); return; }
+      if(!moneyConfirm('RELEASE escrow '+eid+' to the recipient? This cannot be undone.')) return;
+      busy(true);
+      postFin('escrow_release', {escrow_id:eid}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow released.'); toast('Escrow settled.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='escrow-refund'){
+      if(!needCs()) return;
+      var eid2 = strIn('hqEscId');
+      if (!eid2){ treasMsg('hqEscMsg', false, 'Enter the escrow ID.'); return; }
+      if(!moneyConfirm('REFUND escrow '+eid2+' back to the locker? This cannot be undone.')) return;
+      busy(true);
+      postFin('escrow_refund', {escrow_id:eid2}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow refunded.'); toast('Escrow refunded.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-create'){
+      if(!needCs()) return;
+      var title = strIn('hqPrizeTitle'), target = numIn('hqPrizeTarget');
+      if (title.length < 3){ treasMsg('hqPrizeMsg', false, 'Give the pool a title.'); return; }
+      if (!target){ treasMsg('hqPrizeMsg', false, 'Set a target XP amount.'); return; }
+      if(!moneyConfirm('Create prize pool "'+title+'" with a '+target+' XP target?')) return;
+      busy(true);
+      postPrize('prize_create', {title:title, target:target}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Pool created.'); toast('Prize pool live.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-contribute'){
+      if(!needCs()) return;
+      var pool = t.getAttribute('data-pool');
+      var camt = numIn('hqPc_'+pool);
+      if (!camt){ treasMsg('hqPrizeMsg', false, 'Enter an XP amount to contribute.'); return; }
+      if(!moneyConfirm('Contribute '+camt+' XP to this prize pool?')) return;
+      busy(true);
+      postPrize('prize_contribute', {pool_id:pool, amount:camt}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Contributed. Pool now at '+j.raised+' XP.'); toast('Contribution locked in.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-award'){
+      if(!needCs()) return;
+      /* Admin-only: prize_award is backend ADMIN-gated. Without the vault's
+         session secret the router 403s, so fail closed here too. */
+      if(!adminSecret()){ treasMsg('hqPrizeMsg', false, 'Awarding is admin-only — open the Vault to award prize pools.'); return; }
+      var pool2 = t.getAttribute('data-pool');
+      var winner = strIn('hqPa_'+pool2).toLowerCase();
+      if (!winner){ treasMsg('hqPrizeMsg', false, 'Enter the winner\'s callsign.'); return; }
+      if(!moneyConfirm('Award this pool to '+winner+'? The full pool pays out. This cannot be undone.')) return;
+      busy(true);
+      postPrize('prize_award', {pool_id:pool2, winner:winner}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Awarded to '+winner+'.'); toast('Prize awarded.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      }, {admin:true});
+    }
+    else if (a==='loan-offer'){
+      if(!needCs()) return;
+      var bor = strIn('hqLoanTo').toLowerCase(), princ = numIn('hqLoanAmt');
+      var intr = numIn('hqLoanInt'), dur = numIn('hqLoanDur', 30);
+      if (!bor){ treasMsg('hqLoanMsg', false, 'Enter the borrower\'s callsign.'); return; }
+      if (!princ){ treasMsg('hqLoanMsg', false, 'Enter a principal XP amount.'); return; }
+      if (intr > 50){ treasMsg('hqLoanMsg', false, 'Interest capped at 50%.'); return; }
+      if(!moneyConfirm('Offer '+princ+' XP loan to '+bor+' at '+intr+'% for '+dur+' days?\nThe XP leaves your balance until repaid.')) return;
+      busy(true);
+      postFin('loan_offer', {lender:id.callsign, borrower:bor, principal:princ, interest_pct:intr, duration_days:dur}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqLoanMsg', true, 'Loan offered.'); toast('Loan offer sent.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='loan-accept'){
+      if(!needCs()) return;
+      var lid = t.getAttribute('data-loan');
+      if(!moneyConfirm('Accept this loan? The XP lands in your balance now; you repay principal + interest.')) return;
+      busy(true);
+      postFin('loan_accept', {loan_id:lid}, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Loan accepted.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='loan-repay'){
+      if(!needCs()) return;
+      var lid2 = t.getAttribute('data-loan');
+      if(!moneyConfirm('Repay this loan in full (principal + interest)?')) return;
+      busy(true);
+      postFin('loan_repay', {loan_id:lid2}, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Loan repaid. Clean slate.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='microloan'){
+      if(!needCs()) return;
+      var rec = strIn('hqMicroTo').toLowerCase(), mamt = numIn('hqMicroAmt');
+      if (!rec){ treasMsg('hqLoanMsg', false, 'Enter the recruit\'s callsign.'); return; }
+      if (!mamt || mamt > 100){ treasMsg('hqLoanMsg', false, 'Microloans are 1-100 XP.'); return; }
+      if(!moneyConfirm('Send '+mamt+' XP microloan to '+rec+'? (Recruit must be under 7 days old.)')) return;
+      busy(true);
+      postFin('microloan_give', {sponsor:id.callsign, recruit:rec, amount:mamt}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqLoanMsg', true, 'Microloan sent.'); toast('Microloan sent.'); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    /* ----- propaganda bounty actions ----- */
+    else if (a==='pb-post'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        treasMsg('hqPbMsg', false, 'Only the founder and officers can post bounties.'); return;
+      }
+      var pbCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!pbCell){ treasMsg('hqPbMsg', false, 'Join a cell first.'); return; }
+      var prompt = strIn('hqPbPrompt');
+      if (prompt.length < 3){ treasMsg('hqPbMsg', false, 'Write a brief — at least 3 characters.'); return; }
+      prompt = prompt.slice(0, 280);
+      var etype = strIn('hqPbType').toLowerCase();
+      var validTypes = {none:1,bill:1,rep:1,race:1,poll:1,nonprofit:1,campaign:1,prediction:1};
+      if (!validTypes[etype]) etype = 'none';
+      var eref = strIn('hqPbRef').slice(0, 40);
+      if (etype === 'none') eref = '';
+      var pTier = numIn('hqPbPrize', 50);
+      if (pTier !== 25 && pTier !== 50 && pTier !== 100) pTier = 50;
+      var pDl = numIn('hqPbDl', 48);
+      if (pDl !== 24 && pDl !== 48 && pDl !== 72 && pDl !== 168) pDl = 48;
+      if(!moneyConfirm('Post propaganda bounty for '+pTier+' XP? "'+prompt+'"')) return;
+      busy(true);
+      api('propbounty_post', withIdent({cell_id: pbCell, prompt: prompt, entity_type: etype,
+        entity_ref: eref, prize_xp: pTier, deadline_hours: pDl}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty posted. Forge away.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-submit'){
+      if(!needCs()) return;
+      var sbid = t.getAttribute('data-bounty');
+      var aurl = strIn('hqPbUrl_'+sbid), atitle = strIn('hqPbTitle_'+sbid).slice(0, 80);
+      if (!/^https?:\/\//i.test(aurl)){ treasMsg('hqPbMsg', false, 'Paste a valid link to your poster (http/https).'); return; }
+      if (atitle.length < 2){ treasMsg('hqPbMsg', false, 'Give your submission a title.'); return; }
+      busy(true);
+      api('propbounty_submit', withIdent({bounty_id: sbid, asset_url: aurl, title: atitle}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Submitted. May the best poster win.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-vote'){
+      if(!needCs()) return;
+      var vbid = t.getAttribute('data-bounty'), vsub = t.getAttribute('data-sub');
+      busy(true);
+      api('propbounty_vote', withIdent({bounty_id: vbid, submission_id: vsub}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Vote counted.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-settle'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var stbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Settle this bounty early? Top-voted submission wins the XP. This cannot be undone.')) return;
+      busy(true);
+      api('propbounty_settle', withIdent({bounty_id: stbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty settled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-cancel'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var cbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Cancel this bounty? Submissions are discarded and no XP pays out.')) return;
+      busy(true);
+      api('propbounty_cancel', withIdent({bounty_id: cbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty cancelled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pledge'){
+      if(!needCs()) return;
+      var note = strIn('hqPledgeNote');
+      if(!moneyConfirm('Pledge to the campaign? One-time, earns +25 XP.')) return;
+      busy(true);
+      postCamp('campaign_pledge', {note:note}, function(j){
+        busy(false);
+        if (j && (j.ok || j.pledged)){ treasMsg('hqPledgeMsg', true, 'Pledged. +25 XP. The wall holds.'); toast('Pledged.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPledgeMsg', false, friendlyErr(j));
+      });
+    }
+  });
+
+  /* dividend amount — live split preview */
+  mount.addEventListener('input', function(ev){
+    if (ev.target && ev.target.id === 'hqDivAmt'){
+      var pv = document.getElementById('hqDivPreview');
+      if (pv) pv.innerHTML = divPreviewHtml(numIn('hqDivAmt', 0));
+    }
+  });
+
+  /* search on Enter */
+  mount.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter' && ev.target && ev.target.id === 'hqSearch'){
+      ev.preventDefault();
+      S.searchQ = strIn('hqSearch');
+      var res = document.getElementById('hqSearchRes');
+      if (res) res.innerHTML = loading('Searching&hellip;');
+      doSearch(function(j){
+        var r2 = document.getElementById('hqSearchRes');
+        if (r2) r2.innerHTML = searchHtml(j);
+      });
+    }
+  });
+
+  /* ---------- boot ---------- */
+  /* TERMINAL STATE (2026-10-04): the pane must never sit on its loading
+     text if boot throws — render the explicit HQ error panel instead. */
+  try { render(); }
+  catch (be) {
+    try {
+      var bp = pane();
+      if (bp) bp.innerHTML = netErr();
+      if (window.PF) PF.error('cell-hq', 'boot failed :: ' + (be && be.message || be));
+    } catch (be2) {}
+  }
+})();
+
+;
+
+/* ===== cell-starter-kit.js ===== */
+/* games/cell-starter-kit.js  |  PF v1.4.3 | NEW-CELL STARTER KITS.
+   Engagement build D, item #7 (gate: Economy SIGNED).
+   Fresh cells get a founder bounty + three starter missions for the first
+   48 hours. One kit per cell, founder-gated, 48h server-clock expiry —
+   all enforced server-side; this module is display + claim buttons only.
+   XP (Economy-signed, existing legs): founder 25/recruit via cellbounty_
+   (claim through the existing cell_bounty_claim flow); 3 missions x 10 XP
+   via dochall_<cell>_<mission>_<callsign> (server-verified completion,
+   per-callsign idempotent across cells).
+   This module NEVER awards XP device-locally for kit missions — the server
+   is the granter (claim -> POST kit_mission_claim -> result). No double-pay.
+   Mounts into #pf-cell-hq (falls back to #pf-cells-page). Fail-soft: no
+   callsign, no kits, backend down -> the section hides.
+   KILL: ?pf_off=cell-kits  or  localStorage pf_disabled_v1='["cell-kits"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cell-kits")) { return; }
+  if (window.pfCellKitDone) return;
+  window.pfCellKitDone = true;
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function post(action, params, cb){
+    var done=function(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} };
+    try{
+      if(window.PF && PF.postAction){
+        var p={}; for(var k in params) p[k]=params[k];
+        var id=ident(); if(id.callsign) p.callsign=id.callsign; if(id.device) p.device=id.device;
+        PF.postAction('cell','cell_action',action,p,done); return;
+      }
+    }catch(e){}
+    done(null);
+  }
+  function fmtLeft(ms){
+    var s=Math.max(0,Math.floor(ms/1000)), h=Math.floor(s/3600), m=Math.floor((s%3600)/60);
+    if(h>0) return h+"h "+m+"m left";
+    return m+"m left";
+  }
+
+  var CSS=[
+    '#pf-cell-kit{margin:14px 0}',
+    '#pf-cell-kit .ck-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:16px;margin-bottom:12px}',
+    '#pf-cell-kit .ck-k{font-size:11px;letter-spacing:3px;color:#e8b923;font-weight:700}',
+    '#pf-cell-kit .ck-t{font-weight:900;font-size:18px;color:#f5ead6;margin:4px 0;letter-spacing:1px}',
+    '#pf-cell-kit .ck-m{border-top:1px solid #2a2a2a;padding:10px 0}',
+    '#pf-cell-kit .ck-m:first-of-type{border-top:0}',
+    '#pf-cell-kit .ck-mt{font-weight:700;font-size:14px;color:#f5ead6}',
+    '#pf-cell-kit .ck-md{font-size:13px;color:#c9bfa8;margin:4px 0;line-height:1.5}',
+    '#pf-cell-kit .ck-xp{display:inline-block;background:#e8b923;color:#0d0d0d;font-weight:900;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:4px;margin-left:8px}',
+    '#pf-cell-kit .ck-btn{background:#c1121f;color:#fff;border:0;border-radius:6px;padding:10px 18px;font-weight:900;letter-spacing:1px;cursor:pointer;font-size:13px;margin-top:6px}',
+    '#pf-cell-kit .ck-btn:disabled{opacity:.45;cursor:default}',
+    '#pf-cell-kit .ck-done{color:#7fc97f;font-weight:700;font-size:13px;margin-top:6px}',
+    '#pf-cell-kit .ck-note{font-size:12px;color:#8a7f68;margin-top:8px;line-height:1.5}',
+    '#pf-cell-kit .ck-err{font-size:13px;color:#e88;font-weight:700;margin-top:6px}'
+  ].join('\n');
+
+  function render(host, kits){
+    var h='<div id="pf-cell-kit">';
+    for(var i=0;i<kits.length;i++){
+      var k=kits[i];
+      h+='<div class="ck-card" data-ck-cell="'+esc(k.cell_id)+'">';
+      h+='<div class="ck-k">STARTER KIT &middot; '+esc(fmtLeft(k.ms_left))+'</div>';
+      h+='<div class="ck-t">'+esc(k.cell_name)+'</div>';
+      h+='<div class="ck-note">Fresh-cell boost: three starter missions, 48 hours. '+
+         'Recruits you bring in pay +25 XP each through the recruit bounty.</div>';
+      for(var mI=0;mI<k.missions.length;mI++){
+        var m=k.missions[mI];
+        h+='<div class="ck-m"><span class="ck-mt">'+esc(m.title)+'</span><span class="ck-xp">+'+m.xp+' XP</span>';
+        h+='<div class="ck-md">'+esc(m.detail)+'</div>';
+        if(m.done) h+='<div class="ck-done">DONE — claimed.</div>';
+        else if(m.can_claim) h+='<button class="ck-btn" data-ck-claim="'+esc(m.id)+'">CLAIM '+m.xp+' XP</button><div class="ck-msg"></div>';
+        else h+='<div class="ck-note">Complete the mission above, then claim.</div>';
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+    host.innerHTML=h;
+    var btns=host.querySelectorAll('[data-ck-claim]');
+    for(var b=0;b<btns.length;b++){
+      (function(btn){
+        btn.addEventListener('click', function(){
+          var card=btn.closest('[data-ck-cell]');
+          var cellId=card?card.getAttribute('data-ck-cell'):'';
+          var mid=btn.getAttribute('data-ck-claim');
+          var msg=card?card.querySelector('.ck-msg'):null;
+          btn.disabled=true;
+          post('kit_mission_claim', {cell_id:cellId, mission:mid}, function(j){
+            if(j && j.ok){
+              if(j.dup){ if(msg) msg.innerHTML='<div class="ck-done">Already claimed.</div>'; }
+              else{
+                if(window.PF&&PF.toast) PF.toast('STARTER MISSION — +'+(j.xp||10)+' XP');
+                refresh(host);
+                return;
+              }
+            }else{
+              var err=(j&&j.err)||'error';
+              if(msg) msg.innerHTML='<div class="ck-err">'+esc(err==='mission_incomplete'?'Not done yet — complete the mission first.':err)+'</div>';
+              btn.disabled=false;
+            }
+          });
+        });
+      })(btns[b]);
+    }
+  }
+
+  function refresh(host){
+    var id=ident();
+    if(!id.callsign){ host.style.display='none'; return; }
+    post('cell_mine', {}, function(j){
+      if(!j || !j.ok || !j.cells || !j.cells.length){ host.style.display='none'; return; }
+      var cells=j.cells, pending=cells.length, kits=[];
+      if(!pending){ host.style.display='none'; return; }
+      cells.forEach(function(c){
+        post('kit_status', {cell_id:c.id}, function(k){
+          pending--;
+          if(k && k.ok && k.kit && !k.kit.expired){
+            var open=k.kit.missions.filter(function(m){ return m.can_claim; });
+            if(open.length) kits.push({cell_id:c.id, cell_name:c.name||'Your cell', ms_left:k.kit.ms_left, missions:k.kit.missions});
+          }
+          if(pending<=0){
+            if(!kits.length){ host.style.display='none'; return; }
+            render(host, kits);
+          }
+        });
+      });
+    });
+  }
+
+  function boot(){
+    try{
+      if(document.getElementById('pf-cell-kit-css')) return;
+      var st=document.createElement('style');
+      st.id='pf-cell-kit-css'; st.textContent=CSS;
+      document.head.appendChild(st);
+    }catch(e){}
+    var mount=document.getElementById('pf-cell-hq')||document.getElementById('pf-cells-page');
+    if(!mount) return;
+    var host=document.createElement('div');
+    mount.appendChild(host);
+    refresh(host);
+  }
+
+  /* cell-hq mounts async — retry briefly, then give up silently. */
+  var tries=0;
+  (function tick(){
+    var mount=document.getElementById('pf-cell-hq')||document.getElementById('pf-cells-page');
+    if(mount || tries>=10){ if(mount) boot(); return; }
+    tries++;
+    setTimeout(tick, 500);
+  })();
+})();
+
+;
+
+/* ===== treasury.js ===== */
+/* games/treasury.js  |  PF v1.4.3 | CELLS wave G7: standalone cell treasury panel.
+   FUND THE TREASURY + SPEND + balance trajectory for ONE cell (the viewer's
+   own cell). Composes with games/cell-hq.js: the TREASURY tab renders a
+   <div id="hqTreasuryPanel"> container and calls window.PFTreasury.mount()
+   with the cell context; cell-hq keeps its dividend-payout and R9
+   sponsor-a-cause cards below this panel.
+
+   DEDUPE (dedupe check 2026-10-04): 6A's economy.js "Cell Treasury" pane
+   (THROW DOWN / SPEND / balance / recent list, any-cell-id input on
+   /war-chest) is left untouched — this module is the cell-scoped,
+   callsign-aware standalone panel with the G7 balance trajectory and the
+   spend-destination chooser. It does NOT duplicate the economy.js widget.
+
+   WHAT'S NEW vs 6A:
+   1. Standalone panel module composing with cell-hq (own mount contract).
+   2. Balance trajectory — daily snapshots from the new `treasury_history`
+      backend action (GET cell_id+days, derived from treasury_log, no new
+      table). Renders as an inline SVG sparkline; fail-soft if the action
+      isn't registered yet (balance stays live, trajectory says so honestly).
+   3. Spend destinations: free-form purpose (treasury_spend) AND
+      "SPONSOR A CAUSE ->" deep-linking to the 6A-R9 cause-sponsorship UI
+      at /ventures?cell=<id>&sponsor=1 (movement.js owns that surface —
+      reused, not rebuilt; BLOSSOM M3 2026-10-06 moved the movement silo
+      onto /ventures as the Movement Funds section).
+   4. NUKE WIRE-UP (2026-10-05, wave-nuke-fe): officer-only STAKE INTO THE
+      BLAST card — burns treasury XP into the charge pool (1 XP = 1 charge,
+      2,500/day/cell cap) via POST {type:'nuke', n_action:'nuke_stake'}.
+      Confirm copy is binding: "Burn X XP from the treasury into the blast.
+      This is a sacrifice — the XP is destroyed."
+      (2026-10-05 contract fix: nuke_status never sends a staked-today
+      number, so the card shows the cap honestly instead of a readout.)
+
+   COPY RULE: "FUND THE TREASURY". The d-word is banned everywhere here.
+   Money moves use native confirm(). Officers-only spend is enforced
+   server-side (treasury_spend); the UI mirrors the gate honestly.
+   Mounts into <div id="pf-treasury"></div> for standalone use (resolves the
+   viewer's primary cell via cell_mine), or via PFTreasury.mount(el, ctx).
+   KILL: ?pf_off=treasury  or  localStorage pf_disabled_v1='["treasury"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('treasury')) { return; }
+  if (window.pfTreasuryLoaded) { return; }
+  window.pfTreasuryLoaded = true;
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var TRAJ_DAYS = 30;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(m) { try { PF.toast(m); } catch (e) {} }
+  function fmt(n) { try { return Number(n || 0).toLocaleString(); } catch (e) { return String(n || 0); } }
+  function ident() {
+    var cs = '', dev = '';
+    try { cs = window.PFCallsign ? window.PFCallsign() : ''; } catch (e) {}
+    try { dev = window.PFDeviceId ? window.PFDeviceId() : ''; } catch (e) {}
+    return { callsign: cs, device: dev };
+  }
+
+  /* JSONP GET — read-only treasury reads. 12s timeout, same as every silo. */
+  function api(action, params, cb) {
+    function done(j) { try { cb(j); } catch (e) {} }
+    if (!BACKEND) { done(null); return; }
+    var fn = 'pfTrzCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), finished = false;
+    function finish(j) {
+      if (finished) return; finished = true;
+      try { delete window[fn]; } catch (e) {}
+      if (s.parentNode) s.parentNode.removeChild(s);
+      done(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    document.head.appendChild(s);
+    setTimeout(function () { finish(null); }, 12000);
+  }
+
+  /* Treasury mutations route {type:'treasury', t_action} -> treasuryDispatch.
+     PF.postAction attaches the auth secret; fetch fallback mirrors cell-hq. */
+  function postTreas(tAction, params, cb) {
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    var id = ident();
+    var p = { callsign: id.callsign, device: id.device };
+    for (var k in (params || {})) p[k] = params[k];
+    if (window.PF && PF.postAction) { PF.postAction('treasury', 't_action', tAction, p, cb); return; }
+    if (!BACKEND) { done(null); return; }
+    try {
+      var body = { type: 'treasury', t_action: tAction };
+      for (var k2 in p) body[k2] = p[k2];
+      var sec = '';
+      try { sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) {}
+      if (sec) body.auth_secret = sec;
+      var o = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, c = null, t = null;
+      try {
+        if (window.AbortController) {
+          c = new AbortController(); o.signal = c.signal;
+          t = setTimeout(function () { try { c.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) {}
+      fetch(BACKEND, o).then(function (r) { return r.json(); })
+        .then(function (j) { if (t) try { clearTimeout(t); } catch (e) {} done(j); })
+        .catch(function () { if (t) try { clearTimeout(t); } catch (e) {} done(null); });
+    } catch (e) { done(null); }
+  }
+
+  /* Nuke wire-up (2026-10-05, wave-nuke-fe): POST {type:'nuke',
+     n_action:'nuke_stake'|'nuke_hold'} — auth-routed via PF.postAction
+     (same pattern as the nuke strip's press); raw fallback mirrors postTreas. */
+  function postNuke(nAction, params, cb) {
+    function done(j) { try { cb(j || { ok: false, err: 'Network error.' }); } catch (e) {} }
+    var id = ident();
+    if (!id.callsign) { done({ ok: false, err: 'Claim a callsign first.' }); return; }
+    var p = { callsign: id.callsign, device: id.device };
+    for (var k in (params || {})) p[k] = params[k];
+    if (window.PF && PF.postAction) { PF.postAction('nuke', 'n_action', nAction, p, cb); return; }
+    if (!BACKEND) { done(null); return; }
+    try {
+      var body = { type: 'nuke', n_action: nAction };
+      for (var k2 in p) body[k2] = p[k2];
+      var sec = '';
+      try { sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) {}
+      if (sec) body.auth_secret = sec;
+      var o = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, c = null, t = null;
+      try {
+        if (window.AbortController) {
+          c = new AbortController(); o.signal = c.signal;
+          t = setTimeout(function () { try { c.abort(); } catch (e) {} }, 15000);
+        }
+      } catch (e) {}
+      fetch(BACKEND, o).then(function (r) { return r.json(); })
+        .then(function (j) { if (t) try { clearTimeout(t); } catch (e) {} done(j); })
+        .catch(function () { if (t) try { clearTimeout(t); } catch (e) {} done(null); });
+    } catch (e) { done(null); }
+  }
+  /* Scoped styles — self-contained so the panel works standalone (outside
+     cell-hq's hq-* stylesheet) and inside the TREASURY tab alike. */
+  var CSS_DONE = false;
+  function ensureCSS() {
+    if (CSS_DONE) return; CSS_DONE = true;
+    var css = '.trz-panel{max-width:860px;margin:0 auto;font-family:inherit;color:#f5f0e6}' +
+      '.trz-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}' +
+      '.trz-card.hot{border-color:#c9a227}' +
+      '.trz-card h3{margin:0 0 6px;font-size:17px;letter-spacing:.5px}' +
+      '.trz-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+      '.trz-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
+      '.trz-bal{font-size:30px;font-weight:900;color:#c9a227;margin:2px 0 6px}' +
+      '.trz-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}' +
+      '.trz-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:9px 14px;font-size:14px;cursor:pointer;margin:4px 4px 4px 0}' +
+      '.trz-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}' +
+      '.trz-btn.sm{padding:6px 10px;font-size:12px}' +
+      '.trz-btn:disabled{opacity:.45;cursor:default}' +
+      '.trz-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}' +
+      '.trz-in.sm{width:110px}' +
+      '.trz-bar{height:10px;background:#222;margin:4px 0 6px;position:relative;border-radius:5px;overflow:hidden}' +
+      '.trz-bar>div{height:10px;background:linear-gradient(90deg,#c9a227,#f5d76e)}' +
+      '.trz-pill{background:#1c1c1c;border:2px solid #3a3a3a;color:#f5f0e6;font-weight:700;font-size:13px;padding:8px 12px;cursor:pointer;margin:4px 4px 4px 0}' +
+      '.trz-pill.on{background:#c1121f;border-color:#c1121f}' +
+      '.trz-act{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid #222;font-size:13px}' +
+      '.trz-act:last-child{border-bottom:0}' +
+      '.trz-pos{color:#7CFC00;font-weight:700}' +
+      '.trz-neg{color:#ff8a8a;font-weight:700}' +
+      '.trz-err{color:#ff6b6b;font-size:13px;margin-top:6px}' +
+      '.trz-ok{color:#7CFC00;font-size:13px;margin-top:6px}' +
+      '@media(max-width:560px){.trz-bal{font-size:24px}}';
+    var st = document.createElement('style');
+    st.type = 'text/css';
+    if (st.styleSheet) st.styleSheet.cssText = css; else st.appendChild(document.createTextNode(css));
+    document.head.appendChild(st);
+  }
+
+  function kindLabel(kind, amount) {
+    var k = String(kind || '');
+    if (k === 'donate') return 'funded';
+    if (k === 'sponsor') return 'sponsored a cause';
+    if (k === 'dividend') return 'dividend payout';
+    if (k.indexOf('spend:') === 0) return 'spent — ' + k.slice(6).trim();
+    if (k.indexOf('spend') === 0) return 'spent';
+    return k || 'move';
+  }
+
+  /* Inline SVG sparkline. Points: [{date, balance}]. No libs — hand-rolled
+     like every other chart on the site. */
+  function sparkline(points) {
+    var W = 320, H = 110, PAD = 8;
+    if (!points || points.length < 2) return '';
+    var vals = points.map(function (p) { return Math.max(0, Number(p.balance) || 0); });
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    if (mx === mn) { mx = mn + 1; }
+    function X(i) { return (PAD + (W - 2 * PAD) * (i / (vals.length - 1))).toFixed(1); }
+    function Y(v) { return (H - PAD - (H - 2 * PAD) * ((v - mn) / (mx - mn))).toFixed(1); }
+    var line = vals.map(function (v, i) { return X(i) + ',' + Y(v); }).join(' ');
+    var area = X(0) + ',' + (H - PAD) + ' ' + line + ' ' + X(vals.length - 1) + ',' + (H - PAD);
+    var first = points[0].date || '', last = points[points.length - 1].date || '';
+    var delta = vals[vals.length - 1] - vals[0];
+    var dcol = delta >= 0 ? '#7CFC00' : '#ff8a8a';
+    var dsign = delta >= 0 ? '+' : '';
+    return '<svg viewBox="0 0 ' + W + ' ' + (H + 22) + '" style="width:100%;height:auto;display:block" role="img" aria-label="Treasury balance trajectory">' +
+      '<polygon points="' + area + '" fill="#c9a227" opacity="0.18"/>' +
+      '<polyline points="' + line + '" fill="none" stroke="#c9a227" stroke-width="2.5"/>' +
+      '<circle cx="' + X(vals.length - 1) + '" cy="' + Y(vals[vals.length - 1]) + '" r="3.5" fill="#c9a227"/>' +
+      '<text x="' + PAD + '" y="' + (H + 12) + '" fill="#f5f0e6" font-size="9" opacity="0.7">' + esc(first) + '</text>' +
+      '<text x="' + (W - PAD) + '" y="' + (H + 12) + '" fill="#f5f0e6" font-size="9" opacity="0.7" text-anchor="end">' + esc(last) + '</text>' +
+      '<text x="' + PAD + '" y="' + (H + 21) + '" fill="' + dcol + '" font-size="10" font-weight="bold">' + dsign + fmt(delta) + ' XP / ' + TRAJ_DAYS + 'd</text>' +
+      '<text x="' + (W - PAD) + '" y="' + (H + 21) + '" fill="#f5f0e6" font-size="10" opacity="0.7" text-anchor="end">peak ' + fmt(mx) + '</text>' +
+      '</svg>';
+  }
+
+  /* ---------- the panel ---------- */
+  function mount(container, ctx) {
+    ensureCSS();
+    ctx = ctx || {};
+    var cellId = String(ctx.cell_id || '');
+    var cellName = String(ctx.cell_name || ctx.cell_id || 'your cell');
+    var isOfficer = !!ctx.is_officer;
+    var uid = 't' + Math.floor(Math.random() * 1e9);
+    function gid(n) { return 'trz_' + n + '_' + uid; }
+
+    if (!ident().callsign) {
+      container.innerHTML = '<div class="trz-panel"><div class="trz-card"><h3>Claim a callsign first</h3>' +
+        '<div class="trz-note">Treasury tools move real XP. Claim your callsign in Daily Orders first.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div></div>';
+      return;
+    }
+    if (!cellId) {
+      container.innerHTML = '<div class="trz-panel"><div class="trz-card"><h3>Cell Treasury</h3>' +
+        '<div class="trz-note">Join a cell to fund its treasury and watch the war chest grow.</div></div></div>';
+      return;
+    }
+
+    var R = { bal: null, hist: null };
+    container.innerHTML = '<div class="trz-panel"><div class="trz-card"><div class="trz-note">Opening the vault&hellip;</div></div></div>';
+    var done = 0;
+    function each() { done++; if (done >= 2) paint(); }
+    api('treasury_balance', { cell_id: cellId }, function (j) { R.bal = j; each(); });
+    api('treasury_history', { cell_id: cellId, days: TRAJ_DAYS }, function (j) { R.hist = j; each(); });
+
+    function paint() {
+      var b = R.bal, h = R.hist;
+      if (!b || !b.ok) {
+        container.innerHTML = '<div class="trz-panel"><div class="trz-card"><h3>Cell Treasury</h3>' +
+          '<div class="trz-err">The vault would not open. Check your connection and try again.</div></div></div>';
+        return;
+      }
+      var bal = Math.round(Number(b.balance) || 0);
+      var cap = Math.round(Number(b.capacity) || 10000);
+      var tier = b.prestige_tier || '';
+      var pct = cap > 0 ? Math.min(100, Math.round(bal / cap * 100)) : 0;
+      var recent = b.recent || [];
+
+      var out = '<div class="trz-panel">';
+
+      /* 1. HEADER — balance + capacity. */
+      out += '<div class="trz-card hot"><h3>&#9876; CELL TREASURY <span class="trz-note">' + esc(cellName) + '</span></h3>' +
+        '<div class="trz-bal">' + fmt(bal) + ' XP</div>' +
+        '<div class="trz-bar"><div style="width:' + pct + '%"></div></div>' +
+        '<div class="trz-note"><b>' + fmt(bal) + ' / ' + fmt(cap) + ' XP</b> capacity' +
+        (tier ? ' &middot; ' + esc(tier) + ' tier' : '') +
+        ' &middot; every XP here is member-funded, officer-spent.</div></div>';
+
+      /* 2. TRAJECTORY — G7's time-series view. */
+      out += '<div class="trz-card"><h3>BALANCE TRAJECTORY <span class="trz-note">last ' + TRAJ_DAYS + ' days</span></h3>';
+      if (h && h.ok && h.points && h.points.length >= 2) {
+        out += sparkline(h.points);
+        out += '<div class="trz-note" style="margin-top:4px">Reconstructed from the treasury ledger — quiet days carry forward.</div>';
+      } else if (h && h.ok === false && h.err === 'no treasury') {
+        out += '<div class="trz-note">No ledger history yet — the first funding starts the line.</div>';
+      } else {
+        out += '<div class="trz-note">Trajectory unavailable right now — the balance above is live. It comes online with the next backend push.</div>';
+      }
+      out += '</div>';
+
+      /* 3. FUND THE TREASURY — copy rule: never the d-word. */
+      out += '<div class="trz-card" style="border-color:#7CFC00"><h3>FUND THE TREASURY</h3>' +
+        '<div class="trz-note">Throw XP into the cell war chest. Officers spend it on the fight — prizes, bounties, causes.</div>' +
+        '<div class="trz-row" style="margin-top:8px">' +
+        [25, 50, 100, 250].map(function (a) {
+          return '<button class="trz-btn sm ghost" data-trz="chip" data-amt="' + a + '">+' + a + '</button>';
+        }).join('') +
+        '<input class="trz-in sm" id="' + gid('fundAmt') + '" type="number" min="1" inputmode="numeric" placeholder="XP">' +
+        '<button class="trz-btn" data-trz="fund">FUND THE TREASURY</button></div>' +
+        '<div class="trz-err" id="' + gid('fundMsg') + '" style="display:none"></div></div>';
+
+      /* 4. SPEND — destinations: free-form purpose AND sponsor-a-cause
+         deep-link (6A-R9 pattern: /ventures?cell=<id>&sponsor=1 — the
+         sponsorship surface lives in movement.js; reused, not rebuilt). */
+      out += '<div class="trz-card"><h3>SPEND <span class="trz-note">treasury &#8594; the fight</span></h3>';
+      if (isOfficer) {
+        out += '<div class="trz-note">Where does it go?</div>' +
+          '<div class="trz-row" style="margin:6px 0">' +
+          '<button class="trz-pill on" data-trz="dest" data-d="free">FREE-FORM PURPOSE</button>' +
+          '<button class="trz-pill" data-trz="dest" data-d="cause">SPONSOR A CAUSE &rarr;</button></div>' +
+          '<div id="' + gid('destFree') + '">' +
+          '<div class="trz-row"><input class="trz-in sm" id="' + gid('spAmt') + '" type="number" min="1" inputmode="numeric" placeholder="XP">' +
+          '<input class="trz-in" id="' + gid('spPurp') + '" maxlength="200" placeholder="purpose (e.g. poster prize)" style="flex:1;min-width:180px">' +
+          '<button class="trz-btn" data-trz="spend">SPEND</button></div></div>' +
+          '<div id="' + gid('destCause') + '" style="display:none">' +
+          '<div class="trz-note" style="margin-bottom:6px">Deploy idle treasury XP to a cause pool — strike fund, bail fund, mutual aid. ' +
+          'The cell&#39;s name rides the pool as sponsor and hits the war-room ticker.</div>' +
+          '<div class="trz-row"><a class="trz-btn" style="text-decoration:none;display:inline-block" ' +
+          'href="/ventures?cell=' + esc(cellId) + '&amp;sponsor=1">SPONSOR A CAUSE &rarr;</a></div></div>' +
+          '<div class="trz-err" id="' + gid('spMsg') + '" style="display:none"></div>';
+      } else {
+        out += '<div class="trz-note">Only the founder and officers can spend from the treasury. The backend enforces it — this panel shows the gate honestly.</div>';
+        out += '<div class="trz-note" style="margin-top:6px">Officers can also stake treasury XP into the media nuke (burned, 2,500 XP/day cap). The backend enforces the officer gate.</div>';
+      }
+      out += '</div>';
+
+      /* 4b. STAKE INTO THE BLAST — nuke wire-up (2026-10-05, wave-nuke-fe).
+         Officers burn treasury XP into the charge pool: 1 XP = 1 charge,
+         2,500/day/cell cap. The XP is destroyed — a sacrifice, not a spend. */
+      if (isOfficer) {
+        out += '<div class="trz-card" style="border-color:#c1121f"><h3>&#9762; STAKE INTO THE BLAST</h3>' +
+          '<div class="trz-note">Burn treasury XP into the media nuke: <b>1 XP = 1 charge</b>. The XP is <b>destroyed</b> — this is a sacrifice, not a spend.</div>' +
+          '<div class="trz-note" style="margin-top:4px">Daily cap: <b>2,500 XP</b> per cell. The backend enforces the cap on every stake &mdash; over-cap stakes are rejected and refunded.</div>' +
+          '<div class="trz-row" style="margin-top:8px">' +
+          '<input class="trz-in sm" id="' + gid('stAmt') + '" type="number" min="1" max="2500" inputmode="numeric" placeholder="XP">' +
+          '<button class="trz-btn" data-trz="stake">STAKE INTO THE BLAST</button></div>' +
+          '<div class="trz-err" id="' + gid('stMsg') + '" style="display:none"></div></div>';
+      }
+
+      /* 5. RECENT ACTIVITY — last 10 ledger rows. */
+      out += '<div class="trz-card"><h3>RECENT ACTIVITY</h3>';
+      if (recent.length) {
+        recent.slice(0, 10).forEach(function (r) {
+          var amt = Math.round(Number(r.amount) || 0);
+          var cls = amt >= 0 ? 'trz-pos' : 'trz-neg';
+          var ds = '';
+          try { ds = new Date(Number(r.ts) || 0).toLocaleDateString(); } catch (e) {}
+          out += '<div class="trz-act"><span>' + esc(r.callsign || '?') + ' ' + esc(kindLabel(r.kind, amt)) + '</span>' +
+            '<span><span class="' + cls + '">' + (amt >= 0 ? '+' : '') + fmt(amt) + ' XP</span> <span class="trz-note">' + esc(ds) + '</span></span></div>';
+        });
+      } else {
+        out += '<div class="trz-note">No moves yet. Fund the treasury and the ledger starts writing.</div>';
+      }
+      out += '</div></div>';
+
+      container.innerHTML = out;
+      wire();
+    }
+
+    function msg(id, text, ok) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = text ? 'block' : 'none';
+      el.className = ok ? 'trz-ok' : 'trz-err';
+      el.textContent = text || '';
+    }
+
+    function refresh() { mount(container, ctx); }
+
+    function wire() {
+      container.addEventListener('click', onClick);
+      function onClick(e) {
+        var t = e.target, btn = null;
+        while (t && t !== container) { if (t.getAttribute && t.getAttribute('data-trz')) { btn = t; break; } t = t.parentNode; }
+        if (!btn) return;
+        var kind = btn.getAttribute('data-trz');
+        if (kind === 'chip') {
+          var inp = document.getElementById(gid('fundAmt'));
+          if (inp) inp.value = btn.getAttribute('data-amt');
+          return;
+        }
+        if (kind === 'dest') {
+          var d = btn.getAttribute('data-d');
+          var pills = container.querySelectorAll('[data-trz="dest"]');
+          for (var i = 0; i < pills.length; i++) pills[i].classList.toggle('on', pills[i] === btn);
+          document.getElementById(gid('destFree')).style.display = d === 'free' ? 'block' : 'none';
+          document.getElementById(gid('destCause')).style.display = d === 'cause' ? 'block' : 'none';
+          return;
+        }
+        if (kind === 'fund') {
+          var amt = Math.round(Number(document.getElementById(gid('fundAmt')).value) || 0);
+          msg(gid('fundMsg'), '', true);
+          if (amt <= 0) { msg(gid('fundMsg'), 'Enter an amount of XP.'); return; }
+          if (!window.confirm('Fund the treasury with ' + fmt(amt) + ' XP from your balance?')) return;
+          btn.disabled = true;
+          postTreas('treasury_donate', { cell_id: cellId, amount: amt }, function (j) {
+            btn.disabled = false;
+            if (!j || !j.ok) {
+              msg(gid('fundMsg'), (j && j.err) ? String(j.err) : 'Transfer failed.');
+              return;
+            }
+            toast('FUNDED ' + fmt(amt) + ' XP. The war chest grows.');
+            refresh();
+          });
+          return;
+        }
+        if (kind === 'stake') {
+          var stamt = Math.round(Number(document.getElementById(gid('stAmt')).value) || 0);
+          msg(gid('stMsg'), '', true);
+          if (stamt <= 0) { msg(gid('stMsg'), 'Enter an amount of XP.'); return; }
+          if (stamt > 2500) { msg(gid('stMsg'), 'The daily cap is 2,500 XP per cell.'); return; }
+          if (!window.confirm('Burn ' + fmt(stamt) + ' XP from the treasury into the blast? This is a sacrifice \u2014 the XP is destroyed.')) return;
+          btn.disabled = true;
+          postNuke('nuke_stake', { cell_id: cellId, amount: stamt }, function (j) {
+            btn.disabled = false;
+            if (!j || !j.ok) {
+              var er = (j && j.err) ? String(j.err) : 'Stake failed.';
+              msg(gid('stMsg'), er === 'officers only' ? 'Officers only \u2014 the backend said no.' : er);
+              return;
+            }
+            toast('STAKED ' + fmt(stamt) + ' XP INTO THE BLAST. Sacrifice logged.');
+            refresh();
+          });
+          return;
+        }
+        if (kind === 'spend') {
+          var samt = Math.round(Number(document.getElementById(gid('spAmt')).value) || 0);
+          var purp = String(document.getElementById(gid('spPurp')).value || '').trim().slice(0, 200);
+          msg(gid('spMsg'), '', true);
+          if (samt <= 0) { msg(gid('spMsg'), 'Enter an amount.'); return; }
+          if (!purp) { msg(gid('spMsg'), 'Give the spend a purpose.'); return; }
+          if (!window.confirm('Spend ' + fmt(samt) + ' XP from the cell treasury on: ' + purp + '?')) return;
+          btn.disabled = true;
+          postTreas('treasury_spend', { cell_id: cellId, amount: samt, purpose: purp }, function (j) {
+            btn.disabled = false;
+            if (!j || !j.ok) {
+              var er = (j && j.err) ? String(j.err) : 'Spend failed.';
+              msg(gid('spMsg'), er === 'officers only' ? 'Officers only — the backend said no.' : er);
+              return;
+            }
+            toast('SPENT ' + fmt(samt) + ' XP — ' + purp + '.');
+            refresh();
+          });
+          return;
+        }
+      }
+    }
+  }
+
+  window.PFTreasury = { mount: mount };
+
+  /* Standalone auto-mount: <div id="pf-treasury"></div> anywhere on the
+     page. Resolves the viewer's primary cell via cell_mine (auth-attached
+     like cell-hq), then mounts with the officer gate from the response. */
+  function autoMount() {
+    try {
+      if (window.location.href.indexOf('/config/') !== -1) return;
+      var bd = document.body;
+      if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+      var el = document.getElementById('pf-treasury');
+      if (!el || el.getAttribute('data-trz-mounted')) return;
+      el.setAttribute('data-trz-mounted', '1');
+      var id = ident();
+      if (!id.callsign) {
+        mount(el, {});
+        return;
+      }
+      var sec = '';
+      try { sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) {}
+      api('cell_mine', { callsign: id.callsign, device: id.device, auth_secret: sec }, function (j) {
+        var cell = j && j.ok && j.cell ? j.cell : null;
+        var cellId = '';
+        try { cellId = String((j && j.cell && (j.cell.id || j.cell.cell_id)) || ''); } catch (e) {}
+        var cellName = '';
+        try { cellName = String((j && j.cell && j.cell.name) || ''); } catch (e) {}
+        mount(el, {
+          cell_id: cellId,
+          cell_name: cellName || cellId,
+          is_officer: !!(j && (j.is_founder || j.is_officer))
+        });
+      });
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoMount);
+  } else {
+    setTimeout(autoMount, 0);
+  }
+})();
+
+;
+
+/* ===== cell-war.js ===== */
+/* games/cell-war.js  |  PF v1.4.3 | Weekly Cell War — marquee event widget.
+   Monday 00:00 - Sunday 23:59 CT: cells compete on member XP earned.
+   Winner gets the CHAMPIONS crown + members earn +10% XP the next week.
+   KILL: ?pf_off=cell-war  or  localStorage pf_disabled_v1='["cell-war"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cell-war")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cellwar">
+<div class="fe-block pf-override-block pf-silo" id="pf-cell-war">
+<div id="xCellWar"><div class="cw-load">Mustering the armies&hellip;</div></div>
+</div>
+<style>
+#pf-cell-war .cw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#1c0707 60%,#0d0d0d 100%);border:3px solid #c1121f;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(193,18,31,.35);color:#f5ead6;font-family:Arial,sans-serif}
+#pf-cell-war .cw-kicker{font-size:12px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-cell-war .cw-stakes{font-size:13px;letter-spacing:3px;color:#e8b64c;font-weight:800;margin-bottom:10px;text-transform:uppercase}
+#pf-cell-war h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-cell-war h2 .cw-week{color:#c1121f}
+#pf-cell-war .cw-count{font-family:'Courier New',monospace;font-size:15px;color:#ffb347;letter-spacing:1px;margin-bottom:14px}
+#pf-cell-war .cw-champ{background:#c1121f;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}
+#pf-cell-war .cw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}
+#pf-cell-war .cw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}
+#pf-cell-war .cw-row.cw-mine{border:2px solid #ffb347;background:#1e1508}
+#pf-cell-war .cw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#c1121f;text-align:center}
+#pf-cell-war .cw-row.cw-mine .cw-pos{color:#ffb347}
+#pf-cell-war .cw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pf-cell-war .cw-sub{font-size:12px;color:#a89e88;margin-top:2px}
+#pf-cell-war .cw-sub .cw-flame{margin-right:4px}
+#pf-cell-war .cw-mine-tag{display:inline-block;background:#ffb347;color:#000;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
+#pf-cell-war .cw-bar{height:8px;background:#2a2a2a;margin-top:6px;border:1px solid #444}
+#pf-cell-war .cw-bar i{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ff5a00)}
+#pf-cell-war .cw-xp{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#ffb347;text-align:right;white-space:nowrap}
+#pf-cell-war .cw-cta{margin-top:16px}
+#pf-cell-war .cw-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}
+#pf-cell-war .cw-btn.cw-ghost{background:transparent;border-color:#c1121f;color:#f5ead6}
+#pf-cell-war .cw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}
+#pf-cell-war .cw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}
+#pf-cell-war .cw-load{color:#a89e88;font-size:14px;padding:20px}
+/* G6 (2026-10-04): War Room odds strip — live championship odds from
+   the war board + market escrow pools. Zero XP for viewing. */
+#pf-cell-war .cw-odds{margin:6px 0 8px;border:1px dashed #c1121f;padding:12px 10px;background:#100808}
+#pf-cell-war .cw-okick{font-size:11px;letter-spacing:3px;color:#ffb347;font-weight:800;margin-bottom:8px}
+#pf-cell-war .cw-orow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 4px;border-top:1px solid #2a2a2a;font-size:13px;text-align:left}
+#pf-cell-war .cw-oname{font-weight:800;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pf-cell-war .cw-oev{font-family:'Courier New',monospace;color:#ffb347;font-size:12px;white-space:nowrap}
+#pf-cell-war .cw-obet{display:inline-block;margin-top:10px;background:transparent;border:1px solid #ffb347;color:#ffb347;font-weight:800;font-size:12px;padding:8px 18px;text-decoration:none;letter-spacing:1px}
+#pf-cell-war .cw-ofree{font-size:11px;color:#a89e88;margin-top:8px}
+</style>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return {callsign:cs}; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfCwCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */
+function chicagoMidnightMs(dayStr,addDays){
+  try{
+    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;
+    var ymd=new Date(base).toISOString().slice(0,10);
+    var guess=Date.parse(ymd+"T12:00:00Z");
+    for(var i=0;i<3;i++){
+      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");
+      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);
+    }
+    return guess;
+  }catch(e){ return Date.now()+86400000; }
+}
+function fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }
+var WAR_END=0, TICK=null;
+function tick(){
+  var el=document.getElementById("cwCount"); if(!el) return;
+  var ms=WAR_END-Date.now();
+  if(ms<0) ms=0;
+  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),
+      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
+  el.textContent=d+"d "+h+"h "+m+"m "+s+"s REMAINING";
+}
+function goCells(){
+  /* 2026-10-03: the cells lobby lives at /cells now (was a homepage
+     scroll target). On /cells, smooth-scroll to the cells widget;
+     from anywhere else, navigate there. */
+  try{
+    var onCells=/\\/cells\\/?$/.test(window.location.pathname||'');
+    if(onCells){
+      var t=document.getElementById("pf-cells");
+      if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    }
+  }catch(e){}
+  try{ window.location.href="/cells"; }catch(e2){}
+}
+function render(j){
+  var host=document.getElementById("xCellWar"); if(!host) return;
+  if(!j||!j.ok){ host.innerHTML='<div class="cw-empty">The war drums are silent. Check back soon.</div>'; return; }
+  WAR_END=chicagoMidnightMs(j.week_start,7);
+  var rows=(j.standings||[]).slice(0,5);
+  var top=rows.length?rows[0].xp_earned:1;
+  var h='<div class="cw-wrap">';
+  h+='<div class="cw-kicker">MARQUEE EVENT</div>';
+  h+='<h2>\u2694\uFE0F Cell War <span class="cw-week">\u2014 Week '+esc(j.week_no||"?")+'</span></h2>';
+  h+='<div class="cw-stakes">Weekly champions claim territory</div>';
+  h+='<div class="cw-count" id="cwCount">--</div>';
+  if(j.last_winner&&j.last_winner.cell_name){
+    h+='<div class="cw-champ">\uD83C\uDFC6 REIGNING CHAMPIONS: '+esc(j.last_winner.cell_name)+
+       '<small>'+fmt(j.last_winner.xp_earned)+' XP last week \u2014 members earn +'+(j.champion_bonus_pct||10)+'% XP all this week</small></div>';
+    /* PLAY 10 — WINS THAT ECHO (2026-10-06): cell-war victory render ->
+       win event. RECOGNITION ONLY — the war prize (+150 XP/member winners,
+       +50 consolation) is paid by the backend under the locked XP table
+       (xp-locked-table-retuned-20261006.md §4.7, NO_MULT); this hook mints
+       zero XP. Dedupe key = the war week. */
+    try {
+      if (window.PF && PF.wins && typeof PF.wins.emit === 'function') {
+        PF.wins.emit('cellwar_win',
+          '\u2694\uFE0F ' + String(j.last_winner.cell_name) + ' TOOK THE CROWN',
+          'Cell War champions · Week ' + (j.week_no || '?') +
+            ' · +' + (j.champion_bonus_pct || 10) + '% XP all week',
+          { dedupe: 'cellwar:' + String(j.week_no || j.week_start || '') });
+      }
+    } catch (e) {}
+  }
+  if(rows.length){
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.xp_earned/top*100)):4;
+      h+='<div class="cw-row'+(r.mine?' cw-mine':'')+'">';
+      h+='<div class="cw-pos">'+(i+1)+'</div>';
+      h+='<div><div class="cw-name">'+esc(r.name)+(r.mine?'<span class="cw-mine-tag">YOUR CELL</span>':'')+'</div>';
+      h+='<div class="cw-sub">'+(r.prestige_flame?'<span class="cw-flame">'+esc(r.prestige_flame)+'</span>':"")+
+         (r.prestige_tier?esc(r.prestige_tier)+' \u00B7 ':"")+esc(r.members)+' fighters'+
+         (r.members_active?' \u00B7 '+esc(r.members_active)+' active':'')+'</div>';
+      h+='<div class="cw-bar"><i style="width:'+pct+'%"></i></div></div>';
+      h+='<div class="cw-xp">'+fmt(r.xp_earned)+' XP</div>';
+      h+='</div>';
+    }
+  }else{
+    h+='<div class="cw-empty">No shots fired yet this week.<br>Be the first cell on the board.</div>';
+  }
+  /* G6: War Room championship odds strip — filled by renderMarket. */
+  h+='<div id="cwMarket"><div class="cw-load">Reading the War Room&hellip;</div></div>';
+  var mine=(j.my_cells||[]).length>0;
+  h+='<div class="cw-cta">';
+  if(mine){
+    h+='<button class="cw-btn" id="cwViewCell" type="button">RALLY MY CELL \u2192</button>';
+  }else{
+    h+='<button class="cw-btn" id="cwJoinCell" type="button">JOIN A CELL</button>';
+    h+='<button class="cw-btn cw-ghost" id="cwBuildCell" type="button">BUILD YOUR CELL</button>';
+  }
+  h+='</div>';
+  h+='<div class="cw-note">Every XP you earn feeds your cell\u2019s war score \u2014 bout fire counts too. '+
+     'Top cell Sunday midnight takes the crown, claims territory on the war map, and reigns with +10% XP all next week.</div>';
+  h+='</div>';
+  host.innerHTML=h;
+  /* share-out gaps #4: standings share painter (top cells + week). */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'cellwar-standings',{link:'/cells'}); }catch(e){}
+  if(TICK) clearInterval(TICK);
+  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
+  var jb=document.getElementById("cwJoinCell"), bb=document.getElementById("cwBuildCell"), vb=document.getElementById("cwViewCell");
+  if(jb) jb.onclick=goCells;
+  if(bb) bb.onclick=goCells;
+  if(vb) vb.onclick=goCells;
+}
+function load(){
+  var id=ident();
+  api("cellwar_standings",{callsign:id.callsign},render);
+  /* G6: War Room championship odds — live from the war board. */
+  api("cellwar_market",{},renderMarket);
+}
+function renderMarket(j){
+  var el=document.getElementById("cwMarket"); if(!el) return;
+  var odds=(j&&j.ok&&j.odds)||[];
+  if(!odds.length){ el.innerHTML='<div class="cw-note">No odds yet \u2014 the market opens when cells hit the board.</div>'; return; }
+  var h='<div class="cw-odds"><div class="cw-okick">\uD83C\uDFDB\uFE0F WAR ROOM \u2014 CHAMPIONSHIP ODDS</div>';
+  for(var i=0;i<Math.min(5,odds.length);i++){
+    var o=odds[i];
+    var ev=esc(String(o.implied||0))+'%'+(o.pays>0?' \u00B7 pays '+esc(String(o.pays))+'x':'');
+    h+='<div class="cw-orow"><div class="cw-oname">'+(i+1)+'. '+esc(o.name||'')+'</div><div class="cw-oev">'+ev+'</div></div>';
+  }
+  h+='<a class="cw-obet" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM \u2192</a>';
+  h+='<div class="cw-ofree">Odds move with the war board. Viewing is free.</div></div>';
+  el.innerHTML=h;
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
+})();
+<\/script>
+</template>`);
+})();
+
+;
+
+/* ===== cell-war-front.js ===== */
+/* games/cell-war-front.js  |  PF v1.4.3 | Cell War Propaganda Front.
+   Opt-in political side front alongside the weekly Cell War (CEO weave #4).
+   Opted-in cells compete on political asset output — posters forged via
+   political plugins + propaganda bounties completed — scored PER CAPITA
+   (output / members) so big cells don't auto-win. Winner takes the
+   PROPAGANDIST crown + a history entry: recognition only, ZERO XP.
+   Opt-in per cell, default OFF. When the forge/bounty rails aren't live yet
+   the front shows STANDBY and the war continues normally.
+   Actions: cellwar_front_standings (GET, public), cellwar_front_history
+   (GET, public), cellwar_front_join (POST, auth + member-gated).
+   KILL: ?pf_off=cell-war-front  or  localStorage pf_disabled_v1='["cell-war-front"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cell-war-front")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cellwarfront">
+<div class="fe-block pf-override-block pf-silo" id="pf-cell-war-front">
+<div id="xCellWarFront"><div class="pf-load">Raising the propaganda front&hellip;</div></div>
+</div>
+<style>
+#pf-cell-war-front .pf-load{color:#a89e88;font-size:14px;padding:20px;text-align:center}
+#pf-cell-war-front .pw-wrap{background:linear-gradient(160deg,#0d0d0d 0%,#140b1c 60%,#0d0d0d 100%);border:3px solid #7b2ff7;padding:26px 22px;max-width:680px;margin:18px auto;text-align:center;box-shadow:0 0 24px rgba(123,47,247,.35);color:#f5ead6;font-family:Arial,sans-serif}
+#pf-cell-war-front .pw-kicker{font-size:12px;letter-spacing:4px;color:#7b2ff7;font-weight:800;margin-bottom:6px}
+#pf-cell-war-front h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-cell-war-front h2 .pw-week{color:#7b2ff7}
+#pf-cell-war-front .pw-sub{font-size:13px;color:#a89e88;margin-bottom:14px;line-height:1.5}
+#pf-cell-war-front .pw-champ{background:#7b2ff7;color:#fff;font-weight:800;font-size:14px;padding:10px 14px;margin:0 0 16px;letter-spacing:1px}
+#pf-cell-war-front .pw-champ small{display:block;font-weight:400;font-size:12px;margin-top:4px;letter-spacing:0}
+#pf-cell-war-front .pw-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:#161616;border:1px solid #333;padding:10px 12px;margin-bottom:8px;text-align:left}
+#pf-cell-war-front .pw-row.pw-mine{border:2px solid #c9a0ff;background:#17101f}
+#pf-cell-war-front .pw-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#7b2ff7;text-align:center}
+#pf-cell-war-front .pw-row.pw-mine .pw-pos{color:#c9a0ff}
+#pf-cell-war-front .pw-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pf-cell-war-front .pw-sub2{font-size:12px;color:#a89e88;margin-top:2px}
+#pf-cell-war-front .pw-mine-tag{display:inline-block;background:#c9a0ff;color:#000;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
+#pf-cell-war-front .pw-bar{height:8px;background:#2a2a2a;margin-top:6px;border:1px solid #444}
+#pf-cell-war-front .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#7b2ff7,#c9a0ff)}
+#pf-cell-war-front .pw-score{font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#c9a0ff;text-align:right;white-space:nowrap}
+#pf-cell-war-front .pw-cta{margin-top:16px}
+#pf-cell-war-front .pw-btn{display:inline-block;background:#7b2ff7;color:#fff;font-weight:800;font-size:15px;padding:13px 30px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}
+#pf-cell-war-front .pw-btn.pw-ghost{background:transparent;border-color:#7b2ff7;color:#f5ead6}
+#pf-cell-war-front .pw-btn:disabled{opacity:.5;cursor:default}
+#pf-cell-war-front .pw-note{font-size:12px;color:#a89e88;margin-top:12px;line-height:1.5}
+#pf-cell-war-front .pw-empty{font-size:14px;color:#a89e88;padding:14px 0;line-height:1.6}
+#pf-cell-war-front .pw-standby{border:2px dashed #7b2ff7;padding:22px 16px;margin:6px 0}
+#pf-cell-war-front .pw-standby .pw-st-k{font-size:12px;letter-spacing:4px;color:#c9a0ff;font-weight:800;margin-bottom:8px}
+</style>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfPwCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function pfPost(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    var ctl=null; try{ ctl=new AbortController(); }catch(e){}
+    var hung=setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} },15000);
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})
+      .then(function(r){ return r.json(); }).then(function(j){ try{clearTimeout(hung);}catch(e){} done(j); })
+      .catch(function(){ try{clearTimeout(hung);}catch(e){} done(null); });
+  }catch(e){ done(null); }
+}
+/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */
+function chicagoMidnightMs(dayStr,addDays){
+  try{
+    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;
+    var ymd=new Date(base).toISOString().slice(0,10);
+    var guess=Date.parse(ymd+"T12:00:00Z");
+    for(var i=0;i<3;i++){
+      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");
+      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);
+    }
+    return guess;
+  }catch(e){ return Date.now()+86400000; }
+}
+function fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }
+var WAR_END=0, TICK=null, LAST=null;
+function tick(){
+  var el=document.getElementById("pwCount"); if(!el) return;
+  var ms=WAR_END-Date.now();
+  if(ms<0) ms=0;
+  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),
+      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
+  el.textContent=d+"d "+h+"h "+m+"m "+s+"s REMAINING";
+}
+function toast(m){
+  try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{
+    var t=document.createElement("div"); t.textContent=m;
+    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#7b2ff7;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800);
+  }catch(e2){}
+}
+function joinFront(cellId,btn){
+  var id=ident();
+  if(!id.callsign){ toast("Claim a callsign first, then enlist your cell."); return; }
+  if(btn) btn.disabled=true;
+  pfPost({type:"cell",cell_action:"cellwar_front_join",callsign:id.callsign,device:id.device,cell_id:cellId},function(j){
+    if(j&&j.ok){ toast("Cell enlisted in the Propaganda Front."); load(); }
+    else{ toast("Couldn't enlist — "+((j&&j.err)||"try again")); if(btn) btn.disabled=false; }
+  });
+}
+function render(j){
+  var host=document.getElementById("xCellWarFront"); if(!host) return;
+  LAST=j||null;
+  if(!j||!j.ok){ host.innerHTML='<div class="pw-wrap"><div class="pw-empty">The front is quiet. Check back soon.</div></div>'; return; }
+  WAR_END=chicagoMidnightMs(j.week_start,7);
+  var h='<div class="pw-wrap">';
+  h+='<div class="pw-kicker">SIDE FRONT \u2014 OPT-IN</div>';
+  h+='<h2>\uD83D\uDCEF Propaganda Front <span class="pw-week">\u2014 Week '+esc(j.week_no||"?")+'</span></h2>';
+  h+='<div class="pw-sub">The Cell War\u2019s political side front. Forged posters + completed bounties, scored <b>per fighter</b> \u2014 small cells can take this one.<br>Winner takes the PROPAGANDIST crown. Recognition only \u2014 zero XP.</div>';
+  if(j.unavailable){
+    h+='<div class="pw-standby"><div class="pw-st-k">\u23F3 ON STANDBY</div>'+
+       '<div class="pw-empty">The forge and bounty rails are still mustering \u2014 this front opens when they go live.<br>The Cell War marches on regardless.</div></div>';
+    h+='</div>';
+    host.innerHTML=h;
+    /* Brand integration: share bar hook (preserved from the pre-Blossom pass). */
+    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'cell-war-front',{link:'/cells'}); }catch(e){}
+    if(TICK) clearInterval(TICK);
+    tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
+    return;
+  }
+  var rows=(j.fronts||[]);
+  var top=rows.length?rows[0].per_capita:1;
+  if(j.last_winner&&j.last_winner.cell_name){
+    h+='<div class="pw-champ">\uD83C\uDFC6 PROPAGANDIST CROWN: '+esc(j.last_winner.cell_name)+
+       '<small>'+fmt(j.last_winner.output)+' political assets last week \u2014 the crown is glory, not XP</small></div>';
+    /* PLAY 10 — WINS THAT ECHO (2026-10-06): political-front victory render
+       -> win event. Recognition only — the crown is glory, not XP (module
+       copy); this hook mints zero XP. Dedupe key = the war week. */
+    try {
+      if (window.PF && PF.wins && typeof PF.wins.emit === 'function') {
+        PF.wins.emit('cellwar_win',
+          '\uD83C\uDFC6 ' + String(j.last_winner.cell_name) + ' TOOK THE PROPAGANDIST CROWN',
+          'Political-front champions · ' + fmt(j.last_winner.output) + ' assets last week',
+          { dedupe: 'cellwar-front:' + String(j.week_no || j.week_start || '') });
+      }
+    } catch (e) {}
+  }
+  if(rows.length){
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.per_capita/top*100)):4;
+      var pc=(Math.round((Number(r.per_capita)||0)*100)/100).toFixed(2);
+      h+='<div class="pw-row'+(r.mine?' pw-mine':'')+'">';
+      h+='<div class="pw-pos">'+(i+1)+'</div>';
+      h+='<div><div class="pw-name">'+esc(r.name)+(r.mine?'<span class="pw-mine-tag">YOUR CELL</span>':'')+'</div>';
+      h+='<div class="pw-sub2">'+fmt(r.output)+' assets \u00B7 '+esc(r.members)+' fighters</div>';
+      h+='<div class="pw-bar"><i style="width:'+pct+'%"></i></div></div>';
+      h+='<div class="pw-score">'+pc+'<br><span style="font-size:10px;color:#a89e88">per fighter</span></div>';
+      h+='</div>';
+    }
+  }else{
+    h+='<div class="pw-empty">No cell has enlisted yet this week.<br>Be the first to raise the propaganda front.</div>';
+  }
+  /* Enlist CTA: members of cells that haven't opted in. */
+  var id=ident();
+  var mine=j.my_cells||[], opted=j.opted_cells||[];
+  var can=[];
+  for(var mi=0;mi<mine.length;mi++){ if(opted.indexOf(mine[mi])===-1) can.push(mine[mi]); }
+  h+='<div class="pw-cta">';
+  if(can.length&&id.callsign){
+    h+='<button class="pw-btn" id="pwJoin" type="button">ENLIST MY CELL \u2192</button>';
+  }else if(!id.callsign){
+    h+='<div class="pw-note">Claim a callsign and join a cell to enlist it in the front.</div>';
+  }
+  h+='</div>';
+  h+='<div class="pw-note">Every poster forged via political plugins and every bounty your fighters complete feeds your cell\u2019s per-fighter score. '+
+     'Top cell Sunday midnight takes the PROPAGANDIST crown \u2014 glory only, zero XP. Opt-in is per week; the front defaults OFF.</div>';
+  /* Brand integration (2026-10-06, fix 5): cross-pillar handoffs — wired
+     declaratively by the share-everywhere scanner (same branded styling). */
+  h+='<div data-pf-handoff="share-intel"></div><div data-pf-handoff="take-cell"></div>';
+  h+='</div>';
+  host.innerHTML=h;
+  if(TICK) clearInterval(TICK);
+  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
+  var jb=document.getElementById("pwJoin");
+  if(jb) jb.onclick=function(){ joinFront(can[0],jb); };
+}
+function load(){
+  var id=ident();
+  api("cellwar_front_standings",{callsign:id.callsign},render);
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
+})();
+<\/script>
+</template>`);
+})();
+
+;
+
+/* ===== diplomacy.js ===== */
+/* games/diplomacy.js | PF v1.4.3 | CELL DIPLOMACY: alliances, coalitions, rivalries.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals. Framing: cells are powers. Forge alliances. Declare rivalries.
+   The map of the movement is drawn by its commanders.
+   KILL: ?pf_off=diplo  or  localStorage pf_disabled_v1='["diplo"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("diplo")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-diplo">
+<div class="fe-block pf-override-block pf-silo" id="pf-diplo">
+<h2>Cell Diplomacy</h2>
+<div class="c-tag">Cells are powers. Forge alliances. Build coalitions. Declare rivalries.</div>
+<div id="xDiplo"><div class="c-load">Reading the map&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). Auto-attach for the
+     auth-gated cell_mine — same PF.getAuthSecret() pattern as briefing.js. */
+  if(action==="cell_mine"){
+    try{
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfDpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(dAction,params,cb){
+  var body=Object.assign({type:"diplo",d_action:dAction},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var CELL=null, RELS=null, REQ=null, AUTHFAIL=false;
+var KINDS={alliance:"ALLIANCE",coalition:"COALITION",rivalry:"RIVALRY"};
+/* merger_proposal REMOVED 2026-10-04 (PM decision #5, cells wave) — returns
+   post-launch. Historical rows keep a clean label via kindLabel below; the
+   propose option is gone and the backend rejects the kind with 'bad kind'. */
+function load(){
+  var id=ident(), done=false;
+  function fin(){ if(done)return; done=true; render(); }
+  setTimeout(fin,15000);
+  AUTHFAIL=false;
+  if(!id.callsign){ CELL=null; RELS=null; REQ=null; fin(); return; }
+  api("cell_mine",{callsign:id.callsign,device:id.device},function(j){
+    /* C3 (2026-10-03): no/invalid auth_secret — the callsign session isn't
+       authenticated. Flag it so render() shows the logged-out gate, not the
+       wrong "not in a cell yet" state. */
+    if(j&&(j.err==="missing credentials"||j.err==="unauthorized")){ AUTHFAIL=true; CELL=null; RELS=null; REQ=null; fin(); return; }
+    CELL=(j&&j.cell)||null;
+    if(!CELL){ RELS=null; REQ=null; fin(); return; }
+    var n=0;
+    function one(){ n++; if(n>=2) fin(); }
+    api("diplomacy_list",{cell_id:CELL.id},function(r){ RELS=r; one(); });
+    api("diplomacy_requests",{cell_id:CELL.id},function(r){ REQ=r; one(); });
+  });
+}
+function kindLabel(k){
+  /* Historical merger rows keep a clean label (proposal path removed). */
+  if(k==="merger_proposal") return "MERGER";
+  return KINDS[k]||String(k||"").toUpperCase();
+}
+function render(){
+  var el=document.getElementById("xDiplo"); if(!el) return;
+  var id=ident(), h="";
+  if(!id.callsign){
+    el.innerHTML=PF.gateHTML('Diplomacy is conducted between cells.','to enlist and shape the map');
+    return;
+  }
+  if(AUTHFAIL){
+    el.innerHTML='<div class="c-gate">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come shape the map.</div>';
+    return;
+  }
+  if(!CELL){
+    el.innerHTML='<div class="c-gate">You are not in a cell yet. Join or found one in the Cells silo &mdash; then return to forge its foreign policy.</div>';
+    return;
+  }
+  var rels=(RELS&&RELS.relations)||[];
+  var inc=(REQ&&REQ.incoming)||[], out=(REQ&&REQ.outgoing)||[];
+  var pendInc=inc.filter(function(x){ return x.status==="pending"; });
+  h+='<div class="dp-frame">YOUR CELL: <b>'+esc(CELL.name||CELL.id)+'</b> &mdash; every relation on this map was drawn by a commander.</div>';
+  /* --- relations --- */
+  h+='<div class="x-pane"><h4>Standing relations ('+rels.length+')</h4>';
+  if(!rels.length){ h+='<div class="x-note">No relations yet. A cell alone is a cell exposed.</div>'; }
+  for(var i=0;i<rels.length;i++){
+    var r=rels[i];
+    h+='<div class="dp-rel"><div class="dp-rtitle">'+kindLabel(r.kind)+' &mdash; '+esc(r.other_cell)+'</div>'
+      +'<button class="c-btn dp-end" data-aid="'+esc(r.id)+'">END</button></div>';
+  }
+  h+='</div>';
+  /* --- incoming --- */
+  h+='<div class="x-pane"><h4>Incoming requests ('+pendInc.length+')</h4>';
+  if(!pendInc.length){ h+='<div class="x-note">No pending embassies.</div>'; }
+  for(var k=0;k<pendInc.length;k++){
+    var q=pendInc[k];
+    h+='<div class="dp-rel"><div class="dp-rtitle">'+kindLabel(q.kind)+' &mdash; from <b>'+esc(q.from_cell)+'</b></div>'
+      +'<div class="x-note">'+esc(q.message||"No message.")+'</div>'
+      +'<button class="c-btn dp-acc" data-rid="'+esc(q.id)+'" data-kind="'+esc(q.kind)+'" data-from="'+esc(q.from_cell)+'">ACCEPT</button>'
+      +'<button class="c-btn dp-dec" data-rid="'+esc(q.id)+'">DECLINE</button></div>';
+  }
+  h+='</div>';
+  /* --- propose --- */
+  h+='<div class="x-pane"><h4>Open an embassy</h4>'
+    +'<div class="x-note">Only cell founders, officers, and warcallers can propose. Choose the target cell and the kind of relation.</div>'
+    +'<input aria-label="Target cell ID or name" class="c-in" id="dpTarget" maxlength="64" placeholder="Target cell ID or name">'
+    +'<select class="c-in" id="dpKind">'
+    +'<option value="alliance">ALLIANCE &mdash; fight together, share the spoils</option>'
+    +'<option value="coalition">COALITION &mdash; coordinate across many cells</option>'
+    +'<option value="rivalry">RIVALRY &mdash; name your enemy, raise the stakes</option>'
+    /* merger_proposal option removed 2026-10-04 (PM decision #5) — post-launch */
+    +'</select>'
+    +'<textarea class="c-in" id="dpMsg" maxlength="500" rows="2" placeholder="Message to their commanders (optional)"></textarea>'
+    +'<button class="c-btn" id="dpProposeBtn">SEND PROPOSAL</button><div class="c-err" id="dpProposeErr"></div></div>';
+  /* --- outgoing --- */
+  var pendOut=out.filter(function(x){ return x.status==="pending"; });
+  h+='<div class="x-pane"><h4>Your embassies ('+pendOut.length+' pending)</h4>';
+  if(!pendOut.length){ h+='<div class="x-note">No open proposals.</div>'; }
+  for(var m=0;m<Math.min(pendOut.length,10);m++){
+    var o=pendOut[m];
+    h+='<div class="dp-rel"><div class="dp-rtitle">'+kindLabel(o.kind)+' &rarr; '+esc(o.to_cell)+'</div>'
+      +'<div class="x-note">Status: '+esc(o.status)+'</div></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+  /* --- wire --- */
+  function wire(cls,fn){ var bs=el.querySelectorAll(cls); for(var i=0;i<bs.length;i++){ (function(b){ b.addEventListener("click",fn); })(bs[i]); } }
+  wire(".dp-acc",function(){
+    var rid=this.getAttribute("data-rid"), kind=this.getAttribute("data-kind"),
+        from=this.getAttribute("data-from"), id2=ident();
+    /* G12 (2026-10-04): declaration ceremony. Accepting a rivalry fires the
+       DECLARE confirm — war drums, ticker-visible to the whole movement.
+       Alliances/coalitions get the same flow, quieter. Zero XP. */
+    if(kind==="rivalry"){ ceremony(rid,from,id2,true); }
+    else if(kind==="alliance"||kind==="coalition"){ ceremony(rid,from,id2,false); }
+    else { doAccept(rid,id2); }
+  });
+  wire(".dp-dec",function(){
+    var rid=this.getAttribute("data-rid"), id2=ident();
+    post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:false},function(r){
+      if(r&&r.ok){ toast("Request declined."); load(); } else { toast((r&&r.err)||"Failed."); }
+    });
+  });
+  wire(".dp-end",function(){
+    var aid=this.getAttribute("data-aid"), id2=ident();
+    if(!confirm("End this relation? Their commanders will see it broken.")) return;
+    post("diplomacy_end",{callsign:id2.callsign,device:id2.device,alliance_id:aid},function(r){
+      if(r&&r.ok){ toast("Relation ended."); load(); } else { toast((r&&r.err)||"Failed."); }
+    });
+  });
+  var pb=el.querySelector("#dpProposeBtn");
+  if(pb){ pb.addEventListener("click",function(){
+    var t=document.getElementById("dpTarget").value.trim(), k2=document.getElementById("dpKind").value;
+    var msg=document.getElementById("dpMsg").value.trim(), er=document.getElementById("dpProposeErr");
+    if(!t){ er.textContent="Name the target cell."; return; }
+    er.textContent="";
+    var id2=ident();
+    post("diplomacy_propose",{callsign:id2.callsign,device:id2.device,from_cell:CELL.id,to_cell:t,kind:k2,message:msg},function(r){
+      if(r&&r.ok){ toast("Proposal sent."); load(); } else { er.textContent=(r&&r.err)||"Failed."; }
+    });
+  }); }
+}
+/* G12 declaration ceremony (2026-10-04). war=true: the DECLARE WAR confirm
+   for rivalries — dramatic, ticker-visible. war=false: quieter pact confirm
+   for alliances/coalitions. Zero XP; pure narration/status. */
+function doAccept(rid,id2){
+  post("diplomacy_respond",{callsign:id2.callsign,device:id2.device,request_id:rid,accept:true},function(r){
+    if(r&&r.ok){ toast("Relation forged."); load(); } else { toast((r&&r.err)||"Failed."); }
+  });
+}
+function ceremony(rid,from,id2,war){
+  var title = war ? "\u2694 DECLARE WAR" : "FORGE THE PACT";
+  var body = war
+    ? "CELL <b>"+esc(from||"")+"</b> has challenged your cell. Accepting writes the declaration to the war-room ticker \u2014 the whole movement sees it. Rally your fighters."
+    : "Accepting seals the pact with CELL <b>"+esc(from||"")+"</b>. A quieter line in the ticker \u2014 but the map remembers.";
+  var yes = war ? "\u2694 DECLARE WAR" : "FORGE IT";
+  var no = war ? "STAND DOWN" : "HOLD";
+  var ov=document.createElement("div");
+  ov.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.82);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px";
+  var card=document.createElement("div");
+  card.style.cssText="max-width:440px;background:"+(war?"#1c0707":"#0d0d0d")+";border:3px solid "+(war?"#c1121f":"#8a8a8a")+
+    ";padding:26px 22px;text-align:center;color:#f5ead6;font-family:Arial,sans-serif;box-shadow:0 0 24px rgba(193,18,31,.35)";
+  card.innerHTML='<div style="font-size:22px;font-weight:800;letter-spacing:2px;margin-bottom:12px;color:'+(war?"#ff5a00":"#f5ead6")+'">'+title+'</div>'+
+    '<div style="font-size:14px;line-height:1.6;margin-bottom:20px">'+body+'</div>'+
+    '<button id="pfCerYes" style="background:'+(war?"#c1121f":"#2a2a2a")+';color:#fff;font-weight:800;font-size:15px;padding:12px 26px;border:2px solid #fff;margin:4px;cursor:pointer;letter-spacing:1px">'+yes+'</button>'+
+    '<button id="pfCerNo" style="background:transparent;color:#a89e88;font-size:13px;padding:12px 18px;border:1px solid #555;margin:4px;cursor:pointer">'+no+'</button>';
+  ov.appendChild(card);
+  document.body.appendChild(ov);
+  function close(){ try{ ov.remove(); }catch(e){} }
+  card.querySelector("#pfCerYes").addEventListener("click",function(){ close(); doAccept(rid,id2); });
+  card.querySelector("#pfCerNo").addEventListener("click",close);
+  ov.addEventListener("click",function(e){ if(e.target===ov) close(); });
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== contracts.js ===== */
+/* games/contracts.js  |  PF v1.4.3 | MERCENARY CONTRACTS: camps + contract board.
+   LAYERING: a game silo like cells.js. It talks to the backend contract actions
+   over JSONP (self-contained api()), to the ledger ONLY via the pf-contract-paid
+   event (enlistment-ranks awards it, nolx — the backend already granted the XP),
+   and reads spendable balance via PF.xpBalance (core/11-xpledger). It never
+   reaches into another silo's internals.
+   Flow: camp founder posts contract (goal+target+bounty) -> cell founder
+   accepts (escrow = bounty x members, taken from the CAMP FOUNDER's backend
+   XP) -> backend verifies the goal from the actions sheet -> members claim
+   their bounty. Real XP, real escrow, nothing minted.
+   KILL: ?pf_off=contracts  or  localStorage pf_disabled_v1='["contracts"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("contracts")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-contracts">
+<div class="fe-block pf-override-block" id="pf-contracts">
+<h2>Mercenary Contracts</h2>
+<div class="c-tag">Camps hire cells. Cells get paid in real XP.</div>
+<div id="xBody"><div class="c-load">Opening the contract board&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ PF.toast(m); }catch(e){} }
+function api(action,params,cb,isGet){
+  if(!BACKEND){ cb(null); return; }
+  if(isGet){
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+    if(action==="contract_mine"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfCxCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+    return;
+  }
+  /* POST: real CORS fetch (worker sends Access-Control-Allow-Origin: *).
+     The backend verdict is parsed and passed to cb — wire() shows j.err
+     ("not enough XP", "board full", ...) instead of failing silently.
+     Fire-and-forget no-cors is kept ONLY as a last resort if the real
+     fetch itself throws (network down). */
+  var body=Object.assign({type:"contract",c_action:action},params);
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function posted(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} setTimeout(function(){ load(); },1500); }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); posted(j); })
+      .catch(function(){
+        _po._pfClear();
+        try{ fetch(BACKEND,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:bodyStr}).catch(function(){}); }catch(e2){}
+        posted(null);
+      });
+  }catch(e){ posted(null); }
+}
+var GOAL_UNITS={share_raid:"shares",recruit_drive:"recruits",perfect_week:"days"};
+/* Friendly copy for WRITE paths (2026-10-03 M27): raw snake_case backend
+   codes route through the same propaganda-voice map the read paths use.
+   Never show a raw code to users. */
+function cxWriteErr(e,fb){
+  var s=String(e==null?"":e).trim();
+  var fall=fb||"The wire fought back. Nothing changed — retry.";
+  if(!s||/network error/i.test(s)) return fall;
+  var map={
+    "invalid_code":"That code doesn't open anything. Check it and try again.",
+    "already_accepted":"Already locked in. One shot per cell.",
+    "bad callsign":"That callsign didn't check out. Re-claim it in Enlistment Ranks, then retry.",
+    "db error":"The ledger hiccuped. Retry in a moment.",
+    "refund failed":"The refund didn't land. Contact MTCSTW with your contract ID.",
+    "unknown goal":"That goal isn't on the board. Pick one from the list."
+  };
+  if(map[s]) return map[s];
+  if(s.indexOf("_")!==-1) return fall; /* never show raw snake_case */
+  return s; /* backend prose already human-readable */
+}
+/* M26 (2026-10-03): disabled + spinner label on mutation buttons. */
+function busyBtn(btn,on){
+  try{
+    if(on){ if(btn.getAttribute("data-lbl")==null) btn.setAttribute("data-lbl",btn.textContent); btn.disabled=true; btn.textContent="WORKING…"; }
+    else{ btn.disabled=false; var l=btn.getAttribute("data-lbl"); if(l!=null) btn.textContent=l; btn.removeAttribute("data-lbl"); }
+  }catch(e){}
+}
+var board=null, mine=null, busy=false, loadTries=0, MARKET=null;
+/* R35 (2026-10-04): cross-cell labor market — the public contracts_board
+   (W6B-1: {ok,contracts:[{id,cell,title,reward,status}]}) rendered as a
+   market strip with ticker cross-links. Independent of the main board:
+   loads in parallel, paints when it lands, hides until the action ships. */
+function paintMarket(){
+  var host=document.getElementById("xMarket"); if(!host) return;
+  var list=[];
+  try{ if(MARKET&&MARKET.contracts) list=MARKET.contracts; }catch(e){}
+  if(!list.length){ host.style.display="none"; return; }
+  var h='<h4>Open contracts — cross-cell market</h4>'
+    +'<div class="x-note">Work posted across every cell. Take it, finish it, get paid.</div>';
+  for(var i=0;i<Math.min(list.length,8);i++){
+    var c=list[i]||{};
+    h+='<div class="x-contract"><div class="x-chead">'+esc(c.title||c.id||"contract")+'</div>'
+      +'<div class="x-csub">cell <b>'+esc(c.cell||"?")+'</b> &middot; reward <b>'+Number(c.reward||0)+' XP</b>'
+      +(c.status?' &middot; '+esc(String(c.status).toUpperCase()):"")
+      +' &middot; <a href="#pf-warrticker" style="color:#dc143c;">TRACK ON TICKER &rarr;</a></div></div>';
+  }
+  host.innerHTML=h;
+}
+function loadMarket(){
+  api("contracts_board",{},function(j){
+    MARKET=(j&&j.ok)?j:null;
+    paintMarket();
+  },true);
+}
+function load(){
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(busy) return; busy=true; loadTries++;
+  var done=false;
+  function fin(){
+    if(done) return; done=true; busy=false;
+    render();
+  }
+  /* Safety: if JSONP hangs, unstick and show retry. */
+  setTimeout(function(){ if(!done){ done=true; busy=false; render(); } },15000);
+  api("contract_list",{},function(b){
+    if(done) return;
+    board=b;
+    api("contract_mine",{callsign:id.callsign},function(m){
+      if(done) return;
+      mine=m; fin();
+    },true);
+  },true);
+}
+function renderGate(){
+  var el=document.getElementById("xBody"); if(!el) return;
+  el.innerHTML=PF.gateHTML('Contracts run on callsigns.','to take contracts');
+}
+function founderCells(){
+  var out=[];
+  try{ (mine&&mine.my_cells||[]).forEach(function(c){ if(c.founder===ident().callsign) out.push(c); }); }catch(e){}
+  return out;
+}
+function render(){
+  var el=document.getElementById("xBody"); if(!el) return;
+  var id=ident();
+  if(!id.callsign){ renderGate(); return; }
+  if(!board||!mine){
+    el.innerHTML='<div class="c-load">Opening the contract board&hellip;</div>'
+      +'<div style="margin-top:8px"><button class="c-btn" id="xRetry">Retry</button></div>';
+    var rb=document.getElementById("xRetry");
+    if(rb) rb.onclick=function(){ board=null; mine=null; load(); };
+    return;
+  }
+  loadMarket();
+  var h='';
+  /* R35: the public market strip renders first, above the camp panel. */
+  h+='<div class="x-pane" id="xMarket"><div class="c-load">Scanning the market&hellip;</div></div>';
+  /* --- camp panel --- */
+  var camp=(mine&&mine.my_camp)||null, bal=(mine&&typeof mine.balance==="number")?mine.balance:null;
+  h+='<div class="x-pane"><h4>Your camp</h4>';
+  if(camp){
+    h+='<div class="x-campname">'+esc(camp.name)+'</div>';
+    h+='<div class="x-bal">War chest: <b>'+(bal==null?"?":bal)+' XP</b> (backend ledger)</div>';
+    h+='<div class="x-note">Post a contract and the escrow comes out of this chest. Earn more XP anywhere on the site to grow it.</div>';
+  } else {
+    h+='<div class="x-note">Found a camp to hire cells. One camp per callsign.</div>';
+    h+='<input aria-label="CAMP NAME" id="xCampName" maxlength="24" placeholder="CAMP NAME" autocomplete="off">';
+    h+='<br><button class="c-btn" id="xFound">Found camp</button><div class="c-err" id="xFoundErr"></div>';
+  }
+  h+='</div>';
+  /* --- pledge panel (cell founders) --- */
+  var fc=founderCells();
+  if(fc.length){
+    h+='<div class="x-pane"><h4>Pledge a cell</h4><div class="x-note">Point one of your cells at a camp. Pledged cells can take that camp\\\'s contracts.</div>';
+    h+='<select id="xPledgeCell">'+fc.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>';}).join("")+'</select> ';
+    h+='<select id="xPledgeCamp">'+((board.camps||[]).map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>';}).join("")||'<option value="">— no camps yet —</option>')+'</select> ';
+    h+='<button class="c-btn" id="xPledge">Pledge</button><div class="c-err" id="xPledgeErr"></div></div>';
+  }
+  /* --- contract board --- */
+  h+='<div class="x-pane"><h4>Contract board</h4>';
+  var open=(board.contracts||[]).filter(function(t){return t.status==="open"||t.status==="accepted";});
+  if(!open.length) h+='<div class="x-empty">No live contracts. The board waits for its first war chest.</div>';
+  open.forEach(function(t){
+    var unit=GOAL_UNITS[t.goal]||"";
+    h+='<div class="x-contract"><div class="x-chead">'+esc(t.goal_label)+' — '+t.target+' '+esc(unit)+'</div>';
+    h+='<div class="x-csub">by camp <b>'+esc(t.camp)+'</b> &middot; bounty <b>'+t.bounty+' XP</b> per member';
+    h+=t.status==="accepted"?' &middot; <span class="x-acc">TAKEN by '+esc(t.cell_name||"a cell")+'</span>':' &middot; <span class="x-openb">OPEN</span>';
+    h+='</div>';
+    if(t.status==="open"&&fc.length){
+      h+='<button class="c-btn x-accept" data-id="'+esc(t.id)+'">Accept for my cell</button>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  /* --- post form (camp owners) --- */
+  if(camp){
+    h+='<div class="x-pane"><h4>Post a contract</h4><div class="x-note">One live contract per camp. Escrow is locked when a cell accepts.</div>';
+    h+='<select id="xGoal"><option value="share_raid">SHARE RAID (5-500 shares / 7d)</option><option value="recruit_drive">RECRUIT DRIVE (1-50 recruits / 7d)</option><option value="perfect_week">PERFECT WEEK (3-7 check-in days)</option></select> ';
+    h+='<input aria-label="TARGET" id="xTarget" type="number" min="1" max="500" placeholder="TARGET" style="width:90px"> ';
+    h+='<input aria-label="BOUNTY XP" id="xContractBounty" type="number" min="5" max="25" placeholder="BOUNTY XP" style="width:110px"> ';
+    h+='<button class="c-btn" id="xPost">Post</button><div class="c-err" id="xPostErr"></div></div>';
+  }
+  /* --- my contracts + claimable --- */
+  var claimable=mine.claimable||[];
+  if(claimable.length){
+    h+='<div class="x-pane x-claim"><h4>Payouts waiting</h4>';
+    claimable.forEach(function(c){
+      h+='<div class="x-payout"><span>'+esc(c.camp)+' contract complete — <b>'+c.bounty+' XP</b></span> ';
+      h+='<button class="c-btn x-claimbtn" data-id="'+esc(c.id)+'" data-b="'+c.bounty+'">Claim</button></div>';
+    });
+    h+='</div>';
+  }
+  var posted=(mine.mine||[]);
+  if(posted.length){
+    h+='<div class="x-pane"><h4>My contracts</h4>';
+    posted.forEach(function(t){
+      h+='<div class="x-myrow"><span>'+esc(t.goal_label)+' — '+t.target+' &middot; '+t.bounty+' XP &middot; <b>'+esc(t.status.toUpperCase())+'</b></span>';
+      if(t.status==="open"||t.status==="accepted") h+=' <button class="c-btn x-cancel" data-id="'+esc(t.id)+'">Cancel</button>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  /* --- camps directory --- */
+  if((board.camps||[]).length){
+    h+='<div class="x-pane"><h4>Camps</h4>';
+    (board.camps||[]).forEach(function(c){
+      h+='<div class="x-myrow"><span><b>'+esc(c.name)+'</b> — '+c.cells.length+' cells, '+c.members+' fighters</span></div>';
+    });
+    h+='</div>';
+  }
+  el.innerHTML=h;
+  wire();
+  paintMarket();
+}
+function wire(){
+  var b;
+  b=document.getElementById("xFound");
+  if(b) b.onclick=function(){
+    var btn=this, nm=document.getElementById("xCampName").value, err=document.getElementById("xFoundErr"), id=ident();
+    err.textContent="";
+    busyBtn(btn,true);
+    api("camp_found",{callsign:id.callsign,device:id.device,name:nm},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
+      toast("Camp "+j.camp+" founded. The board is yours.");
+    });
+  };
+  b=document.getElementById("xPledge");
+  if(b) b.onclick=function(){
+    var btn=this, err=document.getElementById("xPledgeErr"), id=ident();
+    err.textContent="";
+    busyBtn(btn,true);
+    api("camp_pledge",{callsign:id.callsign,device:id.device,
+      cell_id:document.getElementById("xPledgeCell").value,
+      camp:document.getElementById("xPledgeCamp").value},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
+      toast("Cell pledged to "+j.camp+".");
+    });
+  };
+  b=document.getElementById("xPost");
+  if(b) b.onclick=function(){
+    var btn=this, err=document.getElementById("xPostErr"), id=ident();
+    err.textContent="";
+    busyBtn(btn,true);
+    api("contract_post",{callsign:id.callsign,device:id.device,
+      goal:document.getElementById("xGoal").value,
+      target:document.getElementById("xTarget").value,
+      bounty:document.getElementById("xContractBounty").value},function(j){
+      busyBtn(btn,false);
+      if(!j||!j.ok){ err.textContent=cxWriteErr(j&&j.err); load(); return; }
+      toast("Contract posted. Cells, come and get it.");
+    });
+  };
+  var acc=document.querySelectorAll(".x-accept");
+  for(var i=0;i<acc.length;i++)(function(btn){
+    btn.onclick=function(){
+      var fcs=founderCells();
+      if(!fcs.length){ toast("Found or join a cell first."); return; }
+      var pick=fcs.length===1?fcs[0].id:prompt("Accept for which cell? (1-"+fcs.length+")\\n"+fcs.map(function(c,ix){return (ix+1)+". "+c.name;}).join("\\n"));
+      var cellId=fcs.length===1?fcs[0].id:(fcs[parseInt(pick,10)-1]||{}).id;
+      if(!cellId) return;
+      var id=ident();
+      busyBtn(btn,true);
+      api("contract_accept",{callsign:id.callsign,device:id.device,
+        cell_id:cellId,contract_id:btn.getAttribute("data-id")},function(j){
+        busyBtn(btn,false);
+        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Accept failed")); load(); return; }
+        toast("Contract accepted. "+j.escrow+" XP escrowed — go earn it.");
+      });
+    };
+  })(acc[i]);
+  var cl=document.querySelectorAll(".x-claimbtn");
+  for(var k=0;k<cl.length;k++)(function(btn){
+    btn.onclick=function(){
+      var id=ident(), cid=btn.getAttribute("data-id"), bnty=parseInt(btn.getAttribute("data-b"),10)||0;
+      busyBtn(btn,true);
+      api("contract_claim",{callsign:id.callsign,device:id.device,contract_id:cid},function(j){
+        if(j&&j.ok){
+          try{ document.dispatchEvent(new CustomEvent("pf-contract-paid",{detail:{id:cid,bounty:bnty}})); }catch(e){}
+          try{ document.dispatchEvent(new CustomEvent("pf-contract-claimed",{detail:{id:cid}})); }catch(e2){}
+        } else { toast(cxWriteErr(j&&j.err,"Claim failed")); busyBtn(btn,false); }
+        setTimeout(load,1500);
+      });
+    };
+  })(cl[k]);
+  var cx=document.querySelectorAll(".x-cancel");
+  for(var m=0;m<cx.length;m++)(function(btn){
+    btn.onclick=function(){
+      var id=ident();
+      busyBtn(btn,true);
+      api("contract_cancel",{callsign:id.callsign,device:id.device,contract_id:btn.getAttribute("data-id")},function(j){
+        busyBtn(btn,false);
+        if(!j||!j.ok){ toast(cxWriteErr(j&&j.err,"Cancel failed")); }
+        else toast("Contract cancelled. Escrow refunded.");
+        load();
+      });
+    };
+  })(cx[m]);
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(!busy) load(); }, 120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== war-card.js ===== */
+/* games/war-card.js  |  PF v1.4.1 | CREATOR WAR CARD — the HQ silo
+   Recruit-with-a-share builder for Sick Left Radicals creators. Lives on the
+   creator side of HQ (mounts into <div id="pf-war-card"></div>), NOT on the
+   public homepage. A creator picks their roster profile, sets a war callsign,
+   and mints a propaganda-poster card carrying their propaganda score, live
+   cell count, followers, years active, key strengths, and cell invite code.
+   Every share is a recruitment flyer: every recruit who checks in pays +25 XP.
+   Needs: core/00-bus.js (PF), core/03-global.js (PF.ROSTER, PF_BACKEND_URL),
+   core/share-image.js (PFShare). Public cell_leaderboard JSONP for the live
+   cell count; cell_mine for the viewer's invite code (when enlisted).
+   KILL: ?pf_off=war-card  or  localStorage pf_disabled_v1='["war-card"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("war-card")) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+  var mount = document.getElementById('pf-war-card');
+  if (!mount) { return; } /* HQ-only: renders only where the mount div lives */
+
+  var BACKEND = window.PF_BACKEND_URL;
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  /* JSONP, same pattern as the other games. */
+  function api(action,params,cb){
+    if(!BACKEND){ cb(null); return; }
+    /* IDOR fix: cell_mine is per-callsign private data — attach auth_secret. */
+    if(action==="cell_mine"){
+      try{
+        var _sec = (window.PF && PF.getAuthSecret) ? PF.getAuthSecret() : "";
+        if(_sec && params && !params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfWarCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script");
+    var done=false;
+    function finish(j){ if(done) return; done=true;
+      try{ delete window[fn]; }catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s);
+      cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn;
+    s.src=BACKEND+q;
+    document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  var board=null, state=null;
+  function roster(){ try{ return PF.ROSTER||[]; }catch(e){ return []; } }
+  function cellsLed(cs){
+    cs=String(cs||"").toLowerCase();
+    if(!cs) return 0;
+    var n=0;
+    try{ (board&&board.cells||[]).forEach(function(c){ if(String(c.founder||"").toLowerCase()===cs) n++; }); }catch(e){}
+    try{ if(state&&state.in_cell&&!state.is_founder) n++; }catch(e){}
+    return n;
+  }
+  function val(id){ try{ return document.getElementById(id).value.trim(); }catch(e){ return ""; } }
+  function warVariant(){
+    try{
+      var r=document.querySelector('input[name="wVar"]:checked');
+      return r?String(r.value):'standard';
+    }catch(e){ return 'standard'; }
+  }
+  /* A7 (2026-10-04): /cells deep link for the BUILD A CELL poster variant.
+     ?cell= is the cell's invite code (the join form accepts it); ?ref= is
+     the sharer's callsign via PF.shareUrl — first-touch captured by the
+     referral engine, so the recruit_log + +25 XP bounty fire on the existing
+     path when the recruit enlists. */
+  function cellDeepLink(code){
+    var u='https://www.mtcstw.com/cells';
+    if(code) u+='?cell='+encodeURIComponent(String(code));
+    try{ if(window.PF&&typeof PF.shareUrl==='function') u=PF.shareUrl(u); }catch(e){}
+    return u;
+  }
+  function data(){
+    var slug=val("wRoster");
+    var r=roster().filter(function(x){ return x.slug===slug; })[0]||null;
+    var cs=val("wCall");
+    if(!cs&&r) cs=r.name;
+    return { roster:r, callsign:cs, followers:val("wFol"), years:val("wYrs"),
+      strengths:[val("wS1"),val("wS2"),val("wS3")].filter(Boolean),
+      cells:cellsLed(cs),
+      code:(state&&state.in_cell&&state.cell)?state.cell.invite_code:"",
+      variant:warVariant() };
+  }
+  function syncMeta(){
+    var d=data();
+    var cEl=document.getElementById("wCells"), kEl=document.getElementById("wCode");
+    if(cEl) cEl.textContent="CELLS: "+(board?d.cells:"\u2026");
+    if(kEl) kEl.textContent=d.code?("INVITE CODE ON CARD: "+d.code):"NO CELL YET \u2014 FORM ONE TO STAMP YOUR INVITE CODE";
+  }
+
+  function render(){
+    var opts=roster().map(function(r){
+      return '<option value="'+esc(r.slug)+'">'+esc(r.name)+' &mdash; '+r.score+'</option>';
+    }).join("");
+    mount.innerHTML=
+      '<div class="c-warwrap" id="pf-warcard">'+
+      '<h2>Creator war card</h2>'+
+      '<div class="c-tag">Your cell doesn\'t build itself. Mint your war card, post it everywhere, turn followers into fighters.</div>'+
+      '<div class="c-wgrid">'+
+      '<label>WHICH CREATOR ARE YOU?<select id="wRoster"><option value="">&mdash; pick your profile &mdash;</option>'+opts+'</select></label>'+
+      '<label>YOUR WAR CALLSIGN<input aria-label="e.g. NIGHT OWL" id="wCall" maxlength="32" placeholder="e.g. NIGHT OWL" autocomplete="off"></label>'+
+      '<label>TOTAL FOLLOWERS<input aria-label="e.g. 250K" id="wFol" maxlength="16" placeholder="e.g. 250K" autocomplete="off"></label>'+
+      '<label>YEARS IN THE FIGHT<input aria-label="e.g. 6" id="wYrs" maxlength="8" placeholder="e.g. 6" autocomplete="off"></label>'+
+      '</div>'+
+      '<div class="c-wgrid3">'+
+      '<label>STRENGTH 1<input aria-label="e.g. Rapid-response memes" id="wS1" maxlength="48" placeholder="e.g. Rapid-response memes" autocomplete="off"></label>'+
+      '<label>STRENGTH 2<input aria-label="e.g. Street interviews" id="wS2" maxlength="48" placeholder="e.g. Street interviews" autocomplete="off"></label>'+
+      '<label>STRENGTH 3<input aria-label="e.g. Mutual-aid drives" id="wS3" maxlength="48" placeholder="e.g. Mutual-aid drives" autocomplete="off"></label>'+
+      '</div>'+
+      '<div class="c-wmeta"><span id="wCells">CELLS: &hellip;</span><span id="wCode"></span></div>'+
+      /* A7 (2026-10-04): BUILD A CELL poster variant — a recruit flyer whose
+         encoded link deep-links straight into the cell join (?cell= +
+         ?ref=), firing the existing recruit bounty on join. */
+      '<div class="c-wvar" style="margin:0.8rem 0;padding:0.7rem;border:2px dashed #c1121f;">'+
+      '<div style="font-size:0.75rem;letter-spacing:0.18em;color:#c1121f;font-weight:900;margin-bottom:0.4rem;">POSTER VARIANT</div>'+
+      '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="standard" checked style="margin-right:0.5rem;">STANDARD WAR CARD</label>'+
+      '<label style="display:block;margin:0.3rem 0;cursor:pointer;"><input type="radio" name="wVar" value="cell" style="margin-right:0.5rem;">BUILD A CELL &mdash; recruit poster with your cell invite link</label></div>'+
+      '<div class="c-wbtns"><button class="c-btn c-big" id="wShare">Share war card</button>'+
+      '<button class="c-btn" id="wSave">Save image</button></div>'+
+      '<div class="c-err" id="wErr"></div>'+
+      '</div>';
+    var rs=document.getElementById("wRoster"), cc=document.getElementById("wCall");
+    rs.onchange=function(){
+      var r=roster().filter(function(x){ return x.slug===rs.value; })[0];
+      if(r&&!cc.value) cc.value=r.name.toUpperCase().replace(/[^A-Z0-9 ]/g,"").slice(0,32);
+      syncMeta();
+    };
+    cc.oninput=function(){ syncMeta(); };
+    document.getElementById("wShare").onclick=function(){ go("share"); };
+    document.getElementById("wSave").onclick=function(){ go("save"); };
+    syncMeta();
+  }
+
+  function go(mode){
+    var err=document.getElementById("wErr"); if(err) err.textContent="";
+    var d=data();
+    if(!d.roster){ if(err) err.textContent="Pick your creator profile first."; return; }
+    if(!d.callsign){ if(err) err.textContent="Give your war card a callsign."; return; }
+    toast("Minting your war card\u2026");
+    var painter=(d.variant==="cell")?drawCellVariant:drawWarCard;
+    painter(d,function(cv){
+      if(!cv){ toast("Canvas unavailable \u2014 try again."); return; }
+      /* P3 (2026-10-04): photo war cards ship as JPEG q0.85; glyph fallback stays PNG. */
+      var jpg=!!(cv&&cv._pfPhoto);
+      var slug=String(d.callsign).replace(/[^a-z0-9]+/gi,"-").toLowerCase();
+      var fn=((d.variant==="cell")?"build-a-cell-":"war-card-")+slug+(jpg?".jpg":".png");
+      var enc=jpg?{format:"image/jpeg",quality:0.85}:null;
+      /* A7: BUILD A CELL shares carry the deep link in the share text —
+         /cells?cell=<code>&ref=<callsign>. */
+      if(mode==="share"&&d.variant==="cell"){ enc=enc||{}; enc.link=cellDeepLink(d.code); }
+      try{
+        if(!window.PFShare){ if(err) err.textContent="Share engine still loading."; return; }
+        if(mode==="share") PFShare.shareImage(cv,fn,d.callsign+" \u2014 Creator War Card","war-card",enc);
+        else PFShare.saveImage(cv,fn,"war-card",enc);
+      }catch(e){ if(err) err.textContent="Share unavailable here."; }
+    });
+  }
+
+  /* A7 (2026-10-04): BUILD A CELL variant — a recruit flyer, not a stat card.
+     The encoded deep link (printed on the poster + in the share text) lands
+     on /cells with ?cell=<invite_code>&ref=<callsign>; the join flow and the
+     referral engine do the rest — no new backend actions. CTA stays in the
+     war-card family bucket: JOIN MY CELL when the founder has a code,
+     BUILD YOUR CELL when they don't. */
+  function drawCellVariant(d,cb){
+    var W=1080,H=1350;
+    var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ cb(null); return; }
+    function wrap(text,font,maxW,maxLines){
+      x.font=font; x.textAlign="center";
+      var words=String(text||"").split(/\s+/), lines=[], cur="";
+      words.forEach(function(w){
+        var t=cur?cur+" "+w:w;
+        if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+      });
+      if(cur) lines.push(cur);
+      return lines.slice(0,maxLines||2);
+    }
+    function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+    x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+    center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
+    center("BUILD A CELL",168,'900 84px "Arial Black",Arial,sans-serif',"#f5ead6");
+    var yy=252;
+    wrap(d.callsign,'900 60px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
+      center(l,yy,'900 60px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=74; });
+    if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=48; }
+    yy+=24;
+    center("FIVE CALLSIGNS. ONE STREAK.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=52;
+    center("NOBODY LEFT BEHIND.",yy,'700 38px Arial,sans-serif',"#f5ead6"); yy+=92;
+    var code=String(d.code||"").trim();
+    if(code){
+      center("YOUR INVITE CODE",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=24;
+      x.strokeStyle="#c1121f"; x.lineWidth=6;
+      x.strokeRect(W/2-280,yy,560,150);
+      x.fillStyle="#141010"; x.fillRect(W/2-280,yy,560,150);
+      center(code,yy+106,'900 96px "Arial Black",Arial,sans-serif',"#c1121f");
+      yy+=150+56;
+      center("WIRE IN AT:",yy,'700 30px Arial,sans-serif',"#c9bfa8"); yy+=52;
+      wrap("MTCSTW.COM/CELLS?CELL="+code,'700 34px Arial,sans-serif',W-160,2).forEach(function(l){
+        center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
+      yy+=36;
+    } else {
+      wrap("NO CELL YET — FOUND YOURS AT MTCSTW.COM/CELLS",'700 34px Arial,sans-serif',W-200,2).forEach(function(l){
+        center(l,yy,'700 34px Arial,sans-serif',"#f5ead6"); yy+=48; });
+      yy+=36;
+    }
+    center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",yy,'700 26px Arial,sans-serif',"#f5ead6"); yy+=100;
+    var cta=code?"JOIN MY CELL":"BUILD YOUR CELL";
+    x.font='900 44px "Arial Black",Arial,sans-serif';
+    var tw=x.measureText(cta).width+110;
+    x.fillStyle="#c1121f"; x.fillRect(W/2-tw/2,yy-58,tw,94);
+    center(cta,yy+8,'900 44px "Arial Black",Arial,sans-serif',"#ffffff");
+    center("MTCSTW.COM",H-168,'900 48px "Arial Black",Arial,sans-serif',"#c1121f");
+    center("JOIN THE FIGHT.",H-108,'900 44px "Arial Black",Arial,sans-serif',"#c1121f");
+    cb(cv);
+  }
+
+  /* 1080x1350 propaganda-poster war card. Photo loads CORS-anonymous with a
+     star glyph fallback; layout is fixed-budget so long inputs can't overflow. */
+  function drawWarCard(d,cb){
+    var W=1080,H=1350;
+    var cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    var x=cv.getContext("2d"); if(!x){ cb(null); return; }
+    function wrap(text,font,maxW,maxLines){
+      x.font=font; x.textAlign="center";
+      var words=String(text||"").split(/\s+/), lines=[], cur="";
+      words.forEach(function(w){
+        var t=cur?cur+" "+w:w;
+        if(x.measureText(t).width>maxW&&cur){ lines.push(cur); cur=w; } else cur=t;
+      });
+      if(cur) lines.push(cur);
+      return lines.slice(0,maxLines||2);
+    }
+    function center(t,y,font,fill){ x.font=font; x.fillStyle=fill; x.textAlign="center"; x.fillText(t,W/2,y); }
+    x.fillStyle="#0b0b0c"; x.fillRect(0,0,W,H);
+    x.strokeStyle="#c1121f"; x.lineWidth=14; x.strokeRect(20,20,W-40,H-40);
+    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(44,44,W-88,H-88);
+    center("\u2605 SICK LEFT RADICALS \u2605",104,'700 30px Arial,sans-serif',"#c1121f");
+    center("CREATOR WAR CARD",160,'900 60px "Arial Black",Arial,sans-serif',"#f5ead6");
+    var bw=320,bh=320,bx=(W-bw)/2,by=190;
+    function glyph(){
+      x.fillStyle="#1a1a1c"; x.fillRect(bx,by,bw,bh);
+      center("\u2605",by+bh/2+72,'900 190px Arial,sans-serif',"#c1121f");
+    }
+    function paintRest(){
+      x.strokeStyle="#c1121f"; x.lineWidth=8; x.strokeRect(bx,by,bw,bh);
+      var yy=by+bh+86;
+      wrap(d.callsign,'900 72px "Arial Black",Arial,sans-serif',W-160,2).forEach(function(l){
+        center(l,yy,'900 72px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=84; });
+      if(d.roster&&d.roster.handle){ center(d.roster.handle,yy,'700 30px Arial,sans-serif',"#c1121f"); yy+=44; }
+      center("PROPAGANDA SCORE "+(d.roster?d.roster.score:"\u2014"),yy,'900 40px "Arial Black",Arial,sans-serif',"#c1121f"); yy+=66;
+      x.fillStyle="#c1121f"; x.fillRect(80,yy,W-160,96);
+      x.fillStyle="#f5ead6"; x.textAlign="center";
+      [[String(d.cells),"CELLS"],[d.followers||"\u2014","FOLLOWERS"],[d.years||"\u2014","YRS ACTIVE"]].forEach(function(s,i){
+        var cx=80+(W-160)*(i+0.5)/3;
+        x.font='900 42px "Arial Black",Arial,sans-serif'; x.fillText(s[0],cx,yy+44);
+        x.font='700 22px Arial,sans-serif'; x.fillText(s[1],cx,yy+80);
+      });
+      yy+=136;
+      if(d.strengths.length){
+        center("KEY STRENGTHS",yy,'900 32px "Arial Black",Arial,sans-serif',"#f5ead6"); yy+=48;
+        d.strengths.slice(0,3).forEach(function(s){
+          wrap("\u2605 "+s,'700 30px Arial,sans-serif',W-220,1).forEach(function(l){
+            center(l,yy,'700 30px Arial,sans-serif',"#f5ead6"); yy+=42; });
+        });
+        yy+=8;
+      }
+      center(d.code?("JOIN MY CELL: "+d.code):"BUILD YOUR CELL AT MTCSTW.COM",
+        H-128,'900 42px "Arial Black",Arial,sans-serif',"#c1121f");
+      center("EVERY RECRUIT WHO CHECKS IN EARNS +25 XP",H-82,'700 24px Arial,sans-serif',"#f5ead6");
+      cb(cv);
+    }
+    var imgUrl=(d.roster&&d.roster.img)?String(d.roster.img):"";
+    if(!imgUrl){ glyph(); paintRest(); return; }
+    var done=false,img=new Image();
+    function ok(){ if(done) return; done=true;
+      try{
+        var iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+        if(iw&&ih){
+          var sc=Math.max(bw/iw,bh/ih), dw=iw*sc, dh=ih*sc;
+          x.save(); x.beginPath(); x.rect(bx,by,bw,bh); x.clip();
+          x.drawImage(img,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh); x.restore();
+          try{ cv._pfPhoto=true; }catch(e){} /* P3 2026-10-04: photo landed — JPEG path */
+        } else glyph();
+      }catch(e){ glyph(); }
+      paintRest();
+    }
+    function bad(){ if(done) return; done=true; glyph(); paintRest(); }
+    setTimeout(bad,3500);
+    img.onload=ok; img.onerror=bad;
+    try{ img.crossOrigin="anonymous"; }catch(e){}
+    try{ img.src=imgUrl; }catch(e){ bad(); }
+  }
+
+  render();
+  /* DEFECT4 (2026-10-03; row-overlap fix 2026-10-04): /request-access Fluid
+     Engine layout repair.
+     (a) Squarespace stored the HQ Code blocks ~240px wide (same narrow-column
+     root cause as defect 3's /economy). (b) The war-card panel overflowed its
+     narrow/short block and painted over the native request form's Name/Handle
+     inputs (the panel itself has no position/z-index — pure block-geometry
+     overlap). TRUE geometry (live HTML): desktop grid-areas form=1/2/52/11
+     vs war-card=1/2/7/6 — the war card sits inside the form's rows, so
+     column widening alone (pf-fe-hq) could never fix it. The editor is
+     off-limits, so: stamp .pf-fe-hq (see core/01-styles.css) on the .fe-block
+     wrapper ancestor of every HQ mount div for full content width, AND stamp
+     .pf-fe-wc on the war-card block on /request-access so the DEFECT 4b CSS
+     rule clears its explicit row placement on desktop — grid auto-placement
+     then parks the block below the form. Scoped: this IIFE only runs where
+     #pf-war-card exists (HQ pages), and .pf-fe-wc only on /request-access,
+     so no other page's layout is touched. Best-effort: never throws, never
+     breaks render. */
+  try {
+    ['pf-war-card', 'pf-academy-hq', 'pf-cell-hq', 'pf-dash-hq'].forEach(function (id) {
+      var m = document.getElementById(id);
+      var b = (m && m.closest) ? m.closest('.fe-block') : null;
+      if (b && b.classList && !b.classList.contains('pf-fe-hq')) b.classList.add('pf-fe-hq');
+    });
+    /* DEFECT 4b: /request-access desktop row overlap — drop the war-card
+       block out of the form's grid rows (see core/01-styles.css). */
+    if (/\/request-access(\/|$|\?)/.test(location.pathname || '')) {
+      var wcm = document.getElementById('pf-war-card');
+      var wcb = (wcm && wcm.closest) ? wcm.closest('.fe-block') : null;
+      if (wcb && wcb.classList && !wcb.classList.contains('pf-fe-wc')) wcb.classList.add('pf-fe-wc');
+    }
+  } catch (e4) {}
+  api("cell_leaderboard",{},function(j){ board=j; syncMeta(); });
+  (function(){ var id=ident(); if(!id.callsign) return;
+    api("cell_mine",{callsign:id.callsign,device:id.device},function(j){ state=j; syncMeta(); });
+  })();
+})();
+
+;
+
+/* ===== war-map.js ===== */
+/* games/war-map.js  |  PF v1.4.3 | W5-12 Frontlines — Cell War Map.
+   Weekly territory leaderboard: cross-system actions (Route March, recruit
+   conversions, Ambush claims, approved post-proofs, flash-window actions)
+   score TERRITORY POINTS for the actor's cell. Chicago-Monday season reset.
+   All Fronts ops double everything (LIVE-FIRE 2X).
+   Honorific only: territory points are NEVER XP and never convertible.
+   Reads ?action=warmap_status (public standings; the mine block rides along
+   when the caller's auth verifies).
+   KILL: ?pf_off=war-map  or  localStorage pf_disabled_v1='["war-map"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("war-map")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-warmap">
+<div class="fe-block pf-override-block pf-silo" id="pf-war-map">
+<div id="xWarMap"><div class="wm-load">Surveying the front&hellip;</div></div>
+</div>
+<style>
+#pf-war-map .wm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#200808 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:700px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}
+#pf-war-map .wm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}
+#pf-war-map .wm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-war-map h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:32px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}
+#pf-war-map .wm-week{font-family:'Courier New',monospace;font-size:14px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}
+#pf-war-map .wm-live{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;padding:8px 18px;margin:6px 0 12px;animation:wmPulse 1.6s infinite;border:2px solid #fff}
+@keyframes wmPulse{0%,100%{box-shadow:0 0 0 rgba(193,18,31,.7)}50%{box-shadow:0 0 22px rgba(193,18,31,.9)}}
+#pf-war-map .wm-leader{border:2px solid #ffb347;background:linear-gradient(90deg,#2a1503,#3a1e05);padding:12px;margin:0 0 14px}
+#pf-war-map .wm-leader .wm-crown{font-size:22px}
+#pf-war-map .wm-leader .wm-lname{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#ffb347;letter-spacing:1px;margin:2px 0}
+#pf-war-map .wm-leader .wm-lsub{font-size:12px;color:#d8c9a3;letter-spacing:1px}
+#pf-war-map .wm-row{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:10px 12px;margin-bottom:8px;text-align:left;position:relative}
+#pf-war-map .wm-row.wm-mine{border:2px solid #ffb347;background:rgba(42,21,3,.85)}
+#pf-war-map .wm-pos{font-family:'Arial Black',Arial,sans-serif;font-size:22px;color:#c1121f;text-align:center;text-shadow:1px 1px 0 #000}
+#pf-war-map .wm-row.wm-mine .wm-pos{color:#ffb347}
+#pf-war-map .wm-name{font-weight:800;font-size:15px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
+#pf-war-map .wm-tag{display:inline-block;background:#ffb347;color:#000;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
+#pf-war-map .wm-sub{font-size:12px;color:#b3a687;margin-top:2px}
+#pf-war-map .wm-bar{height:9px;background:#1c1c1c;margin-top:7px;border:1px solid #555}
+#pf-war-map .wm-bar i{display:block;height:100%;background:linear-gradient(90deg,#7a0c14,#c1121f,#ff5a00)}
+#pf-war-map .wm-pts{font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:#ffb347;text-align:right;white-space:nowrap}
+#pf-war-map .wm-pts small{display:block;font-size:10px;color:#b3a687;font-weight:400;letter-spacing:1px}
+#pf-war-map .wm-minebox{border:2px dashed #ffb347;background:rgba(42,21,3,.6);padding:10px 12px;margin:12px 0;font-size:13px;color:#f5ead6;letter-spacing:.5px}
+#pf-war-map .wm-minebox b{color:#ffb347}
+#pf-war-map .wm-flips{margin:14px 0 4px;text-align:left}
+#pf-war-map .wm-flips h4{font-size:11px;letter-spacing:3px;color:#c1121f;margin:0 0 8px;font-weight:800}
+#pf-war-map .wm-flip{display:block;background:rgba(20,20,20,.8);border-left:4px solid #c1121f;padding:8px 10px;margin-bottom:6px;font-size:13px;color:#f5ead6;text-decoration:none}
+#pf-war-map .wm-flip:hover{background:rgba(40,12,12,.9)}
+#pf-war-map .wm-flip .wm-ago{font-size:11px;color:#b3a687;margin-left:6px;font-family:'Courier New',monospace}
+#pf-war-map .wm-legend{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}
+#pf-war-map .wm-legend b{color:#f5ead6}
+#pf-war-map .wm-count{font-family:'Courier New',monospace;font-size:13px;color:#ffb347;letter-spacing:1px;margin:8px 0 4px}
+#pf-war-map .wm-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}
+#pf-war-map .wm-load{color:#b3a687;font-size:14px;padding:20px}
+#pf-war-map .wm-cta{margin-top:14px}
+#pf-war-map .wm-btn{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:14px;padding:12px 28px;text-decoration:none;letter-spacing:1px;border:2px solid #fff;margin:4px;cursor:pointer}
+#pf-war-map .wm-btn.wm-ghost{background:transparent;border-color:#c1121f;color:#f5ead6}
+</style>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return cs; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private-adjacent read: the mine block needs auth. Prefer the shared
+     authGetJSONP; fall back to attaching auth_secret manually. */
+  try{
+    if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+  }catch(e){}
+  try{
+    var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+  }catch(e2){}
+  var fn="pfWmCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false, timer=null;
+  function finish(j){ if(done)return; done=true;
+    if(timer){clearTimeout(timer);timer=null;}
+    try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  timer=setTimeout(function(){ finish(null); },12000);
+}
+/* UTC ms of 00:00 America/Chicago on (dayStr + addDays). */
+function chicagoMidnightMs(dayStr,addDays){
+  try{
+    var base=Date.parse(String(dayStr).slice(0,10)+"T12:00:00Z")+(addDays||0)*86400000;
+    var ymd=new Date(base).toISOString().slice(0,10);
+    var guess=Date.parse(ymd+"T12:00:00Z");
+    for(var i=0;i<3;i++){
+      var parts=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(guess)).split(":");
+      guess=guess-((+parts[0])*3600000+(+parts[1])*60000+(+parts[2])*1000);
+    }
+    return guess;
+  }catch(e){ return Date.now()+86400000; }
+}
+function fmtDate(ymd){
+  try{
+    var p=String(ymd).slice(0,10).split("-");
+    var M=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    return M[+p[1]-1]+" "+(+p[2]);
+  }catch(e){ return String(ymd||""); }
+}
+function ago(ts){
+  var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
+  if(s<60) return s+"s AGO";
+  var m=Math.floor(s/60); if(m<60) return m+"m AGO";
+  var h=Math.floor(m/60); if(h<24) return h+"h AGO";
+  return Math.floor(h/24)+"d AGO";
+}
+function fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }
+var WAR_END=0, TICK=null;
+function tick(){
+  var el=document.getElementById("wmCount"); if(!el) return;
+  var ms=WAR_END-Date.now(); if(ms<0) ms=0;
+  var d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000),
+      m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
+  el.textContent="MAP RESETS IN "+d+"d "+h+"h "+m+"m "+s+"s";
+}
+function goCells(){
+  try{
+    var onCells=/\\/cells\\/?$/.test(window.location.pathname||'');
+    if(onCells){
+      var t=document.getElementById("pf-cells");
+      if(t){ t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    }
+  }catch(e){}
+  try{ window.location.href="/cells"; }catch(e2){}
+}
+function render(j){
+  var host=document.getElementById("xWarMap"); if(!host) return;
+  if(!j||!j.ok){ host.innerHTML='<div class="wm-empty">The war drums are silent. Check back soon.</div>'; return; }
+  WAR_END=chicagoMidnightMs(j.week_id,7);
+  var rows=j.standings||[];
+  var top=rows.length?rows[0].points:1;
+  var mine=j.mine||null;
+  var h='<div class="wm-wrap">';
+  h+='<div class="wm-kicker">FRONTLINES &middot; WEEKLY TERRITORY WAR</div>';
+  h+='<h2>\u2694\uFE0F Cell War Map</h2>';
+  h+='<div class="wm-week">WEEK OF '+esc(fmtDate(j.week_id))+'</div>';
+  h+='<div class="wm-count" id="wmCount">--</div>';
+  if(j.live_fire){
+    h+='<div><span class="wm-live">\u26A1 LIVE-FIRE 2X \u2014 ALL FRONTS ACTIVE</span></div>';
+  }
+  if(rows.length){
+    var L=rows[0];
+    h+='<div class="wm-leader"><div class="wm-crown">\uD83D\uDC51</div>'+
+       '<div class="wm-lname">'+esc(L.cell_name)+'</div>'+
+       '<div class="wm-lsub">HOLDING THE FRONT \u2014 '+fmt(L.points)+' TERRITORY PTS</div></div>';
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i], pct=top>0?Math.max(4,Math.round(r.points/top*100)):4;
+      var isMine=!!(mine&&mine.cell_id&&mine.cell_id===r.cell_id);
+      h+='<div class="wm-row'+(isMine?' wm-mine':'')+'">';
+      h+='<div class="wm-pos">'+(i+1)+'</div>';
+      h+='<div><div class="wm-name">'+esc(r.cell_name)+(isMine?'<span class="wm-tag">YOUR CELL</span>':'')+'</div>';
+      h+='<div class="wm-sub">'+fmt(r.fighters)+' fighter'+(r.fighters===1?'':'s')+' scoring</div>';
+      h+='<div class="wm-bar"><i style="width:'+pct+'%"></i></div></div>';
+      h+='<div class="wm-pts">'+fmt(r.points)+'<small>TERRITORY</small></div>';
+      h+='</div>';
+    }
+  }else{
+    h+='<div class="wm-empty">The front is quiet.<br>No territory claimed yet this week.<br>Be the first cell on the board.</div>';
+  }
+  if(mine&&mine.cell_id){
+    h+='<div class="wm-minebox">YOUR CELL <b>'+esc(mine.cell_name||mine.cell_id)+'</b> \u2014 RANK #'+(mine.rank||'?')+
+       ' \u2014 <b>'+fmt(mine.points)+'</b> PTS <span style="color:#b3a687">(cap '+mine.week_cap+'/wk)</span></div>';
+  }else{
+    h+='<div class="wm-cta"><button class="wm-btn" id="wmJoinCell" type="button">JOIN A CELL</button>'+
+       '<button class="wm-btn wm-ghost" id="wmBuildCell" type="button">BUILD YOUR CELL</button></div>';
+  }
+  var flips=j.recent_flips||[];
+  if(flips.length){
+    h+='<div class="wm-flips"><h4>\uD83D\uDCCB SECTOR FLIPS</h4>';
+    for(var f=0;f<flips.length;f++){
+      var fl=flips[f];
+      h+='<a class="wm-flip" href="/cells">'+esc(fl.name)+'<span class="wm-ago">'+esc(ago(fl.ts))+'</span></a>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="wm-legend"><b>HOW TERRITORY IS WON:</b> Route March +1 &middot; Ambush claim +2 &middot; '+
+     'Post-proof bounty +3 &middot; Recruit conversion +5 &middot; action in a flash window +1.<br>'+
+     'During an All Fronts operation everything <b>doubles</b>. Fresh map every Monday.'+
+     '<br><b>Honorific:</b> territory points are never XP and can never be converted.</div>';
+  h+='</div>';
+  host.innerHTML=h;
+  /* 2026-10-06 share-everywhere. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'war-map',{link:'/cells'}); }catch(e){}
+  if(TICK) clearInterval(TICK);
+  tick(); TICK=setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} tick(); },1000);
+  var jb=document.getElementById("wmJoinCell"), bb=document.getElementById("wmBuildCell");
+  if(jb) jb.onclick=goCells;
+  if(bb) bb.onclick=goCells;
+}
+function load(){
+  api("warmap_status",{callsign:ident()},render);
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
+})();
+<\/script>
+</template>`);
+})();
+
+;
+
+/* ===== cell-territory-map.js ===== */
+/* games/cell-territory-map.js  |  PF v1.4.3 | CELLS 2.0 — Territory Map.
+   Visual, state-level US tile map: each state is colored by its leading cell
+   (highest current-week warmap points among cells with cells.state = that
+   state). Unclaimed states render neutral gray. The viewer's own cell gets a
+   gold "MY CELL" highlight; its self-declared home state gets a gold dashed
+   outline. Legend lists leading cells with points held.
+   Reads GET ?action=territory_map_status (public standings; the mine block
+   rides along when the caller's auth verifies, via PF.authGetJSONP —
+   same pattern as war-map.js). Displayed data is cell-level aggregates
+   only — no user-level data anywhere on this surface.
+   PRIVACY: state affiliation is self-declared, optional, 2-letter, coarse.
+   No coordinates, no IP geolocation, no per-user positioning.
+   Honorific only: territory is NEVER XP and never convertible.
+   KILL: ?pf_off=cell-territory-map  or  localStorage pf_disabled_v1='["cell-territory-map"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cell-territory-map")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-territory-map">
+<div class="fe-block pf-override-block pf-silo" id="pf-territory-map">
+<div id="xTerritoryMap"><div class="tm-load">Charting the territory&hellip;</div></div>
+</div>
+<style>
+#pf-territory-map .tm-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#1a0d0d 55%,#0b0b0c 100%);border:3px solid #c1121f;padding:26px 22px;max-width:760px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(193,18,31,.4), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}
+#pf-territory-map .tm-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}
+#pf-territory-map .tm-kicker{font-size:12px;letter-spacing:5px;color:#c1121f;font-weight:800;margin-bottom:6px}
+#pf-territory-map h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}
+#pf-territory-map .tm-week{font-family:'Courier New',monospace;font-size:13px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}
+#pf-territory-map .tm-map{width:100%;height:auto;display:block;margin:6px auto 4px;max-width:640px}
+#pf-territory-map .tm-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:14px 0 4px;text-align:left}
+#pf-territory-map .tm-leg{display:flex;align-items:center;gap:9px;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:8px 10px}
+#pf-territory-map .tm-leg.tm-minecell{border:2px solid #ffd700}
+#pf-territory-map .tm-sw{flex:0 0 auto;width:18px;height:18px;border:1px solid #000}
+#pf-territory-map .tm-lname{font-weight:800;font-size:13.5px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pf-territory-map .tm-lsub{font-size:11.5px;color:#b3a687}
+#pf-territory-map .tm-tag{display:inline-block;background:#ffd700;color:#000;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;vertical-align:middle}
+#pf-territory-map .tm-note{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}
+#pf-territory-map .tm-note b{color:#f5ead6}
+#pf-territory-map .tm-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}
+#pf-territory-map .tm-load{color:#b3a687;font-size:14px;padding:20px}
+#pf-territory-map .tm-cta{margin-top:14px;font-size:13.5px;color:#f5ead6}
+#pf-territory-map .tm-cta a{color:#ffb347;font-weight:800}
+</style>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} return cs; }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Mine block is private-adjacent: prefer the shared auth JSONP, fall back
+     to attaching auth_secret manually. */
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; } }catch(e){}
+  try{ var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+    if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec; }catch(e2){}
+  var fn="pfTerrCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false, timer=null;
+  function finish(j){ if(done)return; done=true;
+    if(timer){clearTimeout(timer);timer=null;}
+    try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  timer=setTimeout(function(){ finish(null); },12000);
+}
+function fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }
+/* Simplified US tile grid: [code, col, row], 12 cols x 10 rows. */
+var TILES=[
+["AK",0,0],["HI",11,0],
+["ME",11,1],
+["VT",1,2],["NH",2,2],
+["WA",0,3],["ND",3,3],["MN",4,3],["WI",5,3],["MI",6,3],
+["OR",0,4],["ID",1,4],["MT",2,4],["SD",3,4],["IA",4,4],["IL",5,4],["IN",6,4],["OH",7,4],["PA",8,4],["NY",9,4],
+["NV",1,5],["WY",2,5],["NE",3,5],["MO",4,5],["KY",5,5],["WV",6,5],["VA",7,5],["NJ",8,5],["CT",9,5],["RI",10,5],["MA",11,5],
+["CA",0,6],["UT",2,6],["CO",3,6],["KS",4,6],["TN",5,6],["NC",6,6],["SC",7,6],["DC",8,6],["MD",9,6],["DE",10,6],
+["AZ",2,7],["NM",3,7],["OK",4,7],["AR",5,7],["MS",6,7],["AL",7,7],["GA",8,7],
+["TX",3,8],["LA",4,8],
+["FL",7,9]
+];
+var NAMES={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+var PALETTE=["#c1121f","#e76f51","#f4a261","#e9c46a","#2a9d8f","#577590","#9b5de5","#f15bb5","#00bbf9","#80ed99"];
+function cellColor(id){ var h=0,s=String(id||""); for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return PALETTE[h%PALETTE.length]; }
+function render(j){
+  var host=document.getElementById("xTerritoryMap"); if(!host) return;
+  var h='<div class="tm-wrap">';
+  h+='<div class="tm-kicker">CELLS 2.0</div>';
+  h+='<h2>Territory Map</h2>';
+  if(!j||!j.ok){
+    /* Fail-soft: backend down or action unknown — honest offline state,
+       map never half-renders. */
+    host.innerHTML=h+'<div class="tm-empty">The territory map is offline right now.<br>Check back soon.</div></div>';
+    return;
+  }
+  if(j.week_id){ h+='<div class="tm-week">WEEK OF '+esc(String(j.week_id))+'</div>'; }
+  var regs=(j.regions&&j.regions.length)?j.regions:[];
+  var byState={};
+  for(var i=0;i<regs.length;i++){ var rr=regs[i]; if(rr&&rr.state) byState[String(rr.state).toUpperCase()]=rr; }
+  var mine=(j.mine&&j.mine.cell_id)?j.mine:null;
+  var mineState=mine&&mine.state?String(mine.state).toUpperCase():"";
+  var seen={}, leg=[];
+  var svg='<svg class="tm-map" viewBox="0 0 600 500" role="img" aria-label="Cell territory map by state">';
+  for(var t=0;t<TILES.length;t++){
+    var code=TILES[t][0], x=TILES[t][1]*50, y=TILES[t][2]*50;
+    var reg=byState[code];
+    var fill="#3a3a3a", stroke="#555", txtFill="#9a9a9a";
+    var isMineCell=false, isHome=(mineState&&mineState===code);
+    var tip=(NAMES[code]||code)+" — uncontested this week";
+    if(reg&&reg.cell_id){
+      fill=cellColor(reg.cell_id); stroke="#0b0b0c"; txtFill="#ffffff";
+      tip=(NAMES[code]||code)+" — "+(reg.cell_name||reg.cell_id)+" ("+fmt(reg.points||0)+" pts)";
+      if(mine&&reg.cell_id===mine.cell_id) isMineCell=true;
+      if(!seen[reg.cell_id]){ seen[reg.cell_id]=1;
+        leg.push({cell_id:reg.cell_id,cell_name:reg.cell_name||reg.cell_id,pts:Number(reg.points)||0,states:1,mine:isMineCell}); }
+      else { for(var l=0;l<leg.length;l++){ if(leg[l].cell_id===reg.cell_id){ leg[l].pts+=Number(reg.points)||0; leg[l].states++; if(isMineCell) leg[l].mine=true; } } }
+    }
+    var bStroke=isMineCell?"#ffd700":stroke, bW=isMineCell?3:1.5;
+    var dash=(isHome&&!isMineCell)?' stroke-dasharray="5 3"':"";
+    if(isHome&&!isMineCell) bStroke="#ffd700";
+    svg+='<g><title>'+esc(tip)+'</title>'+
+      '<rect x="'+x+'" y="'+y+'" width="46" height="46" fill="'+fill+'" stroke="'+bStroke+'" stroke-width="'+bW+'"'+dash+'/>'+
+      '<text x="'+(x+23)+'" y="'+(y+27)+'" text-anchor="middle" font-size="11" font-weight="800" fill="'+txtFill+'" font-family="Arial,sans-serif">'+esc(code)+'</text></g>';
+  }
+  svg+='</svg>';
+  h+=svg;
+  leg.sort(function(a,b){ return b.pts-a.pts; });
+  if(leg.length){
+    h+='<div class="tm-legend">';
+    var maxLeg=12;
+    for(var m=0;m<leg.length&&m<maxLeg;m++){
+      var c=leg[m];
+      h+='<div class="tm-leg'+(c.mine?' tm-minecell':'')+'"><span class="tm-sw" style="background:'+cellColor(c.cell_id)+'"></span>'+
+        '<span><span class="tm-lname">'+esc(c.cell_name)+(c.mine?'<span class="tm-tag">MY CELL</span>':'')+'</span><br>'+
+        '<span class="tm-lsub">'+c.states+' state'+(c.states===1?'':'s')+' &middot; '+fmt(c.pts)+' pts</span></span></div>';
+    }
+    if(leg.length>maxLeg){ h+='<div class="tm-leg"><span class="tm-lsub">+'+(leg.length-maxLeg)+' more cells holding turf</span></div>'; }
+    h+='</div>';
+  }else{
+    h+='<div class="tm-empty">No territory claimed yet this week.<br>Be the first cell to plant a flag.</div>';
+  }
+  if(!mine){
+    h+='<div class="tm-cta">Not holding turf yet? <a href="/cells">Join a cell</a> and put your state on the map.</div>';
+  }
+  h+='<div class="tm-note"><b>HOW TURF IS WON:</b> each state goes to the cell calling it home with the most territory points that week.<br>'+
+    '<b>Honorific:</b> territory is recognition only — never XP, never convertible.<br>'+
+    'State turf is self-declared by each cell. No one is tracked, mapped, or followed.</div>';
+  h+='</div>';
+  host.innerHTML=h;
+  /* 2026-10-06 share-everywhere: share/save + network row on the map. */
+  try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(host,'territory-map',{link:'/cells'}); }catch(e){}
+}
+function load(){
+  api("territory_map_status",{callsign:ident()},render);
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
+})();
+<\/script>
+</template>`); })();
+
+;
+
+/* ===== cell-comp-seasons.js ===== */
+/* games/cell-comp-seasons.js  |  PF v1.4.3 | CELLS 2.0 — Competition Seasons.
+   Season = 4 consecutive Chicago-Monday weeks (season_id = first Monday of
+   the block). Each weekly competition win = 1 season point; tiebreak = total
+   counts across the season. Finalize is lazy on read (existing cellcomp
+   pattern). Rewards: crown + feed announcement + history entry.
+   Reads GET ?action=cellcomp_season_status (public live standings) and
+   GET ?action=cellcomp_season_history (public sealed seasons, newest first).
+   Standings are aggregate and public; no per-user targeting.
+   Zero XP. No new XP mechanics, no currencies — crowns and honor only.
+   KILL: ?pf_off=cell-comp-seasons  or  localStorage pf_disabled_v1='["cell-comp-seasons"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cell-comp-seasons")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-cellcomp-seasons">
+<div class="fe-block pf-override-block pf-silo" id="pf-cellcomp-seasons">
+<div id="xCellCompSeasons"><div class="cs-load">Opening the season books&hellip;</div></div>
+</div>
+<style>
+#pf-cellcomp-seasons .cs-wrap{background:linear-gradient(165deg,#0b0b0c 0%,#141006 55%,#0b0b0c 100%);border:3px solid #c9a227;padding:26px 22px;max-width:760px;margin:18px auto;text-align:center;box-shadow:0 0 28px rgba(201,162,39,.35), inset 0 0 60px rgba(0,0,0,.6);color:#f5ead6;font-family:Arial,sans-serif;position:relative;overflow:hidden}
+#pf-cellcomp-seasons .cs-wrap:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px)}
+#pf-cellcomp-seasons .cs-kicker{font-size:12px;letter-spacing:5px;color:#c9a227;font-weight:800;margin-bottom:6px}
+#pf-cellcomp-seasons h2{font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;font-size:30px;margin:0 0 4px;letter-spacing:3px;text-transform:uppercase;text-shadow:2px 2px 0 #000}
+#pf-cellcomp-seasons .cs-season{font-family:'Courier New',monospace;font-size:13px;color:#ffb347;letter-spacing:2px;margin-bottom:10px}
+#pf-cellcomp-seasons .cs-prog{max-width:420px;margin:10px auto 4px}
+#pf-cellcomp-seasons .cs-proglabel{font-size:12px;letter-spacing:2px;color:#f5ead6;margin-bottom:5px}
+#pf-cellcomp-seasons .cs-bar{height:10px;background:#1c1c1c;border:1px solid #555}
+#pf-cellcomp-seasons .cs-bar i{display:block;height:100%;background:linear-gradient(90deg,#8a6d1f,#c9a227,#ffe27a)}
+#pf-cellcomp-seasons .cs-metric{margin:16px 0 4px;text-align:left}
+#pf-cellcomp-seasons .cs-metric h3{font-size:14px;letter-spacing:3px;color:#c9a227;margin:0 0 8px;font-weight:800;text-transform:uppercase}
+#pf-cellcomp-seasons .cs-row{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:9px 12px;margin-bottom:7px;text-align:left}
+#pf-cellcomp-seasons .cs-row.cs-first{border:2px solid #c9a227;background:rgba(42,32,6,.85)}
+#pf-cellcomp-seasons .cs-pos{font-family:'Arial Black',Arial,sans-serif;font-size:20px;color:#c9a227;text-align:center;text-shadow:1px 1px 0 #000}
+#pf-cellcomp-seasons .cs-name{font-weight:800;font-size:14.5px;color:#f5ead6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.5px}
+#pf-cellcomp-seasons .cs-sub{font-size:11.5px;color:#b3a687;margin-top:2px}
+#pf-cellcomp-seasons .cs-pts{font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:#ffe27a;text-align:right;white-space:nowrap}
+#pf-cellcomp-seasons .cs-pts small{display:block;font-size:10px;color:#b3a687;font-weight:400;letter-spacing:1px}
+#pf-cellcomp-seasons .cs-champs{margin:18px 0 4px;text-align:left;border-top:1px solid #4a4a4a;padding-top:14px}
+#pf-cellcomp-seasons .cs-champs h3{font-size:14px;letter-spacing:3px;color:#c9a227;margin:0 0 8px;font-weight:800}
+#pf-cellcomp-seasons .cs-champ{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(10,10,10,.75);border:1px solid #4a4a4a;padding:9px 12px;margin-bottom:7px}
+#pf-cellcomp-seasons .cs-champ .cs-cname{font-weight:800;font-size:14px;color:#f5ead6}
+#pf-cellcomp-seasons .cs-champ .cs-csub{font-size:11.5px;color:#b3a687;font-family:'Courier New',monospace}
+#pf-cellcomp-seasons .cs-empty{font-size:14px;color:#b3a687;padding:16px 0;line-height:1.6}
+#pf-cellcomp-seasons .cs-load{color:#b3a687;font-size:14px;padding:20px}
+#pf-cellcomp-seasons .cs-note{font-size:11.5px;color:#b3a687;line-height:1.7;margin-top:12px;border-top:1px solid #4a4a4a;padding-top:10px}
+#pf-cellcomp-seasons .cs-note b{color:#f5ead6}
+</style>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfCsCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false, timer=null;
+  function finish(j){ if(done)return; done=true;
+    if(timer){clearTimeout(timer);timer=null;}
+    try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  timer=setTimeout(function(){ finish(null); },12000);
+}
+function fmt(n){ n=Math.round(Number(n)||0); return n.toLocaleString("en-US"); }
+function fmtDate(sealed){
+  try{
+    var ms=Number(sealed); if(ms>0&&ms<1e12) ms=ms*1000;
+    if(!(ms>0)) return "";
+    return new Date(ms).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  }catch(e){ return ""; }
+}
+function metricLabel(m){
+  var s=String(m||"").replace(/[_-]+/g," ").replace(/\\s+/g," ").trim();
+  if(!s) return "COMPETITION";
+  return s.toUpperCase();
+}
+var ST=null, HI=null, gS=false, gH=false;
+function render(){
+  var host=document.getElementById("xCellCompSeasons"); if(!host) return;
+  if(!gS||!gH) return;
+  var h='<div class="cs-wrap">';
+  h+='<div class="cs-kicker">CELLS 2.0</div>';
+  h+='<h2>Competition Seasons</h2>';
+  var okS=!!(ST&&ST.ok), okH=!!(HI&&HI.ok);
+  if(!okS&&!okH){
+    /* Fail-soft: both reads down — honest offline state. */
+    host.innerHTML=h+'<div class="cs-empty">The season books are offline right now.<br>Check back soon.</div></div>';
+    return;
+  }
+  if(okS){
+    var seasonId=String(ST.season_id||ST.week_id||"");
+    /* Backend contract: week_index / season_weeks (not week_no / weeks_total). */
+    var wkTot=Math.max(1,Number(ST.season_weeks)||4);
+    var wkNo=Math.max(1,Math.min(wkTot,Number(ST.week_index)||1));
+    h+='<div class="cs-season">SEASON '+(seasonId?esc(seasonId):'LIVE')+'</div>';
+    h+='<div class="cs-prog"><div class="cs-proglabel">WEEK '+wkNo+' OF '+wkTot+'</div>'+
+      '<div class="cs-bar"><i style="width:'+Math.round(wkNo/wkTot*100)+'%"></i></div></div>';
+    /* Backend contract: metrics is an OBJECT keyed by metric name, each value
+       {metric_label, standings:[...]} — not an array of {metric, rows}. */
+    var mKeys=(ST.metrics&&typeof ST.metrics==="object")?Object.keys(ST.metrics):[];
+    if(!mKeys.length){
+      h+='<div class="cs-empty">No competitions scored yet this season.<br>Get your cell in the fight.</div>';
+    }
+    for(var mi=0;mi<mKeys.length;mi++){
+      var mk=mKeys[mi], m=(ST.metrics[mk]||{}), rows=(m.standings&&m.standings.length)?m.standings:[];
+      h+='<div class="cs-metric"><h3>'+esc(m.metric_label||metricLabel(mk))+'</h3>';
+      if(!rows.length){ h+='<div class="cs-empty">No scores yet.</div>'; }
+      for(var i=0;i<rows.length;i++){
+        var r=rows[i]||{};
+        h+='<div class="cs-row'+(i===0?' cs-first':'')+'">';
+        h+='<div class="cs-pos">'+(i+1)+'</div>';
+        h+='<div><div class="cs-name">'+(i===0?'\\uD83D\\uDC51 ':'')+esc(r.cell_name||r.cell_id||'Cell')+'</div>'+
+          '<div class="cs-sub">'+fmt(r.total_cnt||0)+' total scored (tiebreak)</div></div>';
+        h+='<div class="cs-pts">'+fmt(r.weekly_wins||0)+'<small>SEASON PTS</small></div>';
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+  }
+  if(okH){
+    var seasons=(HI.seasons&&HI.seasons.length)?HI.seasons:[];
+    h+='<div class="cs-champs"><h3>\\uD83C\\uDFC6 Past Champions</h3>';
+    if(!seasons.length){ h+='<div class="cs-empty">No sealed seasons yet — the first crown is still up for grabs.</div>'; }
+    for(var s=0;s<seasons.length;s++){
+      var cs=seasons[s]||{};
+      var dt=fmtDate(cs.sealed_at);
+      h+='<div class="cs-champ"><span><span class="cs-cname">\\uD83D\\uDC51 '+esc(cs.champion_cell_name||cs.champion_cell_id||'Unknown cell')+'</span><br>'+
+        '<span class="cs-csub">SEASON '+esc(String(cs.season_id||''))+(dt?' · SEALED '+esc(dt):'')+'</span></span></div>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="cs-note"><b>HOW SEASONS WORK:</b> four Chicago-Monday weeks, one block. Each weekly competition win = 1 season point; ties break on total scored across the season.<br>'+
+    '<b>Crowns and honor only</b> — seasons never mint XP and never will.</div>';
+  h+='</div>';
+  host.innerHTML=h;
+}
+function load(){
+  gS=false; gH=false; ST=null; HI=null;
+  api("cellcomp_season_status",{},function(j){ ST=j; gS=true; render(); });
+  api("cellcomp_season_history",{},function(j){ HI=j; gH=true; render(); });
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} load(); },60000);
+})();
+<\/script>
+</template>`); })();
+
+;
+
+/* ===== review-pool.js ===== */
+/* games/review-pool.js  |  PF v1.4.3 | REVIEW POOL — community review of
+   Content Bank submissions (Studio Moderation SOP v2, CEO greenlight 2026-10-05).
+   Qualified reviewers claim ONE assigned submission at a time (REVIEW NEXT —
+   server assigns; no browsing, no cherry-picking). A claim debits the review
+   stake (displayed from the server's stake_xp, destroyed server-side); the
+   4h vote window shows a live countdown. ACCEPT / REJECT (reject requires a
+   reason code + optional note) records the vote; the server settles at quorum
+   (3 votes, 2-of-3): agree with consensus -> stake returned + reward, both
+   minted server-side; vote against -> stake lost. All settlement math is
+   server-side — this file is display only (see the harness for the proof).
+   BLIND BY CONSTRUCTION: the UI renders the work (artifact, caption,
+   citations with verified-read badges, proof-link status) and NEVER the
+   worker — no identity fields are read here at all, and the live vote split
+   is never requested or rendered. Gold-standard calibration items are
+   invisible: they arrive as ordinary pool items and nothing in this UI can
+   tell them apart.
+   CELL MOD LAYER: when the assignment carries cell_priority (a cellmate's
+   submission), a subtle "FROM YOUR CELL" badge shows — identity is still
+   hidden; only the cell flag is displayed. Cell accuracy board + your
+   contribution to your cell's standing ride the status response.
+   POLITICAL METADATA CHIPS (2026-10-05, weave #8): when the assigned item
+   carries political_meta (or meta), small factual tags render as context —
+   entity type + id ("BILL · H.R.14") and issue area ("ISSUE · Voting
+   rights"). Tags only, never identity, never editorial claims. Gated by
+   the ?pf_off=bank-meta kill (chips are metadata UI).
+   Mounts into <div id="pf-review-pool"></div> (Creator HQ / Studio section).
+   Silent no-op everywhere else.
+   Needs: core/00-bus.js (PF, PF.skip, PF.toast, PF.errCopy),
+   core/03-global.js (PF_BACKEND_URL, PF.postAction).
+   Backend contract (server side on wave-community-review; action names per
+   the Studio SOP v2): POST {type:'review', rv_action:<action>} where
+     <action> = review_next | review_vote | review_status | review_history
+   public GET ?action=review_leaderboard | ?action=review_cell_board.
+   Rejection reason codes (SOP v2, human sentence each): DUPLICATE, EMPTY,
+   CITATION_FAIL, OFF_BRAND, SPAM, PROOF_FAIL.
+   KILL: ?pf_off=review-pool  or  localStorage pf_disabled_v1='["review-pool"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('review-pool')) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var mount = document.getElementById('pf-review-pool');
+  if (!mount) { return; } /* silent no-op: the pool lives in Creator HQ / Studio only */
+
+  /* Political metadata chips are metadata UI — gated by ?pf_off=bank-meta. */
+  var META_KILLED = (PF && PF.skip) ? PF.skip('bank-meta') : false;
+  var META_TYPE_LABEL = { bill:'BILL', rep:'REP', race:'RACE', org:'ORG',
+    poll:'POLL', prediction:'PREDICTION', campaign:'CAMPAIGN' };
+
+  var BACKEND = window.PF_BACKEND_URL;
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* Stored-XSS guard: citations/proof links come from server-stored
+     submission data, so only http(s) schemes may become clickable
+     anchors; anything else renders as plain text (no href). */
+  function safeUrl(u){
+    var s = String(u || "").trim();
+    return /^https?:\/\//i.test(s) ? s : "";
+  }
+  function toast(m){ try{ if(PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+    try{ var t=document.createElement("div"); t.textContent=m;
+      t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+      document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function errCopy(j, fb){ try{ if(PF&&PF.errCopy) return PF.errCopy(j, fb); }catch(e){} return (j&&(j.err||j.error))||fb||"Something broke."; }
+
+  /* Mutations: POST {type:'review', rv_action:<action>}. Prefers
+     PF.postAction (03-global.js: auth + 15s abort); raw fetch is the backstop. */
+  function postMut(action, params, cb){
+    var done = function(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} };
+    if (window.PF && PF.postAction) { PF.postAction('review','rv_action',action,params,done); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      var body = Object.assign({type:'review', rv_action:action}, params||{});
+      var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}, c=null, t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      fetch(BACKEND,o)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ if(t) clearTimeout(t); done(j); })
+        .catch(function(){ if(t) clearTimeout(t); done(null); });
+    }catch(e){ done(null); }
+  }
+  function withIdent(params){
+    var id = ident();
+    var p = Object.assign({}, params||{});
+    if (id.callsign) p.callsign = id.callsign;
+    if (id.device) p.device = id.device;
+    return p;
+  }
+  /* Public reads: JSONP GET, 12s timeout — no identity attached. */
+  function pubGet(action, params, cb){
+    if(!BACKEND){ cb(null); return; }
+    var fn="pfRevCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+
+  /* ---------- shell ---------- */
+  var CSS = '<style>' +
+    '#pf-review-pool{max-width:860px;margin:0 auto;padding:8px 4px;font-family:inherit}' +
+    '.rp-head{border:3px solid #c1121f;background:#0a0a0a;color:#f5f0e6;padding:14px 16px;margin-bottom:10px}' +
+    '.rp-head h2{margin:0 0 4px;font-size:22px;letter-spacing:1px}' +
+    '.rp-tag{font-size:13px;opacity:.85}' +
+    '.rp-blind{border:2px dashed #c1121f;background:#120606;color:#f5f0e6;padding:10px 12px;margin:0 0 10px;font-size:13.5px;line-height:1.5}' +
+    '.rp-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}' +
+    '.rp-tab{flex:0 0 auto;background:#141414;color:#f5f0e6;border:2px solid #3a3a3a;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}' +
+    '.rp-tab.on{background:#c1121f;border-color:#c1121f}' +
+    '.rp-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}' +
+    '.rp-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}' +
+    '.rp-card h3{margin:0 0 6px;font-size:17px}' +
+    /* Political metadata context chips (2026-10-05): factual tags only —
+       entity type/id + issue area. Never identity, never editorial claims. */
+    '.rp-chips{margin:0 0 10px}' +
+    '.rp-chip{display:inline-block;font-size:11px;letter-spacing:1px;font-weight:700;' +
+      'background:#1c1c1c;border:1px solid #c1121f;color:#f5f0e6;padding:4px 9px;margin:0 6px 6px 0}' +
+    '.rp-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
+    '.rp-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}' +
+    '.rp-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:12px 22px;font-size:16px;cursor:pointer;margin:4px 4px 4px 0;letter-spacing:1px}' +
+    '.rp-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}' +
+    '.rp-btn.sm{padding:7px 12px;font-size:13px;letter-spacing:0}' +
+    '.rp-btn:disabled{opacity:.45;cursor:default}' +
+    '.rp-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}' +
+    '.rp-load{padding:22px;text-align:center;opacity:.75;font-style:italic}' +
+    '.rp-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}' +
+    '.rp-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    '.rp-artifact{background:#000;border:2px solid #333;margin:0 0 10px;text-align:center}' +
+    '.rp-artifact img,.rp-artifact video{max-width:100%;max-height:420px;display:block;margin:0 auto}' +
+    '.rp-caption{font-size:16px;line-height:1.55;margin:0 0 10px;white-space:pre-wrap}' +
+    '.rp-cite{background:#101010;border:1px solid #2c2c2c;padding:8px 10px;margin:6px 0;font-size:13px}' +
+    '.rp-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}' +
+    '.rp-badge.dim{background:#333}' +
+    '.rp-badge.gold{background:#c9a227;color:#0a0a0a}' +
+    '.rp-cellflag{display:inline-block;border:2px solid #c9a227;color:#f5d76e;font-size:12px;font-weight:700;padding:3px 10px;margin-bottom:8px;letter-spacing:1px}' +
+    '.rp-timer{background:#180a0a;border:2px solid #c1121f;padding:8px 12px;font-weight:700;font-size:14px;margin:0 0 10px}' +
+    '.rp-settle{border:2px solid #c9a227;background:#0f0d05;padding:12px;margin:10px 0;font-size:15px}' +
+    '.rp-row-hist{display:flex;justify-content:space-between;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:13px;flex-wrap:wrap}' +
+    '.rp-row-hist:last-child{border-bottom:0}' +
+    '.rp-agree-up{color:#7CFF9B}.rp-agree-dn{color:#ff8a8a}' +
+    '.rp-trend{display:flex;gap:3px;align-items:flex-end;margin-top:6px}' +
+    '.rp-trend i{display:block;width:14px;background:#c1121f}' +
+    '.rp-lead{display:flex;justify-content:space-between;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:14px}' +
+    '.rp-lead:last-child{border-bottom:0}' +
+    '.rp-next-wrap{text-align:center;padding:26px 8px}' +
+    '.rp-next-wrap .rp-btn{font-size:19px;padding:16px 34px}' +
+    '.rp-qual{background:#141414;border:2px solid #c9a227;padding:14px;margin:0 0 12px}' +
+    '@media(max-width:560px){.rp-pane{padding:10px}.rp-head h2{font-size:19px}}' +
+    '</style>';
+
+  mount.innerHTML = CSS +
+    '<div class="rp-head"><h2>&#9878; REVIEW POOL</h2>' +
+    '<div class="rp-tag">Community review of the Content Bank. Real eyes, real stakes.</div></div>' +
+    '<div class="rp-blind">&#9878; <b>Judge the work, not the worker.</b> You can\'t see who made this &mdash; that\'s the point.</div>' +
+    '<div class="rp-tabs" id="rpTabs">' +
+    '<button class="rp-tab on" data-tab="review">REVIEW</button>' +
+    '<button class="rp-tab" data-tab="leaders">LEADERBOARDS</button>' +
+    '<button class="rp-tab" data-tab="history">YOUR REVIEWS</button>' +
+    '</div>' +
+    '<div class="rp-pane" id="rpPane"><div class="rp-load">Raising the review pool&hellip;</div></div>';
+
+  var S = {
+    tab: 'review',
+    status: null,        /* review_status response (cached 30s) */
+    assignment: null,    /* active claim from review_next */
+    view: 'discovery',   /* discovery | claiming | reviewing | pending | decided | empty */
+    voteRes: null,       /* review_vote response */
+    leaders: null,
+    cellBoard: null,
+    history: null,
+    timerIv: null
+  };
+
+  /* Rejection reason codes (SOP v2) — one human sentence each for the maker. */
+  var REASONS = [
+    ['DUPLICATE', 'A version of this already entered the Content Bank in the last 30 days.'],
+    ['EMPTY', 'The submission arrived without an artifact or caption to judge.'],
+    ['CITATION_FAIL', 'A claimed citation didn\'t check out — the link is dead or the source doesn\'t back the claim.'],
+    ['OFF_BRAND', 'Not on-brand for the network — punchy toward power, never punching down.'],
+    ['SPAM', 'Reads as spam or filler, not made to agitate.'],
+    ['PROOF_FAIL', 'A proof link for the poster leg didn\'t verify — broken, blocked, or missing the marker.']
+  ];
+
+  function pane(){ return document.getElementById('rpPane'); }
+  function loading(msg){ return '<div class="rp-load">'+esc(msg||'Loading&hellip;')+'</div>'; }
+  function netErr(retry){
+    return '<div class="rp-err"><b>Couldn\'t reach the pool.</b><div class="rp-note">The network dropped the call. Nothing was lost.</div>' +
+      '<button class="rp-btn sm" data-rp-retry="'+esc(retry||'')+'">RETRY</button></div>';
+  }
+  function friendly(j, fb){
+    if (!j) return 'Couldn\'t reach the pool. Check your connection.';
+    return errCopy(j, fb);
+  }
+
+  mount.querySelectorAll('.rp-tab').forEach(function(b){
+    b.addEventListener('click', function(){
+      mount.querySelectorAll('.rp-tab').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      S.tab = b.getAttribute('data-tab');
+      render();
+    });
+  });
+  function wireRetries(root){
+    (root||pane()).querySelectorAll('[data-rp-retry]').forEach(function(b){
+      b.addEventListener('click', function(){ render(); });
+    });
+  }
+
+  /* ---------- loaders ---------- */
+  function loadStatus(cb, force){
+    var id = ident();
+    if (!id.callsign){ cb({ok:false, err:'no_callsign'}); return; }
+    if (!force && S.status && S.status._t && Date.now()-S.status._t < 30000){ cb(S.status); return; }
+    postMut('review_status', withIdent({}), function(j){
+      if (j){ j._t = Date.now(); S.status = j; }
+      cb(j);
+    });
+  }
+  function loadLeaders(cb){
+    if (S.leaders && S.leaders._t && Date.now()-S.leaders._t < 120000){ cb(S.leaders); return; }
+    pubGet('review_leaderboard', {}, function(j){
+      if (j && j.ok){ j._t = Date.now(); S.leaders = j; }
+      cb(j);
+    });
+  }
+  function loadCellBoard(cb){
+    if (S.cellBoard && S.cellBoard._t && Date.now()-S.cellBoard._t < 120000){ cb(S.cellBoard); return; }
+    pubGet('review_cell_board', {}, function(j){
+      if (j && j.ok){ j._t = Date.now(); S.cellBoard = j; }
+      cb(j);
+    });
+  }
+  function loadHistory(cb, force){
+    var id = ident();
+    if (!id.callsign){ cb({ok:false, err:'no_callsign'}); return; }
+    if (!force && S.history){ cb(S.history); return; }
+    postMut('review_history', withIdent({}), function(j){
+      if (j && j.ok) S.history = j;
+      cb(j);
+    });
+  }
+
+  /* ---------- render dispatch ---------- */
+  function render(){
+    stopTimer();
+    var p = pane();
+    if (S.tab === 'review') renderReview(p);
+    else if (S.tab === 'leaders') renderLeaders(p);
+    else if (S.tab === 'history') renderHistory(p);
+    wireRetries(p);
+  }
+
+  /* ---------- TAB: REVIEW ---------- */
+  function renderReview(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="rp-card"><h3>Claim a callsign first</h3>' +
+        '<div class="rp-note">Review power is identity-bound. Claim your callsign in Daily Orders, then come back — the pool will be waiting.</div></div>';
+      return;
+    }
+    /* Re-render into a live decision view (post-vote) without re-fetching. */
+    if (S.view === 'decided' && S.voteRes){ renderDecided(p); return; }
+    if (S.view === 'pending' && S.voteRes){ renderPending(p); return; }
+    if (S.view === 'reviewing' && S.assignment){ renderAssignment(p); return; }
+    loadStatus(function(j){
+      if (!j || j.ok === false){
+        if (j && j.err === 'no_callsign'){
+          p.innerHTML = '<div class="rp-card"><h3>Claim a callsign first</h3></div>'; return;
+        }
+        p.innerHTML = netErr(); wireRetries(p); return;
+      }
+      if (!j.qualified){
+        p.innerHTML = qualHtml(j);
+        return;
+      }
+      if (S.view === 'empty'){ renderEmpty(p, j); return; }
+      p.innerHTML = discoveryHtml(j);
+      wireDiscovery(p, j);
+    });
+  }
+
+  function qualHtml(j){
+    var need = j.need || [];
+    var h = '<div class="rp-qual"><h3>Review power is earned</h3>' +
+      '<div class="rp-note">The pool opens to reviewers who are invested. Here\'s what\'s still open:</div>' +
+      '<div style="margin-top:8px">';
+    h += '<div class="rp-stat">' + (need.indexOf('ENLISTED') !== -1
+      ? '<b>&#9673; ENLISTED rite</b> — complete it in Daily Orders'
+      : '<b>&#9679; ENLISTED rite</b> — done') + '</div>';
+    h += '<div class="rp-stat">' + (need.indexOf('500XP') !== -1
+      ? '<b>&#9673; 500 lifetime XP</b> — you\'re at ' + esc(String(j.lifetime_xp || 0)) + ' XP'
+      : '<b>&#9679; 500 lifetime XP</b> — met') + '</div>';
+    h += '</div><div class="rp-note" style="margin-top:8px">Why the gate? Claiming a review stakes 5 XP — skin in the game. ' +
+      'Honest reviewing is profitable; lazy voting loses XP. The gate keeps the pool honest.</div></div>';
+    return h;
+  }
+
+  /* Display-only: every number here comes from the review_status response. */
+  function discoveryHtml(j){
+    var st = j.stats || {}, hp = j.health || {}, claims = j.claims || [];
+    var h = '';
+    /* Open claims with live countdowns (4h window). */
+    if (claims.length){
+      h += '<div class="rp-card"><h3>Your open claims ('+claims.length+'/3)</h3>';
+      claims.forEach(function(c, i){
+        h += '<div class="rp-timer" data-rp-exp="'+esc(String(c.expires_at))+'" data-rp-idx="'+i+'">Counting down&hellip;</div>';
+      });
+      h += '<div class="rp-row"><button class="rp-btn sm ghost" data-rp="resume" data-sub="'+esc(String(claims[0].submission_id))+'">RESUME CLAIM</button></div>' +
+        '<div class="rp-note">Unvoted claims expire back into the pool — your stake comes back when you let one lapse. Voting is how you earn.</div></div>';
+    }
+    h += '<div class="rp-card"><div>' +
+      '<span class="rp-stat"><b>'+esc(String(hp.open_count||0))+'</b> open in the pool</span>' +
+      '<span class="rp-stat"><b>'+esc(String(st.reviews_cast||0))+'</b> reviews cast</span>' +
+      '<span class="rp-stat"><b>'+esc(String(st.agreement_rate||0))+'%</b> agreement rate</span>' +
+      '<span class="rp-stat"><b>'+esc(String(st.xp_earned_reviewing||0))+' XP</b> earned reviewing</span></div>';
+    if (hp.median_minutes != null){
+      h += '<div style="margin-top:6px"><span class="rp-stat">Pool health: median '+esc(String(hp.median_minutes))+' min to decision</span></div>';
+    }
+    /* Cell mod layer: your reviews feed your cell's accuracy-board standing. */
+    if (st.cell_contrib != null || (j.cell && j.cell.name)){
+      h += '<div class="rp-note" style="margin-top:8px">&#9876; <b>Cell layer:</b> your reviews count toward ' +
+        '<b>'+esc(j.cell && j.cell.name ? j.cell.name : 'your cell')+'</b>\'s accuracy-board standing' +
+        (st.cell_contrib != null ? ' — <b>'+esc(String(st.cell_contrib))+'</b> of your reviews have fed it' : '') + '.</div>';
+    }
+    h += '</div>';
+    h += '<div class="rp-next-wrap">' +
+      '<button class="rp-btn" data-rp="next">REVIEW NEXT</button>' +
+      '<div class="rp-note" style="margin-top:10px">One button. No browsing, no cherry-picking — the server assigns. ' +
+      'Claiming stakes <b>5 XP</b>: agree with consensus and it comes back +2; vote against and the stake is lost.</div></div>';
+    return h;
+  }
+
+  function wireDiscovery(p, j){
+    var b = p.querySelector('[data-rp="next"]');
+    if (b) b.addEventListener('click', claimNext);
+    var r = p.querySelector('[data-rp="resume"]');
+    if (r) r.addEventListener('click', function(){
+      /* Resume: the claim is re-served by review_next while it is still open. */
+      claimNext();
+    });
+    startTimers(p);
+  }
+
+  /* Claim timers: 4h windows from the server's expires_at. Display only. */
+  function startTimers(root){
+    function tick(){
+      var any = false;
+      (root||pane()).querySelectorAll('[data-rp-exp]').forEach(function(el){
+        var exp = Number(el.getAttribute('data-rp-exp'))||0;
+        var ms = exp - Date.now();
+        if (ms <= 0){
+          el.innerHTML = 'Expired — re-opened to the pool. Your stake was returned.';
+          return;
+        }
+        any = true;
+        var s = Math.floor(ms/1000);
+        var h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
+        el.innerHTML = 'Vote within <b>'+h+'h '+m+'m '+ss+'s</b> — your stake rides on this vote.';
+      });
+      if (!any) stopTimer();
+    }
+    stopTimer();
+    tick();
+    S.timerIv = setInterval(tick, 1000);
+  }
+  function stopTimer(){ if (S.timerIv){ clearInterval(S.timerIv); S.timerIv = null; } }
+
+  function claimNext(){
+    S.view = 'claiming';
+    pane().innerHTML = loading('The pool is dealing you a submission&hellip;');
+    postMut('review_next', withIdent({}), function(j){
+      if (!j || j.ok === false){
+        S.view = 'discovery';
+        var msg = friendly(j, 'Claim failed.');
+        if (j && (j.err === 'max_claims')) msg = 'You already hold 3 open claims — the anti-squat cap. Vote on one first.';
+        if (j && (j.err === 'rate_limited')) msg = 'Daily review cap reached (10/day). Come back tomorrow — the pool will be here.';
+        if (j && (j.err === 'not_qualified' || j.err === 'review_banned')) msg = 'Review power revoked or not yet earned. Check the requirements above.';
+        pane().innerHTML = '<div class="rp-err"><b>'+esc(msg)+'</b></div>' +
+          '<button class="rp-btn sm" data-rp="back">BACK TO THE POOL</button>';
+        wireRetries(pane());
+        pane().querySelector('[data-rp="back"]').addEventListener('click', function(){ S.view='discovery'; S.status=null; render(); });
+        return;
+      }
+      if (j.empty){
+        S.view = 'empty'; S.status = null;
+        render();
+        return;
+      }
+      /* Claim confirmed: the server debited the stake. Show it, then the work. */
+      S.assignment = j.assignment;
+      S.view = 'reviewing';
+      var stake = (j.stake_xp != null) ? j.stake_xp : 5;
+      toast('\u2212' + stake + ' XP staked');
+      renderAssignment(pane());
+    });
+  }
+
+  function renderEmpty(p, j){
+    var hp = (j && j.health) || {};
+    p.innerHTML = '<div class="rp-next-wrap">' +
+      '<div class="rp-card" style="text-align:left"><h3>The pool is empty</h3>' +
+      '<div class="rp-note">Every submission has its reviewers. This is what a healthy pool looks like — ' +
+      'the Content Bank drains fast because reviewers show up. Check back after the next drop, ' +
+      'or bring a creator into the network and give the pool something to judge.</div></div>' +
+      '<button class="rp-btn ghost" data-rp="refresh">CHECK AGAIN</button></div>';
+    p.querySelector('[data-rp="refresh"]').addEventListener('click', function(){
+      S.view='discovery'; S.status=null; render();
+    });
+  }
+
+  /* ---------- the blind review ---------- */
+  /* Political metadata context chips: factual linkage tags rendered from
+     the assigned item's political_meta (fallback: meta). Entity type + id
+     and issue area only — never identity, never editorial claims. */
+  function metaChips(pm){
+    var h = '<div class="rp-chips">';
+    if (pm.entity_type && pm.entity_id) {
+      h += '<span class="rp-chip">' +
+        esc(META_TYPE_LABEL[String(pm.entity_type)] || String(pm.entity_type).toUpperCase()) +
+        ' &middot; ' + esc(pm.entity_id) + '</span>';
+    } else if (pm.entity_id) {
+      h += '<span class="rp-chip">' + esc(pm.entity_id) + '</span>';
+    }
+    if (pm.issue_area) {
+      h += '<span class="rp-chip">ISSUE &middot; ' + esc(pm.issue_area) + '</span>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function renderAssignment(p){
+    var a = S.assignment;
+    if (!a){ S.view='discovery'; render(); return; }
+    var h = '';
+    /* Cell mod layer: subtle flag only — never identity. */
+    if (a.cell_priority){
+      h += '<div class="rp-cellflag">&#9876; FROM YOUR CELL</div>' +
+        '<div class="rp-note" style="margin-bottom:10px">A cellmate made this. Judge it <b>harder</b>, not softer — your cell\'s accuracy standing rides on honest votes.</div>';
+    }
+    h += '<div class="rp-card">';
+    var _aurl=safeUrl(a.artifact_url); if (_aurl){
+      h += '<div class="rp-artifact">';
+      if (a.artifact_kind === 'video') h += '<video src="'+esc(_aurl)+'" controls preload="metadata"></video>';
+      else if (a.artifact_kind === 'text') h += '<div class="rp-caption" style="text-align:left;padding:10px">'+esc(a.artifact_text||a.caption||'')+'</div>';
+      else h += '<img src="'+esc(_aurl)+'" alt="Submission artifact">';
+      h += '</div>';
+    }
+    if (a.caption && a.artifact_kind !== 'text') h += '<div class="rp-caption">'+esc(a.caption)+'</div>';
+    /* Political metadata context chips — factual tags, never identity. */
+    try {
+      if (!META_KILLED) {
+        var pm = a.political_meta || a.meta || null;
+        if (pm && (pm.entity_id || pm.issue_area)) h += metaChips(pm);
+      }
+    } catch (eChips) {}
+    /* Citations with verified-read badges. */
+    var cites = a.citations || [];
+    if (cites.length){
+      h += '<h3 style="margin-top:6px">Citations</h3>';
+      cites.forEach(function(c){
+        var cu = safeUrl(c.url);
+        var citeLink = cu ? '<a href="'+esc(cu)+'" target="_blank" rel="noopener">'+esc(c.url)+'</a>'
+                          : '<span>'+esc(c.url||'')+'</span>';
+        h += '<div class="rp-cite">' +
+          (c.verified_read ? '<span class="rp-badge gold">VERIFIED READ</span>' : '<span class="rp-badge dim">UNVERIFIED</span>') +
+          ' <b>'+esc(c.label||c.title||'Source')+'</b><br>' + citeLink + '</div>';
+      });
+    }
+    /* Proof-link status for poster-leg submissions. */
+    var proofs = a.proof_links || [];
+    if (proofs.length){
+      h += '<h3 style="margin-top:6px">Proof links</h3>';
+      proofs.forEach(function(pl){
+        var st = String(pl.status||'unchecked').toLowerCase();
+        var badge = st === 'ok' ? '<span class="rp-badge gold">VERIFIED</span>'
+          : st === 'fail' ? '<span class="rp-badge">FAILED</span>' : '<span class="rp-badge dim">UNCHECKED</span>';
+        var pu = safeUrl(pl.url);
+        var proofLink = pu ? '<a href="'+esc(pu)+'" target="_blank" rel="noopener">'+esc(pl.url)+'</a>'
+                           : '<span>'+esc(pl.url||'')+'</span>';
+        h += '<div class="rp-cite">'+badge+' <b>'+esc(pl.label||'Proof')+'</b><br>' + proofLink + '</div>';
+      });
+    }
+    h += '</div>';
+    /* Claim timer: server's expires_at, display only. */
+    if (a.expires_at){
+      h += '<div class="rp-timer" data-rp-exp="'+esc(String(a.expires_at))+'">Counting down&hellip;</div>';
+    }
+    h += '<div class="rp-card"><h3>Your verdict</h3>' +
+      '<div class="rp-row">' +
+      '<button class="rp-btn" data-rp="accept">ACCEPT</button>' +
+      '<button class="rp-btn ghost" data-rp="reject">REJECT</button></div>' +
+      '<div id="rpRejectBox" style="display:none;margin-top:10px">' +
+      '<div class="rp-note" style="margin-bottom:6px">Rejection needs a reason — the maker sees the reason, never your name.</div>' +
+      '<select class="rp-in" id="rpReason" aria-label="Rejection reason">' +
+      '<option value="">Pick a reason&hellip;</option>' +
+      REASONS.map(function(r){ return '<option value="'+r[0]+'">'+r[0]+' — '+esc(r[1])+'</option>'; }).join('') +
+      '</select>' +
+      '<input class="rp-in" id="rpNote" maxlength="280" placeholder="Optional note to the maker (280 chars)" style="width:100%">' +
+      '<div class="rp-row" style="margin-top:6px"><button class="rp-btn sm" data-rp="reject-confirm">CONFIRM REJECT</button></div></div>' +
+      '<div id="rpVoteMsg"></div></div>';
+    p.innerHTML = h;
+    startTimers(p);
+    p.querySelector('[data-rp="accept"]').addEventListener('click', function(){ castVote('accept'); });
+    p.querySelector('[data-rp="reject"]').addEventListener('click', function(){
+      var box = document.getElementById('rpRejectBox');
+      if (box) box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+    });
+    p.querySelector('[data-rp="reject-confirm"]').addEventListener('click', function(){
+      var sel = document.getElementById('rpReason');
+      var code = sel ? sel.value : '';
+      if (!code){
+        var m = document.getElementById('rpVoteMsg');
+        if (m) m.innerHTML = '<div class="rp-err">Pick a reason code — rejection without one isn\'t a verdict, it\'s a shrug.</div>';
+        return;
+      }
+      var noteEl = document.getElementById('rpNote');
+      castVote('reject', code, noteEl ? noteEl.value : '');
+    });
+  }
+
+  function castVote(vote, reason_code, note){
+    var a = S.assignment;
+    if (!a) return;
+    pane().innerHTML = loading('Recording your verdict&hellip;');
+    var params = withIdent({ submission_id: a.submission_id, vote: vote });
+    if (reason_code) params.reason_code = reason_code;
+    if (note) params.note = String(note).slice(0, 280);
+    postMut('review_vote', params, function(j){
+      if (!j || j.ok === false){
+        S.view = 'reviewing';
+        pane().innerHTML = '<div class="rp-err"><b>'+esc(friendly(j, 'Vote failed.'))+'</b>' +
+          '<div class="rp-note">Your stake is safe — the vote never landed.</div></div>' +
+          '<button class="rp-btn sm" data-rp="back2">BACK TO THE SUBMISSION</button>';
+        pane().querySelector('[data-rp="back2"]').addEventListener('click', function(){ renderAssignment(pane()); });
+        return;
+      }
+      S.voteRes = j;
+      S.assignment = null;
+      S.status = null; /* stats changed */
+      S.history = null;
+      if (j.decision_reached){ S.view = 'decided'; renderDecided(pane()); }
+      else { S.view = 'pending'; renderPending(pane()); }
+    });
+  }
+
+  /* Post-decision: outcome + settlement + running agreement rate. All values
+     are server-rendered (display only — no economy math lives here). */
+  function renderDecided(p){
+    var j = S.voteRes;
+    var st = j.settlement || {};
+    var won = st.agreed === true;
+    var h = '<div class="rp-card"><h3>Decision reached — ' +
+      (String(j.outcome||'').toLowerCase() === 'accepted' ? '<span class="rp-agree-up">ACCEPTED</span>' : '<span class="rp-agree-dn">REJECTED</span>') +
+      '</h3>';
+    h += settlementHtml(st, won);
+    if (j.agreement_rate != null){
+      h += '<div class="rp-note" style="margin-top:8px">Your running agreement rate: <b>'+esc(String(j.agreement_rate))+'%</b> ' +
+        (j.agreement_rate >= 71 ? '— honest reviewing is profitable territory.' : '— tighten up: below ~71% and the stake eats you.') + '</div>';
+    }
+    h += '<div class="rp-row" style="margin-top:10px"><button class="rp-btn" data-rp="next2">REVIEW NEXT</button></div></div>';
+    p.innerHTML = h;
+    p.querySelector('[data-rp="next2"]').addEventListener('click', function(){
+      S.view='discovery'; S.voteRes=null; render();
+    });
+  }
+
+  function renderPending(p){
+    var j = S.voteRes;
+    var h = '<div class="rp-card"><h3>Vote recorded</h3>' +
+      '<div class="rp-note">Your ' + esc(String(j.vote||'verdict')) + ' is in. The pool needs ' +
+      esc(String(j.votes_needed != null ? j.votes_needed : 'more')) + ' more eye(s) before this one settles — ' +
+      'you\'ll see the outcome and settlement here and in Your Reviews.</div>' +
+      '<div class="rp-note" style="margin-top:8px">Blind until quorum: no split, no names, nothing to game.</div>' +
+      '<div class="rp-row" style="margin-top:10px"><button class="rp-btn" data-rp="next2">REVIEW NEXT</button></div></div>';
+    p.innerHTML = h;
+    p.querySelector('[data-rp="next2"]').addEventListener('click', function(){
+      S.view='discovery'; S.voteRes=null; render();
+    });
+  }
+
+  /* Settlement display states. Server values only. */
+  function settlementHtml(st, won){
+    if (won){
+      return '<div class="rp-settle">&#9679; <b>Stake returned + reward.</b> ' +
+        '+' + esc(String(st.stake_returned != null ? st.stake_returned : 5)) + ' stake returned, ' +
+        '+' + esc(String(st.reward_xp != null ? st.reward_xp : 2)) + ' XP reviewer reward. Honest vote, honest pay.</div>';
+    }
+    return '<div class="rp-settle" style="border-color:#c1121f;background:#1a0505">&#9679; <b>Stake lost (' +
+      esc(String(st.lost_xp != null ? st.lost_xp : 5)) + ' XP).</b> You voted against consensus — the stake is destroyed, not transferred. ' +
+      'Review the criteria and come back sharper.</div>';
+  }
+
+  /* ---------- TAB: LEADERBOARDS ---------- */
+  function renderLeaders(p){
+    p.innerHTML = loading('Reading the boards&hellip;');
+    var gotL = false, gotC = false, jL = null, jC = null;
+    function paint(){
+      if (!gotL || !gotC) return;
+      var h = '';
+      h += '<div class="rp-card"><h3>Top reviewers — accuracy &times; volume</h3>' +
+        '<div class="rp-note">Ranked by <b>accuracy &times; volume</b> — never raw count. A hundred lazy votes don\'t outrank ten sharp ones. Status only — no XP attached.</div>';
+      var rs = (jL && jL.reviewers) || [];
+      if (!rs.length) h += '<div class="rp-note" style="margin-top:8px">No reviewers on the board yet. Be the first.</div>';
+      rs.slice(0, 20).forEach(function(r, i){
+        var mine = r.mine ? '<span class="rp-badge">YOU</span>' : '';
+        h += '<div class="rp-lead"><span><b>#'+(r.rank != null ? r.rank : (i+1))+'</b> '+esc(r.name||'?')+mine+'</span>' +
+          '<span class="rp-note">'+esc(String(r.accuracy||0))+'% &times; '+esc(String(r.volume||0))+' = <b>'+esc(String(r.score||0))+'</b></span></div>';
+      });
+      h += '</div>';
+      h += '<div class="rp-card"><h3>Cell accuracy board</h3>' +
+        '<div class="rp-note">Cells ranked by their members\' review accuracy. Your honest votes lift your cell — your lazy ones sink it.</div>';
+      var cs = (jC && jC.cells) || [];
+      if (!cs.length) h += '<div class="rp-note" style="margin-top:8px">No cells on the board yet.</div>';
+      cs.slice(0, 20).forEach(function(c, i){
+        var mine2 = c.mine ? '<span class="rp-badge">YOUR CELL</span>' : '';
+        h += '<div class="rp-lead"><span><b>#'+(c.rank != null ? c.rank : (i+1))+'</b> '+esc(c.name||'?')+mine2+'</span>' +
+          '<span class="rp-note">'+esc(String(c.accuracy||0))+'% &times; '+esc(String(c.volume||0))+' = <b>'+esc(String(c.score||0))+'</b></span></div>';
+      });
+      h += '</div>';
+      p.innerHTML = h;
+    }
+    loadLeaders(function(j){ gotL = true; jL = j; paint(); });
+    loadCellBoard(function(j){ gotC = true; jC = j; paint(); });
+  }
+
+  /* ---------- TAB: YOUR REVIEWS ---------- */
+  function renderHistory(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="rp-card"><h3>Claim a callsign first</h3></div>';
+      return;
+    }
+    p.innerHTML = loading('Pulling your review record&hellip;');
+    loadHistory(function(j){
+      if (!j || j.ok === false){
+        p.innerHTML = netErr(); wireRetries(p); return;
+      }
+      var rs = j.reviews || [];
+      var h = '<div class="rp-card"><h3>Your reviews ('+rs.length+')</h3>';
+      if (!rs.length){
+        h += '<div class="rp-note">No reviews yet. Hit REVIEW NEXT and put your eyes to work.</div>';
+      }
+      rs.forEach(function(r){
+        var v = String(r.vote||'').toLowerCase();
+        var vBadge = v === 'accept' ? '<span class="rp-badge gold">ACCEPT</span>' : '<span class="rp-badge">REJECT</span>';
+        var out = String(r.outcome||'pending').toLowerCase();
+        var oTxt = out === 'accepted' ? '<span class="rp-agree-up">ACCEPTED</span>'
+          : out === 'rejected' ? '<span class="rp-agree-dn">REJECTED</span>' : '<span class="rp-badge dim">PENDING</span>';
+        var st = r.settlement || {};
+        var sTxt;
+        if (out === 'pending') sTxt = '<span class="rp-note">settlement pending</span>';
+        else if (st.agreed) sTxt = '<span class="rp-agree-up">+'+esc(String(st.stake_returned != null ? st.stake_returned : 5))+' stake +'+esc(String(st.reward_xp != null ? st.reward_xp : 2))+' XP</span>';
+        else sTxt = '<span class="rp-agree-dn">stake lost ('+esc(String(st.lost_xp != null ? st.lost_xp : 5))+' XP)</span>';
+        var d = '';
+        try{ d = new Date(Number(r.ts)||0).toLocaleDateString(); }catch(e){ d = ''; }
+        h += '<div class="rp-row-hist"><span>'+vBadge+' '+oTxt+' <span class="rp-note">'+esc(d)+
+          (r.reason_code ? ' &middot; '+esc(r.reason_code) : '') + '</span></span>' +
+          '<span>'+sTxt+' <span class="rp-note">'+esc(String(r.agreement_rate != null ? r.agreement_rate : ''))+(r.agreement_rate != null ? '%' : '')+'</span></span></div>';
+      });
+      h += '</div>';
+      /* Agreement-rate trend (server-provided points, display only). */
+      var tr = j.trend || [];
+      if (tr.length > 1){
+        h += '<div class="rp-card"><h3>Agreement-rate trend</h3><div class="rp-trend">';
+        var mx = Math.max.apply(null, tr.concat([100]));
+        tr.forEach(function(v){
+          var hh = Math.max(4, Math.round((Number(v)||0)/mx*60));
+          h += '<i style="height:'+hh+'px" title="'+esc(String(v))+'%"></i>';
+        });
+        h += '</div><div class="rp-note">'+esc(String(tr[0]))+'% &rarr; '+esc(String(tr[tr.length-1]))+'% across your last '+tr.length+' reviews.</div></div>';
+      }
+      p.innerHTML = h;
+    }, true);
+  }
+
+  /* Test hooks for scripts/verify-bankmeta-fe.js — not for page use. */
+  try { PF.reviewPoolT = { metaChips: metaChips }; } catch (eT) {}
+
+  render();
+})();
+
+;

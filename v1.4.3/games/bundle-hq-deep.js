@@ -1,1 +1,3554 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("stateleg")){var n=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["DC","District of Columbia"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]],t={introduced:"slc-intro","passed chamber":"slc-pch","passed legislature":"slc-pleg",signed:"slc-sign",vetoed:"slc-veto",dead:"slc-dead"},i={introduced:"Introduced","passed chamber":"Passed chamber","passed legislature":"Passed legislature",signed:"Signed",vetoed:"Vetoed",dead:"Dead"};window.PFStateLeg={mount:_,renderSection:function(e){var n=null;if((e=e||{}).target)try{n="string"==typeof e.target?document.querySelector(e.target):e.target}catch(e){n=null}if(!n)try{n=document.getElementById("pf-political-hq")}catch(e){n=null}if(!n)try{n=document.body}catch(e){n=null}if(!n)return null;var t=document.createElement("section");t.className="pf-v2-game pf-hq-section";try{t.setAttribute("data-game","stateleg")}catch(e){}var i=document.createElement("div");i.className="pf-silo";try{i.id="pf-stateleg-"+Math.floor(1e9*Math.random())}catch(e){}try{t.appendChild(i),n.appendChild(t)}catch(e){return null}return _(i,e),i},states:n},e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-stateleg"><div class="fe-block pf-override-block pf-silo" id="pf-stateleg"><div id="xStateLeg"><div class="c-load">Mobilizing&hellip;</div></div><style>\n#pf-stateleg .sl-t44{min-height:44px}\n#pf-stateleg .sl-wrap{overflow-wrap:anywhere}\n#pf-stateleg .sl-lab{display:block;font-weight:700;margin:8px 0 4px;font-size:14px}\n#pf-stateleg .sl-state{width:100%;font-size:16px;padding:10px;margin-bottom:8px}\n#pf-stateleg .sl-tabs{display:flex;gap:8px;margin:10px 0}\n#pf-stateleg .sl-tab{flex:1;font-weight:800;font-size:15px;border:2px solid #4a4a4a;background:#1a1a1a;color:var(--pf-cream);cursor:pointer}\n#pf-stateleg .sl-tab.sl-on{background:var(--pf-red);border-color:var(--pf-red);color:#fff}\n#pf-stateleg .sl-sec{margin-top:12px}\n#pf-stateleg .sl-h3{margin:14px 0 6px;font-size:16px}\n#pf-stateleg .sl-leghead{border:1px solid #4a4a4a;padding:10px;margin:8px 0}\n#pf-stateleg .sl-chambers{font-weight:800;font-size:16px}\n#pf-stateleg .sl-badgerow{margin:8px 0}\n#pf-stateleg .sl-badge{display:inline-block;padding:6px 12px;font-weight:800;font-size:13px;border:1px solid #4a4a4a}\n#pf-stateleg .slb-in{background:#0d3b1e;color:#7dff9b;border-color:#0d3b1e}\n#pf-stateleg .slb-spec{background:#3b2a0d;color:#ffd97d;border-color:#3b2a0d}\n#pf-stateleg .slb-adj{background:#2a2a2a;color:#bdbdbd}\n#pf-stateleg .slb-unk{background:#1a1a1a;color:var(--pf-cream)}\n#pf-stateleg .sl-meta{font-size:13px;color:var(--pf-muted);margin:4px 0}\n#pf-stateleg .sl-bill{border:1px solid #4a4a4a;margin:10px 0;padding:10px}\n#pf-stateleg .sl-bill-top{margin-bottom:6px}\n#pf-stateleg .sl-billnum{font-weight:700}\n#pf-stateleg .sl-bill-title{margin:4px 0;font-size:16px}\n#pf-stateleg .sl-bill-sum{margin:6px 0;font-size:14px}\n#pf-stateleg .sl-src{font-size:13px;margin:6px 0}\n#pf-stateleg .sl-chip{display:inline-block;padding:4px 10px;font-size:12px;font-weight:800;border:1px solid #4a4a4a;margin-right:6px}\n#pf-stateleg .slc-intro{background:#1a1a1a;color:var(--pf-cream)}\n#pf-stateleg .slc-pch{background:#0d2a3b;color:#7dd3ff}\n#pf-stateleg .slc-pleg{background:#0d3b2a;color:#7dffb0}\n#pf-stateleg .slc-sign{background:#0d3b1e;color:#7dff9b}\n#pf-stateleg .slc-veto{background:#3b0d0d;color:#ff8d8d}\n#pf-stateleg .slc-dead{background:#2a2a2a;color:#8a8a8a}\n#pf-stateleg .slc-unk{background:#1a1a1a;color:var(--pf-cream)}\n#pf-stateleg .sl-stale{color:#ffb347;font-weight:800}\n#pf-stateleg .sl-btn{display:inline-block;margin:8px 8px 0 0;padding:10px 16px;font-weight:800;font-size:14px;cursor:pointer;background:var(--pf-red);color:#fff;border:0}\n#pf-stateleg .sl-btn:disabled{opacity:.5}\n#pf-stateleg .sl-pressure{background:var(--pf-red)}\n#pf-stateleg .sl-log{background:#1a6b3c}\n#pf-stateleg .sl-person{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px solid #4a4a4a;margin:8px 0;padding:10px}\n#pf-stateleg .sl-pinfo{flex:1 1 160px}\n#pf-stateleg .sl-psub{font-size:13px;color:var(--pf-muted)}\n#pf-stateleg .sl-party{font-weight:800}\n#pf-stateleg .sl-call{display:inline-block;padding:10px 16px;background:#0d2a3b;color:#7dd3ff;font-weight:800;text-decoration:none}\n#pf-stateleg .sl-nophone{font-size:13px;color:#8a8a8a}\n#pf-stateleg .sl-method{width:100%;font-size:16px;padding:10px;margin-bottom:4px}\n#pf-stateleg .sl-methodrow{margin:8px 0}\n</style>\n</div>\n<script>(function(){try{if(window.PFStateLeg&&window.PFStateLeg.mount){window.PFStateLeg.mount(document.getElementById("xStateLeg"),{});}}catch(e){}})();<\/script>\n</template>')}function a(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function r(){var e="",n="";try{e=window.PFCallsign?window.PFCallsign():""}catch(e){}try{n=window.PFDeviceId?window.PFDeviceId():""}catch(e){}return{callsign:e,device:n}}function s(n){try{if(window.PF&&e.toast)return void e.toast(n)}catch(e){}try{var t=document.createElement("div");t.textContent=n,t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(t),setTimeout(function(){t.remove()},2800)}catch(e){}}function o(e){try{if(e&&e.opts&&e.opts.backend)return e.opts.backend}catch(e){}return window.PF_BACKEND_URL}function l(e,n,t,i){var a=o(e);if(a){var r="pfSlCb"+Math.floor(1e9*Math.random()),s=document.createElement("script"),l=!1;window[r]=function(e){p(e)},s.onerror=function(){p(null)};var c="?action="+encodeURIComponent(n);for(var d in t)null!=t[d]&&""!==t[d]&&(c+="&"+encodeURIComponent(d)+"="+encodeURIComponent(t[d]));c+="&callback="+r,s.src=a+c,document.head.appendChild(s),setTimeout(function(){p(null)},12e3)}else i(null);function p(e){if(!l){l=!0;try{delete window[r]}catch(e){}s.parentNode&&s.parentNode.removeChild(s),i(e)}}}function c(e){if(null==e||""===e)return NaN;if("number"==typeof e||/^[0-9]+$/.test(String(e))){var n=Number(e);return n>0?1e3*n:NaN}return Date.parse(e)}function d(e){var n=c(e);if(isNaN(n))return"";try{return new Date(n).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}catch(e){return""}}function p(e){var n=e&&(e.source_url||e.url)||"",t=e&&e.source||"";return n?'<a href="'+a(n)+'" target="_blank" rel="noopener">'+a(t||"official source")+"</a>":"official source"}function u(e){return"check the "+p(e)}function f(e){var n=function(e){if(null==e||""===e)return-1;var n=c(e);if(isNaN(n))return-1;var t=Math.floor((Date.now()-n)/864e5);return t<0?-1:t}(e&&e.updated_at);return n>14?'<span class="sl-stale">last updated '+n+"d ago</span>":""}function g(){try{return!(!window.PFLegislate||"function"!=typeof window.PFLegislate.mount)}catch(e){return!1}}function h(e,n){try{var t=(n||document).querySelectorAll(e);return t&&t.length?t[0]:null}catch(e){return null}}function v(e){if(!e.state)return'<div class="x-note">Pick your state above to load its legislature.</div>';if(e.infoLoad)return'<div class="c-load">Loading legislature&hellip;</div>';if(e.infoErr)return'<div class="c-err">Couldn\'t load legislature info.</div><button class="sl-btn sl-t44" data-sl-retry="info">RETRY</button>';if(e.infoAbsent)return'<div class="x-note">No legislature data for this state yet.</div>';var n,t,i=e.info||{},r='<div class="sl-leghead">';return r+='<div class="sl-chambers">'+function(e){var n=e&&e.upper_name,t=e&&e.lower_name;return t&&"unicameral"===String(t).toLowerCase()?a(t):n&&t?a(n)+" &middot; "+a(t):t?a(t):n?a(n):"Chamber names not listed."}(i)+"</div>",r+='<div class="sl-badgerow">'+(n=i.session_status,("in session"===(t=String(n||"").toLowerCase().replace(/_/g," "))?'<span class="sl-badge slb-in">In session</span>':"special session"===t?'<span class="sl-badge slb-spec">Special session</span>':"adjourned"===t?'<span class="sl-badge slb-adj">Adjourned</span>':n?'<span class="sl-badge slb-unk">'+a(n)+"</span>":'<span class="sl-badge slb-unk">Session status unknown</span>')+"</div>"),r+='<div class="sl-meta">Party control: '+(i.party_control?a(i.party_control):u(i)+".")+"</div>",r+='<div class="sl-meta">'+(d(i.last_updated)?"Legislature info updated "+a(d(i.last_updated))+".":"Last updated: unknown &mdash; "+u(i)+".")+"</div>",r+="</div>"}function b(e,n){var r=(e=e||{}).number?'<span class="sl-billnum">'+a(e.number)+"</span> ":"",s=e.title?a(e.title):"Untitled bill",o=e.summary?a(e.summary):"Summary not listed &mdash; "+u(e)+".",l='<div class="sl-src">Source: '+p(e)+" &middot; "+function(e){var n=d(e&&e.updated_at),t=f(e),i=t?" &middot; "+t:"";return n?"Updated "+a(n)+i:"Last updated: unknown &mdash; "+u(e)+"."+i}(e)+"</div>";return'<article class="sl-bill" data-bill-card="'+n+'"><div class="sl-bill-top">'+function(e){var n=String(e&&e.status||""),r=n.toLowerCase().replace(/_/g," ");return'<span class="sl-chip '+(t[r]||"slc-unk")+'">'+(i[r]||(n?a(n):"Status unknown"))+"</span>"}(e)+" "+r+'</div><h4 class="sl-bill-title">'+s+'</h4><p class="sl-bill-sum">'+o+'</p><div class="sl-meta">'+a(function(e){var n=e&&e.sponsors;return n?"[object Array]"===Object.prototype.toString.call(n)?n.length?"Sponsors: "+a(n.join(", ")):"Sponsors not listed.":"Sponsors: "+a(n):"Sponsors not listed."}(e))+"</div>"+l+'<button class="sl-btn sl-pressure sl-t44" data-sl-pressure="'+n+'">PRESSURE THIS BILL</button></article>'}function m(e,n){return'<div class="sl-person"><div class="sl-pinfo"><b>'+((e=e||{}).name?a(e.name):"Name not listed")+"</b>"+(e.party?' <span class="sl-party">['+a(e.party)+"]</span>":"")+'<br><span class="sl-psub">'+((e.chamber?a(e.chamber):"")+(e.district?" &middot; District "+a(e.district):"")||"Details not listed")+"</span></div>"+(e.phone?'<a class="sl-call sl-t44" href="tel:'+a(String(e.phone).replace(/[^+\d]/g,""))+'">CALL</a>':'<span class="sl-nophone">no phone listed</span>')+'<button class="sl-btn sl-log sl-t44" data-sl-log="'+n+'">LOG CONTACT (+25 XP)</button></div>'}function y(e){var t=h(".sl-body",e.el);if(t){var i='<label class="sl-lab" for="slStateSel">Your state</label><select id="slStateSel" class="sl-state sl-t44">'+function(e){for(var t='<option value="">Pick a state&hellip;</option>',i=0;i<n.length;i++)t+='<option value="'+n[i][0]+'"'+(e===n[i][0]?" selected":"")+">"+a(n[i][1])+"</option>";return t}(e.state)+"</select>";i+='<div class="sl-sec">'+v(e)+"</div>",i+='<div class="sl-sec">'+function(e){if(!e.state)return"";var n='<h3 class="sl-h3">Bills on the floor</h3>';if(e.billsLoad)return n+'<div class="c-load">Loading bills&hellip;</div>';if(e.billsErr)return n+'<div class="c-err">Couldn\'t load bills for this state.</div><button class="sl-btn sl-t44" data-sl-retry="bills">RETRY</button>';var t=e.bills||[];if(!t.length)return n+'<div class="x-note">No active bills listed for this state right now.</div>';for(var i=0;i<t.length;i++)n+=b(t[i],i);return n}(e)+"</div>",i+='<div class="sl-sec">'+function(e){if(e.peopleAbsent||!e.state)return"";var n='<h3 class="sl-h3">Your state legislators</h3>';if(e.peopleLoad)return n+'<div class="c-load">Loading legislators&hellip;</div>';var t=e.people||[];if(!t.length)return n+'<div class="x-note">No legislator directory for this state yet.</div>';n+='<div class="sl-methodrow"><label class="sl-lab" for="slMethod">Contact method</label><select id="slMethod" class="sl-method sl-t44"><option value="call">Call</option><option value="email">Email</option><option value="in-person">In person</option><option value="other">Other</option></select></div>',n+='<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>';for(var i=0;i<t.length;i++)n+=m(t[i],i);return n}(e)+"</div>",t.innerHTML=i,function(e,n){var t=h("#slStateSel",n);t&&(t.onchange=function(){e.state=t.value||"",e.state?A(e):y(e)},e.state&&!e.fetched&&A(e));for(var i=n.querySelectorAll("[data-sl-retry]"),a=0;a<i.length;a++)(function(n){n.onclick=function(){"info"===n.getAttribute("data-sl-retry")?(e.infoLoad=!0,e.infoErr=!1,e.infoAbsent=!1,y(e),l(e,"stateleg_list",{},function(n){k(e,n)})):(e.billsLoad=!0,e.billsErr=!1,y(e),l(e,"statebills_list",{state:e.state},function(n){T(e,n)}))}})(i[a]);for(var r=n.querySelectorAll("[data-sl-pressure]"),s=0;s<r.length;s++)(function(n){n.onclick=function(){var t=parseInt(n.getAttribute("data-sl-pressure"),10);P(e.bills&&e.bills[t]||{},L(n))}})(r[s]);for(var o=n.querySelectorAll("[data-sl-log]"),c=0;c<o.length;c++)(function(n){n.onclick=function(){var t=parseInt(n.getAttribute("data-sl-log"),10),i=e.people&&e.people[t]||{};C(e,i.name||"",n)}})(o[c])}(e,t)}}function x(n){var t=n.el;if(t)if(r().callsign){var i='<div class="sl-wrap">';i+="<h2>State Legislatures</h2>",i+='<div class="c-tag">Bills on your statehouse floor &mdash; pressure the ones that matter.</div>',g()&&(i+='<div class="sl-tabs" role="tablist"><button class="sl-tab sl-t44'+("state"===n.tab?" sl-on":"")+'" data-sl-tab="state" role="tab">STATE</button><button class="sl-tab sl-t44'+("federal"===n.tab?" sl-on":"")+'" data-sl-tab="federal" role="tab">FEDERAL</button></div>'),i+='<div class="sl-body"></div></div>',t.innerHTML=i;for(var a=t.querySelectorAll("[data-sl-tab]"),s=0;s<a.length;s++)(function(e){e.onclick=function(){var t=e.getAttribute("data-sl-tab");("federal"!==t||g())&&(n.tab=t,x(n))}})(a[s]);!function(e){var n=h(".sl-body",e.el);if(n)if("federal"===e.tab&&g())try{n.innerHTML="",window.PFLegislate.mount(n,{state:e.state})}catch(e){n.innerHTML='<div class="c-err">Federal tracker failed to load.</div>'}else e.tab="state",y(e)}(n)}else t.innerHTML='<div class="sl-wrap"><h2>State Legislatures</h2>'+e.gateHTML("State legislature tracking runs on callsigns.","to track your statehouse")+"</div>"}function w(e){var n=[];return e.senate_control&&n.push("Senate "+e.senate_control),e.house_control&&n.push("House "+e.house_control),e.governor_party&&n.push("Gov "+e.governor_party),n.join(" · ")}function S(e){return{id:(e=e||{}).bill_id||"",number:e.bill_id||"",title:e.title||"",summary:e.plain_english_summary||"",status:e.status||"",sponsors:e.sponsors||[],source_url:e.source||"",source:"",updated_at:null==e.updated_at?"":e.updated_at}}function E(e){return{name:(e=e||{}).name||"",chamber:e.chamber||"",party:e.party||"",district:e.district||"",phone:""}}function k(e,n){e.infoLoad=!1;var t,i=function(e,n){e=e||[];for(var t=0;t<e.length;t++)if(String(e[t]&&e[t].state||"").toUpperCase()===n)return e[t];return null}(n&&n.legislatures,e.state);n&&n.ok&&i?(e.info=(t=i)?{upper_name:t.senate_name||"",lower_name:t.house_name||"",session_status:t.session_status||"",party_control:w(t),last_updated:null==t.updated_at?"":t.updated_at,source_url:"",source:"",notes:t.notes||null}:null,e.infoErr=!1,e.infoAbsent=!1):n&&n.ok?(e.info=null,e.infoErr=!1,e.infoAbsent=!0):e.infoErr=!0,y(e)}function T(e,n){e.billsLoad=!1,n&&n.ok&&n.bills?(e.bills=n.bills.map(S),e.billsErr=!1):e.billsErr=!0,y(e)}function A(e){e.fetched=!0,e.infoLoad=!0,e.infoErr=!1,e.infoAbsent=!1,e.billsLoad=!0,e.billsErr=!1,e.peopleLoad=!0,e.peopleAbsent=!1,e.people=null,y(e),l(e,"stateleg_list",{},function(n){k(e,n)}),l(e,"statebills_list",{state:e.state},function(n){T(e,n)}),l(e,"statepeople_list",{state:e.state},function(n){!function(e,n){e.peopleLoad=!1;var t=n&&n.ok&&n.legislators;t?(e.people=t.map(E),e.peopleAbsent=!1):e.peopleAbsent=!0,y(e)}(e,n)})}function P(e,n){try{if(window.PFPressCampaigns&&"function"==typeof window.PFPressCampaigns.pressureBill)return window.PFPressCampaigns.pressureBill(e),"hook"}catch(e){}try{var t=new CustomEvent("pf-pressure-bill",{bubbles:!0,detail:{bill:e}});return(n||document).dispatchEvent(t),"event"}catch(e){return"none"}}function L(e){for(var n=e;n;){try{if(n.getAttribute&&null!=n.getAttribute("data-bill-card"))return n}catch(e){}n=n.parentNode}return e}function C(n,t,i){if(t){var a="call";try{var l=h(".sl-method",n.el);l&&l.value&&(a=l.value)}catch(e){}i&&(i.disabled=!0),function(n,t,i,a,r,s){var l=o(n),c=Object.assign({type:t},r);if(c[i]=a,window.PF&&e.authPost)e.authPost(l,c,s);else{var d=JSON.stringify(c);try{var p=function(){var e={method:"POST",headers:{"Content-Type":"application/json"},body:d},n=null,t=null;try{window.AbortController&&(n=new AbortController,e.signal=n.signal,t=setTimeout(function(){try{n.abort()}catch(e){}},15e3))}catch(e){}return e._pfClear=function(){if(t)try{clearTimeout(t)}catch(e){}},e}();fetch(l,p).then(function(e){return e.json()}).then(function(e){p._pfClear(),u(e)}).catch(function(){p._pfClear(),u(null)})}catch(e){u(null)}}function u(e){try{s(e||{ok:!1,err:"Network error."})}catch(e){}}}(n,"rep","r_action","rep_contact",{callsign:r().callsign,rep_name:t,method:a,script_used:""},function(n){if(n&&n.ok)s("Contact logged — +25 XP earned.");else{var t=String(n&&(n.err||n.error)||"");/cap/i.test(t)?s("Daily limit reached (2/day) — +25 XP each, resets tomorrow."):s(function(n,t){try{if(e&&e.errCopy)return e.errCopy(n,t)}catch(e){}return t}(n,"Log failed."))}i&&(i.disabled=!1)})}else s("Pick a legislator first.")}function _(e,n){if(!e)return null;var t=function(e,n){return{el:e,opts:n=n||{},tab:"state",state:n.state||"",fetched:!1,info:null,infoLoad:!1,infoErr:!1,infoAbsent:!1,bills:null,billsLoad:!1,billsErr:!1,people:null,peopleLoad:!1,peopleAbsent:!1}}(e,n||{});try{document.addEventListener("pf-legislate-ready",function(){try{"state"===t.tab&&g()&&x(t)}catch(e){}})}catch(e){}return x(t),t}}(),function(){"use strict";var e=window.PF;e&&!e.skip("legislation")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-legislation">\n<div class="fe-block pf-override-block pf-silo" id="pf-legislation">\n<h2>Track the Bills</h2>\n<div class="c-tag">Every live bill: its stage, its players, your cell\'s vote.</div>\n<div id="xLegislation"><div class="c-load">Mobilizing&hellip;</div></div>\n<style>\n/* 2026-10-05: legislation tracker — mobile-first, no horizontal scroll,\n   every touch target >= 44px. */\n#pf-legislation .lg-filters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}\n#pf-legislation .lg-t44{min-height:44px}\n#pf-legislation .lg-cham{display:flex;gap:8px;margin:8px 0}\n#pf-legislation .lg-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}\n#pf-legislation .lg-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}\n#pf-legislation .lg-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}\n#pf-legislation .lg-num{font-weight:900;font-size:14px;color:#ffd166}\n#pf-legislation .lg-title{font-weight:900;font-size:17px;margin:2px 0 6px;line-height:1.25}\n#pf-legislation .lg-sum{font-size:14px;color:#e8e2d2;margin-bottom:8px;line-height:1.4}\n#pf-legislation .lg-expand{background:none;border:0;padding:0;text-align:left;width:100%;cursor:pointer;color:inherit;font:inherit;display:block}\n#pf-legislation .lg-steps{display:flex;margin:10px 0 4px}\n#pf-legislation .lg-step{flex:1;min-width:0;text-align:center}\n#pf-legislation .lg-dot{display:block;width:12px;height:12px;border-radius:50%;border:2px solid #5a5a5a;background:#141414;margin:0 auto 4px}\n#pf-legislation .lg-done .lg-dot{background:var(--pf-red);border-color:var(--pf-red)}\n#pf-legislation .lg-cur .lg-dot{background:#ffd166;border-color:#ffd166}\n#pf-legislation .lg-lab{display:block;font-size:9px;line-height:1.25;color:#8f8875;padding:0 2px}\n#pf-legislation .lg-cur .lg-lab{color:#fff;font-weight:700}\n#pf-legislation .lg-dead .lg-step{opacity:.4}\n#pf-legislation .lg-deadtag{display:inline-block;font-weight:900;font-size:11px;color:#8f8875;border:1px solid #5a5a5a;padding:4px 10px;margin:6px 0}\n#pf-legislation .lg-statusline{font-size:12px;color:var(--pf-muted);margin:2px 0 6px}\n#pf-legislation .lg-stuck{font-size:13px;color:#ffb3b3;margin:6px 0;line-height:1.35}\n#pf-legislation .lg-kp{font-size:13px;margin:6px 0;line-height:1.5}\n#pf-legislation .lg-kplink{background:none;border:0;color:#8fbfff;text-decoration:underline;font-size:13px;padding:6px 2px;cursor:pointer;font-family:inherit;min-height:32px}\n#pf-legislation .lg-tally{font-weight:900;font-size:13px;color:var(--pf-cream);margin:8px 0}\n#pf-legislation .lg-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}\n#pf-legislation .lg-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}\n#pf-legislation .lg-detail{border-top:1px dashed #4a4a4a;margin-top:10px;padding-top:10px}\n</style>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\n  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs\n     rendered into href/src. Only http(s) or relative URLs pass;\n     javascript:, data:, vbscript: etc. are rejected. */\n  function safeUrl(u){\n    var s=String(u==null?\'\':u).trim();\n    if(!s) return \'\';\n    try{ var p=new URL(s,\'https://x.invalid\').protocol;\n      if(p===\'http:\'||p===\'https:\') return s; }catch(e){}\n    return \'\';\n  }\nfunction num(v){ var n=Number(v); return isFinite(n)&&n>=0?Math.floor(n):0; }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfLegCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params);\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n\n/* ---------- pure helpers (covered by tests/legislation.verify.js) ---------- */\nvar STAGES=["Introduced","Committee","Passed House","Passed Senate","Signed"];\nvar STAGE_ALIAS={introduced:0,committee:1,referred:1,in_committee:1,passed_house:2,\n  house_passed:2,passed_senate:3,senate_passed:3,signed:4,enacted:4,became_law:4,law:4};\n/* billStage(status) -> {dead:bool, idx:-1..4}. Unknown statuses map to\n   idx:-1 (no highlight) — we render the API\'s raw status honestly instead\n   of guessing. */\nfunction billStage(status){\n  var s=String(status==null?"":status).toLowerCase().replace(/[\\s\\-]+/g,"_").trim();\n  if(!s) return {dead:false,idx:-1};\n  if(/dead|fail|withdraw|died|killed|vetoed/.test(s)) return {dead:true,idx:-1};\n  if(STAGE_ALIAS.hasOwnProperty(s)) return {dead:false,idx:STAGE_ALIAS[s]};\n  return {dead:false,idx:-1};\n}\nfunction readTally(b){\n  var s=0,o=0;\n  if(b){\n    var cv=b.cell_votes||b.tally||null;\n    if(cv){ s=num(cv.support); o=num(cv.oppose); }\n    else { s=num(b.support_cells);\n           o=num(b.oppose_cells); }\n  }\n  return {support:s,oppose:o};\n}\nfunction tallyHTML(t){\n  if(!t||(t.support===0&&t.oppose===0))\n    return \'<div class="lg-tally" data-leg-tallyline>No cell votes yet.</div>\';\n  return \'<div class="lg-tally" data-leg-tallyline>\'+t.support+\' cell\'+(t.support===1?"":"s")+\' support &middot; \'\n    +t.oppose+\' cell\'+(t.oppose===1?"":"s")+\' oppose</div>\';\n}\nfunction stageHTML(status){\n  var st=billStage(status);\n  var h=\'<div class="lg-steps\'+(st.dead?" lg-dead":"")+\'">\';\n  for(var i=0;i<STAGES.length;i++){\n    var cls="lg-step";\n    if(!st.dead&&st.idx>=0&&i<st.idx) cls+=" lg-done";\n    else if(!st.dead&&st.idx===i) cls+=" lg-cur";\n    h+=\'<div class="\'+cls+\'"><span class="lg-dot"></span><span class="lg-lab">\'+STAGES[i]+\'</span></div>\';\n  }\n  h+=\'</div>\';\n  var line="";\n  if(st.dead) line=\'<span class="lg-deadtag">DEAD</span>\';\n  else if(st.idx>=0) line=\'<div class="lg-statusline">Stage: \'+esc(STAGES[st.idx])+\'</div>\';\n  else if(String(status||"").trim()) line=\'<div class="lg-statusline">Status: \'+esc(String(status).trim())+\'</div>\';\n  return h+line;\n}\n/* Key-player link: dispatches pf-legislation-member — the civic directory\n   silo listens and filters/scrolls to the member. bioguide_id rides when\n   the API supplies it; the directory filters on the name either way. */\nfunction kpLink(name,bioguide){\n  var nm=String(name||"").trim(); if(!nm) return "";\n  var bg=String(bioguide||"").trim();\n  return \'<button type="button" class="lg-kplink" data-leg-member="\'+esc(bg+"|"+nm)+\'">\'+esc(nm)+\'</button>\';\n}\nfunction blockersHTML(b){\n  var bl=b.blockers||b.obstruction||null;\n  if(!bl||!bl.length) return "";\n  var names=[];\n  for(var i=0;i<bl.length;i++){\n    var x=bl[i];\n    if(typeof x==="string"){ if(x.trim()) names.push(esc(x.trim())); }\n    else if(x&&x.name){ names.push(kpLink(x.name,x.bioguide_id||x.bioguide)); }\n  }\n  if(!names.length) return "";\n  return \'<div class="lg-kp">Blockers: \'+names.join(", ")+\'</div>\';\n}\n/* ---------- state ---------- */\nvar ST={st:"",ch:""};\nvar BILLS=null, MINE=null, LOAD_ERR=false;\nvar EXPANDED={}, DETAIL={};\nvar STATUSES=[["","All statuses"],["introduced","Introduced"],["committee","In committee"],\n  ["passed-house","Passed House"],["passed-senate","Passed Senate"],["signed","Signed"],["dead","Dead"]];\n\nfunction cardHTML(b){\n  var id=String(b.id||b.bill_id||"");\n  var number=String(b.bill_id||"").trim()||"Bill";\n  var title=String(b.title||b.short_title||"").trim();\n  var summary=String(b.plain_english_summary||"").trim();\n  var t=readTally(b);\n  var stuck=String(b.stuck_in||b.stuck||"").trim();\n  var sponsor=String(b.sponsor_name||b.sponsor||"").trim();\n  var sbg=String(b.sponsor_bioguide||b.sponsor_bioguide_id||"").trim();\n  var plink=safeUrl(b.pressure_link)||"/political-hq#campaigns";\n  var founder=isFounder();\n  var exp=!!EXPANDED[id];\n  var h=\'<div class="lg-card">\'\n    +\'<button type="button" class="lg-expand" data-leg-expand="\'+esc(id)+\'" aria-expanded="\'+(exp?"true":"false")+\'">\'\n    +\'<div class="lg-num">\'+esc(number)+\'</div>\'\n    +\'<div class="lg-title">\'+esc(title||number)+\'</div></button>\';\n  if(summary) h+=\'<div class="lg-sum">\'+esc(summary)+\'</div>\';\n  h+=stageHTML(b.status);\n  if(stuck) h+=\'<div class="lg-stuck">Stuck: \'+esc(stuck)+\'</div>\';\n  if(sponsor) h+=\'<div class="lg-kp">Sponsor: \'+kpLink(sponsor,sbg)+\'</div>\';\n  h+=blockersHTML(b);\n  h+=\'<div data-leg-tally="\'+esc(id)+\'">\'+tallyHTML(t)+\'</div>\';\n  h+=\'<div class="lg-actions">\'\n    +\'<a class="c-btn lg-t44" href="\'+esc(plink)+\'">PRESSURE THIS BILL</a> \';\n  if(founder) h+=\'<button type="button" class="c-btn lg-t44" data-leg-vote="\'+esc(id)+\'">VOTE AS CELL</button>\';\n  h+=\'</div>\';\n  h+=\'<div data-leg-picker="\'+esc(id)+\'" style="display:none"></div>\';\n  if(exp) h+=detailHTML(id);\n  h+=\'</div>\';\n  return h;\n}\nfunction detailHTML(id){\n  var d=DETAIL[id];\n  if(!d) return \'<div class="lg-detail" data-leg-detail="\'+esc(id)+\'"><div class="c-load">Loading detail&hellip;</div></div>\';\n  var b=d.bill||{};\n  var t=readTally(b);\n  if(d.cell_votes){ t={support:num(d.cell_votes.support),oppose:num(d.cell_votes.oppose)}; }\n  var h=\'<div class="lg-detail" data-leg-detail="\'+esc(id)+\'">\';\n  var full=String(b.plain_english_summary||"").trim();\n  if(full) h+=\'<div class="lg-sum">\'+esc(full)+\'</div>\';\n  h+=stageHTML(b.status);\n  var stuck=String(b.stuck_in||b.stuck||"").trim();\n  if(stuck) h+=\'<div class="lg-stuck">Stuck: \'+esc(stuck)+\'</div>\';\n  var kp=b.key_players||[];\n  if(kp.length){\n    h+=\'<div class="lg-kp"><b>Key players:</b><br>\';\n    for(var i=0;i<kp.length;i++){\n      var k=kp[i]||{};\n      var role=String(k.role||"player").trim();\n      var meta=[];\n      if(k.party) meta.push(String(k.party));\n      var ch=String(k.chamber||"").toLowerCase();\n      if(k.state) meta.push((ch==="senate"?"Sen":"Rep")+" "+String(k.state));\n      h+=\'<div>&bull; \'+kpLink(k.name,k.bioguide_id||k.bioguide)+\' — \'+esc(role)\n        +(meta.length?\' <span class="x-note">(\'+esc(meta.join(", "))+\')</span>\':"")+\'</div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'<div data-leg-tally="\'+esc(id)+\'">\'+tallyHTML(t)+\'</div>\';\n  var plink=safeUrl(b.pressure_link||d.pressure_link)||"/political-hq#campaigns";\n  h+=\'<div class="lg-actions"><a class="c-btn lg-t44" href="\'+esc(plink)+\'">PRESSURE THIS BILL</a></div>\';\n  h+=\'</div>\';\n  return h;\n}\nfunction isFounder(){\n  return !!(ident().callsign&&MINE&&MINE.is_founder);\n}\nfunction mineCellId(){\n  return (MINE&&(MINE.cell_id||MINE.id))||"";\n}\nfunction render(){\n  var el=document.getElementById("xLegislation"); if(!el) return;\n  var h=\'<div class="x-pane"><h4>On the board</h4>\'\n    +\'<div class="lg-filters">\'\n    +\'<select class="c-in lg-t44" id="lgStatus" aria-label="Filter by status">\';\n  for(var i=0;i<STATUSES.length;i++){\n    h+=\'<option value="\'+STATUSES[i][0]+\'"\'+(ST.st===STATUSES[i][0]?" selected":"")+\'>\'+STATUSES[i][1]+\'</option>\';\n  }\n  h+=\'</select>\'\n    +\'<div class="lg-cham" role="group" aria-label="Chamber filter">\'\n    +\'<button type="button" class="c-btn lg-ch" data-ch="" aria-pressed="\'+(ST.ch===""?"true":"false")+\'">ALL</button>\'\n    +\'<button type="button" class="c-btn lg-ch" data-ch="house" aria-pressed="\'+(ST.ch==="house"?"true":"false")+\'">HOUSE</button>\'\n    +\'<button type="button" class="c-btn lg-ch" data-ch="senate" aria-pressed="\'+(ST.ch==="senate"?"true":"false")+\'">SENATE</button>\'\n    +\'</div></div>\'\n    +\'<div class="c-err" id="lgErr"></div>\'\n    +\'<div id="lgList">\';\n  if(LOAD_ERR){\n    h+=\'<div class="c-err">Couldn&rsquo;t reach the bill wire.</div>\'\n      +\'<button type="button" class="c-btn lg-t44" id="lgRetry">RETRY</button>\';\n  } else if(BILLS===null){\n    h+=\'<div class="c-load">Mobilizing&hellip;</div>\';\n  } else if(!BILLS.length){\n    h+=\'<div class="x-note">No bills on the board for these filters. Broaden the hunt.</div>\';\n  } else {\n    for(var j=0;j<BILLS.length;j++) h+=cardHTML(BILLS[j]);\n  }\n  h+=\'</div></div>\';\n  el.innerHTML=h;\n  bind();\n}\nfunction paintTally(id,t){\n  var els=document.querySelectorAll(\'[data-leg-tally]\');\n  for(var i=0;i<els.length;i++){\n    if(els[i].getAttribute("data-leg-tally")===id) els[i].innerHTML=tallyHTML(t);\n  }\n}\nfunction paintPicker(id,open){\n  var els=document.querySelectorAll(\'[data-leg-picker]\');\n  for(var i=0;i<els.length;i++){\n    if(els[i].getAttribute("data-leg-picker")!==id) continue;\n    if(!open){ els[i].style.display="none"; els[i].innerHTML=""; return; }\n    els[i].style.display="block";\n    els[i].innerHTML=\'<div class="lg-picker" role="group" aria-label="Cast your cell vote">\'\n      +\'<button type="button" class="c-btn lg-t44" data-leg-cast="support|\'+esc(id)+\'">SUPPORT</button>\'\n      +\'<button type="button" class="c-btn lg-t44" data-leg-cast="oppose|\'+esc(id)+\'">OPPOSE</button>\'\n      +\'<button type="button" class="c-btn lg-t44" data-leg-cancel="\'+esc(id)+\'">CANCEL</button></div>\';\n    return;\n  }\n}\nfunction castVote(id,position){\n  var cs=ident().callsign, cellId=mineCellId();\n  if(!cs||!isFounder()){ toast("Only cell founders can vote."); return; }\n  if(!cellId){ toast("No cell on record — vote blocked."); return; }\n  post("bill","b_action","bill_vote",{callsign:cs,cell_id:cellId,bill_id:id,position:position},function(j){\n    if(j&&j.ok){\n      var t=j.cell_votes||j.tally||null;\n      if(t){ paintTally(id,{support:num(t.support),oppose:num(t.oppose)}); finishVote(id,position); }\n      else {\n        /* Backend didn\'t echo the tally — re-read the bill so the numbers\n           are real, never invented. */\n        api("bills_get",{id:id},function(j2){\n          var b2=(j2&&j2.ok&&j2.bill)||null;\n          var t2=b2?(b2.cell_votes?{support:num(b2.cell_votes.support),oppose:num(b2.cell_votes.oppose)}:readTally(b2)):{support:0,oppose:0};\n          paintTally(id,t2);\n          finishVote(id,position);\n        });\n      }\n    } else {\n      toast(PF.errCopy?PF.errCopy(j,"Vote failed."):((j&&(j.err||j.error))||"Vote failed."));\n      paintPicker(id,false);\n    }\n  });\n}\nfunction finishVote(id,position){\n  paintPicker(id,false);\n  toast("Cell vote recorded: "+String(position).toUpperCase());\n}\nfunction toggleExpand(id){\n  if(EXPANDED[id]){ EXPANDED[id]=false; try{ render(); }catch(e){} return; }\n  EXPANDED[id]=true;\n  try{ render(); }catch(e){}\n  if(DETAIL[id]){ try{ render(); }catch(e){} return; }\n  api("bills_get",{id:id},function(j){\n    if(j&&j.ok&&j.bill){ DETAIL[id]={bill:j.bill,cell_votes:j.cell_votes||null,pressure_link:j.pressure_link||null}; }\n    else { DETAIL[id]={bill:null}; }\n    try{ render(); }catch(e){}\n  });\n}\nfunction focusMember(val){\n  var parts=String(val||"").split("|");\n  var bg=parts.length>1?parts[0]:"", nm=parts.length>1?parts.slice(1).join("|"):parts[0];\n  try{\n    document.dispatchEvent(new CustomEvent("pf-legislation-member",{detail:{bioguide_id:bg,name:nm}}));\n  }catch(e){}\n}\nfunction fetchBills(){\n  LOAD_ERR=false;\n  api("bills_list",{status:ST.st,chamber:ST.ch},function(j){\n    if(j&&j.ok&&j.bills){ BILLS=j.bills; LOAD_ERR=false; }\n    else { LOAD_ERR=true; }\n    try{ render(); }catch(e){}\n  });\n}\nfunction gv(id){ var e=document.getElementById(id); return e?e.value:""; }\nfunction bind(){\n  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }\n  var st=document.getElementById("lgStatus");\n  if(st) st.onchange=function(){ ST.st=gv("lgStatus"); fetchBills(); };\n  var cham=document.querySelector(".lg-cham");\n  if(cham) cham.onclick=function(e){\n    var b=e.target&&e.target.closest?e.target.closest("[data-ch]"):null; if(!b) return;\n    ST.ch=b.getAttribute("data-ch");\n    var btns=cham.querySelectorAll("[data-ch]");\n    for(var i=0;i<btns.length;i++){ btns[i].setAttribute("aria-pressed",btns[i]===b?"true":"false"); }\n    fetchBills();\n  };\n  var list=document.getElementById("lgList");\n  if(list&&!list.getAttribute("data-bound")){\n    list.setAttribute("data-bound","1");\n    list.addEventListener("click",function(e){\n      var t=e.target&&e.target.closest?e.target.closest("[data-leg-expand],[data-leg-vote],[data-leg-cast],[data-leg-cancel],[data-leg-member]"):null;\n      if(!t) return;\n      if(t.hasAttribute("data-leg-expand")){ toggleExpand(t.getAttribute("data-leg-expand")); return; }\n      if(t.hasAttribute("data-leg-vote")){ paintPicker(t.getAttribute("data-leg-vote"),true); return; }\n      if(t.hasAttribute("data-leg-cancel")){ paintPicker(t.getAttribute("data-leg-cancel"),false); return; }\n      if(t.hasAttribute("data-leg-cast")){\n        var parts=String(t.getAttribute("data-leg-cast")).split("|");\n        castVote(parts.slice(1).join("|"),parts[0]);\n        return;\n      }\n      if(t.hasAttribute("data-leg-member")){ focusMember(t.getAttribute("data-leg-member")); return; }\n    });\n  }\n  var rt=document.getElementById("lgRetry");\n  if(rt) rt.onclick=function(){ fetchBills(); };\n  if(BILLS===null&&!LOAD_ERR){ fetchBills(); }\n}\nfunction load(){\n  var cs=ident().callsign;\n  if(cs){\n    api("cell_mine",{callsign:cs},function(j){\n      if(j&&!j.err) MINE=j;\n      try{ render(); }catch(e){}\n    });\n  }\n  fetchBills();\n}\n/* Test hooks — pure helpers + interaction entry points for the DOM-stub\n   harness (tests/legislation.verify.js). Read-only; no page behavior. */\ntry{ window.__pfLegTest={billStage:billStage,readTally:readTally,tallyHTML:tallyHTML,\n  stageHTML:stageHTML,cardHTML:cardHTML,castVote:castVote,toggleExpand:toggleExpand,\n  paintPicker:paintPicker,focusMember:focusMember,isFounder:isFounder,\n  setState:function(s){ST=s;},getState:function(){return ST;},\n  setBills:function(b){BILLS=b;},setMine:function(m){MINE=m;},getMine:function(){return MINE;},\n  setExpanded:function(x){EXPANDED=x;},setDetail:function(x){DETAIL=x;},render:render}; }catch(e){}\nload();\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("governance")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-gov">\n<div class="fe-block pf-override-block pf-silo" id="pf-gov">\n<h2>The People&rsquo;s Assembly</h2>\n<div class="c-tag">The network governs itself. Propose. Vote. The Assembly decides.</div>\n<div id="xGov"><div class="c-load">Convening the assembly&hellip;</div></div>\n</div>\n<script>\n(function(){\n/* ===== inner: helpers (unchanged mechanics) ===== */\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px Arial,sans-serif;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfGvCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(gAction,params,cb){\n  var body={type:"gov",g_action:gAction};\n  for(var k in params){ if(Object.prototype.hasOwnProperty.call(params,k)) body[k]=params[k]; }\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\n/* Admin gate for AUTH+ADMIN dual-gated actions (admin early proposal close).\n   Same key as vault.js / dashboard.js: sessionStorage \'pf_admin_secret\'. */\nfunction isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }\nfunction adminPost(gAction,params,cb){\n  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}\n  if(!secret){ post(gAction,params,cb); return; }\n  var body={type:"gov",g_action:gAction};\n  for(var k in params){ if(Object.prototype.hasOwnProperty.call(params,k)) body[k]=params[k]; }\n  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }\n  try{\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); } }catch(e5){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e7){ done(null); }\n}\n/* localStorage helpers (device-local prefs only — never votes, never weight) */\nfunction lsGet(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } }\nfunction lsSet(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){} }\nvar FIRSTVOTE_KEY="pf_gov_firstvote_v1";\nvar LASTW_KEY="pf_gov_lastweight_v1"; /* server-issued weight from the last vote response */\n/* ABSTAIN SUPPORT (backend-gated): the live proposal_vote endpoint accepts\n   only yes/no (backend gov.js: "choice must be yes or no"). The ABSTAIN\n   target ships the moment the backend accepts choice=abstain and defines\n   tally semantics — flip this flag, zero other changes. CEO-decision\n   backend item: abstain support. */\nvar ABSTAIN_SUPPORTED=false;\nfunction abstainBtnHTML(pid,small){\n  if(!ABSTAIN_SUPPORTED) return "";\n  return \'<button type="button" class="gv-cast\'+(small?" gv-small":"")+\'" data-pid="\'+esc(pid)+\'" data-ch="abstain">\'\n    +(small?"ABSTAIN →":"REPORT ABSTAIN →")+\'</button>\';\n}\n\n/* ===== teardown WS-11: silo-local CSS (injected once at mount) ===== */\nvar GOV_CSS=[\n".pf-gov{max-width:760px;margin:0 auto;padding:4px 0 30px;background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;}",\n".gv-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:800;font-size:12px;margin:0 0 8px;}",\n".gv-sec{margin:26px 0 0;padding:0 4px;}",\n".gv-sec-t{font-size:19px;font-weight:800;margin:0 0 6px;text-transform:uppercase;letter-spacing:1px;}",\n".gv-note{color:#8a8a8a;font-size:13px;line-height:1.6;margin:0 0 10px;}",\n".gv-stakes{border:1px solid #4a4a4a;background:#0d0d0d;padding:12px 14px;margin:14px 0;font-size:13px;line-height:1.6;color:#d8d0c0;}",\n".gv-stakes b{color:#fff;}",\n/* full-ceremony card */\n".gv-full{background:#0d0d0d;border:2px solid #c1121f;margin:0 0 18px;padding:20px 18px;}",\n".gv-full h3{font-size:22px;font-weight:900;margin:0 0 10px;line-height:1.25;color:#fff;}",\n".gv-case{border-left:3px solid #4a4a4a;padding:2px 0 2px 12px;margin:12px 0;}",\n".gv-case-k{color:#c1121f;font-size:11px;letter-spacing:2px;font-weight:800;margin:0 0 4px;}",\n".gv-case p{margin:0;font-size:14px;line-height:1.6;color:#e8e2d2;}",\n".gv-shield{background:#12060a;border:1px dashed #c1121f;color:#e8e2d2;font-size:12.5px;padding:10px 12px;margin:12px 0;line-height:1.5;}",\n".gv-quorum{font-size:12px;letter-spacing:2px;font-weight:800;color:#8a8a8a;margin:10px 0;}",\n".gv-quorum .segs{letter-spacing:0;color:#c1121f;}",\n".gv-count{font-weight:900;letter-spacing:2px;font-size:15px;margin:8px 0;}",\n".gv-urg-1 .gv-count{color:#fff;}",\n".gv-urg-2 .gv-count{color:#c1121f;}",\n".gv-urg-3{border-color:#c1121f;}",\n".gv-urg-3 .gv-count{color:#c1121f;animation:gvPulse 1.6s ease-in-out infinite;}",\n"@keyframes gvPulse{0%,100%{opacity:1;}50%{opacity:.55;}}",\n/* cast targets: REPORT-family, non-red, thumb-zone */\n".gv-cast-row{display:flex;gap:10px;margin:16px 0 4px;flex-wrap:wrap;}",\n".gv-cast{flex:1 1 140px;background:#0a0a0a;border:2px solid #8a8a8a;color:#fff;font-weight:900;letter-spacing:1px;font-size:16px;padding:16px 10px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;min-height:64px;}",\n".gv-cast:hover{border-color:#fff;}",\n".gv-cast:disabled{opacity:.45;cursor:wait;}",\n".gv-cast.gv-yes{border-color:#fff;}",\n".gv-voted{color:#8a8a8a;font-size:13px;margin:10px 0 0;}",\n/* lightweight inline ballot */\n".gv-inline{display:flex;gap:12px;align-items:center;background:#0d0d0d;border:1px solid #4a4a4a;padding:12px;margin:0 0 10px;flex-wrap:wrap;}",\n".gv-inline-main{flex:1 1 220px;}",\n".gv-inline-t{font-weight:800;font-size:15px;margin:0 0 4px;color:#fff;}",\n".gv-inline-meta{color:#8a8a8a;font-size:12px;margin:0;}",\n".gv-inline-vote{display:flex;gap:8px;}",\n".gv-cast.gv-small{flex:0 1 auto;min-height:48px;padding:10px 14px;font-size:13px;}",\n".gv-inline.gv-urg-2 .gv-inline-meta{color:#c1121f;font-weight:800;}",\n".gv-inline.gv-urg-3 .gv-inline-meta{color:#c1121f;font-weight:900;animation:gvPulse 1.6s ease-in-out infinite;}",\n/* first-vote micro-flow */\n".gv-firstvote{border:2px solid #c1121f;background:#12060a;padding:18px;margin:16px 0;}",\n".gv-firstvote h4{margin:0 0 10px;font-size:16px;letter-spacing:2px;color:#fff;}",\n".gv-step{display:flex;gap:12px;margin:10px 0;align-items:flex-start;}",\n".gv-step-n{background:#c1121f;color:#fff;font-weight:900;width:28px;height:28px;line-height:28px;text-align:center;flex:0 0 28px;font-size:14px;}",\n".gv-step p{margin:0;font-size:13.5px;line-height:1.55;color:#e8e2d2;}",\n".gv-step p b{color:#fff;}",\n/* results / election night */\n".gv-result{background:#0d0d0d;border:2px solid #4a4a4a;padding:18px;margin:0 0 16px;}",\n".gv-result.gv-passed{border-color:#fff;}",\n".gv-badge{display:inline-block;font-weight:900;letter-spacing:2px;font-size:13px;padding:6px 14px;margin:0 0 10px;}",\n".gv-badge.gv-pass{background:#fff;color:#0a0a0a;}",\n".gv-badge.gv-fail{background:#0a0a0a;color:#8a8a8a;border:2px solid #8a8a8a;}",\n".gv-badge.gv-tie{background:#0a0a0a;color:#c1121f;border:2px solid #c1121f;}",\n".gv-result h3{font-size:19px;font-weight:900;margin:0 0 8px;color:#fff;}",\n".gv-outcome{font-size:14px;line-height:1.6;color:#e8e2d2;margin:0 0 10px;}",\n".gv-outcome b{color:#fff;}",\n/* closing-soon ping */\n".gv-ping{background:#1a0505;border:2px solid #c1121f;color:#e8e2d2;padding:12px 14px;margin:12px 0;font-size:14px;line-height:1.5;}",\n".gv-ping b{color:#c1121f;}",\n".gv-ping a{color:#fff;font-weight:800;}",\n/* form */\n".gv-form{background:#0d0d0d;border:1px solid #4a4a4a;padding:18px;margin:0 0 10px;}",\n".gv-form input[type=text],.gv-form textarea{width:100%;background:#141414;color:#fff;border:1px solid #4a4a4a;padding:10px;font-size:14px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;margin:0 0 10px;}",\n".gv-form input[type=number]{background:#141414;color:#fff;border:1px solid #4a4a4a;padding:8px;font-size:14px;width:70px;}",\n".gv-err{color:#c1121f;font-size:13px;min-height:18px;margin:6px 0 0;}",\n".gv-btn-red{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:1px;font-size:15px;padding:14px 26px;border:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}",\n".gv-btn-ghost{display:inline-block;background:transparent;color:#8a8a8a;border:1px solid #4a4a4a;font-weight:700;font-size:13px;padding:10px 18px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;margin-left:8px;}"\n].join("");\nfunction govCSS(){\n  try{\n    if(document.getElementById("pf-gov-css")) return;\n    var st=document.createElement("style"); st.id="pf-gov-css"; st.textContent=GOV_CSS;\n    (document.head||document.documentElement).appendChild(st);\n  }catch(e){}\n}\n\n/* ===== teardown WS-11: tiered ceremony =====\n   FULL referendum ceremony: constitutional/fund-level votes.\n   LIGHTWEIGHT inline ballot: routine votes.\n   Server field (tier/ceremony/weight_class) wins when present. INTERIM\n   HEURISTIC below runs only until the backend ships tier on\n   proposal_list (CEO-decision backend item #1) — documented, fail-open\n   (unknown -> lightweight), never a security boundary. */\nfunction govTier(p){\n  p=p||{};\n  var t=String(p.tier||p.ceremony||p.weight_class||"").toLowerCase();\n  if(/full|constitutional|referendum/.test(t)) return "full";\n  if(/light|routine|inline|minor/.test(t)) return "light";\n  var txt=String((p.title||"")+" "+(p.description||"")).toLowerCase();\n  if(/constitution|amendment|charter|by-?law|treasury|war[- ]?chest|\\bfund\\b|budget|\\bdues\\b|\\bfee\\b|quorum|recall|impeach|dissolve|merge/.test(txt)) return "full";\n  return "light";\n}\n/* ===== quorum: BUCKETED bands, never exact pre-close counts ===== */\nfunction quorumBand(n){\n  n=Math.max(0,Math.floor(Number(n)||0));\n  if(n<=0)  return {label:"QUORUM: AWAITING FIRST BALLOTS",segs:0};\n  if(n<25)  return {label:"QUORUM: BUILDING",segs:1};\n  if(n<100) return {label:"QUORUM: GROWING",segs:2};\n  return {label:"QUORUM: STRONG",segs:3};\n}\nfunction quorumHTML(n){\n  var b=quorumBand(n), segs="";\n  for(var i=0;i<3;i++) segs+=(i<b.segs?"■":"□");\n  return \'<p class="gv-quorum">\'+esc(b.label)+\' <span class="segs">\'+segs+\'</span></p>\';\n}\n/* ===== countdown with rising visual urgency ===== */\nfunction fmtLeft(ms){\n  if(ms<=0) return "CLOSED";\n  var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);\n  if(d>0) return d+"d "+h+"h left";\n  if(h>0) return h+"h "+m+"m left";\n  return m+"m left";\n}\nfunction urgClass(ms){\n  if(ms<=0) return "gv-urg-1";\n  if(ms<=6*3600000) return "gv-urg-3";   /* final hours: pulsing red */\n  if(ms<=24*3600000) return "gv-urg-2";  /* closing: red */\n  return "gv-urg-1";\n}\nfunction countHTML(ms){\n  return \'<p class="gv-count">\'+esc(fmtLeftUrgent(ms).toUpperCase())+\'</p>\';\n}\n/* shared urgency label: base countdown + rising-urgency tail */\nfunction fmtLeftUrgent(ms){\n  var u=urgClass(ms), tail=(u==="gv-urg-3")?" — FINAL HOURS":(u==="gv-urg-2"?" — CLOSING":"");\n  return fmtLeft(ms)+tail;\n}\n/* ===== state ===== */\nvar GOV_DEFAULTS={proposals:[],delegation:null,xp:null};\nfunction mergeGov(base,over){\n  var out={},k;\n  for(k in base){ if(Object.prototype.hasOwnProperty.call(base,k)) out[k]=base[k]; }\n  if(over&&typeof over==="object"){\n    for(k in over){\n      if(!Object.prototype.hasOwnProperty.call(over,k)) continue;\n      out[k]=over[k];\n    }\n  }\n  return out;\n}\nvar GOVFIX=null;\ntry{ GOVFIX=(window.PF&&window.PF.govFixture)||null; }catch(e){}\nvar PL=null, DG=null, XP=null, LASTW=null;\ntry{ var _lw=parseInt(lsGet(LASTW_KEY),10); if(isFinite(_lw)&&_lw>0) LASTW=_lw; }catch(e){}\nfunction load(){\n  var id=ident();\n  if(GOVFIX){\n    /* Test seam / staged preview: never in production. */\n    PL={proposals:GOVFIX.proposals||[]};\n    DG=GOVFIX.delegation||null;\n    XP=(GOVFIX.xp==null?null:Math.max(0,Math.floor(Number(GOVFIX.xp)||0)));\n    render();\n    return;\n  }\n  var done=false, n=0;\n  function fin(){ if(done)return; done=true; render(); }\n  function one(){ n++; if(n>=3) fin(); }\n  setTimeout(fin,15000);\n  /* 6A-R7/E21: pass the callsign so proposal_list returns the per-proposal\n     voted flag the non-voter ping UI keys off. */\n  api("proposal_list",{callsign:id.callsign||""},function(j){ PL=j; one(); });\n  if(id.callsign){ api("delegation_get",{callsign:id.callsign},function(j){ DG=j; one(); }); }\n  else { DG=null; one(); }\n  /* P5 ring feed ONLY. SECURITY: xp_balance is a public read used to render\n     the Progression Ring (XP progress, render-only). It MUST NOT feed any\n     vote-weight computation — weight is server-set and arrives only via\n     vote responses (LASTW) or a future server weight field. The old\n     client-side formula (1+floor(sqrt(xp/100))) was REMOVED in WS-11. */\n  if(id.callsign){\n    api("xp_balance",{callsign:id.callsign},function(j){\n      XP=(j&&j.balance!=null)?Math.max(0,Math.floor(Number(j.balance)||0)):null;\n      one();\n    });\n  } else { XP=null; one(); }\n}\n/* Rank ladder for the P5 ring (render-only; same ladder the fund page uses).\n   The ring shows XP progress toward the next rank — never vote weight. */\nvar RANKS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];\nfunction rankFor(xp){\n  var r=RANKS[0][0], cap=RANKS[1][1];\n  for(var i=0;i<RANKS.length;i++){\n    if(xp>=RANKS[i][1]){ r=RANKS[i][0]; cap=(RANKS[i+1]||[0,xp])[1]; }\n  }\n  return {rank:r,cap:Math.max(cap,xp+1)};\n}\n\n/* ===== renderers ===== */\nfunction pat(){\n  try{ return (window.PF&&window.PF.patterns&&!window.PF.skip("patterns"))?window.PF.patterns:null; }\n  catch(e){ return null; }\n}\nfunction heroHTML(P){\n  if(P) return P.hero({kicker:"THE PEOPLE\'S ASSEMBLY",mission:"The network governs itself. Propose. Vote. The Assembly decides.",sub:"Power from the ranks, not from above. Every ballot ends in a published outcome."});\n  return \'<div class="gv-sec"><p class="gv-kicker">The People’s Assembly</p><p class="gv-sec-t">The network governs itself. Propose. Vote. The Assembly decides.</p></div>\';\n}\n/* Personalized stakes (P5). The weight line is explicit: server-set, grows\n   with XP, never for sale, never computed on this device. The ring renders\n   XP progress ONLY. */\nfunction stakesHTML(P){\n  var h=\'<div class="gv-stakes"><b>YOUR STAKES:</b> your ballot carries <b>server-set weight</b> — the Assembly server sets it. It grows with your XP. <b>Never for sale. Never computed on your device.</b>\';\n  if(LASTW) h+=\' Last counted ballot: weight <b>\'+LASTW+\'</b> (server-set).\';\n  h+=\'</div>\';\n  if(P&&XP!=null&&XP>0){\n    var r=rankFor(XP);\n    h+=P.ring({xp:XP,cap:r.cap,rank:r.rank})\n      +\'<p class="gv-note">Your grind, recognized. This ring shows XP progress only — the server sets vote weight.</p>\';\n  }\n  return h;\n}\n/* Guided first-vote micro-flow: new voters (callsign, never voted, never\n   dismissed) get the 3-step on-ramp above the ballot. */\nfunction isNewVoter(props){\n  try{ if(lsGet(FIRSTVOTE_KEY)==="1") return false; }catch(e){}\n  for(var i=0;i<props.length;i++){ if(props[i].voted===true) return false; }\n  if(LASTW) return false;\n  return true;\n}\nfunction firstVoteHTML(open){\n  var target=open.length?("#gv-prop-"+open[0].id):"#gv-open";\n  return \'<div class="gv-firstvote" id="gv-firstvote">\'\n    +\'<h4>YOUR FIRST VOTE — 3 STEPS</h4>\'\n    +\'<div class="gv-step"><div class="gv-step-n">1</div><p><b>THE ASSEMBLY DECIDES.</b> Proposals, weighted votes, delegation. Every ballot ends in a published outcome — no vote disappears into a void.</p></div>\'\n    +\'<div class="gv-step"><div class="gv-step-n">2</div><p><b>BALLOTS ARE SHIELDED.</b> Tallies stay sealed until the vote closes. Vote your conscience, not the crowd — no bandwagons.</p></div>\'\n    +\'<div class="gv-step"><div class="gv-step-n">3</div><p><b>YOUR WEIGHT IS SERVER-SET.</b> It grows with your XP. Never for sale, never computed on your device. Casting is reporting back — it closes the loop.</p></div>\'\n    +\'<p style="margin:12px 0 0;"><a href="\'+esc(target)+\'" class="gv-btn-red" data-gv-firstvote-go style="text-decoration:none;">GOT IT — TAKE ME TO THE BALLOT ↓</a></p>\'\n    +\'</div>\';\n}\n/* 6A-R7/E21: non-voter ping — open proposals closing within 6h that this\n   callsign hasn\'t voted on get a closing-soon banner above the fold. */\nfunction pingHTML(open){\n  var ping=[];\n  for(var i=0;i<open.length;i++){\n    var p=open[i], left=Number(p.closes_at||0)-Date.now();\n    if(left>0&&left<=6*3600000&&p.voted!==true) ping.push(p);\n  }\n  var h="";\n  for(var q=0;q<ping.length;q++){\n    var qp=ping[q];\n    h+=\'<div class="gv-ping"><b>⚠ VOTE CLOSING SOON:</b> &ldquo;\'+esc(qp.title)+\'&rdquo; \'\n      +\'closes in \'+esc(fmtLeft(Number(qp.closes_at)-Date.now()))\n      +\' — you haven’t voted. \'\n      +\'<a href="#gv-prop-\'+esc(qp.id)+\'">VOTE NOW ↓</a></div>\';\n  }\n  return h;\n}\n/* FULL referendum ceremony: full-screen proposal card (P2, large). */\nfunction fullCardHTML(p){\n  var left=Number(p.closes_at||0)-Date.now();\n  var u=urgClass(left);\n  var voted=p.voted===true;\n  var h=\'<article class="gv-full \'+u+\'" id="gv-prop-\'+esc(p.id)+\'">\'\n    +\'<p class="gv-kicker">FULL REFERENDUM · CONSTITUTIONAL / FUND LEVEL</p>\'\n    +\'<h3>\'+esc(p.title)+\'</h3>\'\n    +countHTML(left)\n    +\'<div class="gv-case"><p class="gv-case-k">THE PROPOSER’S CASE</p><p>\'+esc(p.description||"No case filed.")+\'</p></div>\'\n    +\'<div class="gv-case"><p class="gv-case-k">THE KEY QUESTION</p><p>Should the Assembly \'+esc(String(p.title||"").charAt(0).toLowerCase()+String(p.title||"").slice(1))+\'?</p></div>\'\n    +\'<p class="gv-note">By <b style="color:#fff;">\'+esc(p.proposer)+\'</b> · your ballot carries server-set weight — grows with XP, never for sale.</p>\'\n    +\'<div class="gv-shield">🛡️ <b>BALLOT SHIELDED</b> — tallies stay sealed until the vote closes. No bandwagons, no gaming the count.</div>\'\n    +quorumHTML(p.voter_count);\n  if(voted){\n    h+=\'<p class="gv-voted">✓ Ballot recorded. The tally stays sealed until close.</p>\';\n  } else {\n    h+=\'<div class="gv-cast-row">\'\n      +\'<button type="button" class="gv-cast gv-yes" data-pid="\'+esc(p.id)+\'" data-ch="yes">REPORT YES →</button>\'\n      +\'<button type="button" class="gv-cast" data-pid="\'+esc(p.id)+\'" data-ch="no">REPORT NO →</button>\'\n      +abstainBtnHTML(p.id,false)\n      +\'</div>\'\n      +\'<p class="gv-note">Casting is reporting back — your vote closes the loop.</p>\';\n  }\n  h+=closeBtnsHTML(p);\n  h+=\'</article>\';\n  return h;\n}\n/* LIGHTWEIGHT inline ballot: routine votes, compact ledger-style rows. */\nfunction inlineRowHTML(p){\n  var left=Number(p.closes_at||0)-Date.now();\n  var voted=p.voted===true;\n  var h=\'<div class="gv-inline \'+urgClass(left)+\'" id="gv-prop-\'+esc(p.id)+\'">\'\n    +\'<div class="gv-inline-main">\'\n    +\'<p class="gv-inline-t">\'+esc(p.title)+\'</p>\'\n    +\'<p class="gv-inline-meta">LIGHTWEIGHT BALLOT · \'+esc(fmtLeftUrgent(left))+\' · \'+esc(quorumBand(p.voter_count).label)+\' · shielded</p>\'\n    +\'</div>\';\n  if(voted){\n    h+=\'<p class="gv-voted">✓ Recorded</p>\';\n  } else {\n    h+=\'<div class="gv-inline-vote">\'\n      +\'<button type="button" class="gv-cast gv-small" data-pid="\'+esc(p.id)+\'" data-ch="yes">REPORT YES →</button>\'\n      +\'<button type="button" class="gv-cast gv-small" data-pid="\'+esc(p.id)+\'" data-ch="no">REPORT NO →</button>\'\n      +abstainBtnHTML(p.id,true)\n      +\'</div>\';\n  }\n  h+=closeBtnsHTML(p);\n  h+=\'</div>\';\n  return h;\n}\n/* 2026-10-03: proposal_close (AUTH+ADMIN). Past the deadline anyone can\n   settle; early close is admin-only (backend enforces). */\nfunction closeBtnsHTML(p){\n  var pastDue=Number(p.closes_at||0)<=Date.now();\n  if(pastDue) return \'<p style="margin:10px 0 0;"><button type="button" class="gv-btn-ghost" data-gv-close data-pid="\'+esc(p.id)+\'">CLOSE &amp; SETTLE</button></p>\';\n  if(isAdmin()) return \'<p style="margin:10px 0 0;"><button type="button" class="gv-btn-ghost" data-gv-close-early data-pid="\'+esc(p.id)+\'">CLOSE EARLY (ADMIN)</button></p>\';\n  return "";\n}\n/* ELECTION NIGHT: every closed proposal ends in a published outcome statement\n   + margin + turnout + the P6 action bar assigning the next step. */\nfunction resultBadge(q){\n  if(q.result==="passed") return \'<span class="gv-badge gv-pass">PASSED</span>\';\n  if(q.result==="failed") return \'<span class="gv-badge gv-fail">FAILED</span>\';\n  return \'<span class="gv-badge gv-tie">DEADLOCKED</span>\';\n}\nfunction outcomeStatement(q){\n  var t=String(q.title||"Untitled");\n  if(q.result==="passed") return \'<b>PASSED</b> — the Assembly adopts &ldquo;\'+esc(t)+\'&rdquo;. The result stands.\';\n  if(q.result==="failed") return \'<b>FAILED</b> — the Assembly rejects &ldquo;\'+esc(t)+\'&rdquo;. The result stands.\';\n  return \'<b>DEADLOCKED</b> — &ldquo;\'+esc(t)+\'&rdquo; falls short of a decision. It can be re-proposed.\';\n}\nfunction marginPct(yes,no){\n  var t=yes+no; if(t<=0) return "—";\n  return Math.round(Math.abs(yes-no)/t*100)+" PTS";\n}\nfunction resultsHTML(hist,P){\n  var h=\'<div class="gv-sec"><p class="gv-kicker">Election night</p><p class="gv-sec-t">Decided (\'+hist.length+\')</p>\';\n  if(!hist.length){ h+=\'<p class="gv-note">Nothing decided yet. History is waiting to be written.</p>\'; }\n  for(var k=0;k<Math.min(hist.length,20);k++){\n    var q=hist[k];\n    var yes=Number(q.yes_weight)||0, no=Number(q.no_weight)||0, vc=Number(q.voter_count)||0;\n    var cls=q.result==="passed"?"gv-passed":"";\n    h+=\'<article class="gv-result \'+cls+\'">\'\n      +\'<p class="gv-kicker">THE ASSEMBLY HAS SPOKEN</p>\'\n      +resultBadge(q)\n      +\'<h3>\'+esc(q.title)+\'</h3>\'\n      +\'<p class="gv-outcome">\'+outcomeStatement(q)+\'</p>\';\n    /* P7 ledger lines: post-close exact figures are fine — the vote is over. */\n    if(P){\n      h+=P.ledgerLine({what:"YES weight",figure:String(yes),hot:true})\n        +P.ledgerLine({what:"NO weight",figure:String(no),hot:true})\n        +P.ledgerLine({what:"Margin",figure:marginPct(yes,no)})\n        +P.ledgerLine({what:"Turnout",figure:vc+" soldier"+(vc===1?"":"s")+" voted"});\n    } else {\n      h+=\'<p class="gv-note">YES \'+yes+\' · NO \'+no+\' · margin \'+esc(marginPct(yes,no))+\' · \'+vc+\' voted</p>\';\n    }\n    /* P6: the next step is assigned, not left hanging. */\n    var shareUrl="";\n    try{ shareUrl=(window.location.href||"").split("#")[0]+"#gv-prop-"+encodeURIComponent(q.id||""); }catch(e){}\n    if(P) h+=P.actionBar({shareUrl:shareUrl,cellUrl:"/cells",reportUrl:"/#pf-orders"});\n    else h+=\'<p class="gv-note"><a href="/cells" style="color:#fff;">Take this to your cell →</a></p>\';\n    h+=\'</article>\';\n  }\n  h+=\'</div>\';\n  return h;\n}\n\nfunction createHTML(P){\n  var h=\'<div class="gv-sec"><p class="gv-kicker">New proposal</p><p class="gv-sec-t">Put it on the floor</p>\'\n    +\'<div class="gv-form">\'\n    +\'<p class="gv-note">Costs <b style="color:#fff;">100 XP</b> to put on the floor — keeps the spam out. Duration 1–30 days. XP has no cash value. Stakes are final.</p>\'\n    +\'<input type="text" aria-label="Proposal title" id="gvTitle" maxlength="120" placeholder="Proposal title">\'\n    +\'<textarea aria-label="Proposal description" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why? Make the case."></textarea>\'\n    +\'<p class="gv-note">Duration: <input type="number" id="gvDays" min="1" max="30" value="7"> days</p>\'\n    +\'<button type="button" class="gv-btn-red" id="gvCreateBtn">PUT IT TO A VOTE →</button>\'\n    +\'<p class="gv-err" id="gvCreateErr"></p>\'\n    +\'</div></div>\';\n  return h;\n}\nfunction delegationHTML(){\n  var cur=(DG&&DG.delegate)||null, toMe=(DG&&DG.delegated_to_me)||[];\n  var h=\'<div class="gv-sec"><p class="gv-kicker">Liquid delegation</p><p class="gv-sec-t">Lend your voice</p>\'\n    +\'<div class="gv-form">\'\n    +\'<p class="gv-note">Trust someone&rsquo;s judgment? Hand them your vote — their ballot carries your weight too. You can vote directly anytime: your own ballot always overrides.</p>\';\n  if(cur){ h+=\'<p class="gv-note">Your vote rides with <b style="color:#fff;">\'+esc(cur)+\'</b>.</p>\'\n    +\'<button type="button" class="gv-btn-ghost" id="gvUndelegate">TAKE MY VOTE BACK</button>\'; }\n  else { h+=\'<p class="gv-note">You hold your own vote.</p>\'\n    +\'<input type="text" aria-label="Delegate callsign" id="gvDel" maxlength="20" placeholder="Delegate callsign">\'\n    +\'<button type="button" class="gv-btn-red" id="gvDelegateBtn">DELEGATE MY VOTE →</button>\'; }\n  if(toMe.length){ h+=\'<p class="gv-note">\'+toMe.length+\' soldier\'+(toMe.length>1?\'s\':\'\')+\' trust\'+(toMe.length>1?\'\':\'s\')+\' your judgment: \'+toMe.map(function(x){return esc(x);}).join(", ")+\'</p>\'; }\n  h+=\'<p class="gv-err" id="gvDelErr"></p></div></div>\';\n  return h;\n}\nfunction render(){\n  var el=document.getElementById("xGov"); if(!el) return;\n  govCSS();\n  var P=pat();\n  if(!P){ renderLegacy(el); return; }\n  var id=ident();\n  if(!id.callsign){\n    el.innerHTML=\'<div class="pf-gov">\'+heroHTML(P)+PF.gateHTML("The Assembly votes on callsigns.","to take your seat in the Assembly")+\'</div>\';\n    return;\n  }\n  var props=(PL&&PL.proposals)||[];\n  var open=[], hist=[];\n  for(var i=0;i<props.length;i++){ if(props[i].status==="open") open.push(props[i]); else hist.push(props[i]); }\n  var full=[], light=[];\n  for(var o=0;o<open.length;o++){ if(govTier(open[o])==="full") full.push(open[o]); else light.push(open[o]); }\n  var h=\'<div class="pf-gov">\';\n  h+=heroHTML(P);\n  h+=stakesHTML(P);\n  if(isNewVoter(props)) h+=firstVoteHTML(open);\n  h+=pingHTML(open);\n  /* --- full referendum ceremony --- */\n  h+=\'<div class="gv-sec" id="gv-open"><p class="gv-kicker">On the floor</p><p class="gv-sec-t">Full referenda (\'+full.length+\')</p>\';\n  if(!full.length) h+=\'<p class="gv-note">No full referenda open. Constitutional and fund-level votes land here, with full ceremony.</p>\';\n  for(var f=0;f<full.length;f++) h+=fullCardHTML(full[f]);\n  h+=\'</div>\';\n  /* --- lightweight inline ballots --- */\n  h+=\'<div class="gv-sec"><p class="gv-kicker">Routine business</p><p class="gv-sec-t">Lightweight ballots (\'+light.length+\')</p>\';\n  if(!light.length) h+=\'<p class="gv-note">No routine ballots open.</p>\';\n  for(var l=0;l<light.length;l++) h+=inlineRowHTML(light[l]);\n  h+=\'</div>\';\n  /* --- new proposal --- */\n  h+=\'<div class="x-pane"><h4>New proposal</h4>\'\n    +\'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days. XP has no cash value. Stakes are final.</div>\'\n    +\'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">\'\n    +\'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>\'\n    +\'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>\'\n    +\'<button class="c-btn" id="gvCreateBtn">PUT IT TO A VOTE (100 XP)</button><div class="c-err" id="gvCreateErr"></div></div>\';\n  /* --- delegation --- */\n  var cur=(DG&&DG.delegate)||null, toMe=(DG&&DG.delegated_to_me)||[];\n  h+=\'<div class="x-pane"><h4>Liquid delegation</h4>\'\n    +\'<div class="x-note">Trust someone&rsquo;s judgment? Hand them your vote weight. They vote, it counts double. You vote directly anytime &mdash; your own ballot always wins.</div>\';\n  if(cur){ h+=\'<div class="x-note">Your vote is delegated to <b>\'+esc(cur)+\'</b>.</div>\'\n    +\'<button class="c-btn" id="gvUndelegate">TAKE MY VOTE BACK</button>\'; }\n  else { h+=\'<div class="x-note">You hold your own vote.</div>\'\n    +\'<input aria-label="Delegate callsign" class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">\'\n    +\'<button class="c-btn" id="gvDelegateBtn">DELEGATE MY VOTE</button>\'; }\n  if(toMe.length){ h+=\'<div class="x-note">\'+toMe.length+\' soldier\'+(toMe.length>1?\'s\':\'\')+\' trust\'+(toMe.length>1?\'\':\'s\')+\' your judgment: \'+toMe.map(function(x){return esc(x);}).join(", ")+\'</div>\'; }\n  h+=\'<div class="c-err" id="gvDelErr"></div></div>\';\n  /* --- history --- */\n  h+=\'<div class="x-pane"><h4>Decided (\'+hist.length+\')</h4>\';\n  if(!hist.length){ h+=\'<div class="x-note">Nothing decided yet. History is waiting to be written.</div>\'; }\n  for(var k=0;k<Math.min(hist.length,20);k++){\n    var q=hist[k], badge=q.result==="passed"?\'<span class="gv-pass">PASSED</span>\':(q.result==="failed"?\'<span class="gv-fail">FAILED</span>\':\'<span class="gv-tie">TIE</span>\');\n    h+=\'<div class="gv-prop gv-hist"><div class="gv-ptitle">\'+esc(q.title)+\' \'+badge+\'</div>\'\n      +\'<div class="x-note">YES \'+esc(q.yes_weight)+\' &bull; NO \'+esc(q.no_weight)+\' &bull; \'+esc(q.voter_count)+\' voters</div>\'\n      /* share-out gaps #8: the result is shareable. */\n      +\'<div style="margin-top:6px"><button type="button" class="c-btn ghost gv-share" data-idx="\'+k+\'">SHARE RESULT</button></div></div>\';\n  }\n  h+=\'</div>\';\n  h+=createHTML(P);\n  h+=delegationHTML();\n  h+=resultsHTML(hist,P);\n  /* P6 page-level close: nothing ends with the individual. */\n  var pageUrl=""; try{ pageUrl=window.location.href||""; }catch(e){}\n  h+=P.actionBar({shareUrl:pageUrl,cellUrl:"/cells",reportUrl:"/#pf-orders"});\n  /* Brand integration (2026-10-06, fix 5, ported from line @ WS-A phase 2):\n     cross-pillar handoffs — wired declaratively by the share-everywhere\n     scanner (same branded styling). */\n  h+=\'<div data-pf-handoff="take-cell"></div><div data-pf-handoff="report-back"></div>\';\n  h+=\'</div>\';\n  el.innerHTML=h;\n  wire(el);\n}\n/* Fail-open: patterns killed -> legacy compact render. Still shielded,\n   still server-weight-only, still callsign-gated. */\nfunction renderLegacy(el){\n  var id=ident();\n  if(!id.callsign){\n    el.innerHTML=\'<div class="pf-gov">\'+heroHTML(null)+\'<p class="gv-note">The Assembly votes on callsigns.</p></div>\';\n    return;\n  }\n  var props=(PL&&PL.proposals)||[];\n  var h=\'<div class="pf-gov">\'+heroHTML(null);\n  h+=\'<p class="gv-note">Your ballot carries server-set weight — grows with XP, never for sale, never computed here.</p>\';\n  h+=\'<div class="gv-sec"><p class="gv-sec-t">Open (\'+props.filter(function(p){return p.status==="open";}).length+\')</p>\';\n  for(var i=0;i<props.length;i++){\n    var p=props[i]; if(p.status!=="open") continue;\n    var left=Number(p.closes_at||0)-Date.now();\n    h+=\'<div class="gv-inline"><div class="gv-inline-main"><p class="gv-inline-t">\'+esc(p.title)+\'</p>\'\n      +\'<p class="gv-inline-meta">\'+esc(fmtLeft(left))+\' · shielded</p></div>\';\n    if(p.voted===true){ h+=\'<p class="gv-voted">✓ Recorded</p>\'; }\n    else{\n      h+=\'<div class="gv-inline-vote">\'\n        +\'<button type="button" class="gv-cast gv-small" data-pid="\'+esc(p.id)+\'" data-ch="yes">YES →</button>\'\n        +\'<button type="button" class="gv-cast gv-small" data-pid="\'+esc(p.id)+\'" data-ch="no">NO →</button>\'\n        +abstainBtnHTML(p.id,true)\n        +\'</div>\';\n    }\n    h+=\'</div>\';\n  }\n  h+=\'</div>\'+createHTML(null)+delegationHTML()+\'</div>\';\n  el.innerHTML=h;\n  wire(el);\n}\nfunction wire(el){\n  /* --- cast a vote: REPORT-family targets. Double-click guard (audit #26):\n     disable ALL targets for the proposal while the vote POST is in flight;\n     re-enable only on failure (success re-renders via load()). */\n  var vbs=el.querySelectorAll(".gv-cast[data-pid]");\n  for(var v=0;v<vbs.length;v++){ (function(b){ b.addEventListener("click",function(){\n    var pid=b.getAttribute("data-pid"), ch=b.getAttribute("data-ch");\n    var pair=[];\n    for(var q=0;q<vbs.length;q++){ if(vbs[q].getAttribute("data-pid")===pid) pair.push(vbs[q]); }\n    for(var q2=0;q2<pair.length;q2++){ pair[q2].disabled=true; }\n    var id2=ident();\n    post("proposal_vote",{callsign:id2.callsign,device:id2.device,proposal_id:pid,choice:ch},function(r){\n      if(r&&r.ok){\n        /* Server-issued weight only — cached for the stakes line. */\n        var w=parseInt(r.weight,10);\n        if(isFinite(w)&&w>0){ LASTW=w; lsSet(LASTW_KEY,String(w)); }\n        toast("Ballot reported. The tally stays sealed until close.");\n        load();\n      }\n      else {\n        toast((r&&r.err)||"Vote failed.");\n        for(var q3=0;q3<pair.length;q3++){ pair[q3].disabled=false; }\n      }\n    });\n  }); })(vbs[v]); }\n  /* share-out gaps #8: each decided result is shareable via pf:terminal. */\n  var gss=el.querySelectorAll(".gv-share");\n  for(var gs=0;gs<gss.length;gs++){ (function(b){ b.addEventListener("click",function(){\n    try{\n      var qq=hist[Number(b.getAttribute("data-idx"))];\n      if(!qq||!window.PFShareEverywhere||!window.PFShareEverywhere.terminal) return;\n      var res=qq.result==="passed"?"PASSED":(qq.result==="failed"?"FAILED":"TIE");\n      window.PFShareEverywhere.terminal({\n        gameId:"gov-result", title:"THE ASSEMBLY DECIDED",\n        result:res+" — "+String(qq.title||""),\n        lines:["YES "+qq.yes_weight+" · NO "+qq.no_weight+" · "+qq.voter_count+" voters"],\n        link:"/political-hq",\n        host:(b.closest&&b.closest(".x-pane"))||el,\n        kicker:"⚖ THE ASSEMBLY ⚖"\n      });\n    }catch(e){}\n  }); })(gss[gs]); }\n  /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.\n     Early: admin only — rides the X-Admin-Secret header via adminPost. */\n  function closeProposal(pid,early,btn){\n    if(!window.confirm(early?"Close this proposal EARLY as admin? The result stands.":"Close and settle this proposal? The result stands.")) return;\n    var id2=ident();\n    btn.disabled=true; btn.textContent="CLOSING…";\n    var send=early?adminPost:post;\n    send("proposal_close",{callsign:id2.callsign,device:id2.device,proposal_id:pid},function(r){\n      if(r&&r.ok){ toast("Closed. The Assembly has spoken."); load(); }\n      else {\n        toast((r&&r.err)||"Close failed.");\n        btn.disabled=false; btn.textContent=early?"CLOSE EARLY (ADMIN)":"CLOSE & SETTLE";\n      }\n    });\n  }\n  var cbs=el.querySelectorAll("[data-gv-close]");\n  for(var c=0;c<cbs.length;c++){ (function(b){ b.addEventListener("click",function(){\n    closeProposal(b.getAttribute("data-pid"),false,b);\n  }); })(cbs[c]); }\n  var ebs=el.querySelectorAll("[data-gv-close-early]");\n  for(var e=0;e<ebs.length;e++){ (function(b){ b.addEventListener("click",function(){\n    closeProposal(b.getAttribute("data-pid"),true,b);\n  }); })(ebs[e]); }\n  var fvb=el.querySelector("[data-gv-firstvote-go]");\n  if(fvb){ fvb.addEventListener("click",function(){ lsSet(FIRSTVOTE_KEY,"1"); }); }\n  var cb=el.querySelector("#gvCreateBtn");\n  if(cb){ cb.addEventListener("click",function(){\n    var t=document.getElementById("gvTitle").value.trim(), d=document.getElementById("gvDesc").value.trim();\n    var dys=Math.max(1,Math.min(30,parseInt(document.getElementById("gvDays").value,10)||7));\n    var er=document.getElementById("gvCreateErr");\n    if(!t){ er.textContent="Give it a title."; return; }\n    er.textContent="";\n    if(!confirm("This costs 100 XP. Put it to a vote?")) return;\n    var id2=ident();\n    post("proposal_create",{callsign:id2.callsign,device:id2.device,title:t,description:d,duration_days:dys},function(r){\n      if(r&&r.ok){ toast("On the floor. Let the people decide."); load(); }\n      else { er.textContent=(r&&r.err)||"Failed."; }\n    });\n  }); }\n  var db=el.querySelector("#gvDelegateBtn");\n  if(db){ db.addEventListener("click",function(){\n    var d2=document.getElementById("gvDel").value.trim().toLowerCase();\n    var er=document.getElementById("gvDelErr"); if(!d2){ er.textContent="Whose judgment do you trust?"; return; }\n    er.textContent="";\n    var id2=ident();\n    post("delegate_set",{callsign:id2.callsign,device:id2.device,delegate:d2},function(r){\n      if(r&&r.ok){ toast("Vote delegated to "+d2+"."); load(); }\n      else { er.textContent=(r&&r.err)||"Failed."; }\n    });\n  }); }\n  var ub=el.querySelector("#gvUndelegate");\n  if(ub){ ub.addEventListener("click",function(){\n    var id2=ident();\n    post("delegate_set",{callsign:id2.callsign,device:id2.device,delegate:""},function(r){\n      if(r&&r.ok){ toast("Vote reclaimed."); load(); }\n      else { toast((r&&r.err)||"Failed."); }\n    });\n  }); }\n}\n/* 2026-10-05 (audit #27): the 120s scheduled re-render wiped in-progress drafts\n   (the new-proposal form, the delegate-callsign input). Skip the tick while\n   any input/textarea in the pane is focused or holds a non-default value. */\nfunction govHasDraft(){\n  try{\n    var el=document.getElementById("xGov"); if(!el) return false;\n    var f=el.querySelectorAll("input,textarea");\n    for(var i=0;i<f.length;i++){\n      var t=f[i];\n      if(t===document.activeElement) return true;\n      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }\n      else if(String(t.value)!==String(t.defaultValue)) return true;\n    }\n  }catch(e){}\n  return false;\n}\n/* TEST SEAM — the verify harness drives these without a backend. */\ntry{\n  window.PF.govTest={\n    buildHTML:function(fixture,callsign){\n      var keep=GOVFIX;\n      GOVFIX=fixture||{proposals:[]};\n      var html="";\n      try{\n        PL={proposals:(GOVFIX.proposals||[])}; DG=GOVFIX.delegation||null;\n        XP=(GOVFIX.xp==null?null:Math.max(0,Math.floor(Number(GOVFIX.xp)||0)));\n        var _id=ident; ident=function(){ return {callsign:callsign||"",device:"t"}; };\n        var host={_h:"",set innerHTML(v){ this._h=String(v); },get innerHTML(){ return this._h; },\n          querySelector:function(){ return null; },querySelectorAll:function(){ return []; },\n          addEventListener:function(){}};\n        var _gd=document.getElementById;\n        document.getElementById=function(gid){ return gid==="xGov"?host:_gd.call(document,gid); };\n        try{ render(); }finally{ document.getElementById=_gd; ident=_id; }\n        html=host._h;\n      }finally{ GOVFIX=keep; }\n      return html;\n    },\n    tier:govTier, quorumBand:quorumBand, urgClass:urgClass, fmtLeft:fmtLeft,\n    marginPct:marginPct, isNewVoter:isNewVoter, abstainSupported:ABSTAIN_SUPPORTED\n  };\n}catch(e){}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(govHasDraft()) return; load(); },120000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("notify-prefs")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-notify-prefs">\n<div class="fe-block pf-override-block pf-silo" id="pf-notify-prefs">\n<a id="notifications" style="display:block;position:relative;top:-80px;"></a>\n<h2>Control the Signal</h2>\n<div class="c-tag">Your inbox, your rules. Toggle every message type. Opt out any time.</div>\n<div id="xNotifyPrefs"><div class="c-load">Loading your preferences&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfNpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction post(type,actionKey,action,params,cb){\n  var body=Object.assign({type:type},params);\n  body[actionKey]=action;\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ _po._pfClear(); done(j); })\n      .catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nvar TYPES=[\n  ["streak_alerts","Streak alerts","Your 23-day streak dies in 4 hours"],\n  ["weekly_report","Weekly War Report","Monday digest of your week"],\n  ["flash_events","Flash events","Limited-time opportunities"],\n  ["cell_activity","Cell activity","Wars, invites, milestones"],\n  ["civic_alerts","Civic alerts","Petition wins, action calls"],\n  ["marketing","Promotional","Occasional announcements (rare)"]\n];\nvar PREFS=null, MASKED="", CS="", CONTACT_ERR="";\nfunction render(){\n  var el=document.getElementById("xNotifyPrefs"); if(!el) return;\n  var h="";\n  /* Auth-gating fallout (2026-10-03): contact_get is per-callsign. If the\n     claim-retry self-heal couldn\'t get credentials (legacy callsign, secret\n     lost), say so plainly instead of rendering empty defaults that look\n     saved-but-blank. */\n  if(CONTACT_ERR){\n    el.innerHTML=\'<div class="c-box c-err">\'+CONTACT_ERR+\'</div>\';\n    return;\n  }\n  h+=\'<div class="c-box" style="margin-bottom:12px;">\';\n  h+=\'<div class="c-sub">EMAIL</div>\';\n  h+=\'<div style="margin:6px 0;">\'+(MASKED?esc(MASKED):"<i>no email on file</i>")+\'</div>\';\n  h+=\'<div style="display:flex;gap:8px;margin-top:6px;">\';\n  h+=\'<input id="npEmail" type="email" placeholder="new email address" style="flex:1;max-width:280px;padding:8px;" />\';\n  h+=\'<button class="c-btn" id="npEmailBtn" type="button">Update</button>\';\n  h+=\'</div>\';\n  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */\n  h+=\'<label style="display:block;margin:6px 0;font-size:12px;cursor:pointer;"><input type="checkbox" id="npAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>\';\n  h+=\'</div>\';\n  h+=\'<div class="c-sub">MESSAGE TYPES</div>\';\n  TYPES.forEach(function(t){\n    var k=t[0], on=PREFS&&PREFS[k]?1:0;\n    h+=\'<label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer;">\';\n    h+=\'<input type="checkbox" class="npTog" data-k="\'+k+\'"\'+(on?" checked":"")+\' style="margin-top:4px;transform:scale(1.3);" />\';\n    h+=\'<span><b>\'+t[1]+\'</b><br><span class="c-dim" style="font-size:12px;">&ldquo;\'+t[2]+\'&rdquo;</span></span>\';\n    h+=\'</label>\';\n  });\n  h+=\'<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">\';\n  h+=\'<button class="c-btn" id="npSave" type="button">SAVE PREFERENCES</button>\';\n  h+=\'<a href="#" id="npUnsubAll" style="font-size:12px;color:var(--pf-red);">Unsubscribe from all</a>\';\n  h+=\'<span id="npMsg" style="font-size:12px;"></span>\';\n  h+=\'</div>\';\n  /* 2026-10-03: auth_rotate (AUTH) — the orphaned auth hygiene action.\n     Lets users rotate their auth_secret from a settings surface. The current\n     secret rides along via PF.authPost, exactly what the backend requires. */\n  h+=\'<div class="c-box" style="margin-top:12px;">\';\n  h+=\'<div class="c-sub">SECURITY</div>\';\n  h+=\'<div style="font-size:12px;margin:6px 0;">Your auth secret signs every action. Rotate it if a device is lost or you suspect compromise &mdash; this device gets the new secret automatically; other devices will need to re-claim your callsign.</div>\';\n  h+=\'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">\';\n  h+=\'<button class="c-btn" id="npRotate" type="button">ROTATE SECRET</button>\';\n  h+=\'<span id="npRotMsg" style="font-size:12px;"></span>\';\n  h+=\'</div></div>\';\n  /* 2026-10-03 privacy/terms: self-serve data rights (privacy_export /\n     privacy_erase in the backend). */\n  h+=privacyPanelHTML();\n  el.innerHTML=h;\n  document.getElementById("npSave").addEventListener("click",save);\n  document.getElementById("npEmailBtn").addEventListener("click",updateEmail);\n  document.getElementById("npRotate").addEventListener("click",rotateSecret);\n  bindPrivacyPanel();\n  document.getElementById("npUnsubAll").addEventListener("click",function(e){\n    e.preventDefault();\n    if(!confirm("Mute every email from the Propaganda Factory?")) return;\n    var all={}; TYPES.forEach(function(t){ all[t[0]]=0; });\n    /* G-08 (2026-10-05): this is the EMAIL prefs contract —\n       post("notifyq","nq_action","notify_prefs") writes email-topic prefs\n       to contact_info (src/notifyqueue.js). The SEPARATE contract\n       post("notify","n_action","notification_prefs") is the IN-APP\n       notification center (games/notify.js, notif_prefs via src/notify.js).\n       Different surfaces, different tables — keep both, don\'t unify. */\n    post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:all},function(j){\n      if(j&&j.ok){ PREFS=j.prefs; render(); toast("All emails muted."); }\n      else msg("Could not save. "+(PF.errCopy(j,"")));\n    });\n  });\n}\nfunction msg(t){ var m=document.getElementById("npMsg"); if(m){ m.textContent=t; } }\n/* 2026-10-03 privacy/terms: self-serve data rights. privacyPanelHTML works\n   with or without a callsign — callsign-less visitors still get device-only\n   export/erase (covers anonymous fan votes). */\nfunction privacyPanelHTML(){\n  var h=\'<div class="c-box" style="margin-top:12px;">\';\n  h+=\'<div class="c-sub">YOUR DATA</div>\';\n  h+=\'<div style="font-size:12px;margin:6px 0;">Download everything we hold on you, or erase it. Erasing your email removes you from The Dispatch and detaches callsign recovery; your callsign can stay on the public leaderboard or go too &mdash; your call. Questions: email mtcstw@gmail.com.</div>\';\n  h+=\'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">\';\n  h+=\'<button class="c-btn" id="npExport" type="button">DOWNLOAD MY DATA</button>\';\n  if(CS) h+=\'<label style="font-size:12px;cursor:pointer;"><input type="checkbox" id="npEraseFull" checked style="vertical-align:middle;margin-right:4px;">Erase my callsign too (not just email)</label>\';\n  h+=\'<button class="c-btn" id="npErase" type="button" style="border-color:var(--pf-red);color:var(--pf-red);">ERASE MY DATA</button>\';\n  h+=\'<span id="npPrivMsg" style="font-size:12px;"></span>\';\n  h+=\'</div>\';\n  /* H11b (2026-10-03): the export is capped at 200 rows per table\n     (EXPORT_CAP in the backend) — say so instead of implying a full dump. */\n  h+=\'<div style="font-size:11px;color:#8a8a8a;margin-top:6px;">Exports include up to 200 rows per category.</div>\';\n  h+=\'</div>\';\n  return h;\n}\nfunction privMsg(t){ var m=document.getElementById("npPrivMsg"); if(m){ m.textContent=t; } }\nfunction bindPrivacyPanel(){\n  var ex=document.getElementById("npExport");\n  if(ex) ex.addEventListener("click",exportData);\n  var er=document.getElementById("npErase");\n  if(er) er.addEventListener("click",eraseData);\n}\nfunction exportData(){\n  /* M28 (2026-10-03): disabled+spinner while the export assembles —\n     no double-submit. Mirrors the armory btn.disabled=true pattern. */\n  var b=document.getElementById("npExport"), lbl=b?b.textContent:"";\n  if(b){ b.disabled=true; b.textContent="ASSEMBLING…"; }\n  privMsg("Assembling…");\n  post("privacy","p_action","privacy_export",{callsign:CS,device:ident().device},function(j){\n    if(b){ b.disabled=false; b.textContent=lbl; }\n    privMsg("");\n    if(!(j&&j.ok)){ toast("Export failed. "+(PF.errCopy(j,""))); return; }\n    try{\n      var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"});\n      var a=document.createElement("a");\n      a.href=URL.createObjectURL(blob);\n      a.download="pf-my-data-"+(CS||"browser")+".json";\n      document.body.appendChild(a); a.click();\n      setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} try{ URL.revokeObjectURL(a.href); }catch(e2){} },1000);\n      toast("Your data is downloaded.");\n    }catch(e){ toast("Export failed."); }\n  });\n}\nfunction eraseData(){\n  var scope="device", warn="Erase this browser’s server-side rows (e.g. fan votes)? This cannot be undone.";\n  if(CS){\n    var full=document.getElementById("npEraseFull");\n    scope=(full&&full.checked)?"full":"email";\n    warn=scope==="full"\n      ? "Erase EVERYTHING we hold on this callsign — XP, streaks, votes, contact info, the callsign itself? This cannot be undone."\n      : "Erase your email and phone, unsubscribe, detach callsign recovery? Your callsign stays on the public boards.";\n  }\n  if(!window.confirm(warn)) return;\n  /* M28: disabled+spinner while the erase runs — no double-submit. On\n     success the button stays disabled until the reload; on failure it\n     becomes the RETRY path like the footer button. */\n  var eb=document.getElementById("npErase"), elbl=eb?eb.textContent:"";\n  if(eb){ eb.disabled=true; eb.textContent="ERASING…"; }\n  privMsg("Erasing…");\n  post("privacy","p_action","privacy_erase",{callsign:CS,device:ident().device,scope:scope},function(j){\n    privMsg("");\n    if(!(j&&j.ok)){\n      if(eb){ eb.disabled=false; eb.textContent="RETRY"; }\n      toast("Erase failed. "+(PF.errCopy(j,"")));\n      return;\n    }\n    toast((j&&j.note)||"Erased.");\n    if(scope==="full"){\n      /* M24 (2026-10-03): the footer DELETE MY DATA button wipes every\n         pf_* localStorage key; this path used to drop only identity +\n         auth secret, leaving streak/XP/cell caches behind. Unified: the\n         full erase now does the same complete wipe as the footer\n         (v1.4.3/core/16-footer.js wipeLocal) plus the sessionStorage\n         keys (e.g. pf_cs_dismissed) that neither path used to clear. */\n      wipeLocalAll();\n      setTimeout(function(){ try{ location.reload(); }catch(e2){} },2200);\n    } else if(eb){\n      /* GAP AUDIT v2 R1 (2026-10-03): email/device scopes don\'t reload —\n         the success path left the button disabled with "ERASING…" forever.\n         Re-enable it so a second erase doesn\'t need a page refresh. */\n      eb.disabled=false; eb.textContent=elbl;\n    }\n  });\n}\n/* M24: mirror of the footer\'s wipeLocal + sessionStorage sweep. */\nfunction wipeLocalAll(){\n  try{\n    var gone=[];\n    for(var i=0;i<localStorage.length;i++){\n      var k=localStorage.key(i);\n      if(k&&k.indexOf("pf_")===0) gone.push(k);\n    }\n    gone.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });\n  }catch(e){}\n  try{\n    localStorage.removeItem("pf_identity_v1");\n    localStorage.removeItem("pf_auth_secret");\n    localStorage.removeItem("pf_device_v1");\n  }catch(e2){}\n  try{\n    var sgone=[];\n    for(var j=0;j<sessionStorage.length;j++){\n      var sk=sessionStorage.key(j);\n      if(sk&&sk.indexOf("pf_")===0) sgone.push(sk);\n    }\n    sgone.forEach(function(k){ try{ sessionStorage.removeItem(k); }catch(e){} });\n  }catch(e3){}\n}\nfunction save(){\n  var prefs={};\n  var togs=document.querySelectorAll(".npTog");\n  for(var i=0;i<togs.length;i++) prefs[togs[i].getAttribute("data-k")]=togs[i].checked?1:0;\n  /* M28: disabled+spinner while the save posts — no double-submit. */\n  var b=document.getElementById("npSave"), lbl=b?b.textContent:"";\n  if(b){ b.disabled=true; b.textContent="SAVING…"; }\n  msg("Saving…");\n  post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:prefs},function(j){\n    if(b){ b.disabled=false; b.textContent=lbl; }\n    if(j&&j.ok){ PREFS=j.prefs; toast("Preferences saved."); msg(""); render(); }\n    else msg("Could not save. "+(PF.errCopy(j,"")));\n  });\n}\nfunction updateEmail(){\n  var em=document.getElementById("npEmail").value.trim();\n  if(!/^[^s@]+@[^s@]+.[^s@]+$/.test(em)){ msg("Enter a valid email."); return; }\n  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). The\n     backend enforces it too. */\n  var age13=document.getElementById("npAge13");\n  if(!(age13&&age13.checked)){ msg("Please confirm you are 13 or older."); return; }\n  /* M28: disabled+spinner while the email update posts — no double-submit. */\n  var b=document.getElementById("npEmailBtn"), lbl=b?b.textContent:"";\n  if(b){ b.disabled=true; b.textContent="SAVING…"; }\n  msg("Saving…");\n  post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1,age13:1},function(j){\n    if(b){ b.disabled=false; b.textContent=lbl; }\n    if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }\n    else msg("Could not save. "+(PF.errCopy(j,"")));\n  });\n}\n/* auth:auth_rotate (AUTH) — requires the CURRENT secret, which PF.authPost\n   attaches. The new secret is saved straight into localStorage via\n   PF.saveAuthSecret; the value is never displayed. */\nfunction rotateSecret(){\n  var b=document.getElementById("npRotate");\n  var m=document.getElementById("npRotMsg");\n  if(!CS){ if(m) m.textContent="Enlist first (pick a callsign)."; return; }\n  if(!window.confirm("Rotate your auth secret? This device gets the new one automatically. Other devices will need to re-claim your callsign.")) return;\n  if(b) b.disabled=true;\n  if(m) m.textContent="Rotating…";\n  post("auth","auth_action","auth_rotate",{callsign:CS},function(j){\n    if(b) b.disabled=false;\n    if(j&&j.ok&&j.auth_secret){\n      try{ if(window.PF&&PF.saveAuthSecret) PF.saveAuthSecret(j.auth_secret); }catch(e){}\n      toast("Secret rotated. This device is re-keyed.");\n      if(m) m.textContent="Rotated.";\n    } else {\n      if(m) m.textContent="Rotate failed. "+(PF.errCopy(j,""));\n    }\n  });\n}\nfunction load(){\n  CS=ident().callsign||"";\n  if(!CS){\n    var el=document.getElementById("xNotifyPrefs");\n    if(el){\n      /* 2026-10-03 privacy/terms: no callsign yet, but this browser may still\n         hold server-side rows (e.g. fan votes) — device-only data rights. */\n      el.innerHTML=\'<div class="c-box">Enlist first (pick a callsign) to manage notification preferences.</div>\'+privacyPanelHTML();\n      bindPrivacyPanel();\n    }\n    return;\n  }\n  /* contact_get is per-callsign auth-gated (rectify pass): route through the\n     shared claim-retry GET so a missing secret becomes one auth_claim attempt\n     with a friendly message, not a silent empty prefill. */\n  var params={callsign:CS};\n  var cb=function(j){\n    if(j&&j.ok){ PREFS=j.prefs||{}; MASKED=j.email||""; }\n    else {\n      PREFS={}; MASKED="";\n      var e=String((j&&j.err)||"");\n      /* 2026-10-03: also match the \'legacy_callsign\' code from the 14-auth.js\n         claim-retry path — legacy callsigns need recovery copy here, not the\n         misleading "wire is down" message. */\n      if(/missing credentials|unauthorized|claim unavailable|legacy_callsign/i.test(e))\n        CONTACT_ERR="Your preferences wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.";\n      else\n        CONTACT_ERR="Could not reach Command to load your preferences. The wire is down &mdash; retry in a bit.";\n    }\n    render();\n  };\n  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",params,cb); return; } }catch(e){}\n  api("contact_get",params,cb);\n}\nload();\n})();\n<\/script>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("intel")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-intel">\n<div class="fe-block pf-override-block pf-silo" id="pf-intel">\n<h2>Know Your Enemy</h2>\n<div class="c-tag">Their money moves first. We watch where it lands.</div>\n<div id="xIntel"><div class="c-load">Reading their mail&hellip;</div></div>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\n/* Friendly copy for gated read failures (2026-10-03): raw backend strings\n   like \'missing credentials\' are never shown as UI copy. */\nfunction inAuthHint(j){\n  var e=String((j&&j.err)||"");\n  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")\n    return \'<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>\';\n  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)\n    return \'<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>\';\n  return "";\n}\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  /* Private reads require auth_secret (IDOR fix). intel_submissions is\n     gated ONLY in mine mode (2026-10-03): the admin pending-queue view\n     (vault.js apiAdmin, X-Admin-Secret) is deliberately left ungated. */\n  if(action==="intel_submissions"&&params&&params.mine){\n    try{\n      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }\n      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";\n      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;\n    }catch(e){}\n  }\n  var fn="pfInCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\nfunction ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }\nfunction post(body,cb){\n  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }\n  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }\n  try{\n    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */\n    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;\n      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();\n    fetch(BACKEND,_po)\n      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });\n  }catch(e){ done(null); }\n}\nfunction fmtTs(t){\n  try{\n    var ms=Number(t); if(ms<1e12) ms=ms*1000;\n    var d=new Date(ms); if(isNaN(d.getTime())) return "";\n    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];\n    return mo[d.getMonth()]+" "+d.getDate();\n  }catch(e){ return ""; }\n}\n/* 2026-10-03 C2: own 15s timeout + error/retry — api()\'s failsafe reports\n   null but cannot distinguish a failed fetch from an empty list, so success\n   is tracked locally. Paints the live node (re-resolved by id) so a\n   mid-flight re-render cannot strand results on a detached node. */\nfunction loadMySubs(){\n  if(!document.getElementById("inMySubs")) return;\n  var me=ident();\n  function paintMySubs(html){ var live=document.getElementById("inMySubs"); if(live) live.innerHTML=html; }\n  if(!me.callsign){ paintMySubs(\'<div class="x-note">Claim a callsign to track submissions.</div>\'); return; }\n  var done=false, to=null;\n  function showErr(j){\n    if(done) return; done=true;\n    try{ if(to) clearTimeout(to); }catch(e){}\n    paintMySubs(\'<div class="x-note c-err">Could not load your submissions. \'+inAuthHint(j)\n      +\'<button class="c-btn" id="inSubsRetry">RETRY</button></div>\');\n    var r=document.getElementById("inSubsRetry");\n    if(r) r.onclick=function(){ loadMySubs(); };\n  }\n  to=setTimeout(showErr,15000);\n  api("intel_submissions",{callsign:me.callsign,mine:1},function(j){\n    if(done) return;\n    try{ if(to) clearTimeout(to); }catch(e){}\n    /* 2026-10-03: done is set by showErr() on the failure path and here on\n       success. Setting done=true before the failure branch (as before) made\n       showErr() bail on its own if(done) guard for EVERY failed fetch —\n       the timer was already cleared, so nothing painted and "Loading…"\n       stuck forever with no retry. */\n    if(!j||!j.ok){ showErr(j); return; }\n    done=true;\n    if(!j.submissions||!j.submissions.length){\n      paintMySubs(\'<div class="x-note">No submissions yet.</div>\'); return;\n    }\n    var h="";\n    for(var i=0;i<j.submissions.length;i++){\n      var s=j.submissions[i];\n      var st=String(s.status||"pending").toUpperCase();\n      h+=\'<div class="in-sub"><b>\'+esc(s.target)+\'</b> <span class="bt-st bt-st-\'+esc(s.status)+\'">\'+st+\'</span>\';\n      if(s.status==="rejected"&&s.reason) h+=\' <span class="x-note">\'+esc(s.reason)+\'</span>\';\n      h+=\' <span class="x-note">\'+fmtTs(s.created_at)+\'</span></div>\';\n    }\n    paintMySubs(h);\n  });\n}\nfunction load(){\n  var el=document.getElementById("xIntel"); if(!el) return;\n  /* 2026-10-03 C2: submissions load AFTER render() completes — render builds\n     the fresh #inMySubs node, so the fetch targets the live node. This wires\n     the never-fired initial load and removes the post-submit race. */\n  function got(j){ render(j); loadMySubs(); }\n  api("intel_list",{},got);\n  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) got(null); },15000);\n}\nfunction render(j){\n  var el=document.getElementById("xIntel"); if(!el) return;\n  var h="";\n  var items=(j&&j.ok&&j.items)||[];\n  h+=\'<div class="in-frame">THEY HAVE A WAR ROOM. SO DO WE.</div>\';\n  /* 2026-10-05: LIVE wire feed — fresh headlines from the wire, rendered\n     above the curated dossiers. Fail-soft: if j.live is missing or empty,\n     NOTHING renders here and the dossiers stand alone exactly as before. */\n  var live=(j&&j.ok&&Array.isArray(j.live))?j.live:[];\n  if(live.length){\n    h+=\'<div class="x-pane inl-live">\'\n      +\'<div class="inl-head"><span class="inl-badge"><span class="inl-dot"></span>LIVE</span>\'\n      +\'<span class="inl-title">FRESH FROM THE WIRE</span></div>\';\n    if(j.live_stale){\n      h+=\'<div class="x-note inl-stale">Wire feed may be stale &mdash; headlines below could lag.</div>\';\n    }\n    for(var li=0;li<live.length;li++){\n      var lv=live[li]||{};\n      var lurl=String(lv.url||""), ltitle=String(lv.title||"");\n      h+=\'<div class="inl-item">\';\n      if(/^https?:\\/\\//i.test(lurl)){\n        h+=\'<a class="inl-headline" href="\'+esc(lurl)+\'" target="_blank" rel="noopener">\'+esc(ltitle||lurl)+\'</a>\';\n      }else{\n        h+=\'<span class="inl-headline">\'+esc(ltitle||"Untitled")+\'</span>\';\n      }\n      h+=\'<div class="inl-meta">\'+esc(lv.source||"wire");\n      var lts=fmtTs(lv.published_at);\n      if(lts) h+=\' &bull; \'+esc(lts);\n      h+=\'</div></div>\';\n    }\n    h+=\'</div>\';\n  }\n  if(!items.length){\n    h+=\'<div class="x-pane"><div class="x-note">No intel filed yet. The watchers are watching.</div></div>\';\n  }\n  for(var i=0;i<items.length;i++){\n    var it=items[i];\n    h+=\'<div class="x-pane in-item">\'\n      +\'<div class="in-target">&#9673; \'+esc(it.target)+\' <span class="in-kind">CURATED</span></div>\'\n      +\'<div class="in-activity">\'+esc(it.activity)+\'</div>\'\n      +(it.amount?\'<div class="in-amount">MONEY: \'+esc(it.amount)+\'</div>\':"")\n      +\'<div class="in-meta">\'+esc(fmtTs(it.ts));\n    if(it.source){\n      var src=String(it.source);\n      if(/^https?:\\/\\//i.test(src)){\n        h+=\' &bull; <a href="\'+esc(src)+\'" target="_blank" rel="noopener">source</a>\';\n      } else {\n        h+=\' &bull; source: \'+esc(src);\n      }\n    }\n    h+=\'</div></div>\';\n  }\n  /* file intel — intel_submit (user-facing; goes live after approval.\n     target+activity+source required, every item must cite a checkable source) */\n  h+=\'<div class="x-pane"><h4>File intel</h4>\'\n    +\'<div class="x-note">What are they funding? Every submission needs a checkable source. Goes live after review.</div>\'\n    +\'<input aria-label="TARGET" id="inTarget" maxlength="120" placeholder="TARGET — who / what org"> \'\n    +\'<input aria-label="ACTIVITY" id="inActivity" maxlength="400" placeholder="ACTIVITY — what are they doing"> \'\n    +\'<input aria-label="MONEY" id="inAmount" maxlength="80" placeholder="MONEY (optional) — e.g. $2M"> \'\n    +\'<input aria-label="SOURCE" id="inSource" maxlength="200" placeholder="SOURCE (required) — link or citation"> \'\n    +\'<button class="c-btn" id="inFileBtn">SUBMIT INTEL</button><div class="c-err" id="inFileErr"></div></div>\';\n  h+=\'<div class="x-pane"><h4>Your submissions</h4><div id="inMySubs"><div class="x-note">Loading&hellip;</div></div></div>\';\n  h+=\'<div style="margin-top:10px"><button class="c-btn" id="inRetry">Refresh</button></div>\';\n  el.innerHTML=h;\n  var fb=document.getElementById("inFileBtn");\n  if(fb) fb.onclick=function(){\n    var me=ident();\n    if(!me.callsign){ toast("Claim a callsign first."); return; }\n    var tg=document.getElementById("inTarget"), ac=document.getElementById("inActivity"),\n        am=document.getElementById("inAmount"), sc=document.getElementById("inSource");\n    var target=tg?tg.value.trim():"", activity=ac?ac.value.trim():"",\n        amount=am?am.value.trim():"", source=sc?sc.value.trim():"";\n    var errEl=document.getElementById("inFileErr");\n    if(errEl) errEl.textContent="";\n    if(!target){ if(errEl)errEl.textContent="Target is required."; return; }\n    if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }\n    if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }\n    if(!window.confirm("Submit intel on \\""+target+"\\" for review?")) return;\n    fb.disabled=true;\n    post({type:"intel",i_action:"intel_submit",callsign:me.callsign,device:me.device,target:target,activity:activity,amount:amount,source:source},function(j){\n      fb.disabled=false;\n      if(!j||!j.ok){ if(errEl)errEl.textContent=PF.errCopy(j,"Submission failed."); return; }\n      toast("Intel submitted for review.");\n      /* 2026-10-03 C2: load() sequences render -> loadMySubs(), so the\n         submissions fetch targets the fresh node (was: load() +\n         loadMySubs() raced, fetch captured the pre-render node). */\n      load();\n    });\n  };\n  var rb=document.getElementById("inRetry");\n  if(rb) rb.onclick=function(){ el.innerHTML=\'<div class="c-load">Reading their mail&hellip;</div>\'; load(); };\n}\n/* 2026-10-05 (audit #27): the 300s scheduled re-render wiped in-progress\n   file-intel drafts (target/activity/money/source inputs). Skip the tick\n   while any input/textarea in the pane is focused or holds a non-default\n   value. */\nfunction intelHasDraft(){\n  try{\n    var el=document.getElementById("xIntel"); if(!el) return false;\n    var f=el.querySelectorAll("input,textarea");\n    for(var i=0;i<f.length;i++){\n      var t=f[i];\n      if(t===document.activeElement) return true;\n      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }\n      else if(String(t.value)!==String(t.defaultValue)) return true;\n    }\n  }catch(e){}\n  return false;\n}\nload();\nsetInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(intelHasDraft()) return; load(); },300000);\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("predict")&&e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-predict\">\n<div class=\"fe-block pf-override-block pf-silo\" id=\"pf-predict\">\n<h2>Call the Shot</h2>\n<div class=\"c-tag\">Every bill on the board. Call pass or fail. Right calls pay <b>+25 XP</b>.</div>\n<div id=\"xPredict\"><div class=\"c-load\">Reading the room&hellip;</div></div>\n<style>\n/* CALL THE SHOT (2026-10-05) — prediction game. Mobile-first, touch targets >= 44px. */\n#pf-predict .pp-row{margin:12px 0;padding:12px;border:2px solid #3a3a3a;background:#0d0d0d}\n#pf-predict .pp-title{font-weight:900;font-size:1rem;color:#f5f0e1;margin-bottom:6px;line-height:1.3}\n#pf-predict .pp-status{font-size:0.75rem;letter-spacing:0.14em;color:#b8ab8e;margin-bottom:10px}\n#pf-predict .pp-picks{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}\n#pf-predict .pp-btn{flex:1 1 140px;min-height:48px;font-weight:900;font-size:0.95rem;letter-spacing:0.1em;cursor:pointer;border:2px solid var(--pf-red);background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px}\n#pf-predict .pp-btn:active{background:var(--pf-red)}\n#pf-predict .pp-btn:disabled{opacity:0.55;cursor:default}\n#pf-predict .pp-margin{width:100%;box-sizing:border-box;min-height:44px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;font-family:inherit;font-size:0.9rem;padding:8px 10px;margin-top:6px}\n#pf-predict .pp-xpline{font-size:0.8rem;color:var(--pf-red);font-weight:700;letter-spacing:0.08em;margin:8px 0 0}\n#pf-predict .pp-sharewrap{margin-top:12px}\n#pf-predict .pp-share{border-color:var(--pf-gold);background:#1a1205;color:var(--pf-cream)}\n#pf-predict .pp-share:active{background:var(--pf-gold);color:#0d0d0d}\n#pf-predict .pp-sharemsg{min-height:0}\n#pf-predict .pp-msg{min-height:1.4em;font-size:0.85rem;color:#b8ab8e;margin-top:8px}\n#pf-predict .pp-locked{border:2px solid var(--pf-red);background:#1a0505;padding:12px;font-weight:700;color:#f5f0e1}\n#pf-predict .pp-locked .pp-xpline{color:#f5f0e1}\n#pf-predict .pp-result{border:2px solid #4a4a4a;padding:12px}\n#pf-predict .pp-win{color:#7fd069;font-weight:900}\n#pf-predict .pp-loss{color:var(--pf-red);font-weight:900}\n#pf-predict .pp-record{font-size:1rem;font-weight:900;letter-spacing:0.12em;color:#f5f0e1;margin:10px 0}\n#pf-predict .pp-record b{color:var(--pf-red)}\n#pf-predict .pp-board{margin-top:18px}\n#pf-predict .pp-board h3{letter-spacing:0.18em;font-size:0.95rem;color:var(--pf-red);margin:0 0 8px}\n#pf-predict .pp-lrow{display:flex;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid #2a2a2a;font-size:0.9rem;min-height:44px;box-sizing:border-box}\n#pf-predict .pp-lrank{width:2.2em;font-weight:900;color:#b8ab8e}\n#pf-predict .pp-lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f5f0e1}\n#pf-predict .pp-lwl{color:#b8ab8e;font-size:0.8rem}\n#pf-predict .pp-gate{border:2px dashed #4a4a4a;padding:14px;color:#b8ab8e;font-size:0.9rem}\n</style>\n</div>\n<script>\n(function(){\nvar PF = window.PF;\nvar BACKEND = window.PF_BACKEND_URL;\n/* PFPredict namespace: widget + section, exported for the legislation tracker. */\nvar PFP = window.PFPredict = window.PFPredict || {};\nPFP.XP_REWARD = 25;\n\nfunction esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }\nfunction ident(){\n  var cs='', dev='';\n  try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}\n  try{ dev = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}\n  return { callsign: cs, device: dev };\n}\nfunction toast(m){ try{ if(window.PF && PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement('div'); t.textContent=m;\n    t.style.cssText='position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';\n    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action, params, cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn='pfPrCb'+Math.floor(Math.random()*1e9);\n  var s=document.createElement('script'), done=false;\n  function finish(j){ if(done)return; done=true;\n    try{ delete window[fn]; }catch(e){}\n    if(s.parentNode) s.parentNode.removeChild(s);\n    try{ cb(j); }catch(e){} }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q='?action='+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null && params[k]!=='') q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }\n  q+='&callback='+fn;\n  s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* CORS POST, same {type, p_action} convention as fan-vote's {type:'vote', v_action:...}. */\nfunction post(action, params, cb){\n  var body = { type:'predict', p_action:action };\n  for(var k in params){ body[k]=params[k]; }\n  if(window.PF && PF.authPost){ PF.authPost(BACKEND, body, cb); return; }\n  var bodyStr=JSON.stringify(body);\n  function done(j){ try{ cb(j||{ok:false, err:'Network error.'}); }catch(e){} }\n  try{\n    var o={method:'POST', headers:{'Content-Type':'application/json'}, body:bodyStr}, c=null, t=null;\n    try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;\n      t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}\n    fetch(BACKEND, o)\n      .then(function(r){ return r.json(); })\n      .then(function(j){ if(t){ try{clearTimeout(t);}catch(e){} } done(j); })\n      .catch(function(){ if(t){ try{clearTimeout(t);}catch(e){} } done(null); });\n  }catch(e){ done(null); }\n}\nfunction errMsg(j, dflt){\n  try{ if(window.PF && PF.errCopy) return PF.errCopy(j, dflt); }catch(e){}\n  if(j && (j.err || j.error)) return String(j.err || j.error);\n  return dflt;\n}\n\n/* ---- bill normalization (tolerates the BE worker's key variants) ---- */\nfunction normBill(b){\n  b = b || {};\n  var id = b.bill_id || b.id || b.billId || '';\n  var title = b.title || b.name || b.bill_title || 'Untitled bill';\n  var status = b.status || b.bill_status || 'open';\n  var pick = b.my_pick || b.pick || b.prediction || b.user_pick || '';\n  var result = b.result || b.resolved || b.outcome || b.final_result || '';\n  var margin = b.predicted_margin || b.margin || '';\n  pick = String(pick||'').toLowerCase();\n  result = String(result||'').toLowerCase();\n  if(pick!=='pass' && pick!=='fail') pick='';\n  if(result!=='pass' && result!=='fail') result='';\n  return { id:String(id), title:String(title), status:String(status), pick:pick, result:result, margin:String(margin==null?'':margin), raw:b };\n}\n\n/* ---- widget HTML (pure, testable) ---- */\nfunction widgetHTML(bill){\n  var b = normBill(bill);\n  var h = '<div class=\"pp-row pp-widget\" data-bill=\"'+esc(b.id)+'\">';\n  h += '<div class=\"pp-title\">'+esc(b.title)+'</div>';\n  h += '<div class=\"pp-status\">STATUS: '+esc(String(b.status).toUpperCase())+'</div>';\n  if(b.result){\n    /* resolved */\n    var resWord = b.result==='pass' ? 'PASSED' : 'FAILED';\n    h += '<div class=\"pp-result\"><div>FINAL RESULT: <b>'+resWord+'</b></div>';\n    if(b.pick){\n      if(b.pick===b.result){\n        h += '<div class=\"pp-win\">YOU CALLED IT. +'+PFP.XP_REWARD+' XP.</div>';\n      } else {\n        h += '<div class=\"pp-loss\">MISSED IT. The establishment thanks you for nothing &mdash; strike back on the next one.</div>';\n      }\n    } else {\n      h += '<div class=\"pp-msg\">You made no call on this one. The next board is already open.</div>';\n    }\n    h += '</div>';\n  } else if(b.pick){\n    /* locked — SHARE YOUR CALL rides the phq-predict-call painter (same\n       family as the resolution poster). XP (Economy Desk 2026-10-05): this\n       widget makes NO poster-specific grant. Sharing inherits the shared\n       PFShare creditShare chokepoint only — +1 XP once/day on the device\n       ledger, backend +1 once per (callsign, device) ever (key\n       lx:<device>:share, MIRROR_EVENT_MAX ['share',1]) — identical to every\n       other PHQ poster. The +25 prediction reward rides the backend-granted\n       resolution leg only (predict_win_*, NO_MULT, idempotent per\n       bill+callsign): generation and resolution are distinct events, so a\n       \"no XP on generation\" reading here would be wrong and a future\n       builder could double-grant. */\n    h += '<div class=\"pp-locked\">LOCKED IN &mdash; you called <b>'+esc(b.pick.toUpperCase())+'</b>.<div class=\"pp-xpline\">Right call pays +'+PFP.XP_REWARD+' XP.</div>'\n      + '<div class=\"pp-sharewrap\"><button type=\"button\" class=\"pp-btn pp-share\" data-act=\"share\">SHARE YOUR CALL</button></div>'\n      + '<div class=\"pp-msg pp-sharemsg\"></div></div>';\n  } else {\n    /* open pick */\n    var cs = ident().callsign;\n    if(!cs){\n      h += '<div class=\"pp-gate\">You need a callsign to call the shot. Enlist first, then pick your fights.</div>';\n    } else {\n      h += '<div class=\"pp-picks\">'\n        + '<button type=\"button\" class=\"pp-btn pp-pass\" data-act=\"pass\">WILL PASS</button>'\n        + '<button type=\"button\" class=\"pp-btn pp-fail\" data-act=\"fail\">WILL FAIL</button>'\n        + '</div>'\n        + '<input class=\"pp-margin\" type=\"text\" inputmode=\"numeric\" placeholder=\"Call the margin (optional)\" aria-label=\"Predicted margin\">'\n        + '<div class=\"pp-xpline\">NAIL THE CALL: +'+PFP.XP_REWARD+' XP. Wrong calls cost you nothing but pride.</div>'\n        + '<div class=\"pp-msg\"></div>';\n    }\n  }\n  h += '</div>';\n  return h;\n}\n\n/* ---- widget binding: wires pick buttons -> predict_place ---- */\nfunction bindWidget(el, bill){\n  var b = normBill(bill);\n  var btns = el.querySelectorAll ? el.querySelectorAll('.pp-btn') : [];\n  for(var i=0;i<btns.length;i++){\n    (function(btn){\n      btn.onclick = function(){\n        var pick = btn.getAttribute('data-act');\n        if(pick!=='pass' && pick!=='fail') return;\n        var idt = ident();\n        if(!idt.callsign){ toast('Enlist first — you need a callsign.'); return; }\n        var margin = '';\n        try{ var m = el.querySelector('.pp-margin'); if(m) margin = String(m.value||'').trim(); }catch(e){}\n        btn.disabled = true;\n        var sibs = el.querySelectorAll('.pp-btn');\n        for(var j=0;j<sibs.length;j++){ sibs[j].disabled = true; }\n        var msg = el.querySelector('.pp-msg');\n        function say(t){ if(msg){ msg.textContent = t; } }\n        var params = { bill_id:b.id, prediction:pick, callsign:idt.callsign, device:idt.device };\n        if(margin) params.predicted_margin = margin;\n        post('predict_place', params, function(j){\n          if(j && j.ok){\n            toast('Call locked in. +'+PFP.XP_REWARD+' XP if you nail it.');\n            b.pick = pick;\n            b.margin = margin; /* stash for SHARE YOUR CALL — rendered live, never invented */\n            try{\n              el.innerHTML = widgetHTML(b);\n              bindWidget(el, b);\n            }catch(e){}\n          } else {\n            say(errMsg(j, 'Call failed — try again.'));\n            for(var k=0;k<sibs.length;k++){ sibs[k].disabled = false; }\n          }\n        });\n      };\n    })(btns[i]);\n  }\n  /* SHARE YOUR CALL: locked-state button -> phq-predict-call poster (same\n     painter family as the resolution poster). XP (Economy Desk 2026-10-05):\n     NO poster-specific grant here — the share inherits the shared PFShare\n     creditShare chokepoint (+1 XP once/day device ledger, backend +1 once\n     per (callsign,device) ever), same as all PHQ posters. Prediction XP is\n     backend-granted on resolution only (predict_win_*, NO_MULT, idempotent\n     per bill+callsign) — distinct event, no double-grant.\n     Fail-soft: painter family absent -> hide the button, never break. */\n  var shares = el.querySelectorAll ? el.querySelectorAll('.pp-share') : [];\n  for(var i=0;i<shares.length;i++){\n    (function(sbtn){\n      var hasPainter = false;\n      try{ hasPainter = !!(window.PF && PF.PHQShare); }catch(e){}\n      if(!hasPainter){ try{ sbtn.style.display='none'; }catch(e2){} return; }\n      sbtn.onclick = function(){\n        var sent = false;\n        try{\n          sent = PF.PHQShare.share('phq-predict-call', {\n            billTitle: b.title,\n            billId: b.id,\n            pick: b.pick,\n            margin: b.margin || ''\n          });\n        }catch(e){ sent = false; }\n        if(!sent) toast('Poster failed — try again.');\n      };\n    })(shares[i]);\n  }\n}\n\n/* Public embed API for the legislation-tracker crew.\n   window.PFPredict.mount(el, bill)\n     el   : element (a div inside a bill card) to render into\n     bill : { bill_id|id, title, status, my_pick?, result? }\n   Fail-soft: no backend URL -> hides el and logs. Never throws. */\nPFP.renderWidget = widgetHTML;\nPFP.normBill = normBill;\nPFP.mount = function(el, bill){\n  try{\n    if(!el) return;\n    if(!BACKEND){\n      try{ console.log('[predict] no backend URL — widget hidden'); }catch(e){}\n      try{ el.style.display='none'; }catch(e){}\n      return;\n    }\n    var b = normBill(bill);\n    if(!b.id){\n      try{ console.log('[predict] mount called without a bill id — hidden'); }catch(e){}\n      try{ el.style.display='none'; }catch(e){}\n      return;\n    }\n    el.innerHTML = widgetHTML(b);\n    bindWidget(el, b);\n  }catch(e){\n    try{ console.log('[predict] mount failed (soft): '+(e && e.message || e)); }catch(e2){}\n  }\n};\n\n/* ---- section: open bills + record + leaderboard ---- */\nfunction recordHTML(rec){\n  rec = rec || {};\n  var w = Number(rec.wins||0), l = Number(rec.losses||0);\n  return '<div class=\"pp-record\">YOUR RECORD: <b>'+w+'W</b> &ndash; <b>'+l+'L</b></div>';\n}\nfunction leaderboardHTML(leaders){\n  var h = '<div class=\"pp-board\"><h3>TOP CALLERS</h3>';\n  if(!leaders || !leaders.length){\n    h += '<div class=\"pp-msg\">No calls on the board yet. Be the first to read the room.</div></div>';\n    return h;\n  }\n  for(var i=0;i<leaders.length && i<25;i++){\n    var r = leaders[i]||{};\n    var cs = r.callsign || r.name || 'UNKNOWN';\n    var w = Number(r.wins||0), l = Number(r.losses||0);\n    h += '<div class=\"pp-lrow\"><span class=\"pp-lrank\">'+(i+1)+'</span>'\n      + '<span class=\"pp-lname\">'+esc(cs)+'</span>'\n      + '<span class=\"pp-lwl\">'+w+'W &ndash; '+l+'L</span></div>';\n  }\n  h += '</div>';\n  return h;\n}\nfunction sectionHTML(bills, rec, leaders){\n  var h = recordHTML(rec);\n  if(!bills || !bills.length){\n    h += '<div class=\"pp-msg\">No bills on the board right now. The machine never sleeps — check back.</div>';\n  } else {\n    h += '<div class=\"pp-bills\">';\n    for(var i=0;i<bills.length;i++){\n      h += widgetHTML(bills[i]);\n    }\n    h += '</div>';\n  }\n  h += leaderboardHTML(leaders);\n  return h;\n}\nfunction bindSection(root, bills){\n  bills = bills || [];\n  var widgets = root.querySelectorAll ? root.querySelectorAll('.pp-widget') : [];\n  /* match each rendered widget to its bill by data-bill */\n  var byId = {};\n  for(var i=0;i<bills.length;i++){ byId[normBill(bills[i]).id]=bills[i]; }\n  for(var j=0;j<widgets.length;j++){\n    var id = widgets[j].getAttribute('data-bill');\n    if(id && byId[id]) bindWidget(widgets[j], byId[id]);\n  }\n}\nfunction mountSectionInto(el){\n  var x = el.querySelector ? el.querySelector('#xPredict') : null;\n  function failSoft(msg){\n    try{ console.log('[predict] '+msg); }catch(e){}\n    try{ el.style.display='none'; }catch(e){}\n  }\n  if(!BACKEND){ failSoft('no backend URL — section hidden'); return; }\n  var idt = ident();\n  api('predict_list', { bill_id:'', callsign:idt.callsign, device:idt.device }, function(j){\n    if(!j || j.ok===false){\n      failSoft('predict_list failed — section hidden');\n      return;\n    }\n    var bills = j.bills || j.open_bills || j.rows || [];\n    var rec = j.record || j.my_record || j.caller_record || {};\n    api('predict_leaderboard', {}, function(j2){\n      var leaders = (j2 && (j2.leaders || j2.rows || j2.top || j2.board)) || [];\n      try{\n        var root = x || el;\n        root.innerHTML = sectionHTML(bills, rec, leaders);\n        bindSection(root, bills);\n        try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(root,'predictions',{link:'/predict'}); }catch(e){}\n      }catch(e){ failSoft('render failed (soft)'); }\n    });\n  });\n}\nPFP.mountSection = mountSectionInto;\n\n/* Auto-mount: when this silo's template is instantiated on Political HQ,\n   #xPredict is present and owned by us — render the full section. */\nfunction autoMount(){\n  try{\n    var el = document.getElementById('xPredict');\n    if(!el) return;\n    if(el.getAttribute('data-pf-predict-mounted')) return;\n    el.setAttribute('data-pf-predict-mounted','1');\n    mountSectionInto(el);\n  }catch(e){\n    try{ console.log('[predict] auto-mount failed (soft): '+(e && e.message || e)); }catch(e2){}\n  }\n}\n/* The political-hq page mounts our template via PF.mountPoliticalHq before\n   our inner script runs, so #xPredict is already in the DOM here. Retry once\n   late in case ordering differs. */\nautoMount();\nsetTimeout(autoMount, 3000);\n})();\n<\/script>\n</template>")}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("predict")){var n="data-pf-predict-home";!function(){try{if(document.getElementById("pf-predict-home-css"))return;var e=document.createElement("style");e.id="pf-predict-home-css",e.textContent="#phq-ballot-predict .phh-head{margin:0 0 12px}#phq-ballot-predict .phh-kicker{font-size:0.72rem;letter-spacing:0.22em;color:#b8ab8e;font-weight:700;margin-bottom:6px}#phq-ballot-predict .phh-mission{font-size:0.88rem;color:#f5f0e1;margin-bottom:10px;line-height:1.45}#phq-ballot-predict .phh-rail{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}#phq-ballot-predict .phh-btn{flex:1 1 160px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;letter-spacing:0.1em;text-decoration:none;text-align:center;border:2px solid var(--pf-red);background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px;box-sizing:border-box}#phq-ballot-predict .phh-btn:active{background:var(--pf-red)}#phq-ballot-predict .phh-back{border-color:var(--pf-gold)}#phq-ballot-predict .phh-exits{margin-top:16px;border-top:2px solid #3a3a3a;padding-top:12px}#phq-ballot-predict .phh-exits-label{font-size:0.75rem;letter-spacing:0.2em;color:var(--pf-red);font-weight:900;margin-bottom:4px}#phq-ballot-predict .phh-note{font-size:0.8rem;color:#b8ab8e;margin-top:8px;line-height:1.45}",(document.head||document.documentElement).appendChild(e)}catch(e){}}();try{if("undefined"!=typeof MutationObserver&&document.body){var t=new MutationObserver(function(){if(i())try{t.disconnect()}catch(e){}});t.observe(document.body,{childList:!0,subtree:!0}),setTimeout(function(){try{t.disconnect()}catch(e){}},3e4)}}catch(e){}a(),setTimeout(a,3e3),setTimeout(a,9e3)}function i(){try{var e=document.getElementById("pf-predict");if(!e)return!1;if(e.getAttribute(n))return!0;e.setAttribute(n,"1");var t=e;try{if(e.closest){var i=e.closest('section[data-game="predict"]');i&&(t=i)}}catch(e){}try{t.setAttribute("id","phq-ballot-predict"),t.setAttribute("data-hub","ballot"),t.setAttribute("data-slot","3.7")}catch(e){}var a=document.createElement("div");a.className="phh-head",a.innerHTML='<div class="phh-kicker">BALLOT &middot; SECTION 3.7</div><div class="phh-mission">Read the room. Lock your calls before results drop. Boards come from the live backend &mdash; nothing here is invented.</div><div class="phh-rail"><a class="phh-btn phh-back" href="#pf-action-center">BACK TO ACTION CENTER</a></div>';try{e.insertBefore(a,e.firstChild)}catch(e){}var r=document.createElement("div");r.className="phh-exits",r.innerHTML='<div class="phh-exits-label">NEXT MOVES</div><div class="phh-rail"><a class="phh-btn" href="#cvCompBox">RESULTS NIGHT: CELL COMPETITIONS</a><a class="phh-btn" href="#pf-footprint">YOUR PRESSURE FOOTPRINT</a><a class="phh-btn" href="#pf-races">BACK TO RACES</a></div><div class="phh-note">Lock a pick and hit SHARE YOUR CALL to post your prediction poster. +25 XP when the board resolves in your favor.</div>';try{e.appendChild(r)}catch(e){}return!0}catch(e){return!1}}function a(){i()}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("ballotcd")&&!window.pfBallotCdDone){window.pfBallotCdDone=!0;var n="pf-forged-ballot",t=!1;"loading"===document.readyState?document.addEventListener("DOMContentLoaded",w):w();try{e.ballotCountdowns={homeState:r,fetch:s,forge:v,share:b,claim:function(e){try{localStorage.setItem("pf_ballot_claimed_"+String(e),"1")}catch(e){}return!0},pledge:f,checked:d,pledged:p,paintData:h}}catch(e){}}function i(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function a(e){var n=String(null==e?"":e).trim();return/^(https?:)\/\//i.test(n)?n:""}function r(){var n=null;try{n=localStorage.getItem("pf_home_state_v1")}catch(e){n=null}if(null==n)try{n=String(e.homeState&&e.homeState()||"").trim().toUpperCase()||null}catch(e){n=null}else n=String(n).trim().toUpperCase();return n&&/^[A-Z]{2}$/.test(n)?n:""}function s(e){t||(t=!0),e(null)}function o(e,n){try{document.dispatchEvent(new CustomEvent("pf-xp",{detail:{gain:1,key:e,reason:n}}))}catch(e){}}function l(e){try{return localStorage.getItem(e)}catch(e){return null}}function c(e,n){try{localStorage.setItem(e,n)}catch(e){}}function d(e){return"1"===l("pf_ballot_checked_"+e)}function p(e){return null!=l("pf_ballot_pledged_"+e)}function u(e){c("pf_ballot_checked_"+e,"1")}function f(e){return c("pf_ballot_pledged_"+String(e.draft_id),String(Date.now())),function(e){try{var n=document.getElementById("pfbc-pledge-ov");n&&n.parentNode&&n.parentNode.removeChild(n);var t=document.createElement("div");t.id="pfbc-pledge-ov",t.innerHTML='<div class="pfbc-ov-card"><div class="pfbc-ov-kicker">★ THE PROPAGANDA FACTORY ★</div><div class="pfbc-ov-head">PLEDGE LOGGED.</div><div class="pfbc-ov-body">You’re in the fight for '+i(e.state)+'. Polls are open through <b>ELECTION DAY — NOVEMBER 3, 2026</b>.</div><div class="pfbc-ov-sub">Your callsign is on the card. Now put your vote where your mouth is.</div><button class="pfbc-ov-btn" id="pfbc-ov-share">SHARE YOUR COUNTDOWN</button><button class="pfbc-ov-x" id="pfbc-ov-x">BACK TO THE FIGHT</button></div>',document.body.appendChild(t);var a=function(){try{t.parentNode.removeChild(t)}catch(e){}};document.getElementById("pfbc-ov-x").addEventListener("click",a),t.addEventListener("click",function(e){e.target===t&&a()}),document.getElementById("pfbc-ov-share").addEventListener("click",function(){a();var n=v(e);n&&b(n)})}catch(e){}}(e),!0}function g(e){var n="";try{var t=new Uint8Array(3);(window.crypto||{}).getRandomValues?crypto.getRandomValues(t):t.forEach(function(e,n){t[n]=Math.floor(256*Math.random())});for(var i=0;i<t.length;i++)n+=("0"+t[i].toString(16)).slice(-2)}catch(e){n=String(Math.floor(16777216*Math.random()).toString(16))}return String(e.draft_id)+"_"+n}function h(e){return{state:e.state,daysLeft:e.same_day?null:e.days_left,deadline:e.deadline,registerUrl:e.register_url,sameDay:!!e.same_day}}function v(n){var t=e.PHQShare;if(!t||!t.paint)return null;var i=null;try{i=t.paint("phq-ballot",h(n))}catch(e){i=null}return i?(o("poster_ballot:"+String(n.draft_id),"ballot countdown card generated"),{canvas:i,card_id:g(n),draft:n}):null}function b(n,t){if(!n||!n.canvas)return!1;var i=n.canvas;function r(){o("share_ballot:"+String(n.card_id),"ballot countdown card shared");try{e.toast&&e.toast("Shared. Go spread the word.")}catch(e){}}try{i.toBlob(function(i){if(i){var s="ballot-countdown-"+String(n.draft.state||"xx").toLowerCase()+".png",o=null;try{o=new File([i],s,{type:"image/png"})}catch(e){}var l="JOIN THE FIGHT."+(a(n.draft.register_url)?" REGISTER: "+n.draft.register_url:" REGISTER: https://www.vote.gov/register/")+" — mtcstw.com";if(o&&navigator.canShare&&navigator.canShare({files:[o]}))try{navigator.share({files:[o],title:t||"BALLOT COUNTDOWN",text:l}).then(r,function(e){e&&"AbortError"===e.name||(m(i,s),r())})}catch(e){m(i,s),r()}else m(i,s),r()}else try{e.toast&&e.toast("Card failed — try again.")}catch(e){}},"image/png")}catch(e){return!1}return!0}function m(e,n){try{var t=document.createElement("a");t.href=URL.createObjectURL(e),t.download=n,document.body.appendChild(t),t.click(),setTimeout(function(){try{document.body.removeChild(t)}catch(e){}},4e3)}catch(e){}}function y(e){var n=e.same_day?"NO DEADLINE — REGISTER AT THE POLLS":0===e.days_left?"TODAY: LAST DAY TO REGISTER":1===e.days_left?"1 DAY LEFT TO REGISTER":e.days_left+" DAYS LEFT TO REGISTER",t=i(e.draft_id),r='<button class="pfbc-forge" data-forge="'+t+'">FORGE CARD</button>';return a(e.register_url)&&(r+=d(e.draft_id)?'<span class="pfbc-done">✓ REGISTRATION CHECKED</span>':'<a class="pfbc-reg" data-check="'+t+'" href="'+i(e.register_url)+'" target="_blank" rel="noopener">CHECK REGISTRATION</a>'),r+=p(e.draft_id)?'<span class="pfbc-done pfbc-pledged">✓ PLEDGED TO VOTE</span>':'<button class="pfbc-pledge" data-pledge="'+t+'">PLEDGE TO VOTE</button>','<div class="pfbc-card" data-draft="'+t+'"><div class="pfbc-head">'+i(n)+'</div><div class="pfbc-sub">'+i(e.state)+(e.deadline?" · DEADLINE "+i(e.deadline):"")+'</div><div class="pfbc-btns">'+r+"</div></div>"}function x(t){var i=document.getElementById(n);i&&(t&&t.length?function n(){i.innerHTML="<h3>YOUR BALLOT COUNTDOWN</h3>"+t.map(y).join("")+'<div class="pfbc-note">Deadlines from official state sources. Forging a card stamps your callsign. Checking and pledging earn no XP — the vote is the payoff.</div>',function(n,t,i){function a(e){for(var n=0;n<t.length;n++)if(String(t[n].draft_id)===String(e))return t[n];return null}var r,s=n.querySelectorAll("[data-forge]");for(r=0;r<s.length;r++)(function(n){n.addEventListener("click",function(){var t=a(n.getAttribute("data-forge"));if(t){var i=v(t);if(i){var r=document.createElement("button");r.className="pfbc-share",r.textContent="SHARE CARD",r.addEventListener("click",function(){b(i)}),n.parentNode.replaceChild(r,n);try{e.toast&&e.toast("CARD FORGED — +1 XP")}catch(e){}}else try{e.toast&&e.toast("Card failed — try again.")}catch(e){}}})})(s[r]);var o=n.querySelectorAll("[data-check]");for(r=0;r<o.length;r++)(function(e){e.addEventListener("click",function(){u(e.getAttribute("data-check")),setTimeout(i,600)})})(o[r]);var l=n.querySelectorAll("[data-pledge]");for(r=0;r<l.length;r++)(function(e){e.addEventListener("click",function(){var n=a(e.getAttribute("data-pledge"));n&&(f(n),setTimeout(i,600))})})(l[r])}(i,t,n)}():i.style.display="none")}function w(){var e=r();if(e&&document.getElementById(n)){var t=null;try{var i=String(location.hash||"").match(/#ballot-forge=([^&]+)/);i&&(t=decodeURIComponent(i[1]))}catch(e){}s(function(n){if(n){for(var i=[],a=0;a<n.length;a++)n[a]&&n[a].state===e&&i.push(n[a]);if(x(i),t&&i.length)for(var r=0;r<i.length;r++)if(String(i[r].draft_id)===String(t)){v(i[r]);break}}})}}}(),function(){"use strict";var e=window.PF;e&&!e.skip("nonprofits")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-nonprofits">\n<div class="fe-block pf-override-block pf-silo" id="pf-nonprofits">\n<h2>Ally Organizations</h2>\n<div class="c-tag">The movement&rsquo;s address book. Real allies, honestly labeled.</div>\n<div id="xNonprofits"><div class="c-load">Opening the directory&hellip;</div></div>\n<style>\n/* 2026-10-05: nonprofits directory — mobile-first, no horizontal scroll,\n   every touch target >= 44px. Matches the congress-directory pattern. */\n#pf-nonprofits .np-filters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}\n#pf-nonprofits .np-t44{min-height:44px}\n#pf-nonprofits .np-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}\n#pf-nonprofits .np-chip{min-height:44px;padding:8px 10px;font-size:12px;font-weight:700;background:#2a0a0a;border:1px solid #6a2020;color:#f5f0e1;cursor:pointer}\n#pf-nonprofits .np-chip[aria-pressed="true"]{background:var(--pf-red);border-color:#f5f0e1}\n#pf-nonprofits .np-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}\n#pf-nonprofits .np-name{font-weight:900;font-size:16px;margin-bottom:4px}\n#pf-nonprofits .np-badge{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5f0e1;color:#f5f0e1;padding:2px 8px;margin:4px 0 6px 0}\n#pf-nonprofits .np-badge-st{border-color:#8fd18f;color:#8fd18f}\n#pf-nonprofits .np-focus{font-size:13px;color:var(--pf-muted);margin:6px 0 0}\n/* Disclosure line: always visible on flagged orgs, never buried. */\n#pf-nonprofits .np-dis{font-size:13px;font-weight:700;color:#ffd166;margin:8px 0 0}\n#pf-nonprofits .np-visit{display:flex;margin-top:10px}\n#pf-nonprofits .np-visit .c-btn{flex:1;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;text-decoration:none}\n</style>\n</div>\n<script>\n(function(){\nvar BACKEND=window.PF_BACKEND_URL;\nfunction esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\nfunction toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}\n  try{ var t=document.createElement("div"); t.textContent=m;\n  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";\n  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }\nfunction api(action,params,cb){\n  if(!BACKEND){ cb(null); return; }\n  var fn="pfNpCb"+Math.floor(Math.random()*1e9);\n  var s=document.createElement("script"), done=false;\n  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }\n  window[fn]=function(j){ finish(j); };\n  s.onerror=function(){ finish(null); };\n  var q="?action="+encodeURIComponent(action);\n  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }\n  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);\n  setTimeout(function(){ finish(null); },12000);\n}\n/* 12 issue areas — exact labels from the directory spec. The issue param\n   value sent to nonprofits_list is the same string (URL-encoded). */\nvar ISSUES=[\n"Voting Rights & Democracy Reform",\n"Labor & Workers\' Rights",\n"Reproductive Rights & Abortion Access",\n"Climate & Environment",\n"Racial Justice & Civil Rights",\n"LGBTQ+ Rights",\n"Immigrant Rights",\n"Criminal Justice Reform & Police Accountability",\n"Healthcare Access",\n"Housing & Tenants\' Rights",\n"Anti-Poverty & Economic Justice",\n"Government Watchdog & Accountability"\n];\nvar STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];\nvar NPST={issue:"",st:"",q:"",orgs:null,load:false,err:false};\n/* --- directory helpers --- */\nfunction npStateOpts(sel){\n  var h=\'<option value="">All states</option>\';\n  for(var i=0;i<STATES.length;i++){\n    h+=\'<option value="\'+STATES[i][0]+\'"\'+(sel===STATES[i][0]?\' selected\':\'\')+\'>\'+esc(STATES[i][1])+\'</option>\';\n  }\n  return h;\n}\nfunction npIssueChips(){\n  var h=\'<div class="np-chips" role="group" aria-label="Filter by issue area">\';\n  h+=\'<button type="button" class="np-chip" data-issue="" aria-pressed="\'+(NPST.issue===""?"true":"false")+\'">ALL</button>\';\n  for(var i=0;i<ISSUES.length;i++){\n    h+=\'<button type="button" class="np-chip" data-issue="\'+esc(ISSUES[i])+\'" aria-pressed="\'+(NPST.issue===ISSUES[i]?"true":"false")+\'">\'+esc(ISSUES[i])+\'</button>\';\n  }\n  return h+\'</div>\';\n}\n/* Scope badge: NATIONAL vs state. Reads r.scope/r.state exactly as the API\n   returns them; no invented data. */\nfunction npScopeBadge(r){\n  var scope=String(r.scope==null?"":r.scope).trim();\n  if(/^national/i.test(scope)) return \'<span class="np-badge">NATIONAL</span>\';\n  var st=String(r.state==null?"":r.state).trim().toUpperCase();\n  var label=st?esc(st):(scope?esc(scope.replace(/\\(.*$/,"").trim().toUpperCase().slice(0,24)):"LOCAL");\n  return \'<span class="np-badge np-badge-st">\'+label+\'</span>\';\n}\n/* Only http(s) website URLs become tap targets. Missing scheme gets https://;\n   anything else is dropped (no javascript: / data: ever). */\nfunction npSafeUrl(u){\n  var s=String(u==null?"":u).trim();\n  if(!s) return "";\n  if(/^https?:\\/\\//i.test(s)) return s;\n  if(/^[\\w-]+(\\.[\\w-]+)+(\\/\\S*)?$/.test(s)) return "https://"+s;\n  return "";\n}\n/* Disclosure: visible honesty line on every flagged org, rendered exactly\n   as the API returns it. Unflagged orgs render nothing extra. */\nfunction npDisclosure(r){\n  var d=r.disclosure!=null&&String(r.disclosure).trim()?String(r.disclosure).trim()\n    :(r.flag!=null&&String(r.flag).trim()?String(r.flag).trim()\n    :(r.honesty_flag!=null&&String(r.honesty_flag).trim()?String(r.honesty_flag).trim():""));\n  return d;\n}\nfunction npCardHTML(r){\n  var nm=String(r.name==null?"":r.name).trim()||"Unnamed organization";\n  var mission=String(r.mission==null?"":r.mission).trim();\n  var focus=r.focus_areas!=null?r.focus_areas:(r.focus!=null?r.focus:"");\n  if(Object.prototype.toString.call(focus)==="[object Array]") focus=focus.join(", ");\n  focus=String(focus==null?"":focus).trim();\n  var url=npSafeUrl(r.website);\n  var dis=npDisclosure(r);\n  var h=\'<div class="np-card">\'\n    +\'<div class="np-name">\'+esc(nm)+\'</div>\'\n    +npScopeBadge(r);\n  if(mission) h+=\'<div>\'+esc(mission)+\'</div>\';\n  if(focus) h+=\'<div class="np-focus">Focus: \'+esc(focus)+\'</div>\';\n  /* Disclosure sits above the link — visible, never buried. */\n  if(dis) h+=\'<div class="np-dis">&#9888; \'+esc(dis)+\'</div>\';\n  h+=\'<div class="np-visit">\';\n  if(url) h+=\'<a class="c-btn np-t44" href="\'+esc(url)+\'" target="_blank" rel="noopener">VISIT SITE &#8599;</a>\';\n  else h+=\'<span class="x-note">no website listed</span>\';\n  h+=\'</div></div>\';\n  return h;\n}\nfunction npListHTML(){\n  if(NPST.err){\n    return \'<div class="c-err">Couldn&rsquo;t reach the directory wire.</div>\'\n      +\'<button type="button" class="c-btn np-t44" id="npRetry">RETRY</button>\';\n  }\n  /* Mobilizing fallback pattern, matching the other HQ silos. */\n  if(NPST.load||NPST.orgs===null) return \'<div class="c-load">Opening the directory&hellip;</div>\';\n  var q=String(NPST.q||"").trim().toLowerCase();\n  var orgs=NPST.orgs.slice();\n  orgs.sort(function(a,b){\n    var na=String(a.name||"").toLowerCase(), nb=String(b.name||"").toLowerCase();\n    if(na<nb) return -1; if(na>nb) return 1; return 0;\n  });\n  /* Name search is client-side (server filters on issue/state). Matches\n     against name + mission so a cause search still lands. */\n  if(q) orgs=orgs.filter(function(r){\n    return (String(r.name||"")+" "+String(r.mission||"")).toLowerCase().indexOf(q)!==-1;\n  });\n  if(!orgs.length) return \'<div class="x-note">No organizations match those filters. Broaden the hunt.</div>\';\n  var h="";\n  for(var i=0;i<orgs.length;i++) h+=npCardHTML(orgs[i]);\n  return h;\n}\nfunction npPaint(){\n  var l=document.getElementById("npList"); if(!l) return;\n  l.innerHTML=npListHTML();\n}\nfunction npFetch(){\n  NPST.load=true; NPST.err=false;\n  npPaint();\n  /* api() drops null/"" params, so empty filters = unfiltered list. */\n  api("nonprofits_list",{issue:NPST.issue,state:NPST.st},function(j){\n    NPST.load=false;\n    var list=j&&(j.nonprofits||j.orgs);\n    if(j&&j.ok&&list&&Object.prototype.toString.call(list)==="[object Array]"){\n      NPST.orgs=list; NPST.err=false;\n    } else { NPST.err=true; }\n    npPaint();\n  });\n}\nfunction gv(id){ var e=document.getElementById(id); return e?e.value:""; }\nfunction render(){\n  var el=document.getElementById("xNonprofits"); if(!el) return;\n  var h=\'<div class="np-filters">\'\n    +npIssueChips()\n    +\'<select class="c-in np-t44" id="npState" aria-label="Filter by state">\'+npStateOpts(NPST.st)+\'</select>\'\n    +\'<input class="c-in np-t44" id="npQ" type="search" maxlength="60" placeholder="Search by name or cause" aria-label="Search by name or cause" value="\'+esc(NPST.q)+\'">\'\n    +\'</div>\'\n    +\'<div id="npList">\'+npListHTML()+\'</div>\';\n  el.innerHTML=h;\n}\nfunction bind(){\n  var st=document.getElementById("npState");\n  if(st) st.onchange=function(){ NPST.st=gv("npState"); npFetch(); };\n  var qq=document.getElementById("npQ");\n  if(qq) qq.oninput=function(){ NPST.q=gv("npQ"); npPaint(); };\n  /* Delegated: chips re-paint on every fetch, retry lives in the list. */\n  var host=document.getElementById("xNonprofits");\n  if(host&&!host.getAttribute("data-np-bound")){\n    host.setAttribute("data-np-bound","1");\n    host.addEventListener("click",function(e){\n      var t=e.target&&e.target.closest?e.target.closest("[data-issue],#npRetry"):null;\n      if(!t) return;\n      if(t.id==="npRetry"){ npFetch(); return; }\n      var v=t.getAttribute("data-issue");\n      NPST.issue=v==null?"":v;\n      var btns=host.querySelectorAll("[data-issue]");\n      for(var i=0;i<btns.length;i++){\n        btns[i].setAttribute("aria-pressed",btns[i]===t?"true":"false");\n      }\n      npFetch();\n    });\n  }\n  /* First paint: fire nonprofits_list once (loader covers it). */\n  if(NPST.orgs===null&&!NPST.load&&!NPST.err){ npFetch(); }\n}\nfunction load(){ render(); bind(); }\nload();\n})();\n<\/script>\n</div>\n</template>')}();
+/* PF v1.4.3 bundle-hq-deep.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: stateleg.js, legislation.js, governance.js, notify-prefs.js, intel.js, predict.js, predict-home.js, ballot-countdown.js, nonprofits.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== stateleg.js ===== */
+/* games/stateleg.js  |  PF v1.4.3 | STATE LEGISLATURES (Political HQ).
+   50-state legislature tracking: pick a state -> lazy-load its legislature
+   info (chamber names, session status, party control) + active bills on the
+   floor + (stretch) the legislator directory with contact logging.
+   ---------------------------------------------------------------------------
+   MOUNT API (for the federal legislation-tracker team — this module is
+   standalone and trivially embeddable):
+     window.PFStateLeg.mount(el, opts)
+       Render the state UI into `el` (a DOM element). opts is optional:
+         { state: 'TX' }  preselect a state (2-letter code; DC allowed)
+         { backend: url } override window.PF_BACKEND_URL for this mount
+       Returns the session object (handy for tests).
+     window.PFStateLeg.renderSection(opts)
+       Standalone mount: builds <section class="pf-v2-game pf-hq-section"
+       data-game="stateleg">, appends it into opts.target (CSS selector or
+       element; defaults to #pf-political-hq, else document.body), mounts the
+       state UI inside, and returns the inner container element.
+     window.PFStateLeg.states
+       The 51-entry [[code,name],...] list (50 states + DC) for reuse.
+   ---------------------------------------------------------------------------
+   STATE/FEDERAL TOGGLE CONTRACT:
+     If window.PFLegislate exists AND typeof window.PFLegislate.mount ===
+     'function' at mount time, mount() renders a STATE | FEDERAL toggle in
+     the section header. Switching to FEDERAL clears the body and calls
+       window.PFLegislate.mount(bodyEl, { state: <selected 2-letter code> })
+     switching back to STATE re-mounts the state UI (selection preserved).
+     The federal module does NOT currently expose this API (built in
+     parallel) — until it does, the section renders state-only with no
+     toggle (graceful degradation, no dead tab). If the federal module loads
+     after this one, it can announce itself with
+       document.dispatchEvent(new CustomEvent('pf-legislate-ready'))
+     and any mounted state section will re-render the toggle.
+   ---------------------------------------------------------------------------
+   PRESSURE-THIS-BILL HOOK:
+     Each bill card's PRESSURE THIS BILL button calls
+       window.PFPressCampaigns.pressureBill(bill)
+     with the raw bill object when that API is present. Otherwise it
+     dispatches a bubbling CustomEvent 'pf-pressure-bill' on the bill card
+     with detail = { bill: <raw bill object> }. The pressure-campaigns build
+     can wire into it with:
+       document.addEventListener('pf-pressure-bill', function (e) {
+         openPressureComposer(e.detail.bill);
+       });
+     The bill payload is passed through untouched (no invented fields).
+   ---------------------------------------------------------------------------
+   CONTACT LOGGING:
+     "LOG CONTACT (+25 XP)" on each legislator row reuses the rep_contact
+     write contract from the congressional directory build (civic.js
+     doLogContact):
+       post('rep', 'r_action', 'rep_contact',
+            { callsign, rep_name, method, script_used: '' })
+     Success toast and cap toast copy match the directory convention
+     EXACTLY (no new reward copy):
+       success: 'Contact logged — +25 XP earned.'
+       cap:     'Daily limit reached (2/day) — +25 XP each, resets tomorrow.'
+     NOTE (assumption): the doLogContact helper itself is NOT in this
+     branch's base (it lives on the parallel fe/legislation-tracker branch,
+     cut from fe/congress-directory) — the POST shape + copy are duplicated
+     here deliberately so the module is self-contained. If the integrator
+     wants a single shared helper, dedupe at merge time.
+   ---------------------------------------------------------------------------
+   BACKEND READ CONTRACT (be/state-legislatures — canonical; every read is
+   JSONP via the shared api() helper, every failure is fail-soft with an
+   inline error + RETRY):
+     stateleg_list  -> { ok, count, legislatures: [ {
+       state, name, senate_name, house_name, session_status, senate_control,
+       house_control, governor_party, updated_at, stale, notes } ] }
+       session_status: 'in_session' | 'adjourned' | 'special_session';
+       updated_at: unix epoch seconds. No state filter — the frontend finds
+       its row client-side. 50 states seeded (no DC row -> "no data" note).
+       senate/house_control + governor_party: 'R' | 'D' | 'S' | 'Nonpartisan'.
+       Nebraska: senate_name 'Nebraska Legislature', house_name null.
+     statebills_list  ?state=TX[&status=signed]  -> { ok, count, filters,
+       bills: [ { bill_id, state, title, plain_english_summary, status,
+       sponsors[], updated_at, stale, source, notes } ] }
+       status: 'introduced' | 'passed_chamber' | 'passed_legislature' |
+       'signed' | 'vetoed' | 'dead' (unknown renders raw, honestly).
+       sponsors: array; source: per-row source URL; updated_at: epoch secs.
+       Bills with updated_at older than 14 days get a visible
+       "last updated Xd ago" flag — never hidden.
+     statepeople_list  ?state=TX  -> { ok, count, seeded, note,
+       legislators: [ { leg_id, state, name, chamber, party, district,
+       notes } ] }
+       (stretch) — if the action is absent/errors, the section hides cleanly.
+   ---------------------------------------------------------------------------
+   DATA HONESTY: never invent bills, statuses, legislators, or deadlines.
+   Missing fields render "check the official source" with the source link.
+   Every bill shows source + last-updated — standing rule, not optional.
+   ---------------------------------------------------------------------------
+   LAYERING: a game silo like civic.js. Reads via JSONP (self-contained
+   api()), writes via CORS POST (self-contained post()). It never reaches
+   into another silo's internals.
+   KILL: ?pf_off=stateleg  or  localStorage pf_disabled_v1='["stateleg"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('stateleg')) { return; }
+
+  /* ---------------- shared helpers (same silo pattern as civic.js) ---------------- */
+  var STATES = [["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["DC","District of Columbia"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"]];
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function errCopy(j,fb){ try{ if(PF&&PF.errCopy) return PF.errCopy(j,fb); }catch(e){} return fb; }
+  function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+    try{ var t=document.createElement("div"); t.textContent=m;
+    t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+  function backendOf(sess){ try{ if(sess&&sess.opts&&sess.opts.backend) return sess.opts.backend; }catch(e){} return window.PF_BACKEND_URL; }
+  function api(sess,action,params,cb){
+    var BACKEND=backendOf(sess);
+    if(!BACKEND){ cb(null); return; }
+    var fn="pfSlCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  function post(sess,type,actionKey,action,params,cb){
+    var BACKEND=backendOf(sess);
+    var body=Object.assign({type:type},params);
+    body[actionKey]=action;
+    if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+    var bodyStr=JSON.stringify(body);
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    try{
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+
+  /* ---------------- display helpers ---------------- */
+  /* Backend updated_at is unix epoch seconds; accept ISO strings too. */
+  function toMs(v){
+    if(v==null||v==="") return NaN;
+    if(typeof v==="number"||/^[0-9]+$/.test(String(v))){
+      var n=Number(v); return n>0?n*1000:NaN;
+    }
+    return Date.parse(v);
+  }
+  function fmtDate(v){
+    var t=toMs(v); if(isNaN(t)) return "";
+    try{ return new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+    catch(e){ return ""; }
+  }
+  function daysAgo(v){
+    if(v==null||v==="") return -1;
+    var t=toMs(v); if(isNaN(t)) return -1;
+    var d=Math.floor((Date.now()-t)/86400000);
+    return d<0 ? -1 : d;
+  }
+  function srcLink(b){
+    var url=b&&(b.source_url||b.url)||"";
+    var name=b&&b.source||"";
+    if(url){ return '<a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(name||"official source")+'</a>'; }
+    return "official source";
+  }
+  function checkOfficial(b){
+    /* Data honesty: a missing field never invents — point at the source. */
+    return 'check the '+srcLink(b);
+  }
+  /* Bill status chips. Unknown statuses render the raw backend value,
+     honestly, with no invented mapping. */
+  var STATUS_CLS={ "introduced":"slc-intro", "passed chamber":"slc-pch",
+    "passed legislature":"slc-pleg", "signed":"slc-sign", "vetoed":"slc-veto", "dead":"slc-dead" };
+  var STATUS_LABEL={ "introduced":"Introduced", "passed chamber":"Passed chamber",
+    "passed legislature":"Passed legislature", "signed":"Signed", "vetoed":"Vetoed", "dead":"Dead" };
+  function statusChip(b){
+    var raw=String((b&&b.status)||"");
+    var key=raw.toLowerCase().replace(/_/g," "); /* backend: passed_chamber */
+    var cls=STATUS_CLS[key]||"slc-unk";
+    var txt=STATUS_LABEL[key]||(raw?esc(raw):"Status unknown");
+    return '<span class="sl-chip '+cls+'">'+txt+'</span>';
+  }
+  function staleFlag(b){
+    var d=daysAgo(b&&b.updated_at);
+    if(d>14){ return '<span class="sl-stale">last updated '+d+'d ago</span>'; }
+    return "";
+  }
+  function updatedLine(b){
+    var f=fmtDate(b&&b.updated_at);
+    var stale=staleFlag(b);
+    var tail=stale?(' &middot; '+stale):'';
+    if(f){ return 'Updated '+esc(f)+tail; }
+    return 'Last updated: unknown &mdash; '+checkOfficial(b)+'.'+tail;
+  }
+  function sponsorLine(b){
+    var s=b&&b.sponsors;
+    if(!s){ return 'Sponsors not listed.'; }
+    if(Object.prototype.toString.call(s)==='[object Array]'){
+      if(!s.length){ return 'Sponsors not listed.'; }
+      return 'Sponsors: '+esc(s.join(', '));
+    }
+    return 'Sponsors: '+esc(s);
+  }
+  function sessionBadge(st){
+    var s=String(st||"").toLowerCase().replace(/_/g," "); /* backend: in_session */
+    if(s==="in session"){ return '<span class="sl-badge slb-in">In session</span>'; }
+    if(s==="special session"){ return '<span class="sl-badge slb-spec">Special session</span>'; }
+    if(s==="adjourned"){ return '<span class="sl-badge slb-adj">Adjourned</span>'; }
+    return st?('<span class="sl-badge slb-unk">'+esc(st)+'</span>'):'<span class="sl-badge slb-unk">Session status unknown</span>';
+  }
+  function chamberLine(info){
+    var up=info&&info.upper_name, lo=info&&info.lower_name;
+    if(lo&&String(lo).toLowerCase()==="unicameral"){ return esc(lo); } /* Nebraska */
+    if(up&&lo){ return esc(up)+' &middot; '+esc(lo); }
+    if(lo){ return esc(lo); }
+    if(up){ return esc(up); }
+    return 'Chamber names not listed.';
+  }
+
+  /* ---------------- session ---------------- */
+  function newSession(el,opts){
+    opts=opts||{};
+    return { el:el, opts:opts, tab:'state', state:opts.state||'',
+      fetched:false,
+      info:null, infoLoad:false, infoErr:false, infoAbsent:false,
+      bills:null, billsLoad:false, billsErr:false,
+      people:null, peopleLoad:false, peopleAbsent:false };
+  }
+  function fedPresent(){
+    try{ return !!(window.PFLegislate && typeof window.PFLegislate.mount==='function'); }
+    catch(e){ return false; }
+  }
+  function first(sel,root){
+    try{ var n=(root||document).querySelectorAll(sel); return n&&n.length?n[0]:null; }
+    catch(e){ return null; }
+  }
+
+  function stateOptions(sel){
+    var h='<option value="">Pick a state&hellip;</option>';
+    for(var i=0;i<STATES.length;i++){
+      h+='<option value="'+STATES[i][0]+'"'+(sel===STATES[i][0]?' selected':'')+'>'+esc(STATES[i][1])+'</option>';
+    }
+    return h;
+  }
+
+  function headHTML(sess){
+    if(!sess.state){ return '<div class="x-note">Pick your state above to load its legislature.</div>'; }
+    if(sess.infoLoad){ return '<div class="c-load">Loading legislature&hellip;</div>'; }
+    if(sess.infoErr){
+      return '<div class="c-err">Couldn\'t load legislature info.</div>'
+        +'<button class="sl-btn sl-t44" data-sl-retry="info">RETRY</button>';
+    }
+    if(sess.infoAbsent){
+      return '<div class="x-note">No legislature data for this state yet.</div>';
+    }
+    var info=sess.info||{};
+    var h='<div class="sl-leghead">';
+    h+='<div class="sl-chambers">'+chamberLine(info)+'</div>';
+    h+='<div class="sl-badgerow">'+sessionBadge(info.session_status)+'</div>';
+    h+='<div class="sl-meta">Party control: '+(info.party_control?esc(info.party_control):checkOfficial(info)+'.')+'</div>';
+    h+='<div class="sl-meta">'+(fmtDate(info.last_updated)?('Legislature info updated '+esc(fmtDate(info.last_updated))+'.'):('Last updated: unknown &mdash; '+checkOfficial(info)+'.'))+'</div>';
+    h+='</div>';
+    return h;
+  }
+
+  function billCard(b,idx){
+    b=b||{};
+    var num=b.number?('<span class="sl-billnum">'+esc(b.number)+'</span> '):'';
+    var title=b.title?esc(b.title):'Untitled bill';
+    var sum=b.summary?esc(b.summary):('Summary not listed &mdash; '+checkOfficial(b)+'.');
+    var src='<div class="sl-src">Source: '+srcLink(b)+' &middot; '+updatedLine(b)+'</div>';
+    return '<article class="sl-bill" data-bill-card="'+idx+'">'
+      +'<div class="sl-bill-top">'+statusChip(b)+' '+num+'</div>'
+      +'<h4 class="sl-bill-title">'+title+'</h4>'
+      +'<p class="sl-bill-sum">'+sum+'</p>'
+      +'<div class="sl-meta">'+esc(sponsorLine(b))+'</div>'
+      +src
+      +'<button class="sl-btn sl-pressure sl-t44" data-sl-pressure="'+idx+'">PRESSURE THIS BILL</button>'
+      +'</article>';
+  }
+
+  function billsHTML(sess){
+    if(!sess.state){ return ''; }
+    var h='<h3 class="sl-h3">Bills on the floor</h3>';
+    if(sess.billsLoad){ return h+'<div class="c-load">Loading bills&hellip;</div>'; }
+    if(sess.billsErr){
+      return h+'<div class="c-err">Couldn\'t load bills for this state.</div>'
+        +'<button class="sl-btn sl-t44" data-sl-retry="bills">RETRY</button>';
+    }
+    var bills=sess.bills||[];
+    if(!bills.length){ return h+'<div class="x-note">No active bills listed for this state right now.</div>'; }
+    for(var i=0;i<bills.length;i++){ h+=billCard(bills[i],i); }
+    return h;
+  }
+
+  function personRow(p,idx){
+    p=p||{};
+    var name=p.name?esc(p.name):'Name not listed';
+    var party=p.party?(' <span class="sl-party">['+esc(p.party)+']</span>'):'';
+    var sub=((p.chamber?esc(p.chamber):'')+(p.district?(' &middot; District '+esc(p.district)):''))||'Details not listed';
+    var tel=p.phone
+      ? '<a class="sl-call sl-t44" href="tel:'+esc(String(p.phone).replace(/[^+\d]/g,''))+'">CALL</a>'
+      : '<span class="sl-nophone">no phone listed</span>';
+    return '<div class="sl-person">'
+      +'<div class="sl-pinfo"><b>'+name+'</b>'+party+'<br><span class="sl-psub">'+sub+'</span></div>'
+      +tel
+      +'<button class="sl-btn sl-log sl-t44" data-sl-log="'+idx+'">LOG CONTACT (+25 XP)</button>'
+      +'</div>';
+  }
+
+  function peopleHTML(sess){
+    if(sess.peopleAbsent||!sess.state){ return ''; } /* stretch section hides cleanly */
+    var h='<h3 class="sl-h3">Your state legislators</h3>';
+    if(sess.peopleLoad){ return h+'<div class="c-load">Loading legislators&hellip;</div>'; }
+    var people=sess.people||[];
+    if(!people.length){ return h+'<div class="x-note">No legislator directory for this state yet.</div>'; }
+    h+='<div class="sl-methodrow"><label class="sl-lab" for="slMethod">Contact method</label>'
+      +'<select id="slMethod" class="sl-method sl-t44">'
+      +'<option value="call">Call</option><option value="email">Email</option>'
+      +'<option value="in-person">In person</option><option value="other">Other</option>'
+      +'</select></div>';
+    h+='<div class="x-note">Every logged contact: <b>+25 XP</b> (2/day).</div>';
+    for(var i=0;i<people.length;i++){ h+=personRow(people[i],i); }
+    return h;
+  }
+
+  function paintState(sess){
+    var body=first('.sl-body',sess.el); if(!body) return;
+    var h='<label class="sl-lab" for="slStateSel">Your state</label>'
+      +'<select id="slStateSel" class="sl-state sl-t44">'+stateOptions(sess.state)+'</select>';
+    h+='<div class="sl-sec">'+headHTML(sess)+'</div>';
+    h+='<div class="sl-sec">'+billsHTML(sess)+'</div>';
+    h+='<div class="sl-sec">'+peopleHTML(sess)+'</div>';
+    body.innerHTML=h;
+    bindState(sess,body);
+  }
+
+  function paintBody(sess){
+    var body=first('.sl-body',sess.el); if(!body) return;
+    if(sess.tab==='federal'&&fedPresent()){
+      try{ body.innerHTML=''; window.PFLegislate.mount(body,{state:sess.state}); }
+      catch(e){ body.innerHTML='<div class="c-err">Federal tracker failed to load.</div>'; }
+      return;
+    }
+    sess.tab='state';
+    paintState(sess);
+  }
+
+  function render(sess){
+    var el=sess.el; if(!el) return;
+    var id=ident();
+    if(!id.callsign){
+      el.innerHTML='<div class="sl-wrap"><h2>State Legislatures</h2>'
+        +PF.gateHTML('State legislature tracking runs on callsigns.','to track your statehouse')+'</div>';
+      return;
+    }
+    var h='<div class="sl-wrap">';
+    h+='<h2>State Legislatures</h2>';
+    h+='<div class="c-tag">Bills on your statehouse floor &mdash; pressure the ones that matter.</div>';
+    if(fedPresent()){
+      h+='<div class="sl-tabs" role="tablist">'
+        +'<button class="sl-tab sl-t44'+(sess.tab==='state'?' sl-on':'')+'" data-sl-tab="state" role="tab">STATE</button>'
+        +'<button class="sl-tab sl-t44'+(sess.tab==='federal'?' sl-on':'')+'" data-sl-tab="federal" role="tab">FEDERAL</button>'
+        +'</div>';
+    }
+    h+='<div class="sl-body"></div></div>';
+    el.innerHTML=h;
+    /* tab switching */
+    var tabs=el.querySelectorAll('[data-sl-tab]');
+    for(var i=0;i<tabs.length;i++){
+      (function(btn){
+        btn.onclick=function(){
+          var t=btn.getAttribute('data-sl-tab');
+          if(t==='federal'&&!fedPresent()){ return; }
+          sess.tab=t; render(sess);
+        };
+      })(tabs[i]);
+    }
+    paintBody(sess);
+  }
+
+  /* ---- backend-contract mapping (be/state-legislatures, canonical) ---- */
+  function rowForState(list,st){
+    list=list||[];
+    for(var i=0;i<list.length;i++){
+      if(String((list[i]&&list[i].state)||"").toUpperCase()===st) return list[i];
+    }
+    return null;
+  }
+  function partyControlLine(r){
+    var p=[];
+    if(r.senate_control) p.push("Senate "+r.senate_control);
+    if(r.house_control) p.push("House "+r.house_control);
+    if(r.governor_party) p.push("Gov "+r.governor_party);
+    return p.join(" \u00b7 ");
+  }
+  function mapLegislature(r){
+    if(!r) return null;
+    return {
+      upper_name: r.senate_name||"", lower_name: r.house_name||"",
+      session_status: r.session_status||"",
+      party_control: partyControlLine(r),
+      last_updated: (r.updated_at==null?"":r.updated_at),
+      source_url: "", source: "", notes: r.notes||null
+    };
+  }
+  function mapBill(b){
+    b=b||{};
+    return {
+      id: b.bill_id||"", number: b.bill_id||"",
+      title: b.title||"", summary: b.plain_english_summary||"",
+      status: b.status||"", sponsors: b.sponsors||[],
+      source_url: b.source||"", source: "",
+      updated_at: (b.updated_at==null?"":b.updated_at)
+    };
+  }
+  function mapPerson(p){
+    p=p||{};
+    return { name: p.name||"", chamber: p.chamber||"", party: p.party||"",
+      district: p.district||"", phone: "" };
+  }
+  function onLegislature(sess,j){
+    sess.infoLoad=false;
+    var row=rowForState(j&&j.legislatures,sess.state);
+    if(j&&j.ok&&row){ sess.info=mapLegislature(row); sess.infoErr=false; sess.infoAbsent=false; }
+    else if(j&&j.ok){ sess.info=null; sess.infoErr=false; sess.infoAbsent=true; } /* e.g. DC: not seeded */
+    else { sess.infoErr=true; }
+    paintState(sess);
+  }
+  function onBills(sess,j){
+    sess.billsLoad=false;
+    if(j&&j.ok&&j.bills){ sess.bills=j.bills.map(mapBill); sess.billsErr=false; } else { sess.billsErr=true; }
+    paintState(sess);
+  }
+  function onPeople(sess,j){
+    sess.peopleLoad=false;
+    var legs=j&&j.ok&&j.legislators;
+    if(legs){ sess.people=legs.map(mapPerson); sess.peopleAbsent=false; }
+    else { sess.peopleAbsent=true; } /* stretch: absent action hides the section */
+    paintState(sess);
+  }
+
+  function fetchState(sess){
+    sess.fetched=true;
+    sess.infoLoad=true; sess.infoErr=false; sess.infoAbsent=false;
+    sess.billsLoad=true; sess.billsErr=false;
+    sess.peopleLoad=true; sess.peopleAbsent=false; sess.people=null;
+    paintState(sess);
+    api(sess,"stateleg_list",{},function(j){ onLegislature(sess,j); });
+    api(sess,"statebills_list",{state:sess.state},function(j){ onBills(sess,j); });
+    api(sess,"statepeople_list",{state:sess.state},function(j){ onPeople(sess,j); });
+  }
+
+  /* ---------------- pressure-this-bill hook ---------------- */
+  function firePressure(bill,cardEl){
+    try{
+      if(window.PFPressCampaigns&&typeof window.PFPressCampaigns.pressureBill==='function'){
+        window.PFPressCampaigns.pressureBill(bill);
+        return 'hook';
+      }
+    }catch(e){}
+    try{
+      var ev=new CustomEvent('pf-pressure-bill',{bubbles:true,detail:{bill:bill}});
+      (cardEl||document).dispatchEvent(ev);
+      return 'event';
+    }catch(e2){ return 'none'; }
+  }
+  function cardOf(btn){
+    var n=btn;
+    while(n){ try{ if(n.getAttribute&&n.getAttribute('data-bill-card')!=null) return n; }catch(e){}
+      n=n.parentNode; }
+    return btn;
+  }
+
+  /* ---------------- contact logging (rep_contact contract) ---------------- */
+  function doLogContact(sess,repName,btn){
+    if(!repName){ toast('Pick a legislator first.'); return; }
+    var m='call';
+    try{ var ms=first('.sl-method',sess.el); if(ms&&ms.value) m=ms.value; }catch(e){}
+    if(btn) btn.disabled=true;
+    /* Same POST shape as the congressional directory's doLogContact —
+       +25 XP, 2/day cap, copy identical. */
+    post(sess,'rep','r_action','rep_contact',
+      {callsign:ident().callsign,rep_name:repName,method:m,script_used:''},
+      function(j){
+        if(j&&j.ok){ toast('Contact logged \u2014 +25 XP earned.'); }
+        else{
+          var e=String((j&&(j.err||j.error))||'');
+          if(/cap/i.test(e)){ toast('Daily limit reached (2/day) \u2014 +25 XP each, resets tomorrow.'); }
+          else { toast(errCopy(j,'Log failed.')); }
+        }
+        if(btn) btn.disabled=false;
+      });
+  }
+
+  function bindState(sess,body){
+    var sel=first('#slStateSel',body);
+    if(sel){
+      sel.onchange=function(){
+        sess.state=sel.value||'';
+        if(sess.state){ fetchState(sess); } else { paintState(sess); }
+      };
+      /* preselected via opts.state -> lazy-load immediately (once; manual RETRY after) */
+      if(sess.state&&!sess.fetched){ fetchState(sess); }
+    }
+    var retries=body.querySelectorAll('[data-sl-retry]');
+    for(var i=0;i<retries.length;i++){
+      (function(btn){
+        btn.onclick=function(){
+          var which=btn.getAttribute('data-sl-retry');
+          if(which==='info'){ sess.infoLoad=true; sess.infoErr=false; sess.infoAbsent=false; paintState(sess);
+            api(sess,'stateleg_list',{},function(j){ onLegislature(sess,j); }); }
+          else { sess.billsLoad=true; sess.billsErr=false; paintState(sess);
+            api(sess,'statebills_list',{state:sess.state},function(j){ onBills(sess,j); }); }
+        };
+      })(retries[i]);
+    }
+    var pressures=body.querySelectorAll('[data-sl-pressure]');
+    for(var p=0;p<pressures.length;p++){
+      (function(btn){
+        btn.onclick=function(){
+          var idx=parseInt(btn.getAttribute('data-sl-pressure'),10);
+          var bill=(sess.bills&&sess.bills[idx])||{};
+          firePressure(bill,cardOf(btn));
+        };
+      })(pressures[p]);
+    }
+    var logs=body.querySelectorAll('[data-sl-log]');
+    for(var l=0;l<logs.length;l++){
+      (function(btn){
+        btn.onclick=function(){
+          var idx=parseInt(btn.getAttribute('data-sl-log'),10);
+          var person=(sess.people&&sess.people[idx])||{};
+          doLogContact(sess,person.name||'',btn);
+        };
+      })(logs[l]);
+    }
+  }
+
+  /* ---------------- public mount API ---------------- */
+  function mount(el,opts){
+    if(!el) return null;
+    var sess=newSession(el,opts||{});
+    /* If the federal module arrives after us, re-render so the toggle appears. */
+    try{
+      document.addEventListener('pf-legislate-ready',function(){
+        try{ if(sess.tab==='state'&&fedPresent()) render(sess); }catch(e){}
+      });
+    }catch(e){}
+    render(sess);
+    return sess;
+  }
+  function renderSection(opts){
+    opts=opts||{};
+    var target=null;
+    if(opts.target){
+      try{ target=(typeof opts.target==='string')?document.querySelector(opts.target):opts.target; }
+      catch(e){ target=null; }
+    }
+    if(!target){ try{ target=document.getElementById('pf-political-hq'); }catch(e){ target=null; } }
+    if(!target){ try{ target=document.body; }catch(e){ target=null; } }
+    if(!target) return null;
+    var sec=document.createElement('section');
+    sec.className='pf-v2-game pf-hq-section';
+    try{ sec.setAttribute('data-game','stateleg'); }catch(e){}
+    var div=document.createElement('div');
+    div.className='pf-silo';
+    try{ div.id='pf-stateleg-'+Math.floor(Math.random()*1e9); }catch(e){}
+    try{ sec.appendChild(div); target.appendChild(sec); }catch(e){ return null; }
+    mount(div,opts);
+    return div;
+  }
+
+  window.PFStateLeg={
+    mount:mount,
+    renderSection:renderSection,
+    states:STATES
+  };
+
+  /* ---------------- silo self-mount (Political HQ page path) ---------------- */
+  PF.holder().insertAdjacentHTML('beforeend',
+   '<template id="pf-ov-stateleg">'
+   +'<div class="fe-block pf-override-block pf-silo" id="pf-stateleg">'
+   +'<div id="xStateLeg"><div class="c-load">Mobilizing&hellip;</div></div>'
+   +'<style>\n'
+   /* 2026-10-05: state legislatures (Political HQ) — mobile-first, no
+      horizontal scroll, every touch target >= 44px. */
+   +'#pf-stateleg .sl-t44{min-height:44px}\n'
+   +'#pf-stateleg .sl-wrap{overflow-wrap:anywhere}\n'
+   +'#pf-stateleg .sl-lab{display:block;font-weight:700;margin:8px 0 4px;font-size:14px}\n'
+   +'#pf-stateleg .sl-state{width:100%;font-size:16px;padding:10px;margin-bottom:8px}\n'
+   +'#pf-stateleg .sl-tabs{display:flex;gap:8px;margin:10px 0}\n'
+   +'#pf-stateleg .sl-tab{flex:1;font-weight:800;font-size:15px;border:2px solid #4a4a4a;background:#1a1a1a;color:var(--pf-cream);cursor:pointer}\n'
+   +'#pf-stateleg .sl-tab.sl-on{background:var(--pf-red);border-color:var(--pf-red);color:#fff}\n'
+   +'#pf-stateleg .sl-sec{margin-top:12px}\n'
+   +'#pf-stateleg .sl-h3{margin:14px 0 6px;font-size:16px}\n'
+   +'#pf-stateleg .sl-leghead{border:1px solid #4a4a4a;padding:10px;margin:8px 0}\n'
+   +'#pf-stateleg .sl-chambers{font-weight:800;font-size:16px}\n'
+   +'#pf-stateleg .sl-badgerow{margin:8px 0}\n'
+   +'#pf-stateleg .sl-badge{display:inline-block;padding:6px 12px;font-weight:800;font-size:13px;border:1px solid #4a4a4a}\n'
+   +'#pf-stateleg .slb-in{background:#0d3b1e;color:#7dff9b;border-color:#0d3b1e}\n'
+   +'#pf-stateleg .slb-spec{background:#3b2a0d;color:#ffd97d;border-color:#3b2a0d}\n'
+   +'#pf-stateleg .slb-adj{background:#2a2a2a;color:#bdbdbd}\n'
+   +'#pf-stateleg .slb-unk{background:#1a1a1a;color:var(--pf-cream)}\n'
+   +'#pf-stateleg .sl-meta{font-size:13px;color:var(--pf-muted);margin:4px 0}\n'
+   +'#pf-stateleg .sl-bill{border:1px solid #4a4a4a;margin:10px 0;padding:10px}\n'
+   +'#pf-stateleg .sl-bill-top{margin-bottom:6px}\n'
+   +'#pf-stateleg .sl-billnum{font-weight:700}\n'
+   +'#pf-stateleg .sl-bill-title{margin:4px 0;font-size:16px}\n'
+   +'#pf-stateleg .sl-bill-sum{margin:6px 0;font-size:14px}\n'
+   +'#pf-stateleg .sl-src{font-size:13px;margin:6px 0}\n'
+   +'#pf-stateleg .sl-chip{display:inline-block;padding:4px 10px;font-size:12px;font-weight:800;border:1px solid #4a4a4a;margin-right:6px}\n'
+   +'#pf-stateleg .slc-intro{background:#1a1a1a;color:var(--pf-cream)}\n'
+   +'#pf-stateleg .slc-pch{background:#0d2a3b;color:#7dd3ff}\n'
+   +'#pf-stateleg .slc-pleg{background:#0d3b2a;color:#7dffb0}\n'
+   +'#pf-stateleg .slc-sign{background:#0d3b1e;color:#7dff9b}\n'
+   +'#pf-stateleg .slc-veto{background:#3b0d0d;color:#ff8d8d}\n'
+   +'#pf-stateleg .slc-dead{background:#2a2a2a;color:#8a8a8a}\n'
+   +'#pf-stateleg .slc-unk{background:#1a1a1a;color:var(--pf-cream)}\n'
+   +'#pf-stateleg .sl-stale{color:#ffb347;font-weight:800}\n'
+   +'#pf-stateleg .sl-btn{display:inline-block;margin:8px 8px 0 0;padding:10px 16px;font-weight:800;font-size:14px;cursor:pointer;background:var(--pf-red);color:#fff;border:0}\n'
+   +'#pf-stateleg .sl-btn:disabled{opacity:.5}\n'
+   +'#pf-stateleg .sl-pressure{background:var(--pf-red)}\n'
+   +'#pf-stateleg .sl-log{background:#1a6b3c}\n'
+   +'#pf-stateleg .sl-person{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:1px solid #4a4a4a;margin:8px 0;padding:10px}\n'
+   +'#pf-stateleg .sl-pinfo{flex:1 1 160px}\n'
+   +'#pf-stateleg .sl-psub{font-size:13px;color:var(--pf-muted)}\n'
+   +'#pf-stateleg .sl-party{font-weight:800}\n'
+   +'#pf-stateleg .sl-call{display:inline-block;padding:10px 16px;background:#0d2a3b;color:#7dd3ff;font-weight:800;text-decoration:none}\n'
+   +'#pf-stateleg .sl-nophone{font-size:13px;color:#8a8a8a}\n'
+   +'#pf-stateleg .sl-method{width:100%;font-size:16px;padding:10px;margin-bottom:4px}\n'
+   +'#pf-stateleg .sl-methodrow{margin:8px 0}\n'
+   +'</style>\n'
+   +'</div>\n'
+   +'<script>(function(){try{if(window.PFStateLeg&&window.PFStateLeg.mount){window.PFStateLeg.mount(document.getElementById("xStateLeg"),{});}}catch(e){}})();</scr'+'ipt>\n'
+   +'</template>');
+})();
+
+;
+
+/* ===== legislation.js ===== */
+/* games/legislation.js  |  PF v1.4.3 | LEGISLATION TRACKER: bill cards on
+   Political HQ — bills_list cards with visual stage progress, key players
+   (linked to the congressional directory), per-bill cell vote tallies, a
+   pressure link to the campaigns surface, and founder-only cell voting
+   (bill_vote POST). Expandable cards fetch full detail from bills_get.
+   LAYERING: a game silo like civic.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()). It never reaches into another
+   silo's internals — key-player links dispatch a pf-legislation-member event
+   that the civic directory silo listens for (filters + scrolls to the member).
+   No new XP mechanics — cell votes grant nothing.
+   KILL: ?pf_off=legislation  or  localStorage pf_disabled_v1='["legislation"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("legislation")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-legislation">
+<div class="fe-block pf-override-block pf-silo" id="pf-legislation">
+<h2>Track the Bills</h2>
+<div class="c-tag">Every live bill: its stage, its players, your cell's vote.</div>
+<div id="xLegislation"><div class="c-load">Mobilizing&hellip;</div></div>
+<style>
+/* 2026-10-05: legislation tracker — mobile-first, no horizontal scroll,
+   every touch target >= 44px. */
+#pf-legislation .lg-filters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}
+#pf-legislation .lg-t44{min-height:44px}
+#pf-legislation .lg-cham{display:flex;gap:8px;margin:8px 0}
+#pf-legislation .lg-cham .c-btn{flex:1;min-height:44px;padding:8px 4px}
+#pf-legislation .lg-cham .c-btn[aria-pressed="true"]{outline:3px solid var(--pf-cream);outline-offset:-3px}
+#pf-legislation .lg-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+#pf-legislation .lg-num{font-weight:900;font-size:14px;color:#ffd166}
+#pf-legislation .lg-title{font-weight:900;font-size:17px;margin:2px 0 6px;line-height:1.25}
+#pf-legislation .lg-sum{font-size:14px;color:#e8e2d2;margin-bottom:8px;line-height:1.4}
+#pf-legislation .lg-expand{background:none;border:0;padding:0;text-align:left;width:100%;cursor:pointer;color:inherit;font:inherit;display:block}
+#pf-legislation .lg-steps{display:flex;margin:10px 0 4px}
+#pf-legislation .lg-step{flex:1;min-width:0;text-align:center}
+#pf-legislation .lg-dot{display:block;width:12px;height:12px;border-radius:50%;border:2px solid #5a5a5a;background:#141414;margin:0 auto 4px}
+#pf-legislation .lg-done .lg-dot{background:var(--pf-red);border-color:var(--pf-red)}
+#pf-legislation .lg-cur .lg-dot{background:#ffd166;border-color:#ffd166}
+#pf-legislation .lg-lab{display:block;font-size:9px;line-height:1.25;color:#8f8875;padding:0 2px}
+#pf-legislation .lg-cur .lg-lab{color:#fff;font-weight:700}
+#pf-legislation .lg-dead .lg-step{opacity:.4}
+#pf-legislation .lg-deadtag{display:inline-block;font-weight:900;font-size:11px;color:#8f8875;border:1px solid #5a5a5a;padding:4px 10px;margin:6px 0}
+#pf-legislation .lg-statusline{font-size:12px;color:var(--pf-muted);margin:2px 0 6px}
+#pf-legislation .lg-stuck{font-size:13px;color:#ffb3b3;margin:6px 0;line-height:1.35}
+#pf-legislation .lg-kp{font-size:13px;margin:6px 0;line-height:1.5}
+#pf-legislation .lg-kplink{background:none;border:0;color:#8fbfff;text-decoration:underline;font-size:13px;padding:6px 2px;cursor:pointer;font-family:inherit;min-height:32px}
+#pf-legislation .lg-tally{font-weight:900;font-size:13px;color:var(--pf-cream);margin:8px 0}
+#pf-legislation .lg-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#pf-legislation .lg-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#pf-legislation .lg-detail{border-top:1px dashed #4a4a4a;margin-top:10px;padding-top:10px}
+</style>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* SECURITY (2026-10-06 pre-ship hardening): scheme allowlist for URLs
+     rendered into href/src. Only http(s) or relative URLs pass;
+     javascript:, data:, vbscript: etc. are rejected. */
+  function safeUrl(u){
+    var s=String(u==null?'':u).trim();
+    if(!s) return '';
+    try{ var p=new URL(s,'https://x.invalid').protocol;
+      if(p==='http:'||p==='https:') return s; }catch(e){}
+    return '';
+  }
+function num(v){ var n=Number(v); return isFinite(n)&&n>=0?Math.floor(n):0; }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfLegCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params);
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+
+/* ---------- pure helpers (covered by tests/legislation.verify.js) ---------- */
+var STAGES=["Introduced","Committee","Passed House","Passed Senate","Signed"];
+var STAGE_ALIAS={introduced:0,committee:1,referred:1,in_committee:1,passed_house:2,
+  house_passed:2,passed_senate:3,senate_passed:3,signed:4,enacted:4,became_law:4,law:4};
+/* billStage(status) -> {dead:bool, idx:-1..4}. Unknown statuses map to
+   idx:-1 (no highlight) — we render the API's raw status honestly instead
+   of guessing. */
+function billStage(status){
+  var s=String(status==null?"":status).toLowerCase().replace(/[\\s\\-]+/g,"_").trim();
+  if(!s) return {dead:false,idx:-1};
+  if(/dead|fail|withdraw|died|killed|vetoed/.test(s)) return {dead:true,idx:-1};
+  if(STAGE_ALIAS.hasOwnProperty(s)) return {dead:false,idx:STAGE_ALIAS[s]};
+  return {dead:false,idx:-1};
+}
+function readTally(b){
+  var s=0,o=0;
+  if(b){
+    var cv=b.cell_votes||b.tally||null;
+    if(cv){ s=num(cv.support); o=num(cv.oppose); }
+    else { s=num(b.support_cells);
+           o=num(b.oppose_cells); }
+  }
+  return {support:s,oppose:o};
+}
+function tallyHTML(t){
+  if(!t||(t.support===0&&t.oppose===0))
+    return '<div class="lg-tally" data-leg-tallyline>No cell votes yet.</div>';
+  return '<div class="lg-tally" data-leg-tallyline>'+t.support+' cell'+(t.support===1?"":"s")+' support &middot; '
+    +t.oppose+' cell'+(t.oppose===1?"":"s")+' oppose</div>';
+}
+function stageHTML(status){
+  var st=billStage(status);
+  var h='<div class="lg-steps'+(st.dead?" lg-dead":"")+'">';
+  for(var i=0;i<STAGES.length;i++){
+    var cls="lg-step";
+    if(!st.dead&&st.idx>=0&&i<st.idx) cls+=" lg-done";
+    else if(!st.dead&&st.idx===i) cls+=" lg-cur";
+    h+='<div class="'+cls+'"><span class="lg-dot"></span><span class="lg-lab">'+STAGES[i]+'</span></div>';
+  }
+  h+='</div>';
+  var line="";
+  if(st.dead) line='<span class="lg-deadtag">DEAD</span>';
+  else if(st.idx>=0) line='<div class="lg-statusline">Stage: '+esc(STAGES[st.idx])+'</div>';
+  else if(String(status||"").trim()) line='<div class="lg-statusline">Status: '+esc(String(status).trim())+'</div>';
+  return h+line;
+}
+/* Key-player link: dispatches pf-legislation-member — the civic directory
+   silo listens and filters/scrolls to the member. bioguide_id rides when
+   the API supplies it; the directory filters on the name either way. */
+function kpLink(name,bioguide){
+  var nm=String(name||"").trim(); if(!nm) return "";
+  var bg=String(bioguide||"").trim();
+  return '<button type="button" class="lg-kplink" data-leg-member="'+esc(bg+"|"+nm)+'">'+esc(nm)+'</button>';
+}
+function blockersHTML(b){
+  var bl=b.blockers||b.obstruction||null;
+  if(!bl||!bl.length) return "";
+  var names=[];
+  for(var i=0;i<bl.length;i++){
+    var x=bl[i];
+    if(typeof x==="string"){ if(x.trim()) names.push(esc(x.trim())); }
+    else if(x&&x.name){ names.push(kpLink(x.name,x.bioguide_id||x.bioguide)); }
+  }
+  if(!names.length) return "";
+  return '<div class="lg-kp">Blockers: '+names.join(", ")+'</div>';
+}
+/* ---------- state ---------- */
+var ST={st:"",ch:""};
+var BILLS=null, MINE=null, LOAD_ERR=false;
+var EXPANDED={}, DETAIL={};
+var STATUSES=[["","All statuses"],["introduced","Introduced"],["committee","In committee"],
+  ["passed-house","Passed House"],["passed-senate","Passed Senate"],["signed","Signed"],["dead","Dead"]];
+
+function cardHTML(b){
+  var id=String(b.id||b.bill_id||"");
+  var number=String(b.bill_id||"").trim()||"Bill";
+  var title=String(b.title||b.short_title||"").trim();
+  var summary=String(b.plain_english_summary||"").trim();
+  var t=readTally(b);
+  var stuck=String(b.stuck_in||b.stuck||"").trim();
+  var sponsor=String(b.sponsor_name||b.sponsor||"").trim();
+  var sbg=String(b.sponsor_bioguide||b.sponsor_bioguide_id||"").trim();
+  var plink=safeUrl(b.pressure_link)||"/political-hq#campaigns";
+  var founder=isFounder();
+  var exp=!!EXPANDED[id];
+  var h='<div class="lg-card">'
+    +'<button type="button" class="lg-expand" data-leg-expand="'+esc(id)+'" aria-expanded="'+(exp?"true":"false")+'">'
+    +'<div class="lg-num">'+esc(number)+'</div>'
+    +'<div class="lg-title">'+esc(title||number)+'</div></button>';
+  if(summary) h+='<div class="lg-sum">'+esc(summary)+'</div>';
+  h+=stageHTML(b.status);
+  if(stuck) h+='<div class="lg-stuck">Stuck: '+esc(stuck)+'</div>';
+  if(sponsor) h+='<div class="lg-kp">Sponsor: '+kpLink(sponsor,sbg)+'</div>';
+  h+=blockersHTML(b);
+  h+='<div data-leg-tally="'+esc(id)+'">'+tallyHTML(t)+'</div>';
+  h+='<div class="lg-actions">'
+    +'<a class="c-btn lg-t44" href="'+esc(plink)+'">PRESSURE THIS BILL</a> ';
+  if(founder) h+='<button type="button" class="c-btn lg-t44" data-leg-vote="'+esc(id)+'">VOTE AS CELL</button>';
+  h+='</div>';
+  h+='<div data-leg-picker="'+esc(id)+'" style="display:none"></div>';
+  if(exp) h+=detailHTML(id);
+  h+='</div>';
+  return h;
+}
+function detailHTML(id){
+  var d=DETAIL[id];
+  if(!d) return '<div class="lg-detail" data-leg-detail="'+esc(id)+'"><div class="c-load">Loading detail&hellip;</div></div>';
+  var b=d.bill||{};
+  var t=readTally(b);
+  if(d.cell_votes){ t={support:num(d.cell_votes.support),oppose:num(d.cell_votes.oppose)}; }
+  var h='<div class="lg-detail" data-leg-detail="'+esc(id)+'">';
+  var full=String(b.plain_english_summary||"").trim();
+  if(full) h+='<div class="lg-sum">'+esc(full)+'</div>';
+  h+=stageHTML(b.status);
+  var stuck=String(b.stuck_in||b.stuck||"").trim();
+  if(stuck) h+='<div class="lg-stuck">Stuck: '+esc(stuck)+'</div>';
+  var kp=b.key_players||[];
+  if(kp.length){
+    h+='<div class="lg-kp"><b>Key players:</b><br>';
+    for(var i=0;i<kp.length;i++){
+      var k=kp[i]||{};
+      var role=String(k.role||"player").trim();
+      var meta=[];
+      if(k.party) meta.push(String(k.party));
+      var ch=String(k.chamber||"").toLowerCase();
+      if(k.state) meta.push((ch==="senate"?"Sen":"Rep")+" "+String(k.state));
+      h+='<div>&bull; '+kpLink(k.name,k.bioguide_id||k.bioguide)+' — '+esc(role)
+        +(meta.length?' <span class="x-note">('+esc(meta.join(", "))+')</span>':"")+'</div>';
+    }
+    h+='</div>';
+  }
+  h+='<div data-leg-tally="'+esc(id)+'">'+tallyHTML(t)+'</div>';
+  var plink=safeUrl(b.pressure_link||d.pressure_link)||"/political-hq#campaigns";
+  h+='<div class="lg-actions"><a class="c-btn lg-t44" href="'+esc(plink)+'">PRESSURE THIS BILL</a></div>';
+  h+='</div>';
+  return h;
+}
+function isFounder(){
+  return !!(ident().callsign&&MINE&&MINE.is_founder);
+}
+function mineCellId(){
+  return (MINE&&(MINE.cell_id||MINE.id))||"";
+}
+function render(){
+  var el=document.getElementById("xLegislation"); if(!el) return;
+  var h='<div class="x-pane"><h4>On the board</h4>'
+    +'<div class="lg-filters">'
+    +'<select class="c-in lg-t44" id="lgStatus" aria-label="Filter by status">';
+  for(var i=0;i<STATUSES.length;i++){
+    h+='<option value="'+STATUSES[i][0]+'"'+(ST.st===STATUSES[i][0]?" selected":"")+'>'+STATUSES[i][1]+'</option>';
+  }
+  h+='</select>'
+    +'<div class="lg-cham" role="group" aria-label="Chamber filter">'
+    +'<button type="button" class="c-btn lg-ch" data-ch="" aria-pressed="'+(ST.ch===""?"true":"false")+'">ALL</button>'
+    +'<button type="button" class="c-btn lg-ch" data-ch="house" aria-pressed="'+(ST.ch==="house"?"true":"false")+'">HOUSE</button>'
+    +'<button type="button" class="c-btn lg-ch" data-ch="senate" aria-pressed="'+(ST.ch==="senate"?"true":"false")+'">SENATE</button>'
+    +'</div></div>'
+    +'<div class="c-err" id="lgErr"></div>'
+    +'<div id="lgList">';
+  if(LOAD_ERR){
+    h+='<div class="c-err">Couldn&rsquo;t reach the bill wire.</div>'
+      +'<button type="button" class="c-btn lg-t44" id="lgRetry">RETRY</button>';
+  } else if(BILLS===null){
+    h+='<div class="c-load">Mobilizing&hellip;</div>';
+  } else if(!BILLS.length){
+    h+='<div class="x-note">No bills on the board for these filters. Broaden the hunt.</div>';
+  } else {
+    for(var j=0;j<BILLS.length;j++) h+=cardHTML(BILLS[j]);
+  }
+  h+='</div></div>';
+  el.innerHTML=h;
+  bind();
+}
+function paintTally(id,t){
+  var els=document.querySelectorAll('[data-leg-tally]');
+  for(var i=0;i<els.length;i++){
+    if(els[i].getAttribute("data-leg-tally")===id) els[i].innerHTML=tallyHTML(t);
+  }
+}
+function paintPicker(id,open){
+  var els=document.querySelectorAll('[data-leg-picker]');
+  for(var i=0;i<els.length;i++){
+    if(els[i].getAttribute("data-leg-picker")!==id) continue;
+    if(!open){ els[i].style.display="none"; els[i].innerHTML=""; return; }
+    els[i].style.display="block";
+    els[i].innerHTML='<div class="lg-picker" role="group" aria-label="Cast your cell vote">'
+      +'<button type="button" class="c-btn lg-t44" data-leg-cast="support|'+esc(id)+'">SUPPORT</button>'
+      +'<button type="button" class="c-btn lg-t44" data-leg-cast="oppose|'+esc(id)+'">OPPOSE</button>'
+      +'<button type="button" class="c-btn lg-t44" data-leg-cancel="'+esc(id)+'">CANCEL</button></div>';
+    return;
+  }
+}
+function castVote(id,position){
+  var cs=ident().callsign, cellId=mineCellId();
+  if(!cs||!isFounder()){ toast("Only cell founders can vote."); return; }
+  if(!cellId){ toast("No cell on record — vote blocked."); return; }
+  post("bill","b_action","bill_vote",{callsign:cs,cell_id:cellId,bill_id:id,position:position},function(j){
+    if(j&&j.ok){
+      var t=j.cell_votes||j.tally||null;
+      if(t){ paintTally(id,{support:num(t.support),oppose:num(t.oppose)}); finishVote(id,position); }
+      else {
+        /* Backend didn't echo the tally — re-read the bill so the numbers
+           are real, never invented. */
+        api("bills_get",{id:id},function(j2){
+          var b2=(j2&&j2.ok&&j2.bill)||null;
+          var t2=b2?(b2.cell_votes?{support:num(b2.cell_votes.support),oppose:num(b2.cell_votes.oppose)}:readTally(b2)):{support:0,oppose:0};
+          paintTally(id,t2);
+          finishVote(id,position);
+        });
+      }
+    } else {
+      toast(PF.errCopy?PF.errCopy(j,"Vote failed."):((j&&(j.err||j.error))||"Vote failed."));
+      paintPicker(id,false);
+    }
+  });
+}
+function finishVote(id,position){
+  paintPicker(id,false);
+  toast("Cell vote recorded: "+String(position).toUpperCase());
+}
+function toggleExpand(id){
+  if(EXPANDED[id]){ EXPANDED[id]=false; try{ render(); }catch(e){} return; }
+  EXPANDED[id]=true;
+  try{ render(); }catch(e){}
+  if(DETAIL[id]){ try{ render(); }catch(e){} return; }
+  api("bills_get",{id:id},function(j){
+    if(j&&j.ok&&j.bill){ DETAIL[id]={bill:j.bill,cell_votes:j.cell_votes||null,pressure_link:j.pressure_link||null}; }
+    else { DETAIL[id]={bill:null}; }
+    try{ render(); }catch(e){}
+  });
+}
+function focusMember(val){
+  var parts=String(val||"").split("|");
+  var bg=parts.length>1?parts[0]:"", nm=parts.length>1?parts.slice(1).join("|"):parts[0];
+  try{
+    document.dispatchEvent(new CustomEvent("pf-legislation-member",{detail:{bioguide_id:bg,name:nm}}));
+  }catch(e){}
+}
+function fetchBills(){
+  LOAD_ERR=false;
+  api("bills_list",{status:ST.st,chamber:ST.ch},function(j){
+    if(j&&j.ok&&j.bills){ BILLS=j.bills; LOAD_ERR=false; }
+    else { LOAD_ERR=true; }
+    try{ render(); }catch(e){}
+  });
+}
+function gv(id){ var e=document.getElementById(id); return e?e.value:""; }
+function bind(){
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  var st=document.getElementById("lgStatus");
+  if(st) st.onchange=function(){ ST.st=gv("lgStatus"); fetchBills(); };
+  var cham=document.querySelector(".lg-cham");
+  if(cham) cham.onclick=function(e){
+    var b=e.target&&e.target.closest?e.target.closest("[data-ch]"):null; if(!b) return;
+    ST.ch=b.getAttribute("data-ch");
+    var btns=cham.querySelectorAll("[data-ch]");
+    for(var i=0;i<btns.length;i++){ btns[i].setAttribute("aria-pressed",btns[i]===b?"true":"false"); }
+    fetchBills();
+  };
+  var list=document.getElementById("lgList");
+  if(list&&!list.getAttribute("data-bound")){
+    list.setAttribute("data-bound","1");
+    list.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-leg-expand],[data-leg-vote],[data-leg-cast],[data-leg-cancel],[data-leg-member]"):null;
+      if(!t) return;
+      if(t.hasAttribute("data-leg-expand")){ toggleExpand(t.getAttribute("data-leg-expand")); return; }
+      if(t.hasAttribute("data-leg-vote")){ paintPicker(t.getAttribute("data-leg-vote"),true); return; }
+      if(t.hasAttribute("data-leg-cancel")){ paintPicker(t.getAttribute("data-leg-cancel"),false); return; }
+      if(t.hasAttribute("data-leg-cast")){
+        var parts=String(t.getAttribute("data-leg-cast")).split("|");
+        castVote(parts.slice(1).join("|"),parts[0]);
+        return;
+      }
+      if(t.hasAttribute("data-leg-member")){ focusMember(t.getAttribute("data-leg-member")); return; }
+    });
+  }
+  var rt=document.getElementById("lgRetry");
+  if(rt) rt.onclick=function(){ fetchBills(); };
+  if(BILLS===null&&!LOAD_ERR){ fetchBills(); }
+}
+function load(){
+  var cs=ident().callsign;
+  if(cs){
+    api("cell_mine",{callsign:cs},function(j){
+      if(j&&!j.err) MINE=j;
+      try{ render(); }catch(e){}
+    });
+  }
+  fetchBills();
+}
+/* Test hooks — pure helpers + interaction entry points for the DOM-stub
+   harness (tests/legislation.verify.js). Read-only; no page behavior. */
+try{ window.__pfLegTest={billStage:billStage,readTally:readTally,tallyHTML:tallyHTML,
+  stageHTML:stageHTML,cardHTML:cardHTML,castVote:castVote,toggleExpand:toggleExpand,
+  paintPicker:paintPicker,focusMember:focusMember,isFounder:isFounder,
+  setState:function(s){ST=s;},getState:function(){return ST;},
+  setBills:function(b){BILLS=b;},setMine:function(m){MINE=m;},getMine:function(){return MINE;},
+  setExpanded:function(x){EXPANDED=x;},setDetail:function(x){DETAIL=x;},render:render}; }catch(e){}
+load();
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== governance.js ===== */
+/* games/governance.js | PF v1.4.3 | THE PEOPLE'S ASSEMBLY: network governance.
+   TEARDOWN WS-11 (section teardown PART 2 §11, CEO-approved 2026-10-06):
+   the referendum. Built on PF.patterns (WS-0 library):
+     P1 Briefing Hero (THE PEOPLE'S ASSEMBLY — propose. vote. the Assembly decides.)
+     P2 Intel Cards, full-ceremony scale for constitutional/fund-level votes
+     P4 quorum readout, BUCKETED (bands, never exact pre-close counts)
+     P5 Progression Ring (XP progress, render-only — NEVER vote weight)
+     P6 Action Bar (share / cell / report) closing every decided proposal
+   TIERED CEREMONY (CEO DECISION 4, 2026-10-06):
+     FULL referendum ceremony — constitutional/fund-level votes: full-screen
+       proposal card, pro/con at a glance, personalized stakes, countdown with
+       rising visual urgency, SHIELDED ballots, big YES/NO/ABSTAIN targets.
+     LIGHTWEIGHT inline ballot — routine votes: compact ledger-style rows.
+     Guided first-vote micro-flow — new voters get a 3-step on-ramp.
+   SHIELDED BALLOTS: open proposals render NO tallies — no yes/no weights, no
+   voter counts. Tallies stay sealed until close (kills bandwagon effects).
+   NOTE: the JSONP proposal_list payload still carries the numbers; true
+   sealing needs the backend to withhold them (flagged CEO-decision item —
+   zero backend writes in this wave, so the frontend hides what it must).
+   SECURITY (HARD GATE):
+     - Vote weight is SERVER-SIDE ONLY and NON-PURCHASABLE. This file NEVER
+       computes vote weight. The old client-side formula (1+floor(sqrt(xp/100)))
+       is REMOVED. The only weights this page ever displays are server-issued:
+       the weight on a vote POST response, and (future) a server weight field.
+     - No component breakdowns of weight in client code. No purchase/tier
+       math anywhere near voting. Delegation copy describes server behavior
+       only ("their ballot carries your weight too").
+     - Callsign-gated voting (PF.gateHTML); quorum display bucketed.
+   CTA DISCIPLINE: casting a vote is REPORT BACK (votes close the loop) —
+     the cast targets read REPORT YES → / REPORT NO → / REPORT ABSTAIN → in
+     report-family (non-red) styling. PUT IT TO A VOTE → is DEPLOY-family.
+     Red-button rule: only the DEPLOY-family create button may be red.
+   ELECTION NIGHT: every closed proposal renders a results block — outcome
+     declared, margin, turnout, a published outcome statement, and the P6
+     action bar assigning the next step. No vote disappears into a void.
+   BACKEND NEEDS (CEO decision items — NOT built here, zero backend writes):
+     1. `tier` (or ceremony/weight_class) on proposal_list items for
+        deterministic ceremony classification (frontend uses a documented
+        keyword heuristic as the interim).
+     2. Withhold yes_weight/no_weight/voter_count for OPEN proposals so
+        shielded ballots are real, not cosmetic.
+     3. A server-issued current vote-weight field (proposal_list or a weight
+        read) so the stakes line can show "your vote carries X" pre-vote.
+     4. Eligible-voter denominator for a true turnout % on results.
+     5. Abstain support: proposal_vote currently REJECTS choice=abstain
+        ("choice must be yes or no", backend gov.js). The ABSTAIN target is
+        built and flag-gated (ABSTAIN_SUPPORTED=false); flip the flag once
+        the backend accepts abstain + defines tally semantics.
+     6. Optional: pro/con fields on proposals for a true two-sided card.
+   TEST SEAM: window.PF.govFixture ({proposals, delegation, xp}) deep-merges
+   over defaults — the verify harness + News Desk staged previews. Never set
+   in production. window.PF.govTest exposes buildHTML/tier/quorum/urgency.
+   LAYERING: a game silo like campaign.js. Reads via JSONP (self-contained
+   api()), writes via CORS POST (self-contained post()). It never reaches
+   into another silo's internals.
+   KILL: ?pf_off=governance  or  localStorage pf_disabled_v1='["governance"]'.
+   Fail-open: patterns killed -> legacy compact render (still shielded,
+   still server-weight-only, still callsign-gated). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("governance")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-gov">
+<div class="fe-block pf-override-block pf-silo" id="pf-gov">
+<h2>The People&rsquo;s Assembly</h2>
+<div class="c-tag">The network governs itself. Propose. Vote. The Assembly decides.</div>
+<div id="xGov"><div class="c-load">Convening the assembly&hellip;</div></div>
+</div>
+<script>
+(function(){
+/* ===== inner: helpers (unchanged mechanics) ===== */
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px Arial,sans-serif;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfGvCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(gAction,params,cb){
+  var body={type:"gov",g_action:gAction};
+  for(var k in params){ if(Object.prototype.hasOwnProperty.call(params,k)) body[k]=params[k]; }
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+/* Admin gate for AUTH+ADMIN dual-gated actions (admin early proposal close).
+   Same key as vault.js / dashboard.js: sessionStorage 'pf_admin_secret'. */
+function isAdmin(){ try{ return !!sessionStorage.getItem("pf_admin_secret"); }catch(e){ return false; } }
+function adminPost(gAction,params,cb){
+  var secret=""; try{ secret=sessionStorage.getItem("pf_admin_secret")||""; }catch(e){}
+  if(!secret){ post(gAction,params,cb); return; }
+  var body={type:"gov",g_action:gAction};
+  for(var k in params){ if(Object.prototype.hasOwnProperty.call(params,k)) body[k]=params[k]; }
+  try{ var s2=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; if(s2) body.auth_secret=s2; }catch(e2){}
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e3){} }
+  try{
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json","X-Admin-Secret":secret},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e4){} },15000); } }catch(e5){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e6){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e7){ done(null); }
+}
+/* localStorage helpers (device-local prefs only — never votes, never weight) */
+function lsGet(k){ try{ return window.localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ window.localStorage.setItem(k,v); }catch(e){} }
+var FIRSTVOTE_KEY="pf_gov_firstvote_v1";
+var LASTW_KEY="pf_gov_lastweight_v1"; /* server-issued weight from the last vote response */
+/* ABSTAIN SUPPORT (backend-gated): the live proposal_vote endpoint accepts
+   only yes/no (backend gov.js: "choice must be yes or no"). The ABSTAIN
+   target ships the moment the backend accepts choice=abstain and defines
+   tally semantics — flip this flag, zero other changes. CEO-decision
+   backend item: abstain support. */
+var ABSTAIN_SUPPORTED=false;
+function abstainBtnHTML(pid,small){
+  if(!ABSTAIN_SUPPORTED) return "";
+  return '<button type="button" class="gv-cast'+(small?" gv-small":"")+'" data-pid="'+esc(pid)+'" data-ch="abstain">'
+    +(small?"ABSTAIN \u2192":"REPORT ABSTAIN \u2192")+'</button>';
+}
+
+/* ===== teardown WS-11: silo-local CSS (injected once at mount) ===== */
+var GOV_CSS=[
+".pf-gov{max-width:760px;margin:0 auto;padding:4px 0 30px;background:#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;}",
+".gv-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:3px;font-weight:800;font-size:12px;margin:0 0 8px;}",
+".gv-sec{margin:26px 0 0;padding:0 4px;}",
+".gv-sec-t{font-size:19px;font-weight:800;margin:0 0 6px;text-transform:uppercase;letter-spacing:1px;}",
+".gv-note{color:#8a8a8a;font-size:13px;line-height:1.6;margin:0 0 10px;}",
+".gv-stakes{border:1px solid #4a4a4a;background:#0d0d0d;padding:12px 14px;margin:14px 0;font-size:13px;line-height:1.6;color:#d8d0c0;}",
+".gv-stakes b{color:#fff;}",
+/* full-ceremony card */
+".gv-full{background:#0d0d0d;border:2px solid #c1121f;margin:0 0 18px;padding:20px 18px;}",
+".gv-full h3{font-size:22px;font-weight:900;margin:0 0 10px;line-height:1.25;color:#fff;}",
+".gv-case{border-left:3px solid #4a4a4a;padding:2px 0 2px 12px;margin:12px 0;}",
+".gv-case-k{color:#c1121f;font-size:11px;letter-spacing:2px;font-weight:800;margin:0 0 4px;}",
+".gv-case p{margin:0;font-size:14px;line-height:1.6;color:#e8e2d2;}",
+".gv-shield{background:#12060a;border:1px dashed #c1121f;color:#e8e2d2;font-size:12.5px;padding:10px 12px;margin:12px 0;line-height:1.5;}",
+".gv-quorum{font-size:12px;letter-spacing:2px;font-weight:800;color:#8a8a8a;margin:10px 0;}",
+".gv-quorum .segs{letter-spacing:0;color:#c1121f;}",
+".gv-count{font-weight:900;letter-spacing:2px;font-size:15px;margin:8px 0;}",
+".gv-urg-1 .gv-count{color:#fff;}",
+".gv-urg-2 .gv-count{color:#c1121f;}",
+".gv-urg-3{border-color:#c1121f;}",
+".gv-urg-3 .gv-count{color:#c1121f;animation:gvPulse 1.6s ease-in-out infinite;}",
+"@keyframes gvPulse{0%,100%{opacity:1;}50%{opacity:.55;}}",
+/* cast targets: REPORT-family, non-red, thumb-zone */
+".gv-cast-row{display:flex;gap:10px;margin:16px 0 4px;flex-wrap:wrap;}",
+".gv-cast{flex:1 1 140px;background:#0a0a0a;border:2px solid #8a8a8a;color:#fff;font-weight:900;letter-spacing:1px;font-size:16px;padding:16px 10px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;min-height:64px;}",
+".gv-cast:hover{border-color:#fff;}",
+".gv-cast:disabled{opacity:.45;cursor:wait;}",
+".gv-cast.gv-yes{border-color:#fff;}",
+".gv-voted{color:#8a8a8a;font-size:13px;margin:10px 0 0;}",
+/* lightweight inline ballot */
+".gv-inline{display:flex;gap:12px;align-items:center;background:#0d0d0d;border:1px solid #4a4a4a;padding:12px;margin:0 0 10px;flex-wrap:wrap;}",
+".gv-inline-main{flex:1 1 220px;}",
+".gv-inline-t{font-weight:800;font-size:15px;margin:0 0 4px;color:#fff;}",
+".gv-inline-meta{color:#8a8a8a;font-size:12px;margin:0;}",
+".gv-inline-vote{display:flex;gap:8px;}",
+".gv-cast.gv-small{flex:0 1 auto;min-height:48px;padding:10px 14px;font-size:13px;}",
+".gv-inline.gv-urg-2 .gv-inline-meta{color:#c1121f;font-weight:800;}",
+".gv-inline.gv-urg-3 .gv-inline-meta{color:#c1121f;font-weight:900;animation:gvPulse 1.6s ease-in-out infinite;}",
+/* first-vote micro-flow */
+".gv-firstvote{border:2px solid #c1121f;background:#12060a;padding:18px;margin:16px 0;}",
+".gv-firstvote h4{margin:0 0 10px;font-size:16px;letter-spacing:2px;color:#fff;}",
+".gv-step{display:flex;gap:12px;margin:10px 0;align-items:flex-start;}",
+".gv-step-n{background:#c1121f;color:#fff;font-weight:900;width:28px;height:28px;line-height:28px;text-align:center;flex:0 0 28px;font-size:14px;}",
+".gv-step p{margin:0;font-size:13.5px;line-height:1.55;color:#e8e2d2;}",
+".gv-step p b{color:#fff;}",
+/* results / election night */
+".gv-result{background:#0d0d0d;border:2px solid #4a4a4a;padding:18px;margin:0 0 16px;}",
+".gv-result.gv-passed{border-color:#fff;}",
+".gv-badge{display:inline-block;font-weight:900;letter-spacing:2px;font-size:13px;padding:6px 14px;margin:0 0 10px;}",
+".gv-badge.gv-pass{background:#fff;color:#0a0a0a;}",
+".gv-badge.gv-fail{background:#0a0a0a;color:#8a8a8a;border:2px solid #8a8a8a;}",
+".gv-badge.gv-tie{background:#0a0a0a;color:#c1121f;border:2px solid #c1121f;}",
+".gv-result h3{font-size:19px;font-weight:900;margin:0 0 8px;color:#fff;}",
+".gv-outcome{font-size:14px;line-height:1.6;color:#e8e2d2;margin:0 0 10px;}",
+".gv-outcome b{color:#fff;}",
+/* closing-soon ping */
+".gv-ping{background:#1a0505;border:2px solid #c1121f;color:#e8e2d2;padding:12px 14px;margin:12px 0;font-size:14px;line-height:1.5;}",
+".gv-ping b{color:#c1121f;}",
+".gv-ping a{color:#fff;font-weight:800;}",
+/* form */
+".gv-form{background:#0d0d0d;border:1px solid #4a4a4a;padding:18px;margin:0 0 10px;}",
+".gv-form input[type=text],.gv-form textarea{width:100%;background:#141414;color:#fff;border:1px solid #4a4a4a;padding:10px;font-size:14px;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;margin:0 0 10px;}",
+".gv-form input[type=number]{background:#141414;color:#fff;border:1px solid #4a4a4a;padding:8px;font-size:14px;width:70px;}",
+".gv-err{color:#c1121f;font-size:13px;min-height:18px;margin:6px 0 0;}",
+".gv-btn-red{display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:1px;font-size:15px;padding:14px 26px;border:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}",
+".gv-btn-ghost{display:inline-block;background:transparent;color:#8a8a8a;border:1px solid #4a4a4a;font-weight:700;font-size:13px;padding:10px 18px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;margin-left:8px;}"
+].join("");
+function govCSS(){
+  try{
+    if(document.getElementById("pf-gov-css")) return;
+    var st=document.createElement("style"); st.id="pf-gov-css"; st.textContent=GOV_CSS;
+    (document.head||document.documentElement).appendChild(st);
+  }catch(e){}
+}
+
+/* ===== teardown WS-11: tiered ceremony =====
+   FULL referendum ceremony: constitutional/fund-level votes.
+   LIGHTWEIGHT inline ballot: routine votes.
+   Server field (tier/ceremony/weight_class) wins when present. INTERIM
+   HEURISTIC below runs only until the backend ships tier on
+   proposal_list (CEO-decision backend item #1) — documented, fail-open
+   (unknown -> lightweight), never a security boundary. */
+function govTier(p){
+  p=p||{};
+  var t=String(p.tier||p.ceremony||p.weight_class||"").toLowerCase();
+  if(/full|constitutional|referendum/.test(t)) return "full";
+  if(/light|routine|inline|minor/.test(t)) return "light";
+  var txt=String((p.title||"")+" "+(p.description||"")).toLowerCase();
+  if(/constitution|amendment|charter|by-?law|treasury|war[- ]?chest|\\bfund\\b|budget|\\bdues\\b|\\bfee\\b|quorum|recall|impeach|dissolve|merge/.test(txt)) return "full";
+  return "light";
+}
+/* ===== quorum: BUCKETED bands, never exact pre-close counts ===== */
+function quorumBand(n){
+  n=Math.max(0,Math.floor(Number(n)||0));
+  if(n<=0)  return {label:"QUORUM: AWAITING FIRST BALLOTS",segs:0};
+  if(n<25)  return {label:"QUORUM: BUILDING",segs:1};
+  if(n<100) return {label:"QUORUM: GROWING",segs:2};
+  return {label:"QUORUM: STRONG",segs:3};
+}
+function quorumHTML(n){
+  var b=quorumBand(n), segs="";
+  for(var i=0;i<3;i++) segs+=(i<b.segs?"\u25A0":"\u25A1");
+  return '<p class="gv-quorum">'+esc(b.label)+' <span class="segs">'+segs+'</span></p>';
+}
+/* ===== countdown with rising visual urgency ===== */
+function fmtLeft(ms){
+  if(ms<=0) return "CLOSED";
+  var s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);
+  if(d>0) return d+"d "+h+"h left";
+  if(h>0) return h+"h "+m+"m left";
+  return m+"m left";
+}
+function urgClass(ms){
+  if(ms<=0) return "gv-urg-1";
+  if(ms<=6*3600000) return "gv-urg-3";   /* final hours: pulsing red */
+  if(ms<=24*3600000) return "gv-urg-2";  /* closing: red */
+  return "gv-urg-1";
+}
+function countHTML(ms){
+  return '<p class="gv-count">'+esc(fmtLeftUrgent(ms).toUpperCase())+'</p>';
+}
+/* shared urgency label: base countdown + rising-urgency tail */
+function fmtLeftUrgent(ms){
+  var u=urgClass(ms), tail=(u==="gv-urg-3")?" \u2014 FINAL HOURS":(u==="gv-urg-2"?" \u2014 CLOSING":"");
+  return fmtLeft(ms)+tail;
+}
+/* ===== state ===== */
+var GOV_DEFAULTS={proposals:[],delegation:null,xp:null};
+function mergeGov(base,over){
+  var out={},k;
+  for(k in base){ if(Object.prototype.hasOwnProperty.call(base,k)) out[k]=base[k]; }
+  if(over&&typeof over==="object"){
+    for(k in over){
+      if(!Object.prototype.hasOwnProperty.call(over,k)) continue;
+      out[k]=over[k];
+    }
+  }
+  return out;
+}
+var GOVFIX=null;
+try{ GOVFIX=(window.PF&&window.PF.govFixture)||null; }catch(e){}
+var PL=null, DG=null, XP=null, LASTW=null;
+try{ var _lw=parseInt(lsGet(LASTW_KEY),10); if(isFinite(_lw)&&_lw>0) LASTW=_lw; }catch(e){}
+function load(){
+  var id=ident();
+  if(GOVFIX){
+    /* Test seam / staged preview: never in production. */
+    PL={proposals:GOVFIX.proposals||[]};
+    DG=GOVFIX.delegation||null;
+    XP=(GOVFIX.xp==null?null:Math.max(0,Math.floor(Number(GOVFIX.xp)||0)));
+    render();
+    return;
+  }
+  var done=false, n=0;
+  function fin(){ if(done)return; done=true; render(); }
+  function one(){ n++; if(n>=3) fin(); }
+  setTimeout(fin,15000);
+  /* 6A-R7/E21: pass the callsign so proposal_list returns the per-proposal
+     voted flag the non-voter ping UI keys off. */
+  api("proposal_list",{callsign:id.callsign||""},function(j){ PL=j; one(); });
+  if(id.callsign){ api("delegation_get",{callsign:id.callsign},function(j){ DG=j; one(); }); }
+  else { DG=null; one(); }
+  /* P5 ring feed ONLY. SECURITY: xp_balance is a public read used to render
+     the Progression Ring (XP progress, render-only). It MUST NOT feed any
+     vote-weight computation — weight is server-set and arrives only via
+     vote responses (LASTW) or a future server weight field. The old
+     client-side formula (1+floor(sqrt(xp/100))) was REMOVED in WS-11. */
+  if(id.callsign){
+    api("xp_balance",{callsign:id.callsign},function(j){
+      XP=(j&&j.balance!=null)?Math.max(0,Math.floor(Number(j.balance)||0)):null;
+      one();
+    });
+  } else { XP=null; one(); }
+}
+/* Rank ladder for the P5 ring (render-only; same ladder the fund page uses).
+   The ring shows XP progress toward the next rank — never vote weight. */
+var RANKS=[["RECRUIT",0],["AGITATOR",25],["CADRE",75],["COMMISSAR",150],["ARCHITECT",300]];
+function rankFor(xp){
+  var r=RANKS[0][0], cap=RANKS[1][1];
+  for(var i=0;i<RANKS.length;i++){
+    if(xp>=RANKS[i][1]){ r=RANKS[i][0]; cap=(RANKS[i+1]||[0,xp])[1]; }
+  }
+  return {rank:r,cap:Math.max(cap,xp+1)};
+}
+
+/* ===== renderers ===== */
+function pat(){
+  try{ return (window.PF&&window.PF.patterns&&!window.PF.skip("patterns"))?window.PF.patterns:null; }
+  catch(e){ return null; }
+}
+function heroHTML(P){
+  if(P) return P.hero({kicker:"THE PEOPLE'S ASSEMBLY",mission:"The network governs itself. Propose. Vote. The Assembly decides.",sub:"Power from the ranks, not from above. Every ballot ends in a published outcome."});
+  return '<div class="gv-sec"><p class="gv-kicker">The People\u2019s Assembly</p><p class="gv-sec-t">The network governs itself. Propose. Vote. The Assembly decides.</p></div>';
+}
+/* Personalized stakes (P5). The weight line is explicit: server-set, grows
+   with XP, never for sale, never computed on this device. The ring renders
+   XP progress ONLY. */
+function stakesHTML(P){
+  var h='<div class="gv-stakes"><b>YOUR STAKES:</b> your ballot carries <b>server-set weight</b> \u2014 the Assembly server sets it. It grows with your XP. <b>Never for sale. Never computed on your device.</b>';
+  if(LASTW) h+=' Last counted ballot: weight <b>'+LASTW+'</b> (server-set).';
+  h+='</div>';
+  if(P&&XP!=null&&XP>0){
+    var r=rankFor(XP);
+    h+=P.ring({xp:XP,cap:r.cap,rank:r.rank})
+      +'<p class="gv-note">Your grind, recognized. This ring shows XP progress only \u2014 the server sets vote weight.</p>';
+  }
+  return h;
+}
+/* Guided first-vote micro-flow: new voters (callsign, never voted, never
+   dismissed) get the 3-step on-ramp above the ballot. */
+function isNewVoter(props){
+  try{ if(lsGet(FIRSTVOTE_KEY)==="1") return false; }catch(e){}
+  for(var i=0;i<props.length;i++){ if(props[i].voted===true) return false; }
+  if(LASTW) return false;
+  return true;
+}
+function firstVoteHTML(open){
+  var target=open.length?("#gv-prop-"+open[0].id):"#gv-open";
+  return '<div class="gv-firstvote" id="gv-firstvote">'
+    +'<h4>YOUR FIRST VOTE \u2014 3 STEPS</h4>'
+    +'<div class="gv-step"><div class="gv-step-n">1</div><p><b>THE ASSEMBLY DECIDES.</b> Proposals, weighted votes, delegation. Every ballot ends in a published outcome \u2014 no vote disappears into a void.</p></div>'
+    +'<div class="gv-step"><div class="gv-step-n">2</div><p><b>BALLOTS ARE SHIELDED.</b> Tallies stay sealed until the vote closes. Vote your conscience, not the crowd \u2014 no bandwagons.</p></div>'
+    +'<div class="gv-step"><div class="gv-step-n">3</div><p><b>YOUR WEIGHT IS SERVER-SET.</b> It grows with your XP. Never for sale, never computed on your device. Casting is reporting back \u2014 it closes the loop.</p></div>'
+    +'<p style="margin:12px 0 0;"><a href="'+esc(target)+'" class="gv-btn-red" data-gv-firstvote-go style="text-decoration:none;">GOT IT \u2014 TAKE ME TO THE BALLOT \u2193</a></p>'
+    +'</div>';
+}
+/* 6A-R7/E21: non-voter ping — open proposals closing within 6h that this
+   callsign hasn't voted on get a closing-soon banner above the fold. */
+function pingHTML(open){
+  var ping=[];
+  for(var i=0;i<open.length;i++){
+    var p=open[i], left=Number(p.closes_at||0)-Date.now();
+    if(left>0&&left<=6*3600000&&p.voted!==true) ping.push(p);
+  }
+  var h="";
+  for(var q=0;q<ping.length;q++){
+    var qp=ping[q];
+    h+='<div class="gv-ping"><b>\u26A0 VOTE CLOSING SOON:</b> &ldquo;'+esc(qp.title)+'&rdquo; '
+      +'closes in '+esc(fmtLeft(Number(qp.closes_at)-Date.now()))
+      +' \u2014 you haven\u2019t voted. '
+      +'<a href="#gv-prop-'+esc(qp.id)+'">VOTE NOW \u2193</a></div>';
+  }
+  return h;
+}
+/* FULL referendum ceremony: full-screen proposal card (P2, large). */
+function fullCardHTML(p){
+  var left=Number(p.closes_at||0)-Date.now();
+  var u=urgClass(left);
+  var voted=p.voted===true;
+  var h='<article class="gv-full '+u+'" id="gv-prop-'+esc(p.id)+'">'
+    +'<p class="gv-kicker">FULL REFERENDUM \u00B7 CONSTITUTIONAL / FUND LEVEL</p>'
+    +'<h3>'+esc(p.title)+'</h3>'
+    +countHTML(left)
+    +'<div class="gv-case"><p class="gv-case-k">THE PROPOSER\u2019S CASE</p><p>'+esc(p.description||"No case filed.")+'</p></div>'
+    +'<div class="gv-case"><p class="gv-case-k">THE KEY QUESTION</p><p>Should the Assembly '+esc(String(p.title||"").charAt(0).toLowerCase()+String(p.title||"").slice(1))+'?</p></div>'
+    +'<p class="gv-note">By <b style="color:#fff;">'+esc(p.proposer)+'</b> \u00B7 your ballot carries server-set weight \u2014 grows with XP, never for sale.</p>'
+    +'<div class="gv-shield">\uD83D\uDEE1\uFE0F <b>BALLOT SHIELDED</b> \u2014 tallies stay sealed until the vote closes. No bandwagons, no gaming the count.</div>'
+    +quorumHTML(p.voter_count);
+  if(voted){
+    h+='<p class="gv-voted">\u2713 Ballot recorded. The tally stays sealed until close.</p>';
+  } else {
+    h+='<div class="gv-cast-row">'
+      +'<button type="button" class="gv-cast gv-yes" data-pid="'+esc(p.id)+'" data-ch="yes">REPORT YES \u2192</button>'
+      +'<button type="button" class="gv-cast" data-pid="'+esc(p.id)+'" data-ch="no">REPORT NO \u2192</button>'
+      +abstainBtnHTML(p.id,false)
+      +'</div>'
+      +'<p class="gv-note">Casting is reporting back \u2014 your vote closes the loop.</p>';
+  }
+  h+=closeBtnsHTML(p);
+  h+='</article>';
+  return h;
+}
+/* LIGHTWEIGHT inline ballot: routine votes, compact ledger-style rows. */
+function inlineRowHTML(p){
+  var left=Number(p.closes_at||0)-Date.now();
+  var voted=p.voted===true;
+  var h='<div class="gv-inline '+urgClass(left)+'" id="gv-prop-'+esc(p.id)+'">'
+    +'<div class="gv-inline-main">'
+    +'<p class="gv-inline-t">'+esc(p.title)+'</p>'
+    +'<p class="gv-inline-meta">LIGHTWEIGHT BALLOT \u00B7 '+esc(fmtLeftUrgent(left))+' \u00B7 '+esc(quorumBand(p.voter_count).label)+' \u00B7 shielded</p>'
+    +'</div>';
+  if(voted){
+    h+='<p class="gv-voted">\u2713 Recorded</p>';
+  } else {
+    h+='<div class="gv-inline-vote">'
+      +'<button type="button" class="gv-cast gv-small" data-pid="'+esc(p.id)+'" data-ch="yes">REPORT YES \u2192</button>'
+      +'<button type="button" class="gv-cast gv-small" data-pid="'+esc(p.id)+'" data-ch="no">REPORT NO \u2192</button>'
+      +abstainBtnHTML(p.id,true)
+      +'</div>';
+  }
+  h+=closeBtnsHTML(p);
+  h+='</div>';
+  return h;
+}
+/* 2026-10-03: proposal_close (AUTH+ADMIN). Past the deadline anyone can
+   settle; early close is admin-only (backend enforces). */
+function closeBtnsHTML(p){
+  var pastDue=Number(p.closes_at||0)<=Date.now();
+  if(pastDue) return '<p style="margin:10px 0 0;"><button type="button" class="gv-btn-ghost" data-gv-close data-pid="'+esc(p.id)+'">CLOSE &amp; SETTLE</button></p>';
+  if(isAdmin()) return '<p style="margin:10px 0 0;"><button type="button" class="gv-btn-ghost" data-gv-close-early data-pid="'+esc(p.id)+'">CLOSE EARLY (ADMIN)</button></p>';
+  return "";
+}
+/* ELECTION NIGHT: every closed proposal ends in a published outcome statement
+   + margin + turnout + the P6 action bar assigning the next step. */
+function resultBadge(q){
+  if(q.result==="passed") return '<span class="gv-badge gv-pass">PASSED</span>';
+  if(q.result==="failed") return '<span class="gv-badge gv-fail">FAILED</span>';
+  return '<span class="gv-badge gv-tie">DEADLOCKED</span>';
+}
+function outcomeStatement(q){
+  var t=String(q.title||"Untitled");
+  if(q.result==="passed") return '<b>PASSED</b> \u2014 the Assembly adopts &ldquo;'+esc(t)+'&rdquo;. The result stands.';
+  if(q.result==="failed") return '<b>FAILED</b> \u2014 the Assembly rejects &ldquo;'+esc(t)+'&rdquo;. The result stands.';
+  return '<b>DEADLOCKED</b> \u2014 &ldquo;'+esc(t)+'&rdquo; falls short of a decision. It can be re-proposed.';
+}
+function marginPct(yes,no){
+  var t=yes+no; if(t<=0) return "\u2014";
+  return Math.round(Math.abs(yes-no)/t*100)+" PTS";
+}
+function resultsHTML(hist,P){
+  var h='<div class="gv-sec"><p class="gv-kicker">Election night</p><p class="gv-sec-t">Decided ('+hist.length+')</p>';
+  if(!hist.length){ h+='<p class="gv-note">Nothing decided yet. History is waiting to be written.</p>'; }
+  for(var k=0;k<Math.min(hist.length,20);k++){
+    var q=hist[k];
+    var yes=Number(q.yes_weight)||0, no=Number(q.no_weight)||0, vc=Number(q.voter_count)||0;
+    var cls=q.result==="passed"?"gv-passed":"";
+    h+='<article class="gv-result '+cls+'">'
+      +'<p class="gv-kicker">THE ASSEMBLY HAS SPOKEN</p>'
+      +resultBadge(q)
+      +'<h3>'+esc(q.title)+'</h3>'
+      +'<p class="gv-outcome">'+outcomeStatement(q)+'</p>';
+    /* P7 ledger lines: post-close exact figures are fine — the vote is over. */
+    if(P){
+      h+=P.ledgerLine({what:"YES weight",figure:String(yes),hot:true})
+        +P.ledgerLine({what:"NO weight",figure:String(no),hot:true})
+        +P.ledgerLine({what:"Margin",figure:marginPct(yes,no)})
+        +P.ledgerLine({what:"Turnout",figure:vc+" soldier"+(vc===1?"":"s")+" voted"});
+    } else {
+      h+='<p class="gv-note">YES '+yes+' \u00B7 NO '+no+' \u00B7 margin '+esc(marginPct(yes,no))+' \u00B7 '+vc+' voted</p>';
+    }
+    /* P6: the next step is assigned, not left hanging. */
+    var shareUrl="";
+    try{ shareUrl=(window.location.href||"").split("#")[0]+"#gv-prop-"+encodeURIComponent(q.id||""); }catch(e){}
+    if(P) h+=P.actionBar({shareUrl:shareUrl,cellUrl:"/cells",reportUrl:"/#pf-orders"});
+    else h+='<p class="gv-note"><a href="/cells" style="color:#fff;">Take this to your cell \u2192</a></p>';
+    h+='</article>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function createHTML(P){
+  var h='<div class="gv-sec"><p class="gv-kicker">New proposal</p><p class="gv-sec-t">Put it on the floor</p>'
+    +'<div class="gv-form">'
+    +'<p class="gv-note">Costs <b style="color:#fff;">100 XP</b> to put on the floor \u2014 keeps the spam out. Duration 1\u201330 days. XP has no cash value. Stakes are final.</p>'
+    +'<input type="text" aria-label="Proposal title" id="gvTitle" maxlength="120" placeholder="Proposal title">'
+    +'<textarea aria-label="Proposal description" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why? Make the case."></textarea>'
+    +'<p class="gv-note">Duration: <input type="number" id="gvDays" min="1" max="30" value="7"> days</p>'
+    +'<button type="button" class="gv-btn-red" id="gvCreateBtn">PUT IT TO A VOTE \u2192</button>'
+    +'<p class="gv-err" id="gvCreateErr"></p>'
+    +'</div></div>';
+  return h;
+}
+function delegationHTML(){
+  var cur=(DG&&DG.delegate)||null, toMe=(DG&&DG.delegated_to_me)||[];
+  var h='<div class="gv-sec"><p class="gv-kicker">Liquid delegation</p><p class="gv-sec-t">Lend your voice</p>'
+    +'<div class="gv-form">'
+    +'<p class="gv-note">Trust someone&rsquo;s judgment? Hand them your vote \u2014 their ballot carries your weight too. You can vote directly anytime: your own ballot always overrides.</p>';
+  if(cur){ h+='<p class="gv-note">Your vote rides with <b style="color:#fff;">'+esc(cur)+'</b>.</p>'
+    +'<button type="button" class="gv-btn-ghost" id="gvUndelegate">TAKE MY VOTE BACK</button>'; }
+  else { h+='<p class="gv-note">You hold your own vote.</p>'
+    +'<input type="text" aria-label="Delegate callsign" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
+    +'<button type="button" class="gv-btn-red" id="gvDelegateBtn">DELEGATE MY VOTE \u2192</button>'; }
+  if(toMe.length){ h+='<p class="gv-note">'+toMe.length+' soldier'+(toMe.length>1?'s':'')+' trust'+(toMe.length>1?'':'s')+' your judgment: '+toMe.map(function(x){return esc(x);}).join(", ")+'</p>'; }
+  h+='<p class="gv-err" id="gvDelErr"></p></div></div>';
+  return h;
+}
+function render(){
+  var el=document.getElementById("xGov"); if(!el) return;
+  govCSS();
+  var P=pat();
+  if(!P){ renderLegacy(el); return; }
+  var id=ident();
+  if(!id.callsign){
+    el.innerHTML='<div class="pf-gov">'+heroHTML(P)+PF.gateHTML("The Assembly votes on callsigns.","to take your seat in the Assembly")+'</div>';
+    return;
+  }
+  var props=(PL&&PL.proposals)||[];
+  var open=[], hist=[];
+  for(var i=0;i<props.length;i++){ if(props[i].status==="open") open.push(props[i]); else hist.push(props[i]); }
+  var full=[], light=[];
+  for(var o=0;o<open.length;o++){ if(govTier(open[o])==="full") full.push(open[o]); else light.push(open[o]); }
+  var h='<div class="pf-gov">';
+  h+=heroHTML(P);
+  h+=stakesHTML(P);
+  if(isNewVoter(props)) h+=firstVoteHTML(open);
+  h+=pingHTML(open);
+  /* --- full referendum ceremony --- */
+  h+='<div class="gv-sec" id="gv-open"><p class="gv-kicker">On the floor</p><p class="gv-sec-t">Full referenda ('+full.length+')</p>';
+  if(!full.length) h+='<p class="gv-note">No full referenda open. Constitutional and fund-level votes land here, with full ceremony.</p>';
+  for(var f=0;f<full.length;f++) h+=fullCardHTML(full[f]);
+  h+='</div>';
+  /* --- lightweight inline ballots --- */
+  h+='<div class="gv-sec"><p class="gv-kicker">Routine business</p><p class="gv-sec-t">Lightweight ballots ('+light.length+')</p>';
+  if(!light.length) h+='<p class="gv-note">No routine ballots open.</p>';
+  for(var l=0;l<light.length;l++) h+=inlineRowHTML(light[l]);
+  h+='</div>';
+  /* --- new proposal --- */
+  h+='<div class="x-pane"><h4>New proposal</h4>'
+    +'<div class="x-note">Costs <b>100 XP</b> to put on the floor &mdash; keeps the spam out. Duration 1&ndash;30 days. XP has no cash value. Stakes are final.</div>'
+    +'<input aria-label="Proposal title" class="c-in" id="gvTitle" maxlength="120" placeholder="Proposal title">'
+    +'<textarea class="c-in" id="gvDesc" maxlength="2000" rows="3" placeholder="What are you proposing, and why?"></textarea>'
+    +'<div class="x-note">Duration: <input class="c-in gv-dur" id="gvDays" type="number" min="1" max="30" value="7"> days</div>'
+    +'<button class="c-btn" id="gvCreateBtn">PUT IT TO A VOTE (100 XP)</button><div class="c-err" id="gvCreateErr"></div></div>';
+  /* --- delegation --- */
+  var cur=(DG&&DG.delegate)||null, toMe=(DG&&DG.delegated_to_me)||[];
+  h+='<div class="x-pane"><h4>Liquid delegation</h4>'
+    +'<div class="x-note">Trust someone&rsquo;s judgment? Hand them your vote weight. They vote, it counts double. You vote directly anytime &mdash; your own ballot always wins.</div>';
+  if(cur){ h+='<div class="x-note">Your vote is delegated to <b>'+esc(cur)+'</b>.</div>'
+    +'<button class="c-btn" id="gvUndelegate">TAKE MY VOTE BACK</button>'; }
+  else { h+='<div class="x-note">You hold your own vote.</div>'
+    +'<input aria-label="Delegate callsign" class="c-in" id="gvDel" maxlength="20" placeholder="Delegate callsign">'
+    +'<button class="c-btn" id="gvDelegateBtn">DELEGATE MY VOTE</button>'; }
+  if(toMe.length){ h+='<div class="x-note">'+toMe.length+' soldier'+(toMe.length>1?'s':'')+' trust'+(toMe.length>1?'':'s')+' your judgment: '+toMe.map(function(x){return esc(x);}).join(", ")+'</div>'; }
+  h+='<div class="c-err" id="gvDelErr"></div></div>';
+  /* --- history --- */
+  h+='<div class="x-pane"><h4>Decided ('+hist.length+')</h4>';
+  if(!hist.length){ h+='<div class="x-note">Nothing decided yet. History is waiting to be written.</div>'; }
+  for(var k=0;k<Math.min(hist.length,20);k++){
+    var q=hist[k], badge=q.result==="passed"?'<span class="gv-pass">PASSED</span>':(q.result==="failed"?'<span class="gv-fail">FAILED</span>':'<span class="gv-tie">TIE</span>');
+    h+='<div class="gv-prop gv-hist"><div class="gv-ptitle">'+esc(q.title)+' '+badge+'</div>'
+      +'<div class="x-note">YES '+esc(q.yes_weight)+' &bull; NO '+esc(q.no_weight)+' &bull; '+esc(q.voter_count)+' voters</div>'
+      /* share-out gaps #8: the result is shareable. */
+      +'<div style="margin-top:6px"><button type="button" class="c-btn ghost gv-share" data-idx="'+k+'">SHARE RESULT</button></div></div>';
+  }
+  h+='</div>';
+  h+=createHTML(P);
+  h+=delegationHTML();
+  h+=resultsHTML(hist,P);
+  /* P6 page-level close: nothing ends with the individual. */
+  var pageUrl=""; try{ pageUrl=window.location.href||""; }catch(e){}
+  h+=P.actionBar({shareUrl:pageUrl,cellUrl:"/cells",reportUrl:"/#pf-orders"});
+  /* Brand integration (2026-10-06, fix 5, ported from line @ WS-A phase 2):
+     cross-pillar handoffs — wired declaratively by the share-everywhere
+     scanner (same branded styling). */
+  h+='<div data-pf-handoff="take-cell"></div><div data-pf-handoff="report-back"></div>';
+  h+='</div>';
+  el.innerHTML=h;
+  wire(el);
+}
+/* Fail-open: patterns killed -> legacy compact render. Still shielded,
+   still server-weight-only, still callsign-gated. */
+function renderLegacy(el){
+  var id=ident();
+  if(!id.callsign){
+    el.innerHTML='<div class="pf-gov">'+heroHTML(null)+'<p class="gv-note">The Assembly votes on callsigns.</p></div>';
+    return;
+  }
+  var props=(PL&&PL.proposals)||[];
+  var h='<div class="pf-gov">'+heroHTML(null);
+  h+='<p class="gv-note">Your ballot carries server-set weight \u2014 grows with XP, never for sale, never computed here.</p>';
+  h+='<div class="gv-sec"><p class="gv-sec-t">Open ('+props.filter(function(p){return p.status==="open";}).length+')</p>';
+  for(var i=0;i<props.length;i++){
+    var p=props[i]; if(p.status!=="open") continue;
+    var left=Number(p.closes_at||0)-Date.now();
+    h+='<div class="gv-inline"><div class="gv-inline-main"><p class="gv-inline-t">'+esc(p.title)+'</p>'
+      +'<p class="gv-inline-meta">'+esc(fmtLeft(left))+' \u00B7 shielded</p></div>';
+    if(p.voted===true){ h+='<p class="gv-voted">\u2713 Recorded</p>'; }
+    else{
+      h+='<div class="gv-inline-vote">'
+        +'<button type="button" class="gv-cast gv-small" data-pid="'+esc(p.id)+'" data-ch="yes">YES \u2192</button>'
+        +'<button type="button" class="gv-cast gv-small" data-pid="'+esc(p.id)+'" data-ch="no">NO \u2192</button>'
+        +abstainBtnHTML(p.id,true)
+        +'</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>'+createHTML(null)+delegationHTML()+'</div>';
+  el.innerHTML=h;
+  wire(el);
+}
+function wire(el){
+  /* --- cast a vote: REPORT-family targets. Double-click guard (audit #26):
+     disable ALL targets for the proposal while the vote POST is in flight;
+     re-enable only on failure (success re-renders via load()). */
+  var vbs=el.querySelectorAll(".gv-cast[data-pid]");
+  for(var v=0;v<vbs.length;v++){ (function(b){ b.addEventListener("click",function(){
+    var pid=b.getAttribute("data-pid"), ch=b.getAttribute("data-ch");
+    var pair=[];
+    for(var q=0;q<vbs.length;q++){ if(vbs[q].getAttribute("data-pid")===pid) pair.push(vbs[q]); }
+    for(var q2=0;q2<pair.length;q2++){ pair[q2].disabled=true; }
+    var id2=ident();
+    post("proposal_vote",{callsign:id2.callsign,device:id2.device,proposal_id:pid,choice:ch},function(r){
+      if(r&&r.ok){
+        /* Server-issued weight only — cached for the stakes line. */
+        var w=parseInt(r.weight,10);
+        if(isFinite(w)&&w>0){ LASTW=w; lsSet(LASTW_KEY,String(w)); }
+        toast("Ballot reported. The tally stays sealed until close.");
+        load();
+      }
+      else {
+        toast((r&&r.err)||"Vote failed.");
+        for(var q3=0;q3<pair.length;q3++){ pair[q3].disabled=false; }
+      }
+    });
+  }); })(vbs[v]); }
+  /* share-out gaps #8: each decided result is shareable via pf:terminal. */
+  var gss=el.querySelectorAll(".gv-share");
+  for(var gs=0;gs<gss.length;gs++){ (function(b){ b.addEventListener("click",function(){
+    try{
+      var qq=hist[Number(b.getAttribute("data-idx"))];
+      if(!qq||!window.PFShareEverywhere||!window.PFShareEverywhere.terminal) return;
+      var res=qq.result==="passed"?"PASSED":(qq.result==="failed"?"FAILED":"TIE");
+      window.PFShareEverywhere.terminal({
+        gameId:"gov-result", title:"THE ASSEMBLY DECIDED",
+        result:res+" — "+String(qq.title||""),
+        lines:["YES "+qq.yes_weight+" · NO "+qq.no_weight+" · "+qq.voter_count+" voters"],
+        link:"/political-hq",
+        host:(b.closest&&b.closest(".x-pane"))||el,
+        kicker:"\u2696 THE ASSEMBLY \u2696"
+      });
+    }catch(e){}
+  }); })(gss[gs]); }
+  /* close & settle (proposal_close, AUTH+ADMIN). Past-due: any authed user.
+     Early: admin only — rides the X-Admin-Secret header via adminPost. */
+  function closeProposal(pid,early,btn){
+    if(!window.confirm(early?"Close this proposal EARLY as admin? The result stands.":"Close and settle this proposal? The result stands.")) return;
+    var id2=ident();
+    btn.disabled=true; btn.textContent="CLOSING\u2026";
+    var send=early?adminPost:post;
+    send("proposal_close",{callsign:id2.callsign,device:id2.device,proposal_id:pid},function(r){
+      if(r&&r.ok){ toast("Closed. The Assembly has spoken."); load(); }
+      else {
+        toast((r&&r.err)||"Close failed.");
+        btn.disabled=false; btn.textContent=early?"CLOSE EARLY (ADMIN)":"CLOSE & SETTLE";
+      }
+    });
+  }
+  var cbs=el.querySelectorAll("[data-gv-close]");
+  for(var c=0;c<cbs.length;c++){ (function(b){ b.addEventListener("click",function(){
+    closeProposal(b.getAttribute("data-pid"),false,b);
+  }); })(cbs[c]); }
+  var ebs=el.querySelectorAll("[data-gv-close-early]");
+  for(var e=0;e<ebs.length;e++){ (function(b){ b.addEventListener("click",function(){
+    closeProposal(b.getAttribute("data-pid"),true,b);
+  }); })(ebs[e]); }
+  var fvb=el.querySelector("[data-gv-firstvote-go]");
+  if(fvb){ fvb.addEventListener("click",function(){ lsSet(FIRSTVOTE_KEY,"1"); }); }
+  var cb=el.querySelector("#gvCreateBtn");
+  if(cb){ cb.addEventListener("click",function(){
+    var t=document.getElementById("gvTitle").value.trim(), d=document.getElementById("gvDesc").value.trim();
+    var dys=Math.max(1,Math.min(30,parseInt(document.getElementById("gvDays").value,10)||7));
+    var er=document.getElementById("gvCreateErr");
+    if(!t){ er.textContent="Give it a title."; return; }
+    er.textContent="";
+    if(!confirm("This costs 100 XP. Put it to a vote?")) return;
+    var id2=ident();
+    post("proposal_create",{callsign:id2.callsign,device:id2.device,title:t,description:d,duration_days:dys},function(r){
+      if(r&&r.ok){ toast("On the floor. Let the people decide."); load(); }
+      else { er.textContent=(r&&r.err)||"Failed."; }
+    });
+  }); }
+  var db=el.querySelector("#gvDelegateBtn");
+  if(db){ db.addEventListener("click",function(){
+    var d2=document.getElementById("gvDel").value.trim().toLowerCase();
+    var er=document.getElementById("gvDelErr"); if(!d2){ er.textContent="Whose judgment do you trust?"; return; }
+    er.textContent="";
+    var id2=ident();
+    post("delegate_set",{callsign:id2.callsign,device:id2.device,delegate:d2},function(r){
+      if(r&&r.ok){ toast("Vote delegated to "+d2+"."); load(); }
+      else { er.textContent=(r&&r.err)||"Failed."; }
+    });
+  }); }
+  var ub=el.querySelector("#gvUndelegate");
+  if(ub){ ub.addEventListener("click",function(){
+    var id2=ident();
+    post("delegate_set",{callsign:id2.callsign,device:id2.device,delegate:""},function(r){
+      if(r&&r.ok){ toast("Vote reclaimed."); load(); }
+      else { toast((r&&r.err)||"Failed."); }
+    });
+  }); }
+}
+/* 2026-10-05 (audit #27): the 120s scheduled re-render wiped in-progress drafts
+   (the new-proposal form, the delegate-callsign input). Skip the tick while
+   any input/textarea in the pane is focused or holds a non-default value. */
+function govHasDraft(){
+  try{
+    var el=document.getElementById("xGov"); if(!el) return false;
+    var f=el.querySelectorAll("input,textarea");
+    for(var i=0;i<f.length;i++){
+      var t=f[i];
+      if(t===document.activeElement) return true;
+      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }
+      else if(String(t.value)!==String(t.defaultValue)) return true;
+    }
+  }catch(e){}
+  return false;
+}
+/* TEST SEAM — the verify harness drives these without a backend. */
+try{
+  window.PF.govTest={
+    buildHTML:function(fixture,callsign){
+      var keep=GOVFIX;
+      GOVFIX=fixture||{proposals:[]};
+      var html="";
+      try{
+        PL={proposals:(GOVFIX.proposals||[])}; DG=GOVFIX.delegation||null;
+        XP=(GOVFIX.xp==null?null:Math.max(0,Math.floor(Number(GOVFIX.xp)||0)));
+        var _id=ident; ident=function(){ return {callsign:callsign||"",device:"t"}; };
+        var host={_h:"",set innerHTML(v){ this._h=String(v); },get innerHTML(){ return this._h; },
+          querySelector:function(){ return null; },querySelectorAll:function(){ return []; },
+          addEventListener:function(){}};
+        var _gd=document.getElementById;
+        document.getElementById=function(gid){ return gid==="xGov"?host:_gd.call(document,gid); };
+        try{ render(); }finally{ document.getElementById=_gd; ident=_id; }
+        html=host._h;
+      }finally{ GOVFIX=keep; }
+      return html;
+    },
+    tier:govTier, quorumBand:quorumBand, urgClass:urgClass, fmtLeft:fmtLeft,
+    marginPct:marginPct, isNewVoter:isNewVoter, abstainSupported:ABSTAIN_SUPPORTED
+  };
+}catch(e){}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(govHasDraft()) return; load(); },120000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== notify-prefs.js ===== */
+/* games/notify-prefs.js  |  PF v1.4.3 | NOTIFICATION PREFERENCES.
+   Granular opt-in/opt-out for every communication type. Mounted on the
+   Political HQ page (communications theme).
+   LAYERING: a game silo like civic.js. Reads via JSONP (self-contained api()),
+   writes via CORS POST (self-contained post()).
+   KILL: ?pf_off=notify-prefs  or  localStorage pf_disabled_v1='["notify-prefs"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("notify-prefs")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-notify-prefs">
+<div class="fe-block pf-override-block pf-silo" id="pf-notify-prefs">
+<a id="notifications" style="display:block;position:relative;top:-80px;"></a>
+<h2>Control the Signal</h2>
+<div class="c-tag">Your inbox, your rules. Toggle every message type. Opt out any time.</div>
+<div id="xNotifyPrefs"><div class="c-load">Loading your preferences&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfNpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function post(type,actionKey,action,params,cb){
+  var body=Object.assign({type:type},params);
+  body[actionKey]=action;
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:bodyStr},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ _po._pfClear(); done(j); })
+      .catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+var TYPES=[
+  ["streak_alerts","Streak alerts","Your 23-day streak dies in 4 hours"],
+  ["weekly_report","Weekly War Report","Monday digest of your week"],
+  ["flash_events","Flash events","Limited-time opportunities"],
+  ["cell_activity","Cell activity","Wars, invites, milestones"],
+  ["civic_alerts","Civic alerts","Petition wins, action calls"],
+  ["marketing","Promotional","Occasional announcements (rare)"]
+];
+var PREFS=null, MASKED="", CS="", CONTACT_ERR="";
+function render(){
+  var el=document.getElementById("xNotifyPrefs"); if(!el) return;
+  var h="";
+  /* Auth-gating fallout (2026-10-03): contact_get is per-callsign. If the
+     claim-retry self-heal couldn't get credentials (legacy callsign, secret
+     lost), say so plainly instead of rendering empty defaults that look
+     saved-but-blank. */
+  if(CONTACT_ERR){
+    el.innerHTML='<div class="c-box c-err">'+CONTACT_ERR+'</div>';
+    return;
+  }
+  h+='<div class="c-box" style="margin-bottom:12px;">';
+  h+='<div class="c-sub">EMAIL</div>';
+  h+='<div style="margin:6px 0;">'+(MASKED?esc(MASKED):"<i>no email on file</i>")+'</div>';
+  h+='<div style="display:flex;gap:8px;margin-top:6px;">';
+  h+='<input id="npEmail" type="email" placeholder="new email address" style="flex:1;max-width:280px;padding:8px;" />';
+  h+='<button class="c-btn" id="npEmailBtn" type="button">Update</button>';
+  h+='</div>';
+  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
+  h+='<label style="display:block;margin:6px 0;font-size:12px;cursor:pointer;"><input type="checkbox" id="npAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>';
+  h+='</div>';
+  h+='<div class="c-sub">MESSAGE TYPES</div>';
+  TYPES.forEach(function(t){
+    var k=t[0], on=PREFS&&PREFS[k]?1:0;
+    h+='<label style="display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer;">';
+    h+='<input type="checkbox" class="npTog" data-k="'+k+'"'+(on?" checked":"")+' style="margin-top:4px;transform:scale(1.3);" />';
+    h+='<span><b>'+t[1]+'</b><br><span class="c-dim" style="font-size:12px;">&ldquo;'+t[2]+'&rdquo;</span></span>';
+    h+='</label>';
+  });
+  h+='<div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+  h+='<button class="c-btn" id="npSave" type="button">SAVE PREFERENCES</button>';
+  h+='<a href="#" id="npUnsubAll" style="font-size:12px;color:var(--pf-red);">Unsubscribe from all</a>';
+  h+='<span id="npMsg" style="font-size:12px;"></span>';
+  h+='</div>';
+  /* 2026-10-03: auth_rotate (AUTH) — the orphaned auth hygiene action.
+     Lets users rotate their auth_secret from a settings surface. The current
+     secret rides along via PF.authPost, exactly what the backend requires. */
+  h+='<div class="c-box" style="margin-top:12px;">';
+  h+='<div class="c-sub">SECURITY</div>';
+  h+='<div style="font-size:12px;margin:6px 0;">Your auth secret signs every action. Rotate it if a device is lost or you suspect compromise &mdash; this device gets the new secret automatically; other devices will need to re-claim your callsign.</div>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">';
+  h+='<button class="c-btn" id="npRotate" type="button">ROTATE SECRET</button>';
+  h+='<span id="npRotMsg" style="font-size:12px;"></span>';
+  h+='</div></div>';
+  /* 2026-10-03 privacy/terms: self-serve data rights (privacy_export /
+     privacy_erase in the backend). */
+  h+=privacyPanelHTML();
+  el.innerHTML=h;
+  document.getElementById("npSave").addEventListener("click",save);
+  document.getElementById("npEmailBtn").addEventListener("click",updateEmail);
+  document.getElementById("npRotate").addEventListener("click",rotateSecret);
+  bindPrivacyPanel();
+  document.getElementById("npUnsubAll").addEventListener("click",function(e){
+    e.preventDefault();
+    if(!confirm("Mute every email from the Propaganda Factory?")) return;
+    var all={}; TYPES.forEach(function(t){ all[t[0]]=0; });
+    /* G-08 (2026-10-05): this is the EMAIL prefs contract —
+       post("notifyq","nq_action","notify_prefs") writes email-topic prefs
+       to contact_info (src/notifyqueue.js). The SEPARATE contract
+       post("notify","n_action","notification_prefs") is the IN-APP
+       notification center (games/notify.js, notif_prefs via src/notify.js).
+       Different surfaces, different tables — keep both, don't unify. */
+    post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:all},function(j){
+      if(j&&j.ok){ PREFS=j.prefs; render(); toast("All emails muted."); }
+      else msg("Could not save. "+(PF.errCopy(j,"")));
+    });
+  });
+}
+function msg(t){ var m=document.getElementById("npMsg"); if(m){ m.textContent=t; } }
+/* 2026-10-03 privacy/terms: self-serve data rights. privacyPanelHTML works
+   with or without a callsign — callsign-less visitors still get device-only
+   export/erase (covers anonymous fan votes). */
+function privacyPanelHTML(){
+  var h='<div class="c-box" style="margin-top:12px;">';
+  h+='<div class="c-sub">YOUR DATA</div>';
+  h+='<div style="font-size:12px;margin:6px 0;">Download everything we hold on you, or erase it. Erasing your email removes you from The Dispatch and detaches callsign recovery; your callsign can stay on the public leaderboard or go too &mdash; your call. Questions: email mtcstw@gmail.com.</div>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">';
+  h+='<button class="c-btn" id="npExport" type="button">DOWNLOAD MY DATA</button>';
+  if(CS) h+='<label style="font-size:12px;cursor:pointer;"><input type="checkbox" id="npEraseFull" checked style="vertical-align:middle;margin-right:4px;">Erase my callsign too (not just email)</label>';
+  h+='<button class="c-btn" id="npErase" type="button" style="border-color:var(--pf-red);color:var(--pf-red);">ERASE MY DATA</button>';
+  h+='<span id="npPrivMsg" style="font-size:12px;"></span>';
+  h+='</div>';
+  /* H11b (2026-10-03): the export is capped at 200 rows per table
+     (EXPORT_CAP in the backend) — say so instead of implying a full dump. */
+  h+='<div style="font-size:11px;color:#8a8a8a;margin-top:6px;">Exports include up to 200 rows per category.</div>';
+  h+='</div>';
+  return h;
+}
+function privMsg(t){ var m=document.getElementById("npPrivMsg"); if(m){ m.textContent=t; } }
+function bindPrivacyPanel(){
+  var ex=document.getElementById("npExport");
+  if(ex) ex.addEventListener("click",exportData);
+  var er=document.getElementById("npErase");
+  if(er) er.addEventListener("click",eraseData);
+}
+function exportData(){
+  /* M28 (2026-10-03): disabled+spinner while the export assembles —
+     no double-submit. Mirrors the armory btn.disabled=true pattern. */
+  var b=document.getElementById("npExport"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="ASSEMBLING\u2026"; }
+  privMsg("Assembling\u2026");
+  post("privacy","p_action","privacy_export",{callsign:CS,device:ident().device},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
+    privMsg("");
+    if(!(j&&j.ok)){ toast("Export failed. "+(PF.errCopy(j,""))); return; }
+    try{
+      var blob=new Blob([JSON.stringify(j,null,2)],{type:"application/json"});
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="pf-my-data-"+(CS||"browser")+".json";
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} try{ URL.revokeObjectURL(a.href); }catch(e2){} },1000);
+      toast("Your data is downloaded.");
+    }catch(e){ toast("Export failed."); }
+  });
+}
+function eraseData(){
+  var scope="device", warn="Erase this browser\u2019s server-side rows (e.g. fan votes)? This cannot be undone.";
+  if(CS){
+    var full=document.getElementById("npEraseFull");
+    scope=(full&&full.checked)?"full":"email";
+    warn=scope==="full"
+      ? "Erase EVERYTHING we hold on this callsign \u2014 XP, streaks, votes, contact info, the callsign itself? This cannot be undone."
+      : "Erase your email and phone, unsubscribe, detach callsign recovery? Your callsign stays on the public boards.";
+  }
+  if(!window.confirm(warn)) return;
+  /* M28: disabled+spinner while the erase runs — no double-submit. On
+     success the button stays disabled until the reload; on failure it
+     becomes the RETRY path like the footer button. */
+  var eb=document.getElementById("npErase"), elbl=eb?eb.textContent:"";
+  if(eb){ eb.disabled=true; eb.textContent="ERASING\u2026"; }
+  privMsg("Erasing\u2026");
+  post("privacy","p_action","privacy_erase",{callsign:CS,device:ident().device,scope:scope},function(j){
+    privMsg("");
+    if(!(j&&j.ok)){
+      if(eb){ eb.disabled=false; eb.textContent="RETRY"; }
+      toast("Erase failed. "+(PF.errCopy(j,"")));
+      return;
+    }
+    toast((j&&j.note)||"Erased.");
+    if(scope==="full"){
+      /* M24 (2026-10-03): the footer DELETE MY DATA button wipes every
+         pf_* localStorage key; this path used to drop only identity +
+         auth secret, leaving streak/XP/cell caches behind. Unified: the
+         full erase now does the same complete wipe as the footer
+         (v1.4.3/core/16-footer.js wipeLocal) plus the sessionStorage
+         keys (e.g. pf_cs_dismissed) that neither path used to clear. */
+      wipeLocalAll();
+      setTimeout(function(){ try{ location.reload(); }catch(e2){} },2200);
+    } else if(eb){
+      /* GAP AUDIT v2 R1 (2026-10-03): email/device scopes don't reload —
+         the success path left the button disabled with "ERASING…" forever.
+         Re-enable it so a second erase doesn't need a page refresh. */
+      eb.disabled=false; eb.textContent=elbl;
+    }
+  });
+}
+/* M24: mirror of the footer's wipeLocal + sessionStorage sweep. */
+function wipeLocalAll(){
+  try{
+    var gone=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.indexOf("pf_")===0) gone.push(k);
+    }
+    gone.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  }catch(e){}
+  try{
+    localStorage.removeItem("pf_identity_v1");
+    localStorage.removeItem("pf_auth_secret");
+    localStorage.removeItem("pf_device_v1");
+  }catch(e2){}
+  try{
+    var sgone=[];
+    for(var j=0;j<sessionStorage.length;j++){
+      var sk=sessionStorage.key(j);
+      if(sk&&sk.indexOf("pf_")===0) sgone.push(sk);
+    }
+    sgone.forEach(function(k){ try{ sessionStorage.removeItem(k); }catch(e){} });
+  }catch(e3){}
+}
+function save(){
+  var prefs={};
+  var togs=document.querySelectorAll(".npTog");
+  for(var i=0;i<togs.length;i++) prefs[togs[i].getAttribute("data-k")]=togs[i].checked?1:0;
+  /* M28: disabled+spinner while the save posts — no double-submit. */
+  var b=document.getElementById("npSave"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="SAVING\u2026"; }
+  msg("Saving\u2026");
+  post("notifyq","nq_action","notify_prefs",{callsign:CS,prefs:prefs},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
+    if(j&&j.ok){ PREFS=j.prefs; toast("Preferences saved."); msg(""); render(); }
+    else msg("Could not save. "+(PF.errCopy(j,"")));
+  });
+}
+function updateEmail(){
+  var em=document.getElementById("npEmail").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ msg("Enter a valid email."); return; }
+  /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). The
+     backend enforces it too. */
+  var age13=document.getElementById("npAge13");
+  if(!(age13&&age13.checked)){ msg("Please confirm you are 13 or older."); return; }
+  /* M28: disabled+spinner while the email update posts — no double-submit. */
+  var b=document.getElementById("npEmailBtn"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="SAVING\u2026"; }
+  msg("Saving\u2026");
+  post("notifyq","nq_action","contact_set",{callsign:CS,email:em,email_optin:1,age13:1},function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
+    if(j&&j.ok){ MASKED=em; toast("Email updated."); msg(""); render(); }
+    else msg("Could not save. "+(PF.errCopy(j,"")));
+  });
+}
+/* auth:auth_rotate (AUTH) — requires the CURRENT secret, which PF.authPost
+   attaches. The new secret is saved straight into localStorage via
+   PF.saveAuthSecret; the value is never displayed. */
+function rotateSecret(){
+  var b=document.getElementById("npRotate");
+  var m=document.getElementById("npRotMsg");
+  if(!CS){ if(m) m.textContent="Enlist first (pick a callsign)."; return; }
+  if(!window.confirm("Rotate your auth secret? This device gets the new one automatically. Other devices will need to re-claim your callsign.")) return;
+  if(b) b.disabled=true;
+  if(m) m.textContent="Rotating\u2026";
+  post("auth","auth_action","auth_rotate",{callsign:CS},function(j){
+    if(b) b.disabled=false;
+    if(j&&j.ok&&j.auth_secret){
+      try{ if(window.PF&&PF.saveAuthSecret) PF.saveAuthSecret(j.auth_secret); }catch(e){}
+      toast("Secret rotated. This device is re-keyed.");
+      if(m) m.textContent="Rotated.";
+    } else {
+      if(m) m.textContent="Rotate failed. "+(PF.errCopy(j,""));
+    }
+  });
+}
+function load(){
+  CS=ident().callsign||"";
+  if(!CS){
+    var el=document.getElementById("xNotifyPrefs");
+    if(el){
+      /* 2026-10-03 privacy/terms: no callsign yet, but this browser may still
+         hold server-side rows (e.g. fan votes) — device-only data rights. */
+      el.innerHTML='<div class="c-box">Enlist first (pick a callsign) to manage notification preferences.</div>'+privacyPanelHTML();
+      bindPrivacyPanel();
+    }
+    return;
+  }
+  /* contact_get is per-callsign auth-gated (rectify pass): route through the
+     shared claim-retry GET so a missing secret becomes one auth_claim attempt
+     with a friendly message, not a silent empty prefill. */
+  var params={callsign:CS};
+  var cb=function(j){
+    if(j&&j.ok){ PREFS=j.prefs||{}; MASKED=j.email||""; }
+    else {
+      PREFS={}; MASKED="";
+      var e=String((j&&j.err)||"");
+      /* 2026-10-03: also match the 'legacy_callsign' code from the 14-auth.js
+         claim-retry path — legacy callsigns need recovery copy here, not the
+         misleading "wire is down" message. */
+      if(/missing credentials|unauthorized|claim unavailable|legacy_callsign/i.test(e))
+        CONTACT_ERR="Your preferences wouldn&rsquo;t load &mdash; your callsign needs to reconnect. Re-claim it in Enlistment Ranks (one tap), then reload this page.";
+      else
+        CONTACT_ERR="Could not reach Command to load your preferences. The wire is down &mdash; retry in a bit.";
+    }
+    render();
+  };
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",params,cb); return; } }catch(e){}
+  api("contact_get",params,cb);
+}
+load();
+})();
+</script>
+</template>`);
+})();
+
+;
+
+/* ===== intel.js ===== */
+/* games/intel.js  |  PF v1.4.3 | KNOW YOUR ENEMY: counter-intelligence feed.
+   What the billionaires are funding, where they're spending, who they're
+   buying. Propaganda needs a target picture.
+   KILL: ?pf_off=intel  or  localStorage pf_disabled_v1='["intel"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("intel")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-intel">
+<div class="fe-block pf-override-block pf-silo" id="pf-intel">
+<h2>Know Your Enemy</h2>
+<div class="c-tag">Their money moves first. We watch where it lands.</div>
+<div id="xIntel"><div class="c-load">Reading their mail&hellip;</div></div>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+/* Friendly copy for gated read failures (2026-10-03): raw backend strings
+   like 'missing credentials' are never shown as UI copy. */
+function inAuthHint(j){
+  var e=String((j&&j.err)||"");
+  if(e.indexOf("claim unavailable")!==-1||e==="legacy_callsign")
+    return '<br><span class="x-note">This callsign predates the new auth system and can&rsquo;t reconnect on its own &mdash; contact MTCSTW to recover it.</span>';
+  if(e==="missing credentials"||e==="unauthorized"||e.indexOf("missing credentials")!==-1)
+    return '<br><span class="x-note">Your callsign needs to reconnect &mdash; re-claim it in Enlistment Ranks (one tap), then retry.</span>';
+  return "";
+}
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  /* Private reads require auth_secret (IDOR fix). intel_submissions is
+     gated ONLY in mine mode (2026-10-03): the admin pending-queue view
+     (vault.js apiAdmin, X-Admin-Secret) is deliberately left ungated. */
+  if(action==="intel_submissions"&&params&&params.mine){
+    try{
+      if(window.PF && PF.authGetJSONP){ PF.authGetJSONP(BACKEND,action,params,cb); return; }
+      var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+      if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+    }catch(e){}
+  }
+  var fn="pfInCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+function post(body,cb){
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,cb); return; }
+  function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+  try{
+    /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+    var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+      try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+        t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+      o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+    fetch(BACKEND,_po)
+      .then(function(r){ return r.json(); }).then(function(j){ _po._pfClear(); done(j); }).catch(function(){ _po._pfClear(); done(null); });
+  }catch(e){ done(null); }
+}
+function fmtTs(t){
+  try{
+    var ms=Number(t); if(ms<1e12) ms=ms*1000;
+    var d=new Date(ms); if(isNaN(d.getTime())) return "";
+    var mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return mo[d.getMonth()]+" "+d.getDate();
+  }catch(e){ return ""; }
+}
+/* 2026-10-03 C2: own 15s timeout + error/retry — api()'s failsafe reports
+   null but cannot distinguish a failed fetch from an empty list, so success
+   is tracked locally. Paints the live node (re-resolved by id) so a
+   mid-flight re-render cannot strand results on a detached node. */
+function loadMySubs(){
+  if(!document.getElementById("inMySubs")) return;
+  var me=ident();
+  function paintMySubs(html){ var live=document.getElementById("inMySubs"); if(live) live.innerHTML=html; }
+  if(!me.callsign){ paintMySubs('<div class="x-note">Claim a callsign to track submissions.</div>'); return; }
+  var done=false, to=null;
+  function showErr(j){
+    if(done) return; done=true;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    paintMySubs('<div class="x-note c-err">Could not load your submissions. '+inAuthHint(j)
+      +'<button class="c-btn" id="inSubsRetry">RETRY</button></div>');
+    var r=document.getElementById("inSubsRetry");
+    if(r) r.onclick=function(){ loadMySubs(); };
+  }
+  to=setTimeout(showErr,15000);
+  api("intel_submissions",{callsign:me.callsign,mine:1},function(j){
+    if(done) return;
+    try{ if(to) clearTimeout(to); }catch(e){}
+    /* 2026-10-03: done is set by showErr() on the failure path and here on
+       success. Setting done=true before the failure branch (as before) made
+       showErr() bail on its own if(done) guard for EVERY failed fetch —
+       the timer was already cleared, so nothing painted and "Loading…"
+       stuck forever with no retry. */
+    if(!j||!j.ok){ showErr(j); return; }
+    done=true;
+    if(!j.submissions||!j.submissions.length){
+      paintMySubs('<div class="x-note">No submissions yet.</div>'); return;
+    }
+    var h="";
+    for(var i=0;i<j.submissions.length;i++){
+      var s=j.submissions[i];
+      var st=String(s.status||"pending").toUpperCase();
+      h+='<div class="in-sub"><b>'+esc(s.target)+'</b> <span class="bt-st bt-st-'+esc(s.status)+'">'+st+'</span>';
+      if(s.status==="rejected"&&s.reason) h+=' <span class="x-note">'+esc(s.reason)+'</span>';
+      h+=' <span class="x-note">'+fmtTs(s.created_at)+'</span></div>';
+    }
+    paintMySubs(h);
+  });
+}
+function load(){
+  var el=document.getElementById("xIntel"); if(!el) return;
+  /* 2026-10-03 C2: submissions load AFTER render() completes — render builds
+     the fresh #inMySubs node, so the fetch targets the live node. This wires
+     the never-fired initial load and removes the post-submit race. */
+  function got(j){ render(j); loadMySubs(); }
+  api("intel_list",{},got);
+  setTimeout(function(){ if(el.innerHTML.indexOf("c-load")>=0) got(null); },15000);
+}
+function render(j){
+  var el=document.getElementById("xIntel"); if(!el) return;
+  var h="";
+  var items=(j&&j.ok&&j.items)||[];
+  h+='<div class="in-frame">THEY HAVE A WAR ROOM. SO DO WE.</div>';
+  /* 2026-10-05: LIVE wire feed — fresh headlines from the wire, rendered
+     above the curated dossiers. Fail-soft: if j.live is missing or empty,
+     NOTHING renders here and the dossiers stand alone exactly as before. */
+  var live=(j&&j.ok&&Array.isArray(j.live))?j.live:[];
+  if(live.length){
+    h+='<div class="x-pane inl-live">'
+      +'<div class="inl-head"><span class="inl-badge"><span class="inl-dot"></span>LIVE</span>'
+      +'<span class="inl-title">FRESH FROM THE WIRE</span></div>';
+    if(j.live_stale){
+      h+='<div class="x-note inl-stale">Wire feed may be stale &mdash; headlines below could lag.</div>';
+    }
+    for(var li=0;li<live.length;li++){
+      var lv=live[li]||{};
+      var lurl=String(lv.url||""), ltitle=String(lv.title||"");
+      h+='<div class="inl-item">';
+      if(/^https?:\\/\\//i.test(lurl)){
+        h+='<a class="inl-headline" href="'+esc(lurl)+'" target="_blank" rel="noopener">'+esc(ltitle||lurl)+'</a>';
+      }else{
+        h+='<span class="inl-headline">'+esc(ltitle||"Untitled")+'</span>';
+      }
+      h+='<div class="inl-meta">'+esc(lv.source||"wire");
+      var lts=fmtTs(lv.published_at);
+      if(lts) h+=' &bull; '+esc(lts);
+      h+='</div></div>';
+    }
+    h+='</div>';
+  }
+  if(!items.length){
+    h+='<div class="x-pane"><div class="x-note">No intel filed yet. The watchers are watching.</div></div>';
+  }
+  for(var i=0;i<items.length;i++){
+    var it=items[i];
+    h+='<div class="x-pane in-item">'
+      +'<div class="in-target">&#9673; '+esc(it.target)+' <span class="in-kind">CURATED</span></div>'
+      +'<div class="in-activity">'+esc(it.activity)+'</div>'
+      +(it.amount?'<div class="in-amount">MONEY: '+esc(it.amount)+'</div>':"")
+      +'<div class="in-meta">'+esc(fmtTs(it.ts));
+    if(it.source){
+      var src=String(it.source);
+      if(/^https?:\\/\\//i.test(src)){
+        h+=' &bull; <a href="'+esc(src)+'" target="_blank" rel="noopener">source</a>';
+      } else {
+        h+=' &bull; source: '+esc(src);
+      }
+    }
+    h+='</div></div>';
+  }
+  /* file intel — intel_submit (user-facing; goes live after approval.
+     target+activity+source required, every item must cite a checkable source) */
+  h+='<div class="x-pane"><h4>File intel</h4>'
+    +'<div class="x-note">What are they funding? Every submission needs a checkable source. Goes live after review.</div>'
+    +'<input aria-label="TARGET" id="inTarget" maxlength="120" placeholder="TARGET — who / what org"> '
+    +'<input aria-label="ACTIVITY" id="inActivity" maxlength="400" placeholder="ACTIVITY — what are they doing"> '
+    +'<input aria-label="MONEY" id="inAmount" maxlength="80" placeholder="MONEY (optional) — e.g. $2M"> '
+    +'<input aria-label="SOURCE" id="inSource" maxlength="200" placeholder="SOURCE (required) — link or citation"> '
+    +'<button class="c-btn" id="inFileBtn">SUBMIT INTEL</button><div class="c-err" id="inFileErr"></div></div>';
+  h+='<div class="x-pane"><h4>Your submissions</h4><div id="inMySubs"><div class="x-note">Loading&hellip;</div></div></div>';
+  h+='<div style="margin-top:10px"><button class="c-btn" id="inRetry">Refresh</button></div>';
+  el.innerHTML=h;
+  var fb=document.getElementById("inFileBtn");
+  if(fb) fb.onclick=function(){
+    var me=ident();
+    if(!me.callsign){ toast("Claim a callsign first."); return; }
+    var tg=document.getElementById("inTarget"), ac=document.getElementById("inActivity"),
+        am=document.getElementById("inAmount"), sc=document.getElementById("inSource");
+    var target=tg?tg.value.trim():"", activity=ac?ac.value.trim():"",
+        amount=am?am.value.trim():"", source=sc?sc.value.trim():"";
+    var errEl=document.getElementById("inFileErr");
+    if(errEl) errEl.textContent="";
+    if(!target){ if(errEl)errEl.textContent="Target is required."; return; }
+    if(!activity){ if(errEl)errEl.textContent="Describe the activity."; return; }
+    if(!source){ if(errEl)errEl.textContent="Source is required — every intel item must cite a checkable source."; return; }
+    if(!window.confirm("Submit intel on \\\""+target+"\\\" for review?")) return;
+    fb.disabled=true;
+    post({type:"intel",i_action:"intel_submit",callsign:me.callsign,device:me.device,target:target,activity:activity,amount:amount,source:source},function(j){
+      fb.disabled=false;
+      if(!j||!j.ok){ if(errEl)errEl.textContent=PF.errCopy(j,"Submission failed."); return; }
+      toast("Intel submitted for review.");
+      /* 2026-10-03 C2: load() sequences render -> loadMySubs(), so the
+         submissions fetch targets the fresh node (was: load() +
+         loadMySubs() raced, fetch captured the pre-render node). */
+      load();
+    });
+  };
+  var rb=document.getElementById("inRetry");
+  if(rb) rb.onclick=function(){ el.innerHTML='<div class="c-load">Reading their mail&hellip;</div>'; load(); };
+}
+/* 2026-10-05 (audit #27): the 300s scheduled re-render wiped in-progress
+   file-intel drafts (target/activity/money/source inputs). Skip the tick
+   while any input/textarea in the pane is focused or holds a non-default
+   value. */
+function intelHasDraft(){
+  try{
+    var el=document.getElementById("xIntel"); if(!el) return false;
+    var f=el.querySelectorAll("input,textarea");
+    for(var i=0;i<f.length;i++){
+      var t=f[i];
+      if(t===document.activeElement) return true;
+      if(t.type==="checkbox"||t.type==="radio"){ if(t.checked!==t.defaultChecked) return true; }
+      else if(String(t.value)!==String(t.defaultValue)) return true;
+    }
+  }catch(e){}
+  return false;
+}
+load();
+setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} if(intelHasDraft()) return; load(); },300000);
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== predict.js ===== */
+/* games/predict.js  |  PF v1.4.3 | CALL THE SHOT: bill prediction game for Political HQ.
+   Embeddable prediction widget + standalone section.
+   BACKEND CONTRACT (built in parallel by the BE worker):
+     predict_place       POST (callsign auth): {bill_id, prediction:'pass'|'fail', predicted_margin?} -> {ok} | {err}
+     predict_list        GET: {bill_id?} -> open bills + caller's picks
+     predict_leaderboard GET -> top 25 {callsign, wins, losses}
+   Defensive: if the backend or these actions don't exist yet, the section and
+   every widget hide themselves and log — the page never breaks.
+   LAYERING: game silo. Reads via JSONP (self-contained api()), writes via
+   CORS POST (self-contained post(), {type:'predict', p_action:...} — same
+   convention as fan-vote's {type:'vote', v_action:...}). Never reaches into
+   another silo's internals. No invented bills: renders only bills returned
+   by predict_list. XP is backend-granted; the UI only advertises +25 XP.
+   KILL: ?pf_off=predict  or  localStorage pf_disabled_v1='["predict"]'
+   EMBED (for the legislation-tracker crew):
+     window.PFPredict.mount(el, bill)
+       el   : DOM element (a div inside the bill card) to render the widget into
+       bill : { bill_id | id, title, status, my_pick?, result? }
+              my_pick/result: 'pass' | 'fail' (also tolerates
+              pick/prediction/resolved/outcome keys)
+     The widget renders WILL PASS / WILL FAIL buttons, the locked state, or
+     the resolved state. If the backend URL is missing, the widget hides
+     itself (fail-soft). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('predict')) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-predict">
+<div class="fe-block pf-override-block pf-silo" id="pf-predict">
+<h2>Call the Shot</h2>
+<div class="c-tag">Every bill on the board. Call pass or fail. Right calls pay <b>+25 XP</b>.</div>
+<div id="xPredict"><div class="c-load">Reading the room&hellip;</div></div>
+<style>
+/* CALL THE SHOT (2026-10-05) — prediction game. Mobile-first, touch targets >= 44px. */
+#pf-predict .pp-row{margin:12px 0;padding:12px;border:2px solid #3a3a3a;background:#0d0d0d}
+#pf-predict .pp-title{font-weight:900;font-size:1rem;color:#f5f0e1;margin-bottom:6px;line-height:1.3}
+#pf-predict .pp-status{font-size:0.75rem;letter-spacing:0.14em;color:#b8ab8e;margin-bottom:10px}
+#pf-predict .pp-picks{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+#pf-predict .pp-btn{flex:1 1 140px;min-height:48px;font-weight:900;font-size:0.95rem;letter-spacing:0.1em;cursor:pointer;border:2px solid var(--pf-red);background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px}
+#pf-predict .pp-btn:active{background:var(--pf-red)}
+#pf-predict .pp-btn:disabled{opacity:0.55;cursor:default}
+#pf-predict .pp-margin{width:100%;box-sizing:border-box;min-height:44px;background:#141414;border:1px solid #4a4a4a;color:#f5f0e1;font-family:inherit;font-size:0.9rem;padding:8px 10px;margin-top:6px}
+#pf-predict .pp-xpline{font-size:0.8rem;color:var(--pf-red);font-weight:700;letter-spacing:0.08em;margin:8px 0 0}
+#pf-predict .pp-sharewrap{margin-top:12px}
+#pf-predict .pp-share{border-color:var(--pf-gold);background:#1a1205;color:var(--pf-cream)}
+#pf-predict .pp-share:active{background:var(--pf-gold);color:#0d0d0d}
+#pf-predict .pp-sharemsg{min-height:0}
+#pf-predict .pp-msg{min-height:1.4em;font-size:0.85rem;color:#b8ab8e;margin-top:8px}
+#pf-predict .pp-locked{border:2px solid var(--pf-red);background:#1a0505;padding:12px;font-weight:700;color:#f5f0e1}
+#pf-predict .pp-locked .pp-xpline{color:#f5f0e1}
+#pf-predict .pp-result{border:2px solid #4a4a4a;padding:12px}
+#pf-predict .pp-win{color:#7fd069;font-weight:900}
+#pf-predict .pp-loss{color:var(--pf-red);font-weight:900}
+#pf-predict .pp-record{font-size:1rem;font-weight:900;letter-spacing:0.12em;color:#f5f0e1;margin:10px 0}
+#pf-predict .pp-record b{color:var(--pf-red)}
+#pf-predict .pp-board{margin-top:18px}
+#pf-predict .pp-board h3{letter-spacing:0.18em;font-size:0.95rem;color:var(--pf-red);margin:0 0 8px}
+#pf-predict .pp-lrow{display:flex;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid #2a2a2a;font-size:0.9rem;min-height:44px;box-sizing:border-box}
+#pf-predict .pp-lrank{width:2.2em;font-weight:900;color:#b8ab8e}
+#pf-predict .pp-lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f5f0e1}
+#pf-predict .pp-lwl{color:#b8ab8e;font-size:0.8rem}
+#pf-predict .pp-gate{border:2px dashed #4a4a4a;padding:14px;color:#b8ab8e;font-size:0.9rem}
+</style>
+</div>
+<script>
+(function(){
+var PF = window.PF;
+var BACKEND = window.PF_BACKEND_URL;
+/* PFPredict namespace: widget + section, exported for the legislation tracker. */
+var PFP = window.PFPredict = window.PFPredict || {};
+PFP.XP_REWARD = 25;
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ident(){
+  var cs='', dev='';
+  try{ cs = window.PFCallsign ? window.PFCallsign() : ''; }catch(e){}
+  try{ dev = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
+  return { callsign: cs, device: dev };
+}
+function toast(m){ try{ if(window.PF && PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement('div'); t.textContent=m;
+    t.style.cssText='position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+    document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action, params, cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn='pfPrCb'+Math.floor(Math.random()*1e9);
+  var s=document.createElement('script'), done=false;
+  function finish(j){ if(done)return; done=true;
+    try{ delete window[fn]; }catch(e){}
+    if(s.parentNode) s.parentNode.removeChild(s);
+    try{ cb(j); }catch(e){} }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q='?action='+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null && params[k]!=='') q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }
+  q+='&callback='+fn;
+  s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* CORS POST, same {type, p_action} convention as fan-vote's {type:'vote', v_action:...}. */
+function post(action, params, cb){
+  var body = { type:'predict', p_action:action };
+  for(var k in params){ body[k]=params[k]; }
+  if(window.PF && PF.authPost){ PF.authPost(BACKEND, body, cb); return; }
+  var bodyStr=JSON.stringify(body);
+  function done(j){ try{ cb(j||{ok:false, err:'Network error.'}); }catch(e){} }
+  try{
+    var o={method:'POST', headers:{'Content-Type':'application/json'}, body:bodyStr}, c=null, t=null;
+    try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+      t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+    fetch(BACKEND, o)
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if(t){ try{clearTimeout(t);}catch(e){} } done(j); })
+      .catch(function(){ if(t){ try{clearTimeout(t);}catch(e){} } done(null); });
+  }catch(e){ done(null); }
+}
+function errMsg(j, dflt){
+  try{ if(window.PF && PF.errCopy) return PF.errCopy(j, dflt); }catch(e){}
+  if(j && (j.err || j.error)) return String(j.err || j.error);
+  return dflt;
+}
+
+/* ---- bill normalization (tolerates the BE worker's key variants) ---- */
+function normBill(b){
+  b = b || {};
+  var id = b.bill_id || b.id || b.billId || '';
+  var title = b.title || b.name || b.bill_title || 'Untitled bill';
+  var status = b.status || b.bill_status || 'open';
+  var pick = b.my_pick || b.pick || b.prediction || b.user_pick || '';
+  var result = b.result || b.resolved || b.outcome || b.final_result || '';
+  var margin = b.predicted_margin || b.margin || '';
+  pick = String(pick||'').toLowerCase();
+  result = String(result||'').toLowerCase();
+  if(pick!=='pass' && pick!=='fail') pick='';
+  if(result!=='pass' && result!=='fail') result='';
+  return { id:String(id), title:String(title), status:String(status), pick:pick, result:result, margin:String(margin==null?'':margin), raw:b };
+}
+
+/* ---- widget HTML (pure, testable) ---- */
+function widgetHTML(bill){
+  var b = normBill(bill);
+  var h = '<div class="pp-row pp-widget" data-bill="'+esc(b.id)+'">';
+  h += '<div class="pp-title">'+esc(b.title)+'</div>';
+  h += '<div class="pp-status">STATUS: '+esc(String(b.status).toUpperCase())+'</div>';
+  if(b.result){
+    /* resolved */
+    var resWord = b.result==='pass' ? 'PASSED' : 'FAILED';
+    h += '<div class="pp-result"><div>FINAL RESULT: <b>'+resWord+'</b></div>';
+    if(b.pick){
+      if(b.pick===b.result){
+        h += '<div class="pp-win">YOU CALLED IT. +'+PFP.XP_REWARD+' XP.</div>';
+      } else {
+        h += '<div class="pp-loss">MISSED IT. The establishment thanks you for nothing &mdash; strike back on the next one.</div>';
+      }
+    } else {
+      h += '<div class="pp-msg">You made no call on this one. The next board is already open.</div>';
+    }
+    h += '</div>';
+  } else if(b.pick){
+    /* locked — SHARE YOUR CALL rides the phq-predict-call painter (same
+       family as the resolution poster). XP (Economy Desk 2026-10-05): this
+       widget makes NO poster-specific grant. Sharing inherits the shared
+       PFShare creditShare chokepoint only — +1 XP once/day on the device
+       ledger, backend +1 once per (callsign, device) ever (key
+       lx:<device>:share, MIRROR_EVENT_MAX ['share',1]) — identical to every
+       other PHQ poster. The +25 prediction reward rides the backend-granted
+       resolution leg only (predict_win_*, NO_MULT, idempotent per
+       bill+callsign): generation and resolution are distinct events, so a
+       "no XP on generation" reading here would be wrong and a future
+       builder could double-grant. */
+    h += '<div class="pp-locked">LOCKED IN &mdash; you called <b>'+esc(b.pick.toUpperCase())+'</b>.<div class="pp-xpline">Right call pays +'+PFP.XP_REWARD+' XP.</div>'
+      + '<div class="pp-sharewrap"><button type="button" class="pp-btn pp-share" data-act="share">SHARE YOUR CALL</button></div>'
+      + '<div class="pp-msg pp-sharemsg"></div></div>';
+  } else {
+    /* open pick */
+    var cs = ident().callsign;
+    if(!cs){
+      h += '<div class="pp-gate">You need a callsign to call the shot. Enlist first, then pick your fights.</div>';
+    } else {
+      h += '<div class="pp-picks">'
+        + '<button type="button" class="pp-btn pp-pass" data-act="pass">WILL PASS</button>'
+        + '<button type="button" class="pp-btn pp-fail" data-act="fail">WILL FAIL</button>'
+        + '</div>'
+        + '<input class="pp-margin" type="text" inputmode="numeric" placeholder="Call the margin (optional)" aria-label="Predicted margin">'
+        + '<div class="pp-xpline">NAIL THE CALL: +'+PFP.XP_REWARD+' XP. Wrong calls cost you nothing but pride.</div>'
+        + '<div class="pp-msg"></div>';
+    }
+  }
+  h += '</div>';
+  return h;
+}
+
+/* ---- widget binding: wires pick buttons -> predict_place ---- */
+function bindWidget(el, bill){
+  var b = normBill(bill);
+  var btns = el.querySelectorAll ? el.querySelectorAll('.pp-btn') : [];
+  for(var i=0;i<btns.length;i++){
+    (function(btn){
+      btn.onclick = function(){
+        var pick = btn.getAttribute('data-act');
+        if(pick!=='pass' && pick!=='fail') return;
+        var idt = ident();
+        if(!idt.callsign){ toast('Enlist first — you need a callsign.'); return; }
+        var margin = '';
+        try{ var m = el.querySelector('.pp-margin'); if(m) margin = String(m.value||'').trim(); }catch(e){}
+        btn.disabled = true;
+        var sibs = el.querySelectorAll('.pp-btn');
+        for(var j=0;j<sibs.length;j++){ sibs[j].disabled = true; }
+        var msg = el.querySelector('.pp-msg');
+        function say(t){ if(msg){ msg.textContent = t; } }
+        var params = { bill_id:b.id, prediction:pick, callsign:idt.callsign, device:idt.device };
+        if(margin) params.predicted_margin = margin;
+        post('predict_place', params, function(j){
+          if(j && j.ok){
+            toast('Call locked in. +'+PFP.XP_REWARD+' XP if you nail it.');
+            b.pick = pick;
+            b.margin = margin; /* stash for SHARE YOUR CALL — rendered live, never invented */
+            try{
+              el.innerHTML = widgetHTML(b);
+              bindWidget(el, b);
+            }catch(e){}
+          } else {
+            say(errMsg(j, 'Call failed — try again.'));
+            for(var k=0;k<sibs.length;k++){ sibs[k].disabled = false; }
+          }
+        });
+      };
+    })(btns[i]);
+  }
+  /* SHARE YOUR CALL: locked-state button -> phq-predict-call poster (same
+     painter family as the resolution poster). XP (Economy Desk 2026-10-05):
+     NO poster-specific grant here — the share inherits the shared PFShare
+     creditShare chokepoint (+1 XP once/day device ledger, backend +1 once
+     per (callsign,device) ever), same as all PHQ posters. Prediction XP is
+     backend-granted on resolution only (predict_win_*, NO_MULT, idempotent
+     per bill+callsign) — distinct event, no double-grant.
+     Fail-soft: painter family absent -> hide the button, never break. */
+  var shares = el.querySelectorAll ? el.querySelectorAll('.pp-share') : [];
+  for(var i=0;i<shares.length;i++){
+    (function(sbtn){
+      var hasPainter = false;
+      try{ hasPainter = !!(window.PF && PF.PHQShare); }catch(e){}
+      if(!hasPainter){ try{ sbtn.style.display='none'; }catch(e2){} return; }
+      sbtn.onclick = function(){
+        var sent = false;
+        try{
+          sent = PF.PHQShare.share('phq-predict-call', {
+            billTitle: b.title,
+            billId: b.id,
+            pick: b.pick,
+            margin: b.margin || ''
+          });
+        }catch(e){ sent = false; }
+        if(!sent) toast('Poster failed \u2014 try again.');
+      };
+    })(shares[i]);
+  }
+}
+
+/* Public embed API for the legislation-tracker crew.
+   window.PFPredict.mount(el, bill)
+     el   : element (a div inside a bill card) to render into
+     bill : { bill_id|id, title, status, my_pick?, result? }
+   Fail-soft: no backend URL -> hides el and logs. Never throws. */
+PFP.renderWidget = widgetHTML;
+PFP.normBill = normBill;
+PFP.mount = function(el, bill){
+  try{
+    if(!el) return;
+    if(!BACKEND){
+      try{ console.log('[predict] no backend URL — widget hidden'); }catch(e){}
+      try{ el.style.display='none'; }catch(e){}
+      return;
+    }
+    var b = normBill(bill);
+    if(!b.id){
+      try{ console.log('[predict] mount called without a bill id — hidden'); }catch(e){}
+      try{ el.style.display='none'; }catch(e){}
+      return;
+    }
+    el.innerHTML = widgetHTML(b);
+    bindWidget(el, b);
+  }catch(e){
+    try{ console.log('[predict] mount failed (soft): '+(e && e.message || e)); }catch(e2){}
+  }
+};
+
+/* ---- section: open bills + record + leaderboard ---- */
+function recordHTML(rec){
+  rec = rec || {};
+  var w = Number(rec.wins||0), l = Number(rec.losses||0);
+  return '<div class="pp-record">YOUR RECORD: <b>'+w+'W</b> &ndash; <b>'+l+'L</b></div>';
+}
+function leaderboardHTML(leaders){
+  var h = '<div class="pp-board"><h3>TOP CALLERS</h3>';
+  if(!leaders || !leaders.length){
+    h += '<div class="pp-msg">No calls on the board yet. Be the first to read the room.</div></div>';
+    return h;
+  }
+  for(var i=0;i<leaders.length && i<25;i++){
+    var r = leaders[i]||{};
+    var cs = r.callsign || r.name || 'UNKNOWN';
+    var w = Number(r.wins||0), l = Number(r.losses||0);
+    h += '<div class="pp-lrow"><span class="pp-lrank">'+(i+1)+'</span>'
+      + '<span class="pp-lname">'+esc(cs)+'</span>'
+      + '<span class="pp-lwl">'+w+'W &ndash; '+l+'L</span></div>';
+  }
+  h += '</div>';
+  return h;
+}
+function sectionHTML(bills, rec, leaders){
+  var h = recordHTML(rec);
+  if(!bills || !bills.length){
+    h += '<div class="pp-msg">No bills on the board right now. The machine never sleeps — check back.</div>';
+  } else {
+    h += '<div class="pp-bills">';
+    for(var i=0;i<bills.length;i++){
+      h += widgetHTML(bills[i]);
+    }
+    h += '</div>';
+  }
+  h += leaderboardHTML(leaders);
+  return h;
+}
+function bindSection(root, bills){
+  bills = bills || [];
+  var widgets = root.querySelectorAll ? root.querySelectorAll('.pp-widget') : [];
+  /* match each rendered widget to its bill by data-bill */
+  var byId = {};
+  for(var i=0;i<bills.length;i++){ byId[normBill(bills[i]).id]=bills[i]; }
+  for(var j=0;j<widgets.length;j++){
+    var id = widgets[j].getAttribute('data-bill');
+    if(id && byId[id]) bindWidget(widgets[j], byId[id]);
+  }
+}
+function mountSectionInto(el){
+  var x = el.querySelector ? el.querySelector('#xPredict') : null;
+  function failSoft(msg){
+    try{ console.log('[predict] '+msg); }catch(e){}
+    try{ el.style.display='none'; }catch(e){}
+  }
+  if(!BACKEND){ failSoft('no backend URL — section hidden'); return; }
+  var idt = ident();
+  api('predict_list', { bill_id:'', callsign:idt.callsign, device:idt.device }, function(j){
+    if(!j || j.ok===false){
+      failSoft('predict_list failed — section hidden');
+      return;
+    }
+    var bills = j.bills || j.open_bills || j.rows || [];
+    var rec = j.record || j.my_record || j.caller_record || {};
+    api('predict_leaderboard', {}, function(j2){
+      var leaders = (j2 && (j2.leaders || j2.rows || j2.top || j2.board)) || [];
+      try{
+        var root = x || el;
+        root.innerHTML = sectionHTML(bills, rec, leaders);
+        bindSection(root, bills);
+        try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(root,'predictions',{link:'/predict'}); }catch(e){}
+      }catch(e){ failSoft('render failed (soft)'); }
+    });
+  });
+}
+PFP.mountSection = mountSectionInto;
+
+/* Auto-mount: when this silo's template is instantiated on Political HQ,
+   #xPredict is present and owned by us — render the full section. */
+function autoMount(){
+  try{
+    var el = document.getElementById('xPredict');
+    if(!el) return;
+    if(el.getAttribute('data-pf-predict-mounted')) return;
+    el.setAttribute('data-pf-predict-mounted','1');
+    mountSectionInto(el);
+  }catch(e){
+    try{ console.log('[predict] auto-mount failed (soft): '+(e && e.message || e)); }catch(e2){}
+  }
+}
+/* The political-hq page mounts our template via PF.mountPoliticalHq before
+   our inner script runs, so #xPredict is already in the DOM here. Retry once
+   late in case ordering differs. */
+autoMount();
+setTimeout(autoMount, 3000);
+})();
+</scr`+`ipt>
+</template>`);
+})();
+
+;
+
+/* ===== predict-home.js ===== */
+/* games/predict-home.js  |  PF v1.4.3 | CALL THE SHOT home wiring.
+   NAMED SURFACE (Prediction Games Home Coordinator decision, 2026-10-05):
+   prediction games live in the PHQ BALLOT hub as slot 3.7 — "CALL THE SHOT —
+   Prediction Games" — not on /create, not a new page.
+   SURVEY (what exists, what this file touches):
+     - wave-predict-game-fe: v1.4.3/games/predict.js — CALL THE SHOT bill
+       prediction game (user-generated predictions; renders ONLY bills the
+       backend returns via predict_list; resolutions come from official bill
+       status — nothing is invented). Silo id: predict. NOT edited here.
+     - fe/predict-share-call: SHARE YOUR CALL poster (phq-predict-call painter
+       in core/share-image-phq.js) — the payoff exit. NOT edited here.
+     - merge/fe-predict-share-call (Release Eng staging): already registers
+       ['predict','pf-ov-predict'] in pages/political-hq.js ORDER and bundles
+       predict.js into bundle-hq. This file MUST NOT duplicate that.
+     - be/predict-game: migration v102_predict_game.sql (predictions table) +
+       predict_place/list/leaderboard actions; +25 XP rides the existing
+       backend predict_win_* leg. NOT edited here.
+     - Election-night live mode (fe/election-live-mode): wiring map lists a
+       "prediction game" exit — that exit resolves to THIS surface
+       (#phq-ballot-predict); the elections crew points their link here.
+     - Market Maker / prediction market desk (vault.js, War Room era) is a
+       separate cell-internal surface — explicitly NOT this home.
+   WHAT THIS FILE DOES (wiring only, zero game logic):
+     1. Hub anchor: tags the mounted #pf-predict section wrapper as
+        #phq-ballot-predict (data-hub="ballot", data-slot="3.7") so the PHQ
+        5-hub build can slot it without touching game code, and so feeder
+        surfaces (races tracker, election-live board, War Report results
+        beat, Action Center deep link) have a stable target.
+     2. Hub header chrome: BALLOT kicker + mission line + AC-return rail
+        ("BACK TO ACTION CENTER" -> #pf-action-center), per the hub contract.
+     3. Payoff exits rail: cell competitions (results night), pressure
+        footprint, races tracker — plus the in-game SHARE YOUR CALL poster
+        (fe/predict-share-call). Every rail link is a same-page anchor;
+        missing targets are a no-op, never an error.
+   LAYERING: pure decorator. Reads nothing from other silos' internals;
+   reaches only public DOM anchors. Runs after predict.js mounts.
+   KILL: same silo id as the game — ?pf_off=predict (or localStorage
+   pf_disabled_v1='["predict"]'). Decorator honors PF.skip('predict').
+   COPY: hub mission + CTA labels are provisional — Psych holds veto.
+   FAIL-SOFT: every DOM touch is guarded; missing #pf-predict (killed or
+   backend-gated) is a silent no-op. Never throws.
+   XP: none granted here. No new currencies, no new mechanics. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('predict')) { return; }
+
+  var ANCHOR = 'phq-ballot-predict';
+  var DONE = 'data-pf-predict-home';
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function decorate() {
+    try {
+      var inner = document.getElementById('pf-predict');
+      if (!inner) return false;
+      if (inner.getAttribute(DONE)) return true;
+      inner.setAttribute(DONE, '1');
+
+      /* Hub anchor: stable target for feeders + the 5-hub build. Keep the
+         #pf-predict id intact — the game's own CSS and code depend on it. */
+      var section = inner;
+      try {
+        if (inner.closest) {
+          var wrap = inner.closest('section[data-game="predict"]');
+          if (wrap) section = wrap;
+        }
+      } catch (e) {}
+      try {
+        section.setAttribute('id', ANCHOR);
+        section.setAttribute('data-hub', 'ballot');
+        section.setAttribute('data-slot', '3.7');
+      } catch (e) {}
+
+      /* Hub header chrome: kicker + mission + AC-return rail. */
+      var head = document.createElement('div');
+      head.className = 'phh-head';
+      head.innerHTML =
+        '<div class="phh-kicker">BALLOT &middot; SECTION 3.7</div>' +
+        '<div class="phh-mission">Read the room. Lock your calls before results drop. ' +
+        'Boards come from the live backend &mdash; nothing here is invented.</div>' +
+        '<div class="phh-rail">' +
+        '<a class="phh-btn phh-back" href="#pf-action-center">BACK TO ACTION CENTER</a>' +
+        '</div>';
+      try { inner.insertBefore(head, inner.firstChild); } catch (e) {}
+
+      /* Payoff exits rail: where the user goes NEXT (loop law). */
+      var rail = document.createElement('div');
+      rail.className = 'phh-exits';
+      rail.innerHTML =
+        '<div class="phh-exits-label">NEXT MOVES</div>' +
+        '<div class="phh-rail">' +
+        '<a class="phh-btn" href="#cvCompBox">RESULTS NIGHT: CELL COMPETITIONS</a>' +
+        '<a class="phh-btn" href="#pf-footprint">YOUR PRESSURE FOOTPRINT</a>' +
+        '<a class="phh-btn" href="#pf-races">BACK TO RACES</a>' +
+        '</div>' +
+        '<div class="phh-note">Lock a pick and hit SHARE YOUR CALL to post your ' +
+        'prediction poster. +25 XP when the board resolves in your favor.</div>';
+      try { inner.appendChild(rail); } catch (e) {}
+
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function styles() {
+    try {
+      if (document.getElementById('pf-predict-home-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-predict-home-css';
+      st.textContent =
+        '#phq-ballot-predict .phh-head{margin:0 0 12px}' +
+        '#phq-ballot-predict .phh-kicker{font-size:0.72rem;letter-spacing:0.22em;color:#b8ab8e;font-weight:700;margin-bottom:6px}' +
+        '#phq-ballot-predict .phh-mission{font-size:0.88rem;color:#f5f0e1;margin-bottom:10px;line-height:1.45}' +
+        '#phq-ballot-predict .phh-rail{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}' +
+        '#phq-ballot-predict .phh-btn{flex:1 1 160px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;' +
+        'font-weight:900;font-size:0.85rem;letter-spacing:0.1em;text-decoration:none;text-align:center;' +
+        'border:2px solid var(--pf-red);background:#141414;color:#f5f0e1;font-family:inherit;padding:10px 12px;box-sizing:border-box}' +
+        '#phq-ballot-predict .phh-btn:active{background:var(--pf-red)}' +
+        '#phq-ballot-predict .phh-back{border-color:var(--pf-gold)}' +
+        '#phq-ballot-predict .phh-exits{margin-top:16px;border-top:2px solid #3a3a3a;padding-top:12px}' +
+        '#phq-ballot-predict .phh-exits-label{font-size:0.75rem;letter-spacing:0.2em;color:var(--pf-red);font-weight:900;margin-bottom:4px}' +
+        '#phq-ballot-predict .phh-note{font-size:0.8rem;color:#b8ab8e;margin-top:8px;line-height:1.45}';
+      (document.head || document.documentElement).appendChild(st);
+    } catch (e) {}
+  }
+
+  styles();
+
+  /* predict.js mounts late (template -> ORDER instantiation -> JSONP). Watch
+     for #pf-predict and decorate once; retry twice more for slow loads. */
+  function tryDecorate() { decorate(); }
+  try {
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      var obs = new MutationObserver(function () {
+        if (decorate()) { try { obs.disconnect(); } catch (e) {} }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+      setTimeout(function () { try { obs.disconnect(); } catch (e) {} }, 30000);
+    }
+  } catch (e) {}
+  tryDecorate();
+  setTimeout(tryDecorate, 3000);
+  setTimeout(tryDecorate, 9000);
+})();
+
+;
+
+/* ===== ballot-countdown.js ===== */
+/* games/ballot-countdown.js  |  PF v1.4.3 | BALLOT COUNTDOWN CARDS.
+   Forged-for-You ballot drafts: one JSONP read of ?action=ballot_countdowns
+   per page view (module cache), filtered to the viewer's LOCAL home state
+   (localStorage pf_home_state_v1 / PF.homeState() — frontend-only, zero
+   backend writes). Stateless ("") or unset (null) -> renders nothing.
+   Cards paint via PF.PHQShare.paint('phq-ballot', {...}) — pure canvas, no
+   XP side effects.
+
+   XP — Economy Desk ruling 2026-10-05 (binding, veto final):
+     T1 generate card from draft -> pf-xp {gain:1, key:'poster_ballot:<draft_id>'}
+        poster_ leg, draft-scoped, NO day component. One draft pays once, ever.
+     T2 share/post card          -> pf-xp {gain:1, key:'share_ballot:<card_id>'}
+        share leg, card-scoped, NO day component. One card pays once, ever.
+     T5 viewing / claiming drafts -> 0 XP. claimDraft() is an XP-free marker —
+        any grant emitted from a claim handler would be a new mechanic.
+   This module NEVER dispatches pf-poster-made or pf-share-image (those fire
+   the generic poster_/share legs and would double-pay the same action) and
+   NEVER posts to the poster_share proof endpoint (create_share: +5 DENIED
+   for ballot cards — eligibility gate fails closed; widening it would be a
+   new mechanic).
+   Discord ammo-drop contract (T3): deep link #ballot-forge=<draft_id> forges
+   the same draft with the IDENTICAL T1 key space — no per-surface keys, no
+   source bonus.
+   Civic snapshot widget contract: ballot_countdowns entries carry draft_id;
+   the widget links its ballot line to '#ballot-forge=<draft_id>'.
+   BEHAVIORAL LOOP (CEO directive 2026-10-05): every outbound loop is
+   informative + carries a CTA back with a dopamine payoff on arrival.
+   Loop: inform (days left) -> invite back (CHECK REGISTRATION / PLEDGE TO
+   VOTE) -> pay off on-site (CHECKED / PLEDGED states + confirmation +
+   the T1/T2 XP toasts). No dead ends: every card and tray entry resolves
+   to an action with a visible state change. Checking and pledging are
+   0-XP actions (Economy Desk T5) — the payoff is the confirmation, not XP.
+   FAIL-SOFT: backend down/empty/error -> the tray renders nothing (no box,
+   no spinner forever; 12s timeout). Kill: ?pf_off=ballotcd or
+   localStorage pf_disabled_v1='["ballotcd"]'. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('ballotcd')) { return; }
+  if (window.pfBallotCdDone) return;
+  window.pfBallotCdDone = true;
+
+  var MOUNT_ID = 'pf-forged-ballot';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function okURL(u) {
+    var s = String(u == null ? '' : u).trim();
+    return /^(https?:)\/\//i.test(s) ? s : '';
+  }
+
+  /* Viewer home state: "" = stateless, null = never chosen -> both skip. */
+  function homeState() {
+    var v = null;
+    try { v = localStorage.getItem('pf_home_state_v1'); } catch (e) { v = null; }
+    if (v == null) {
+      try { v = String((PF.homeState && PF.homeState()) || '').trim().toUpperCase() || null; }
+      catch (e2) { v = null; }
+    } else {
+      v = String(v).trim().toUpperCase();
+    }
+    if (!v || !/^[A-Z]{2}$/.test(v)) return '';
+    return v;
+  }
+
+  /* ---------- data: one JSONP read per page view ---------- */
+  var CACHE = null, FETCHED = false;
+  function fetchCountdowns(cb) {
+    if (FETCHED) { cb(CACHE); return; }
+    FETCHED = true;
+    /* ballot_countdowns has no backend route — fail-soft: no countdowns. */
+    cb(null);
+  }
+
+  /* ---------- XP: existing mirror legs only, ballot-scoped keys ---------- */
+  function payXp(key, reason) {
+    try {
+      document.dispatchEvent(new CustomEvent('pf-xp', {
+        detail: { gain: 1, key: key, reason: reason }
+      }));
+    } catch (e) {}
+  }
+  /* T5: claim is an XP-free marker. Viewing is passive. */
+  function claimDraft(draftId) {
+    try {
+      localStorage.setItem('pf_ballot_claimed_' + String(draftId), '1');
+    } catch (e) {}
+    return true;
+  }
+
+  /* ---------- behavioral loop: checked + pledged states (0 XP) ---------- */
+  /* Checking registration and pledging to vote are on-site actions with a
+     visible state change + confirmation payoff. They carry NO XP (Economy
+     Desk T5) — the dopamine is the confirmation, never a grant. */
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function isChecked(draftId) { return lsGet('pf_ballot_checked_' + draftId) === '1'; }
+  function isPledged(draftId) { return lsGet('pf_ballot_pledged_' + draftId) != null; }
+  function markChecked(draftId) { lsSet('pf_ballot_checked_' + draftId, '1'); }
+  function pledge(cd) {
+    lsSet('pf_ballot_pledged_' + String(cd.draft_id), String(Date.now()));
+    pledgeOverlay(cd);
+    return true;
+  }
+  /* Pledge confirmation: the on-arrival payoff. Informative (state +
+     Election Day), invitational (share CTA), satisfying (pledged state). */
+  function pledgeOverlay(cd) {
+    try {
+      var old = document.getElementById('pfbc-pledge-ov');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      var ov = document.createElement('div');
+      ov.id = 'pfbc-pledge-ov';
+      ov.innerHTML =
+        '<div class="pfbc-ov-card">' +
+        '<div class="pfbc-ov-kicker">\u2605 THE PROPAGANDA FACTORY \u2605</div>' +
+        '<div class="pfbc-ov-head">PLEDGE LOGGED.</div>' +
+        '<div class="pfbc-ov-body">You\u2019re in the fight for ' + esc(cd.state) +
+        '. Polls are open through <b>ELECTION DAY \u2014 NOVEMBER 3, 2026</b>.</div>' +
+        '<div class="pfbc-ov-sub">Your callsign is on the card. Now put your vote where your mouth is.</div>' +
+        '<button class="pfbc-ov-btn" id="pfbc-ov-share">SHARE YOUR COUNTDOWN</button>' +
+        '<button class="pfbc-ov-x" id="pfbc-ov-x">BACK TO THE FIGHT</button>' +
+        '</div>';
+      document.body.appendChild(ov);
+      var close = function () { try { ov.parentNode.removeChild(ov); } catch (e) {} };
+      document.getElementById('pfbc-ov-x').addEventListener('click', close);
+      ov.addEventListener('click', function (ev) { if (ev.target === ov) close(); });
+      document.getElementById('pfbc-ov-share').addEventListener('click', function () {
+        close();
+        var card = forge(cd);
+        if (card) shareCard(card);
+      });
+    } catch (e) {}
+  }
+
+  /* ---------- card lifecycle ---------- */
+  function cardIdFor(draft) {
+    /* Card-scoped identity: stable for one generated card instance.
+       draft_id + short random per generation — no day component. */
+    var r = '';
+    try {
+      var b = new Uint8Array(3);
+      (window.crypto || {}).getRandomValues ? crypto.getRandomValues(b)
+        : b.forEach(function (_, i) { b[i] = Math.floor(Math.random() * 256); });
+      for (var i = 0; i < b.length; i++) r += ('0' + b[i].toString(16)).slice(-2);
+    } catch (e) { r = String(Math.floor(Math.random() * 16777216).toString(16)); }
+    return String(draft.draft_id) + '_' + r;
+  }
+  function paintData(cd) {
+    return {
+      state: cd.state,
+      daysLeft: cd.same_day ? null : cd.days_left,
+      deadline: cd.deadline,
+      registerUrl: cd.register_url,
+      sameDay: !!cd.same_day
+    };
+  }
+  /* T1: user generates the card. Pays poster_ +1 via the mirror leg with
+     the draft-scoped key — one draft pays once, ever. */
+  function forge(cd) {
+    var PHQ = PF.PHQShare;
+    if (!PHQ || !PHQ.paint) return null;
+    var cv = null;
+    try { cv = PHQ.paint('phq-ballot', paintData(cd)); } catch (e) { cv = null; }
+    if (!cv) return null;
+    payXp('poster_ballot:' + String(cd.draft_id), 'ballot countdown card generated');
+    return { canvas: cv, card_id: cardIdFor(cd), draft: cd };
+  }
+  /* T2: user shares/posts the card. Pays share +1 via the mirror leg with
+     the card-scoped key — one card pays once, ever. Deliberately does NOT
+     route through PFShare.shareImage/saveImage: those fire pf-share-image
+     (the generic share leg) and would double-pay the same action. */
+  function shareCard(card, title) {
+    if (!card || !card.canvas) return false;
+    var cv = card.canvas;
+    /* The painter stamps FIGHTING AS <CALLSIGN> inline (cv._pfStamped);
+       the canvas ships as painted — no second stamp pass. */
+    function done() {
+      payXp('share_ballot:' + String(card.card_id), 'ballot countdown card shared');
+      try { if (PF.toast) PF.toast('Shared. Go spread the word.'); } catch (e2) {}
+    }
+    try {
+      cv.toBlob(function (blob) {
+        if (!blob) { try { if (PF.toast) PF.toast('Card failed — try again.'); } catch (e) {} return; }
+        var fn = 'ballot-countdown-' + String(card.draft.state || 'xx').toLowerCase() + '.png';
+        var file = null;
+        try { file = new File([blob], fn, { type: 'image/png' }); } catch (e2) {}
+        /* The shared card carries the ballot CTA in its share text — the
+           outbound loop always deep-links to the registration action. */
+        var regLine = okURL(card.draft.register_url)
+          ? ' REGISTER: ' + card.draft.register_url : ' REGISTER: https://www.vote.gov/register/';
+        var shareText = 'JOIN THE FIGHT.' + regLine + ' — mtcstw.com';
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            navigator.share({ files: [file], title: title || 'BALLOT COUNTDOWN', text: shareText })
+              .then(done, function (err) {
+                if (err && err.name === 'AbortError') return;
+                downloadBlob(blob, fn); done();
+              });
+          } catch (e3) { downloadBlob(blob, fn); done(); }
+        } else { downloadBlob(blob, fn); done(); }
+      }, 'image/png');
+    } catch (e) { return false; }
+    return true;
+  }
+  function downloadBlob(blob, fn) {
+    try {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fn;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { document.body.removeChild(a); } catch (e) {} }, 4000);
+    } catch (e) {}
+  }
+  /* ---------- tray render (Forged-for-You mount) ---------- */
+  /* Every tray entry resolves to an action with a visible state change —
+     no dead ends (CEO behavioral directive):
+       FORGE CARD        -> paints the card, T1 XP toast (informative payoff)
+       SHARE CARD        -> share sheet, T2 XP toast
+       CHECK REGISTRATION-> off-site register_url; marks CHECKED on click
+       I CHECKED ✓       -> checked state (was: CHECK REGISTRATION)
+       PLEDGE TO VOTE    -> on-site pledge -> PLEDGE LOGGED confirmation
+       ✓ PLEDGED         -> pledged state */
+  function cardHTML(cd) {
+    var head = cd.same_day ? 'NO DEADLINE — REGISTER AT THE POLLS'
+      : cd.days_left === 0 ? 'TODAY: LAST DAY TO REGISTER'
+      : cd.days_left === 1 ? '1 DAY LEFT TO REGISTER'
+      : cd.days_left + ' DAYS LEFT TO REGISTER';
+    var id = esc(cd.draft_id);
+    var btns = '<button class="pfbc-forge" data-forge="' + id + '">FORGE CARD</button>';
+    if (okURL(cd.register_url)) {
+      btns += isChecked(cd.draft_id)
+        ? '<span class="pfbc-done">\u2713 REGISTRATION CHECKED</span>'
+        : '<a class="pfbc-reg" data-check="' + id + '" href="' + esc(cd.register_url) + '" target="_blank" rel="noopener">CHECK REGISTRATION</a>';
+    }
+    btns += isPledged(cd.draft_id)
+      ? '<span class="pfbc-done pfbc-pledged">\u2713 PLEDGED TO VOTE</span>'
+      : '<button class="pfbc-pledge" data-pledge="' + id + '">PLEDGE TO VOTE</button>';
+    return '<div class="pfbc-card" data-draft="' + id + '">' +
+      '<div class="pfbc-head">' + esc(head) + '</div>' +
+      '<div class="pfbc-sub">' + esc(cd.state) + (cd.deadline ? ' · DEADLINE ' + esc(cd.deadline) : '') + '</div>' +
+      '<div class="pfbc-btns">' + btns + '</div></div>';
+  }
+  function renderTray(list) {
+    var mount = document.getElementById(MOUNT_ID);
+    if (!mount) return;
+    if (!list || !list.length) { mount.style.display = 'none'; return; }
+    function draw() {
+      mount.innerHTML = '<h3>YOUR BALLOT COUNTDOWN</h3>' +
+        list.map(cardHTML).join('') +
+        '<div class="pfbc-note">Deadlines from official state sources. Forging a card stamps your callsign. Checking and pledging earn no XP — the vote is the payoff.</div>';
+      wire(mount, list, draw);
+    }
+    draw();
+  }
+  function wire(mount, list, redraw) {
+    function find(id) {
+      for (var j = 0; j < list.length; j++)
+        if (String(list[j].draft_id) === String(id)) return list[j];
+      return null;
+    }
+    var i, b;
+    var forges = mount.querySelectorAll('[data-forge]');
+    for (i = 0; i < forges.length; i++) {
+      (function (el) {
+        el.addEventListener('click', function () {
+          var cd = find(el.getAttribute('data-forge'));
+          if (!cd) return;
+          var card = forge(cd);
+          if (!card) { try { if (PF.toast) PF.toast('Card failed — try again.'); } catch (e) {} return; }
+          var sb = document.createElement('button');
+          sb.className = 'pfbc-share'; sb.textContent = 'SHARE CARD';
+          sb.addEventListener('click', function () { shareCard(card); });
+          el.parentNode.replaceChild(sb, el);
+          try { if (PF.toast) PF.toast('CARD FORGED — +1 XP'); } catch (e2) {}
+        });
+      })(forges[i]);
+    }
+    var checks = mount.querySelectorAll('[data-check]');
+    for (i = 0; i < checks.length; i++) {
+      (function (el) {
+        el.addEventListener('click', function () {
+          /* The link opens the official registration check off-site; the
+             click marks the on-site CHECKED state — the payoff on return. */
+          markChecked(el.getAttribute('data-check'));
+          setTimeout(redraw, 600);
+        });
+      })(checks[i]);
+    }
+    var pledges = mount.querySelectorAll('[data-pledge]');
+    for (i = 0; i < pledges.length; i++) {
+      (function (el) {
+        el.addEventListener('click', function () {
+          var cd = find(el.getAttribute('data-pledge'));
+          if (!cd) return;
+          pledge(cd);
+          setTimeout(redraw, 600);
+        });
+      })(pledges[i]);
+    }
+  }
+
+  /* ---------- boot ---------- */
+  function boot() {
+    var st = homeState();
+    if (!st) return; /* stateless / unset: no drafts rendered */
+    /* 2026-10-05 (fe/political-hq-optimize): skip the countdowns read when the
+       tray mount is absent — the bundle loads on /political-hq but the
+       #pf-forged-ballot mount lives elsewhere (hand-step). Fetching into the
+       void was one wasted JSONP read per pageview for every home-state user.
+       (DOM check after the state check so stateless users never touch the DOM.) */
+    if (!document.getElementById(MOUNT_ID)) return;
+    /* Deep-link contract for the Discord ammo drop (T3): #ballot-forge=<draft_id>
+       forges the same draft with the identical T1 key space. */
+    var deepId = null;
+    try {
+      var m = String(location.hash || '').match(/#ballot-forge=([^&]+)/);
+      if (m) deepId = decodeURIComponent(m[1]);
+    } catch (e) {}
+    fetchCountdowns(function (cds) {
+      if (!cds) return;
+      var mine = [];
+      for (var i = 0; i < cds.length; i++) if (cds[i] && cds[i].state === st) mine.push(cds[i]);
+      renderTray(mine);
+      if (deepId && mine.length) {
+        for (var j = 0; j < mine.length; j++) {
+          if (String(mine[j].draft_id) === String(deepId)) { forge(mine[j]); break; }
+        }
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  /* Public contract for the Forged-for-You tray sibling + civic widget.
+     checked()/pledged() let the widget render countdown state changes. */
+  try {
+    PF.ballotCountdowns = {
+      homeState: homeState,
+      fetch: fetchCountdowns,
+      forge: forge,
+      share: shareCard,
+      claim: claimDraft, /* XP-free marker (T5) */
+      pledge: pledge, /* 0 XP — confirmation is the payoff */
+      checked: isChecked,
+      pledged: isPledged,
+      paintData: paintData
+    };
+  } catch (e) {}
+})();
+
+;
+
+/* ===== nonprofits.js ===== */
+/* games/nonprofits.js  |  PF v1.4.3 | ALLY ORGANIZATIONS: progressive/
+   left-aligned nonprofit directory (72 orgs, 12 issue areas).
+   READ-ONLY directory — tap-to-visit website links only. No contact
+   logging, no XP, no action buttons.
+   BACKEND CONTRACT (be/nonprofits-directory): action "nonprofits_list"
+   with params {issue, state} (both optional; empty = unfiltered) returns
+   {ok:true, nonprofits:[...]}. Field fallbacks below are defensive reads —
+   action names are taken from the contract, not invented.
+   Renders exactly what the API returns — no invented org data.
+   KILL: ?pf_off=nonprofits  or  localStorage pf_disabled_v1='["nonprofits"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("nonprofits")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-nonprofits">
+<div class="fe-block pf-override-block pf-silo" id="pf-nonprofits">
+<h2>Ally Organizations</h2>
+<div class="c-tag">The movement&rsquo;s address book. Real allies, honestly labeled.</div>
+<div id="xNonprofits"><div class="c-load">Opening the directory&hellip;</div></div>
+<style>
+/* 2026-10-05: nonprofits directory — mobile-first, no horizontal scroll,
+   every touch target >= 44px. Matches the congress-directory pattern. */
+#pf-nonprofits .np-filters .c-in{width:100%;box-sizing:border-box;margin-bottom:8px}
+#pf-nonprofits .np-t44{min-height:44px}
+#pf-nonprofits .np-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#pf-nonprofits .np-chip{min-height:44px;padding:8px 10px;font-size:12px;font-weight:700;background:#2a0a0a;border:1px solid #6a2020;color:#f5f0e1;cursor:pointer}
+#pf-nonprofits .np-chip[aria-pressed="true"]{background:var(--pf-red);border-color:#f5f0e1}
+#pf-nonprofits .np-card{border:1px solid #4a4a4a;padding:12px;margin:12px 0;overflow-wrap:anywhere}
+#pf-nonprofits .np-name{font-weight:900;font-size:16px;margin-bottom:4px}
+#pf-nonprofits .np-badge{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1px;border:1px solid #f5f0e1;color:#f5f0e1;padding:2px 8px;margin:4px 0 6px 0}
+#pf-nonprofits .np-badge-st{border-color:#8fd18f;color:#8fd18f}
+#pf-nonprofits .np-focus{font-size:13px;color:var(--pf-muted);margin:6px 0 0}
+/* Disclosure line: always visible on flagged orgs, never buried. */
+#pf-nonprofits .np-dis{font-size:13px;font-weight:700;color:#ffd166;margin:8px 0 0}
+#pf-nonprofits .np-visit{display:flex;margin-top:10px}
+#pf-nonprofits .np-visit .c-btn{flex:1;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+</style>
+</div>
+<script>
+(function(){
+var BACKEND=window.PF_BACKEND_URL;
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(m){ try{ if(window.PF&&PF.toast){ PF.toast(m); return; } }catch(e){}
+  try{ var t=document.createElement("div"); t.textContent=m;
+  t.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:var(--pf-red);color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999";
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }catch(e2){} }
+function api(action,params,cb){
+  if(!BACKEND){ cb(null); return; }
+  var fn="pfNpCb"+Math.floor(Math.random()*1e9);
+  var s=document.createElement("script"), done=false;
+  function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+  window[fn]=function(j){ finish(j); };
+  s.onerror=function(){ finish(null); };
+  var q="?action="+encodeURIComponent(action);
+  for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+  q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+  setTimeout(function(){ finish(null); },12000);
+}
+/* 12 issue areas — exact labels from the directory spec. The issue param
+   value sent to nonprofits_list is the same string (URL-encoded). */
+var ISSUES=[
+"Voting Rights & Democracy Reform",
+"Labor & Workers' Rights",
+"Reproductive Rights & Abortion Access",
+"Climate & Environment",
+"Racial Justice & Civil Rights",
+"LGBTQ+ Rights",
+"Immigrant Rights",
+"Criminal Justice Reform & Police Accountability",
+"Healthcare Access",
+"Housing & Tenants' Rights",
+"Anti-Poverty & Economic Justice",
+"Government Watchdog & Accountability"
+];
+var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];
+var NPST={issue:"",st:"",q:"",orgs:null,load:false,err:false};
+/* --- directory helpers --- */
+function npStateOpts(sel){
+  var h='<option value="">All states</option>';
+  for(var i=0;i<STATES.length;i++){
+    h+='<option value="'+STATES[i][0]+'"'+(sel===STATES[i][0]?' selected':'')+'>'+esc(STATES[i][1])+'</option>';
+  }
+  return h;
+}
+function npIssueChips(){
+  var h='<div class="np-chips" role="group" aria-label="Filter by issue area">';
+  h+='<button type="button" class="np-chip" data-issue="" aria-pressed="'+(NPST.issue===""?"true":"false")+'">ALL</button>';
+  for(var i=0;i<ISSUES.length;i++){
+    h+='<button type="button" class="np-chip" data-issue="'+esc(ISSUES[i])+'" aria-pressed="'+(NPST.issue===ISSUES[i]?"true":"false")+'">'+esc(ISSUES[i])+'</button>';
+  }
+  return h+'</div>';
+}
+/* Scope badge: NATIONAL vs state. Reads r.scope/r.state exactly as the API
+   returns them; no invented data. */
+function npScopeBadge(r){
+  var scope=String(r.scope==null?"":r.scope).trim();
+  if(/^national/i.test(scope)) return '<span class="np-badge">NATIONAL</span>';
+  var st=String(r.state==null?"":r.state).trim().toUpperCase();
+  var label=st?esc(st):(scope?esc(scope.replace(/\\(.*$/,"").trim().toUpperCase().slice(0,24)):"LOCAL");
+  return '<span class="np-badge np-badge-st">'+label+'</span>';
+}
+/* Only http(s) website URLs become tap targets. Missing scheme gets https://;
+   anything else is dropped (no javascript: / data: ever). */
+function npSafeUrl(u){
+  var s=String(u==null?"":u).trim();
+  if(!s) return "";
+  if(/^https?:\\/\\//i.test(s)) return s;
+  if(/^[\\w-]+(\\.[\\w-]+)+(\\/\\S*)?$/.test(s)) return "https://"+s;
+  return "";
+}
+/* Disclosure: visible honesty line on every flagged org, rendered exactly
+   as the API returns it. Unflagged orgs render nothing extra. */
+function npDisclosure(r){
+  var d=r.disclosure!=null&&String(r.disclosure).trim()?String(r.disclosure).trim()
+    :(r.flag!=null&&String(r.flag).trim()?String(r.flag).trim()
+    :(r.honesty_flag!=null&&String(r.honesty_flag).trim()?String(r.honesty_flag).trim():""));
+  return d;
+}
+function npCardHTML(r){
+  var nm=String(r.name==null?"":r.name).trim()||"Unnamed organization";
+  var mission=String(r.mission==null?"":r.mission).trim();
+  var focus=r.focus_areas!=null?r.focus_areas:(r.focus!=null?r.focus:"");
+  if(Object.prototype.toString.call(focus)==="[object Array]") focus=focus.join(", ");
+  focus=String(focus==null?"":focus).trim();
+  var url=npSafeUrl(r.website);
+  var dis=npDisclosure(r);
+  var h='<div class="np-card">'
+    +'<div class="np-name">'+esc(nm)+'</div>'
+    +npScopeBadge(r);
+  if(mission) h+='<div>'+esc(mission)+'</div>';
+  if(focus) h+='<div class="np-focus">Focus: '+esc(focus)+'</div>';
+  /* Disclosure sits above the link — visible, never buried. */
+  if(dis) h+='<div class="np-dis">&#9888; '+esc(dis)+'</div>';
+  h+='<div class="np-visit">';
+  if(url) h+='<a class="c-btn np-t44" href="'+esc(url)+'" target="_blank" rel="noopener">VISIT SITE &#8599;</a>';
+  else h+='<span class="x-note">no website listed</span>';
+  h+='</div></div>';
+  return h;
+}
+function npListHTML(){
+  if(NPST.err){
+    return '<div class="c-err">Couldn&rsquo;t reach the directory wire.</div>'
+      +'<button type="button" class="c-btn np-t44" id="npRetry">RETRY</button>';
+  }
+  /* Mobilizing fallback pattern, matching the other HQ silos. */
+  if(NPST.load||NPST.orgs===null) return '<div class="c-load">Opening the directory&hellip;</div>';
+  var q=String(NPST.q||"").trim().toLowerCase();
+  var orgs=NPST.orgs.slice();
+  orgs.sort(function(a,b){
+    var na=String(a.name||"").toLowerCase(), nb=String(b.name||"").toLowerCase();
+    if(na<nb) return -1; if(na>nb) return 1; return 0;
+  });
+  /* Name search is client-side (server filters on issue/state). Matches
+     against name + mission so a cause search still lands. */
+  if(q) orgs=orgs.filter(function(r){
+    return (String(r.name||"")+" "+String(r.mission||"")).toLowerCase().indexOf(q)!==-1;
+  });
+  if(!orgs.length) return '<div class="x-note">No organizations match those filters. Broaden the hunt.</div>';
+  var h="";
+  for(var i=0;i<orgs.length;i++) h+=npCardHTML(orgs[i]);
+  return h;
+}
+function npPaint(){
+  var l=document.getElementById("npList"); if(!l) return;
+  l.innerHTML=npListHTML();
+}
+function npFetch(){
+  NPST.load=true; NPST.err=false;
+  npPaint();
+  /* api() drops null/"" params, so empty filters = unfiltered list. */
+  api("nonprofits_list",{issue:NPST.issue,state:NPST.st},function(j){
+    NPST.load=false;
+    var list=j&&(j.nonprofits||j.orgs);
+    if(j&&j.ok&&list&&Object.prototype.toString.call(list)==="[object Array]"){
+      NPST.orgs=list; NPST.err=false;
+    } else { NPST.err=true; }
+    npPaint();
+  });
+}
+function gv(id){ var e=document.getElementById(id); return e?e.value:""; }
+function render(){
+  var el=document.getElementById("xNonprofits"); if(!el) return;
+  var h='<div class="np-filters">'
+    +npIssueChips()
+    +'<select class="c-in np-t44" id="npState" aria-label="Filter by state">'+npStateOpts(NPST.st)+'</select>'
+    +'<input class="c-in np-t44" id="npQ" type="search" maxlength="60" placeholder="Search by name or cause" aria-label="Search by name or cause" value="'+esc(NPST.q)+'">'
+    +'</div>'
+    +'<div id="npList">'+npListHTML()+'</div>';
+  el.innerHTML=h;
+}
+function bind(){
+  var st=document.getElementById("npState");
+  if(st) st.onchange=function(){ NPST.st=gv("npState"); npFetch(); };
+  var qq=document.getElementById("npQ");
+  if(qq) qq.oninput=function(){ NPST.q=gv("npQ"); npPaint(); };
+  /* Delegated: chips re-paint on every fetch, retry lives in the list. */
+  var host=document.getElementById("xNonprofits");
+  if(host&&!host.getAttribute("data-np-bound")){
+    host.setAttribute("data-np-bound","1");
+    host.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-issue],#npRetry"):null;
+      if(!t) return;
+      if(t.id==="npRetry"){ npFetch(); return; }
+      var v=t.getAttribute("data-issue");
+      NPST.issue=v==null?"":v;
+      var btns=host.querySelectorAll("[data-issue]");
+      for(var i=0;i<btns.length;i++){
+        btns[i].setAttribute("aria-pressed",btns[i]===t?"true":"false");
+      }
+      npFetch();
+    });
+  }
+  /* First paint: fire nonprofits_list once (loader covers it). */
+  if(NPST.orgs===null&&!NPST.load&&!NPST.err){ npFetch(); }
+}
+function load(){ render(); bind(); }
+load();
+})();
+</scr`+`ipt>
+</div>
+</template>`);
+})();
+
+;

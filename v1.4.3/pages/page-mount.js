@@ -132,7 +132,10 @@
         ['earnings', 'pf-ov-earnings'],
         /* DATA BOUNTIES (2026-10-06): self-mount board — legacy stacked
            path only; the workshop shell owns /create normally. */
-        ['data-bounties', null]
+        ['data-bounties', null],
+        /* FACT GENERATOR (2026-10-07, CEO directive): type a claim, get
+           sourced facts, share as a PFN poster. Kill: ?pf_off=fact-generator. */
+        ['fact-generator', 'pf-ov-factgen']
       ]
     },
     'pf-bank': {

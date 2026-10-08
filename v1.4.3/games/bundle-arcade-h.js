@@ -1,1 +1,1229 @@
-!function(){"use strict";var e=window.PF;e&&!e.skip("creator-guess")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-guess">\n<div class="fe-block pf-override-block">\n<div id="pf-guess" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9673; GUESS THE CREATOR &#9673;</div>\n  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n  <div id="pf-guess-body"></div>\n</div>\n<script>\n(function(){\n  "use strict";\n  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n  function trunc(s,n){s=String(s||"");return s.length>n?s.slice(0,n-1)+"\\u2026":s;}\n  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n  function chiDay(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n  function buildBank(rng){\n    rng=rng||Math.random;\n    function sh(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n    var all=dbAll();if(all.length<4)return [];\n    var ms=sh(all.slice()).slice(0,12),bank=[];\n    for(var i=0;i<ms.length;i++){\n      var m=ms[i],others=sh(all.filter(function(x){return x.slug!==m.slug;})),w=[others[0].slug,others[1].slug,others[2].slug];\n      var t=i%3,qq=null;\n      if(t===0&&m.followers_display){qq={q:m.followers_display+" followers"+(m.primary_platform?" on "+m.primary_platform:"")+". Who?",a:m.slug,w:w};}\n      else if(t===1&&m.key_strengths&&m.key_strengths[0]){qq={q:"\\u201C"+trunc(m.key_strengths[0],110)+"\\u201D \\u2014 whose key strength is this?",a:m.slug,w:w};}\n      else{qq={q:"Content focus: "+trunc(m.content_focus||"leftist propaganda",110)+". Who?",a:m.slug,w:w};}\n      if(qq)bank.push(qq);\n    }\n    return bank;\n  }\n  function pick(bank){var pool=bank.slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}return pool.slice(0,5);}\n  var LS="pf_guess_v1";\n  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:"",lastDaily:"",dailyScore:-1};}\n  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n  var API=(window.PF_BACKEND_URL);\n  var GSTAT=null;\n  function loadStats(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_guess_stats_v1")||"null");if(c&&Date.now()-c.at<6*3600000){GSTAT=c.d;done();return;}}catch(e){}\n    var name="pfGsT"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&typeof d.plays==="number"){GSTAT=d;try{localStorage.setItem("pf_guess_stats_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_stats";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  function paintStats(){var el=document.getElementById("pf-guess-stats");if(!el)return;\n    if(GSTAT&&GSTAT.plays>0){var avg=(GSTAT.plays>0&&GSTAT.avg)?Number(GSTAT.avg).toFixed(1):"\\u2014";\n      el.innerHTML="<b style=\'color:#f5f0e1;\'>"+GSTAT.plays.toLocaleString()+"</b> comrades played this week \\u2014 average <b style=\'color:#f5f0e1;\'>"+avg+"/5</b>";}}\n  var GLB=null;\n  function chiDayPad(){var d=chiDay().split("-");return d[0]+"-"+(d[1].length<2?"0":"")+d[1]+"-"+(d[2].length<2?"0":"")+d[2];}\n  function loadLb(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_guess_lb_v1")||"null");if(c&&Date.now()-c.at<10*60000&&c.d&&c.d.ok&&c.d.day===chiDayPad()){GLB=c.d;done();return;}}catch(e){}\n    var name="pfGsL"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.ok){GLB=d;try{localStorage.setItem("pf_guess_lb_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_leaderboard";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n      h+="<div style=\'display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid #222;\'><span><b style=\'color:"+col+";\'>"+rk+".</b> <b style=\'color:#f5f0e1;\'>"+esc(e2.callsign)+"</b></span><span style=\'color:#f5f0e1;font-weight:800;\'>"+e2.score+"/5</span></div>";}\n    el.innerHTML=h;}\n  var body=document.getElementById("pf-guess-body"),streakEl=document.getElementById("pf-guess-streak");\n  var st=load(),tdy=chiDay();\n  var isDaily=st.lastDaily!==tdy;\n  var bank=isDaily?buildBank(mulberry32(hashStr("guess:"+tdy))):buildBank();\n  var qs=pick(bank),qi=0,score=0,missed=[];\n  function paintStreak(){streakEl.innerHTML=(st.streak>1?("\\uD83D\\uDD25 "+st.streak+"-DAY STREAK"):"")+(isDaily?" <span style=\'border:1px solid #c1121f;padding:0.1rem 0.5rem;font-size:0.7rem;\'>DAILY</span>":" <span style=\'border:1px solid #b8ab8e;color:#b8ab8e;padding:0.1rem 0.5rem;font-size:0.7rem;\'>PRACTICE</span>");}\n  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n  function disp(s,fb){if(fb)return fb;try{if(window.PF&&PF.rosterBySlug){var r=PF.rosterBySlug(s);if(r&&r.name)return r.name;}}catch(e){}return String(s).replace(/-/g," ");}\n  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}\n  function renderQ(){\n    var q=qs[qi],opts=shuffle([q.a].concat(q.w)),h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n    for(var i=0;i<opts.length;i++){h+="<button data-g=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(disp(opts[i],opts[i]===q.a?q.al:null))+"</button>";}\n    body.innerHTML=h;\n    var btns=body.querySelectorAll("[data-g]");\n    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n      var picked=opts[+this.getAttribute("data-g")],ok=picked===q.a;\n      if(ok){score++;}else{missed.push(q.a);}\n      var all=body.querySelectorAll("[data-g]");\n      for(var k=0;k<all.length;k++){all[k].disabled=true;all[k].style.opacity="0.55";if(all[k].textContent===disp(q.a,q.al)){all[k].style.borderColor="#2a9d48";all[k].style.opacity="1";}}\n      this.style.opacity="1";this.style.borderColor=ok?"#2a9d48":"#c1121f";\n      setTimeout(function(){qi++;if(qi<qs.length){renderQ();}else{renderR();}},900);\n    };}\n  }\n  function renderR(){\n    var t=todayStr(),verdict,perfect=score===5;\n    if(perfect){verdict="PERFECT. You know this roster better than the algorithm does.";}\n    else if(score>=4){verdict="Certified roster-watcher. One more and it is perfect.";}\n    else if(score>=3){verdict="Solid. The factory has use for you.";}\n    else{verdict="Study the roster. Come back tomorrow.";}\n    if(isDaily){st.lastDaily=tdy;st.dailyScore=score;\n      if(score>=3){if(st.last!==t){st.streak=(st.last===yesterday(t))?st.streak+1:1;st.last=t;}}\n      else{if(st.last!==t){st.streak=0;st.last=t;}}\n      save(st);isDaily=false;}\n    paintStreak();paintStats();\n    try{localStorage.removeItem("pf_guess_lb_v1");}catch(e){}\n    loadLb(paintLb);\n    var studyHtml="";\n    if(missed.length){\n      var links=[];\n      for(var mi=0;mi<missed.length;mi++){links.push("<a href=\'/" +missed[mi]+"\' style=\'color:#f5f0e1;text-decoration:underline;margin:0 0.4rem;\'>"+esc(disp(missed[mi]))+"</a>");}\n      studyHtml="<div style=\'margin-top:1rem;font-size:0.85rem;color:#b8ab8e;\'>STUDY UP: "+links.join(" \\u00B7 ")+"</div>";\n    }\n    var infHtml="";\n    try{\n      var PFw=window.PF;\n      if(PFw&&typeof PFw.infightNext==="function"){\n        var nx=PFw.infightNext();\n        if(nx&&nx.a&&nx.b){\n          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n            +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Think you know the roster? Put XP where your mouth is.</div>"\n            +"<button id=\'pf-guess-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n        }\n      }\n    }catch(e){}\n    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>FINAL SCORE</div>"\n      +"<div style=\'font-size:2.4rem;font-weight:900;margin:0.4rem 0;\'>"+score+"/5</div>"\n      +"<div style=\'font-size:0.95rem;color:#b8ab8e;margin-bottom:1rem;\'>"+verdict+"</div>"+studyHtml\n      +"<div style=\'margin-top:1rem;\'><button id=\'pf-guess-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE SCORE CARD</button></div>"\n      +infHtml\n      +"<div><button id=\'pf-guess-again\' style=\'margin-top:1rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>PLAY AGAIN</button></div>";\n    try{document.dispatchEvent(new CustomEvent("pf-guess-done",{detail:{score:score,day:t}}));}catch(e){}\n    try{document.dispatchEvent(new CustomEvent("pf-guess-scored",{detail:{score:score}}));}catch(e){}\n    /* M1 dopamine: the score card lands with feeling. Perfect game gets the big one. */\n    try{if(window.PF&&PF.dope){var gd=document.getElementById("pf-guess")||document.body;var gp=perfect?80:(score>=3?45:25);PF.dope.confetti(gd,gp);if(perfect){PF.dope.ping(gd,"PERFECT 5/5");}else{PF.dope.xpFloat(gd,score+"/5");}}}catch(e){}\n    try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["creator-guess"]={title:score+"/5",tag:"GUESS THE CREATOR",lines:[verdict],cta:"TEST YOURSELF"};}}catch(e){}\n    document.getElementById("pf-guess-share").onclick=function(){\n      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("creator-guess");if(cv){PS.shareImage(cv,"guess-score.png","I scored "+score+"/5 on Guess the Creator","creator-guess");return;}}}catch(e){}\n    };\n    var ibf=document.getElementById("pf-guess-infight");\n    if(ibf){ibf.onclick=function(){var tg=document.getElementById("pf-infight-root");if(tg){try{tg.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){tg.scrollIntoView();}}};}\n    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;missed=[];qs=pick(buildBank());renderQ();};\n  }\n  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n  paintStreak();loadStats(paintStats);loadLb(paintLb);\n  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("daily-interrogation")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-interrogation">\n<div id="pf-interrogation">\n<style>\n#pf-interrogation{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-interrogation h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-interrogation .iq-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}\n#pf-interrogation .iq-q{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;font-family:Arial,sans-serif;font-size:17px;font-weight:700;line-height:1.45;text-align:left}\n#pf-interrogation .iq-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}\n#pf-interrogation .iq-opt{background:#1a1a1a;color:#f5ead6;border:2px solid #f5ead6;padding:12px 14px;font-family:Arial,sans-serif;font-size:14px;cursor:pointer;text-align:left}\n#pf-interrogation .iq-opt:hover:not(:disabled){background:#2a2a2a}\n#pf-interrogation .iq-opt:disabled{cursor:default;opacity:.85}\n#pf-interrogation .iq-opt.hit{background:#1e4d1e;border-color:#7bc96f;color:#fff}\n#pf-interrogation .iq-opt.miss{background:#4d1e1e;border-color:#c1121f;color:#fff}\n#pf-interrogation .iq-why{background:#1a1a1a;border-left:6px solid #c1121f;padding:14px 16px;text-align:left;margin:0 0 12px;display:none}\n#pf-interrogation .iq-verdict{font-size:18px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}\n#pf-interrogation .iq-verdict.right{color:#7bc96f}\n#pf-interrogation .iq-verdict.wrong{color:#c1121f}\n#pf-interrogation .iq-why p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}\n#pf-interrogation .iq-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}\n#pf-interrogation .iq-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}\n#pf-interrogation .iq-btn{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:12px 22px;font-family:\'Arial Black\',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}\n#pf-interrogation .iq-btn:hover{background:#1a1a1a}\n#pf-interrogation .iq-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}\n#pf-interrogation .iq-study{margin:12px 0 0}\n#pf-interrogation .iq-study a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}\n#pf-interrogation .iq-study a:hover{text-decoration:underline}\n</style>\n\n<h2>The Daily Interrogation</h2>\n<div class="iq-day" id="iqDay"></div>\n<div class="iq-q" id="iqQ"></div>\n<div class="iq-opts" id="iqOpts"></div>\n<div class="iq-why" id="iqWhy"></div>\n<div class="iq-streak" id="iqStreak"></div>\n<div class="iq-btns" id="iqShareRow" style="display:none">\n  <button class="iq-btn" id="iqCopy">Copy result grid</button>\n  <button class="iq-btn" id="iqShare">Share score card</button>\n</div>\n<div class="iq-note">One question per day. Streak or you&apos;re a liberal.</div>\n\n<script>\n(function(){\nvar LAUNCH=\'2026-10-01\';\n/* a = index of correct option */\nvar QS=[\n{q:"How many empty homes are there for every homeless person in America?",o:["28 to 1","5 to 1","100 to 1","2 to 1"],a:0,why:"28 empty homes per homeless person. There is no housing shortage — there\'s a profit shortage in housing people."},\n{q:"CEOs now make how many times the pay of the average worker?",o:["290x","50x","21x","1,000x"],a:0,why:"290x today vs 21x in 1965. Nothing about leadership got 14 times better."},\n{q:"Which law made the 8-hour workday federal law in the US?",o:["Fair Labor Standards Act, 1938","Wagner Act, 1935","Taft-Hartley Act, 1947","Sherman Act, 1890"],a:0,why:"The FLSA of 1938. Won by strikes, not by asking nicely."},\n{q:"The Ludlow Massacre of 1914 was an attack on…",o:["Striking coal miners","Suffragettes","Railroad barons","Bootleggers"],a:0,why:"Colorado National Guard opened fire on a miners\' tent colony. 21 dead, including children."},\n{q:"Who wrote: \'The ruling ideas of each age have ever been the ideas of its ruling class\'?",o:["Karl Marx","Vladimir Lenin","George Orwell","Noam Chomsky"],a:0,why:"Marx, in The German Ideology. Read it again next time the news tells you what\'s \'realistic.\'"},\n{q:"COINTELPRO was…",o:["An FBI program targeting activists","A Soviet spy ring","A 1970s rock band","A federal jobs program"],a:0,why:"The FBI\'s covert program to surveil, infiltrate, and sabotage civil rights, anti-war, and leftist movements."},\n{q:"What share of US wealth does the top 1% own?",o:["About 32%","About 10%","About 50%","About 75%"],a:0,why:"~32% for the top 1%. The bottom 50% holds about 2.5%."},\n{q:"The Haymarket Affair of 1886 gave the world…",o:["International Workers\' Day (May Day)","The income tax","Women\'s suffrage","Prohibition"],a:0,why:"May 1st is Labor Day almost everywhere on Earth — except the US, which moved it to September to dodge the radicals."},\n{q:"Which country has the most billionaires?",o:["United States","China","India","Russia"],a:0,why:"The US, by a mile. The heist has a headquarters."},\n{q:"In Marxist economics, \'surplus value\' is…",o:["Profit from unpaid labor","Stock dividends","Tax revenue","Rent"],a:0,why:"The gap between the value workers produce and the wage they\'re paid. That\'s where profit comes from."},\n{q:"The Flint Sit-Down Strike of 1936–37 targeted…",o:["General Motors","Ford","US Steel","Standard Oil"],a:0,why:"Workers occupied GM plants for 44 days — and won union recognition. Sit down. Stay put. Win."},\n{q:"Since 1979, US productivity is up 2.5x. Worker pay is up…",o:["15%","150%","250%","25%"],a:0,why:"Productivity soared. Your paycheck didn\'t. The difference went to people who\'ve never done your job."},\n{q:"America\'s first labor union was formed by…",o:["Shoemakers, 1794","Steelworkers, 1901","Coal miners, 1869","Autoworkers, 1935"],a:0,why:"The Federal Society of Journeymen Cordwainers, Philadelphia, 1794. Shoemakers started it all."},\n{q:"\'Manufacturing consent\' is a term coined by…",o:["Chomsky & Herman","Marx & Engels","George Orwell","Edward Bernays"],a:0,why:"Noam Chomsky and Edward Herman, 1988 — on how mass media serves power."},\n{q:"Edward Bernays is known as…",o:["The father of public relations","The inventor of television","A US president","A union leader"],a:0,why:"Freud\'s nephew. He literally wrote the book \'Propaganda\' (1928). We just use his tools against him."},\n{q:"The Triangle Shirtwaist fire of 1911 killed 146 workers and led to…",o:["Factory safety reforms","The minimum wage","The 40-hour week","Social Security"],a:0,why:"Locked doors, no fire escapes. The outrage forced New York\'s first real workplace safety laws."},\n{q:"In labor slang, a \'scab\' is…",o:["A strikebreaker","A type of war bond","A tax loophole","A police rank"],a:0,why:"Someone who crosses a picket line. Jack London called them worse — we can\'t print it."},\n{q:"The Pullman Strike of 1894 was broken by…",o:["US federal troops","The workers winning outright","Canadian mediators","It never happened"],a:0,why:"President Cleveland sent 12,000 troops against railroad strikers. The state always picks a side."},\n{q:"Who wrote: \'The law, in its majestic equality, forbids rich and poor alike to sleep under bridges\'?",o:["Anatole France","Mark Twain","Voltaire","Oscar Wilde"],a:0,why:"Anatole France, 1894. Justice is blind — it just only sees one class."},\n{q:"Das Kapital was published in…",o:["1867","1917","1848","1936"],a:0,why:"Volume 1, 1867. Still the best autopsy of capitalism ever written."},\n{q:"The Wagner Act of 1935 guaranteed…",o:["Workers\' right to unionize","Women\'s right to vote","The 8-hour day","Social Security"],a:0,why:"The National Labor Relations Act — the legal backbone of US unions."},\n{q:"The Taft-Hartley Act of 1947 did what?",o:["Restricted unions","Created OSHA","Ended child labor","Founded the Federal Reserve"],a:0,why:"Banned solidarity strikes, allowed \'right to work\' laws. The bosses\' revenge for the Wagner Act."},\n{q:"How many billionaires are on the Liquidation Bracket?",o:["16","8","32","64"],a:0,why:"16 seeds, one champion of evil. Vote the bracket."},\n{q:"The Do Meter\'s goal for the network is…",o:["5 million things done","1 million followers","$1M raised","100K members"],a:0,why:"Not followers. Not likes. Things done. 5 million of them."},\n{q:"\'If voting changed anything, they\'d make it illegal\' is attributed to…",o:["Emma Goldman","Susan B. Anthony","Martin Luther King Jr.","FDR"],a:0,why:"Emma Goldman. They\'re certainly trying to prove her right."},\n{q:"The IWW\'s nickname is…",o:["Wobblies","Diggers","Levelers","Grangers"],a:0,why:"The Industrial Workers of the World — the Wobblies. One big union."},\n{q:"A \'general strike\' is…",o:["All workers striking at once","A military draft","A stock market selloff","A tax boycott"],a:0,why:"Every worker, every industry, at once. The bosses\' worst nightmare."},\n{q:"Which state passed the first $15 minimum wage law?",o:["California","New York","Texas","Florida"],a:0,why:"California, 2016 — after fast-food workers struck for it. Fight for $15 started as a punchline."},\n{q:"Who is credited with: \'The problem with socialism is that you eventually run out of other people\'s money\'?",o:["Margaret Thatcher","Ronald Reagan","Winston Churchill","Ayn Rand"],a:0,why:"Thatcher, 1976. Meanwhile capitalism runs out of other people\'s everything."},\n{q:"What does MTCSTW stand for?",o:["Memes That Can Save The World","Make The Capitalists Stop Taking Wealth","My Thoughts Can Shape The World","Marxist Theory Center for Socialist Workers"],a:0,why:"Memes That Can Save The World. You\'re already inside the machine."}\n];\nfunction chi(){var d=new Date(new Date().toLocaleString(\'en-US\',{timeZone:\'America/Chicago\'}));d.setHours(0,0,0,0);return d;}\nfunction dayNum(){var l=new Date(LAUNCH+\'T00:00:00\');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}\nfunction dayKey(){var d=chi();return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nfunction yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nvar LS=\'pf_interrogation_v1\';\nfunction load(){try{return JSON.parse(localStorage.getItem(LS)||\'{"last":"","streak":0,"played":{}}\');}catch(e){return{last:\'\',streak:0,played:{}};}}\nfunction save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\nvar n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();\n/* R20 (Wave 6B): wrong-answer study-up targets — the intel desk by default,\n   the bracket for bracket questions, the roster page where one fits. */\nvar IQ_STUDY_DFL={label:"STUDY UP: POLITICAL HQ INTEL DESK",href:"/political-hq"};\nvar IQ_STUDY={8:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},22:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},29:{label:"STUDY UP: MEET MTCSTW",href:"/mtcstw"}};\nvar QIDX=(n-1)%QS.length;\n/* deterministic daily rotation: the correct answer must not sit in one slot.\n   Option-count-aware (B1): 4-option static questions rotate exactly as\n   before (n%4); 2-option macro questions rotate over their 2 slots. */\nvar _ord=[],QA=0;\nfunction setupRotation(){\n  var _cnt=Q.o.length,_rot=n%_cnt,_ri,_qi;\n  _ord=[]; for(_ri=0;_ri<_cnt;_ri++)_ord.push(_ri);\n  for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}\n  QA=0; for(_qi=0;_qi<_cnt;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}\n}\nsetupRotation();\nfunction el(id){return document.getElementById(id);}\nel(\'iqDay\').textContent=\'Day \'+n+\' of the interrogation\';\nel(\'iqQ\').textContent=Q.q;\nfunction streakTxt(){return \'Your streak: \'+s.streak+(s.streak===1?\' day\':\' days\')+\' — answer daily to keep it\';}\nfunction grid(){return \'THE DAILY INTERROGATION\\nDay \'+n+\': \'+(s.played[tk].correct?\'\\uD83D\\uDFE9\':\'\\uD83D\\uDFE5\')+\'\\nStreak: \'+s.streak+\' \\uD83D\\uDD25\\nmtcstw.com\';}\nfunction renderOpts(locked){\n  var h=\'\';\n  for(var i=0;i<Q.o.length;i++){\n    var cls=\'iq-opt\';\n    if(locked){cls+= (i===QA)?\' hit\':((s.played[tk].pick===i)?\' miss\':\'\');}\n    h+=\'<button class="\'+cls+\'" data-i="\'+i+\'"\'+(locked?\' disabled\':\'\')+\'>\'+Q.o[_ord[i]]+\'</button>\';\n  }\n  el(\'iqOpts\').innerHTML=h;\n  if(!locked){\n    var bs=el(\'iqOpts\').querySelectorAll(\'button\');\n    for(var j=0;j<bs.length;j++){bs[j].onclick=function(){answer(parseInt(this.getAttribute(\'data-i\'),10));};}\n  }\n}\nfunction showWhy(){\n  var p=s.played[tk],w=el(\'iqWhy\');w.style.display=\'block\';\n  w.innerHTML=\'<p class="iq-verdict \'+(p.correct?\'right\':\'wrong\')+\'">\'+(p.correct?\'CORRECT.\':\'WRONG.\')+\'</p><p>\'+Q.why+\'</p>\';\n  /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster;\n     macro questions (B1) send the reader to the money page. */\n  if(!p.correct){ var stu=Q.macro?{label:"STUDY UP: THE MONEY PAGE",href:"/follow-the-money"}:(IQ_STUDY[QIDX]||IQ_STUDY_DFL); w.innerHTML+=\'<p class="iq-study"><a href="\'+stu.href+\'">\'+stu.label+\' →</a></p>\'; }\n  el(\'iqShareRow\').style.display=\'flex\';\n  el(\'iqStreak\').textContent=streakTxt();\n  /* R20a: PFShare score card on completion ("I scored N"). */\n  try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["daily-interrogation"]={title:"DAY "+n+(p.correct?" — CORRECT":" — WRONG"),tag:"THE DAILY INTERROGATION",lines:["Streak: "+s.streak+" day"+(s.streak===1?"":"s")],cta:"FACE THE INTERROGATION"};}}catch(e){}\n}\nel(\'iqStreak\').textContent=streakTxt();\nif(s.played&&s.played[tk]){renderOpts(true);showWhy();}\nelse{renderOpts(false);}\n/* Wave B1 (S-16): MACRO DAY — every 7th day the question comes from the live\n   quiz bank (server-computed answers; figures refresh monthly so answers\n   can\'t be memorized). CONTENT ONLY — the pf-interrogation-answered event\n   and its XP leg are untouched. If the bank is unavailable (no key, stale,\n   fetch failed), the static rotation stands: never a fabricated question. */\nvar MACRO_EVERY=7;\nfunction apiGet(action,cb){\n  var be=""; try{ be=window.PF_BACKEND_URL||""; }catch(e){}\n  if(!be){ cb(null); return; }\n  var fn="pfIqCb"+Math.floor(Math.random()*1e9), done=false;\n  var s2=document.createElement("script");\n  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}\n    if(s2.parentNode)s2.parentNode.removeChild(s2); cb(j); }\n  window[fn]=function(j){ fin(j); };\n  s2.onerror=function(){ fin(null); };\n  s2.src=be+"?action="+encodeURIComponent(action)+"&callback="+fn;\n  document.head.appendChild(s2);\n  setTimeout(function(){ fin(null); },12000);\n}\n(function macroDay(){\n  if(n%MACRO_EVERY!==0) return;\n  if(s.played&&s.played[tk]) return;\n  apiGet(\'fred_quiz_bank\',function(j){\n    try{\n      if(!j||!j.ok||!j.questions||!j.questions.length) return;\n      if(s.played&&s.played[tk]) return; /* answered while fetching */\n      var qi=Math.floor(n/MACRO_EVERY)%j.questions.length;\n      var mq=j.questions[qi];\n      if(!mq||!mq.options||mq.options.length<2) return;\n      var ci=parseInt(mq.correct_index,10);\n      if(!(ci>=0&&ci<mq.options.length)) return;\n      Q={q:String(mq.q),o:mq.options.slice(),a:ci,why:String(mq.why||\'\'),macro:mq.id};\n      QIDX=\'macro:\'+mq.id;\n      setupRotation();\n      el(\'iqDay\').textContent=\'Day \'+n+\' of the interrogation — MACRO DAY\';\n      el(\'iqQ\').textContent=Q.q;\n      renderOpts(false);\n    }catch(e){}\n  });\n})();\nfunction answer(pick){\n  var correct=(pick===QA);\n  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};\n  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}\n  save(s);\n  try{document.dispatchEvent(new CustomEvent(\'pf-interrogation-answered\',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}\n  renderOpts(true);showWhy();\n}\nel(\'iqCopy\').onclick=function(){\n  var t=grid();\n  function done(){try{if(window.PF&&PF.toast)PF.toast(\'Grid copied. Go shame your friends.\');}catch(e){}}\n  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}\n  else fallback();\n  function fallback(){try{var ta=document.createElement(\'textarea\');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand(\'copy\');ta.remove();done();}catch(e){}}\n};\n/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */\nel(\'iqShare\').onclick=function(){\n  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("daily-interrogation");if(cv){PS.shareImage(cv,"interrogation-score.png","I scored "+(s.played[tk].correct?"1/1":"0/1")+" on The Daily Interrogation","daily-interrogation");return;}}}catch(e){}\n  try{if(window.PF&&PF.toast)PF.toast(\'Score card misfired — the grid copy still works.\');}catch(e){}\n};\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("billionaire-supervillain")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-billionaire">\n<div id="pf-billionaire">\n<style>\n#pf-billionaire{font-family:\'Arial Black\',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}\n#pf-billionaire h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}\n#pf-billionaire .bv-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}\n#pf-billionaire .bv-quote{background:#f5ead6;color:#0d0d0d;padding:24px 20px;margin:0 0 16px;font-size:19px;line-height:1.45;font-family:Arial,sans-serif;font-style:italic}\n#pf-billionaire .bv-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}\n#pf-billionaire .bv-btn{background:#c1121f;color:#fff;border:0;padding:14px 26px;font-family:\'Arial Black\',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}\n#pf-billionaire .bv-btn:hover{background:#8f0d17}\n#pf-billionaire .bv-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}\n#pf-billionaire .bv-btn.ghost:hover{background:#1a1a1a}\n#pf-billionaire .bv-btn:disabled{opacity:.45;cursor:default}\n#pf-billionaire .bv-reveal{background:#1a1a1a;border-left:6px solid #c1121f;padding:16px;text-align:left;margin:0 0 12px}\n#pf-billionaire .bv-verdict{font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}\n#pf-billionaire .bv-verdict.right{color:#7bc96f}\n#pf-billionaire .bv-verdict.wrong{color:#c1121f}\n#pf-billionaire .bv-who{font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#f5ead6;margin:0 0 6px}\n#pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}\n#pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}\n#pf-billionaire .bv-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}\n#pf-billionaire .bv-br{margin:12px 0 0}\n#pf-billionaire .bv-br a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}\n#pf-billionaire .bv-br a:hover{text-decoration:underline}\n</style>\n\n<h2>Billionaire or Supervillain?</h2>\n<div class="bv-day" id="bvDay"></div>\n<div class="bv-quote" id="bvQuote"></div>\n<div class="bv-btns" id="bvBtns">\n  <button class="bv-btn" id="bvB">Billionaire</button>\n  <button class="bv-btn ghost" id="bvS">Supervillain</button>\n</div>\n<div class="bv-reveal" id="bvReveal" style="display:none"></div>\n<div class="bv-streak" id="bvStreak"></div>\n<div class="bv-btns" id="bvShareRow" style="display:none">\n  <button class="bv-btn ghost" id="bvCopy">Copy result grid</button>\n  <button class="bv-btn ghost" id="bvShare">Share score card</button>\n</div>\n<div class="bv-note">One quote per day. Come back tomorrow &mdash; the next monster awaits.</div>\n\n<script>\n(function(){\nvar LAUNCH=\'2026-10-01\';\n/* w:0 = billionaire (real, documented) | w:1 = supervillain (film/comics) */\nvar QUOTES=[\n{w:0,q:"There\'s class warfare, all right, but it\'s my class, the rich class, that\'s making war, and we\'re winning.",who:"Warren Buffett",ctx:"Buffett to the New York Times, 2006. He wasn\'t joking."},\n{w:1,q:"Introduce a little anarchy. Upset the established order, and everything becomes chaos.",who:"The Joker",ctx:"Heath Ledger\'s Joker, The Dark Knight (2008)."},\n{w:0,q:"We will coup whoever we want! Deal with it.",who:"Elon Musk",ctx:"Tweeted July 2020, about Bolivia\'s lithium."},\n{w:1,q:"The hardest choices require the strongest wills.",who:"Thanos",ctx:"Avengers: Infinity War (2018). He then deleted half of all life."},\n{w:0,q:"Your margin is my opportunity.",who:"Jeff Bezos",ctx:"The founding philosophy of Amazon."},\n{w:1,q:"Why so serious?",who:"The Joker",ctx:"The Dark Knight (2008). Launched a thousand dorm posters."},\n{w:0,q:"Move fast and break things.",who:"Mark Zuckerberg",ctx:"Facebook\'s infamous internal motto."},\n{w:1,q:"I am inevitable.",who:"Thanos",ctx:"Avengers: Endgame (2019). Famous last words."},\n{w:0,q:"I no longer believe that freedom and democracy are compatible.",who:"Peter Thiel",ctx:"From his 2009 essay \'The Education of a Libertarian.\'"},\n{w:1,q:"You either die a hero, or you live long enough to see yourself become the villain.",who:"Harvey Dent",ctx:"The Dark Knight (2008). Hits different in 2026."},\n{w:0,q:"Competition is for losers.",who:"Peter Thiel",ctx:"The thesis of his book Zero to One."},\n{w:1,q:"You merely adopted the dark. I was born in it, molded by it.",who:"Bane",ctx:"The Dark Knight Rises (2012)."},\n{w:0,q:"If you don\'t find a way to make money while you sleep, you will work until you die.",who:"Warren Buffett",ctx:"His most-shared piece of wisdom."},\n{w:1,q:"The one thing they love more than a hero is to see a hero fail, fall, die trying.",who:"Norman Osborn",ctx:"Spider-Man (2002). Willem Dafoe knew."},\n{w:0,q:"Being the richest man in the cemetery doesn\'t matter to me.",who:"Steve Jobs",ctx:"Wall Street Journal interview, 1993."},\n{w:1,q:"Madness, as you know, is like gravity. All it takes is a little push.",who:"The Joker",ctx:"The Dark Knight (2008)."},\n{w:0,q:"Success is a lousy teacher. It seduces smart people into thinking they can\'t lose.",who:"Bill Gates",ctx:"From his book The Road Ahead."},\n{w:1,q:"There are no strings on me.",who:"Ultron",ctx:"Avengers: Age of Ultron (2015). The AI read the internet and chose violence."},\n{w:0,q:"I will always choose a lazy person to do a difficult job, because a lazy person will find an easy way to do it.",who:"Bill Gates",ctx:"Attributed to Gates for decades."},\n{w:1,q:"Peace in our time.",who:"Ultron",ctx:"Said while building an extinction machine."},\n{w:0,q:"Don\'t be evil.",who:"Larry Page & Sergey Brin",ctx:"Google\'s original corporate motto. They quietly removed it."},\n{w:1,q:"I am Loki, of Asgard, and I am burdened with glorious purpose.",who:"Loki",ctx:"The Avengers (2012)."},\n{w:0,q:"Stay hungry, stay foolish.",who:"Steve Jobs",ctx:"Stanford commencement address, 2005."},\n{w:1,q:"Freedom is life\'s great lie.",who:"Loki",ctx:"Loki\'s Stuttgart speech, The Avengers (2012)."},\n{w:0,q:"I knew that if I failed I wouldn\'t regret that, but I knew the one thing I might regret is not trying.",who:"Jeff Bezos",ctx:"On quitting his job to start Amazon."},\n{w:1,q:"If you\'re good at something, never do it for free.",who:"The Joker",ctx:"The Dark Knight (2008). Genuinely good business advice. That\'s the problem."},\n{w:0,q:"The people who are crazy enough to think they can change the world are the ones who do.",who:"Steve Jobs",ctx:"Apple\'s \'Think Different\' campaign, 1997."},\n{w:1,q:"You want to know how I got these scars?",who:"The Joker",ctx:"His favorite party trick."},\n{w:0,q:"The most contrarian thing of all is not to oppose the crowd but to think for yourself.",who:"Peter Thiel",ctx:"Also Zero to One. The contrarianism market is crowded."},\n{w:1,q:"When Gotham is ashes, you have my permission to die.",who:"Bane",ctx:"The Dark Knight Rises (2012). Polite about murder."}\n];\nfunction chi(){var d=new Date(new Date().toLocaleString(\'en-US\',{timeZone:\'America/Chicago\'}));d.setHours(0,0,0,0);return d;}\nfunction dayNum(){var l=new Date(LAUNCH+\'T00:00:00\');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}\nfunction dayKey(){var d=chi();return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nfunction yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+\'-\'+(d.getMonth()+1)+\'-\'+d.getDate();}\nvar LS=\'pf_billionaire_v1\';\nfunction load(){try{return JSON.parse(localStorage.getItem(LS)||\'{"last":"","streak":0,"played":{}}\');}catch(e){return{last:\'\',streak:0,played:{}};}}\nfunction save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\nvar n=dayNum(),Q=QUOTES[(n-1)%QUOTES.length],s=load(),tk=dayKey();\nfunction el(id){return document.getElementById(id);}\nel(\'bvDay\').textContent=\'Day \'+n+\' of the lineup\';\nel(\'bvQuote\').textContent=\'“\'+Q.q+\'”\';\nfunction streakTxt(){return \'Your streak: \'+s.streak+(s.streak===1?\' day\':\' days\')+\' — keep it alive tomorrow\';}\nfunction grid(){return \'BILLIONAIRE OR SUPERVILLAIN\\nDay \'+n+\': \'+(s.played[tk].correct?\'\\uD83D\\uDFE9\':\'\\uD83D\\uDFE5\')+\'\\nStreak: \'+s.streak+\' \\uD83D\\uDD25 \\u2014 can you tell them apart?\\nmtcstw.com\';}\nfunction showReveal(){\n  var p=s.played[tk];\n  el(\'bvBtns\').style.display=\'none\';\n  var r=el(\'bvReveal\');r.style.display=\'block\';\n  var src=Q.w===0?\'BILLIONAIRE\':\'SUPERVILLAIN\';\n  r.innerHTML=\'<p class="bv-verdict \'+(p.correct?\'right\':\'wrong\')+\'">\'+(p.correct?\'CORRECT.\':\'WRONG.\')+\'</p>\'+\n    \'<p class="bv-who">\'+src+\' — \'+Q.who+\' said that.</p>\'+\n    \'<p class="bv-ctx">\'+Q.ctx+\'</p>\';\n  /* R20c: the quote reveal routes real billionaires to their bracket matchup. */\n  if(Q.w===0){ r.innerHTML+=\'<p class="bv-br"><a href="/arcade#pf-bracket">SEE THEIR BRACKET MATCHUP →</a></p>\'; }\n  el(\'bvShareRow\').style.display=\'flex\';\n  el(\'bvStreak\').textContent=streakTxt();\n  /* R20a: PFShare score card on completion ("I scored N"). */\n  try{var PS0=window.PFShare;if(PS0&&PS0.REG){var qq=String(Q.q).replace(/"/g,"");PS0.REG["billionaire-supervillain"]={title:"DAY "+n+(p.correct?" — RIGHT":" — WRONG"),tag:"BILLIONAIRE OR SUPERVILLAIN",lines:[\'"\'+qq+\'" — \'+Q.who],cta:"TELL THEM APART"};}}catch(e){}\n}\nel(\'bvStreak\').textContent=streakTxt();\nif(s.played&&s.played[tk]){showReveal();}\nelse{\n  el(\'bvB\').onclick=function(){answer(0);};\n  el(\'bvS\').onclick=function(){answer(1);};\n}\nfunction answer(pick){\n  var correct=(pick===Q.w);\n  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};\n  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}\n  save(s);\n  try{document.dispatchEvent(new CustomEvent(\'pf-billionaire-answered\',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}\n  showReveal();\n}\nel(\'bvCopy\').onclick=function(){\n  var t=grid();\n  function done(){try{if(window.PF&&PF.toast)PF.toast(\'Grid copied. Go shame your friends.\');}catch(e){}}\n  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}\n  else fallback();\n  function fallback(){try{var ta=document.createElement(\'textarea\');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand(\'copy\');ta.remove();done();}catch(e){}}\n};\n/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */\nel(\'bvShare\').onclick=function(){\n  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("billionaire-supervillain");if(cv){PS.shareImage(cv,"bos-score.png","I called today\'s Billionaire or Supervillain "+(s.played[tk].correct?"right":"wrong"),"billionaire-supervillain");return;}}}catch(e){}\n  try{if(window.PF&&PF.toast)PF.toast(\'Score card misfired — the grid copy still works.\');}catch(e){}\n};\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;e&&!e.skip("slr-match-quiz")&&e.holder().insertAdjacentHTML("beforeend",'<template id="pf-ov-matchquiz">\n<div class="fe-block pf-override-block">\n<div id="pf-matchquiz" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9873; FIND YOUR SLR MATCH &#9873;</div>\n  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with killers from the Sick Left Radicals roster.</div>\n  <div id="pf-mq-body"></div>\n</div>\n<script>\n(function(){\n  "use strict";\n  /* Display modes (2026-10-03): slim compact card on the homepage (pf-v2);\n     full quiz on /arcade (pf-arcade). Template id unchanged. */\n  var PF_MODE=(function(){try{if(document.getElementById("pf-arcade")||document.getElementById("pf-cells-page"))return"full";}catch(e){}return"slim";})();\n  var ARCH={\n    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",test:function(m){return /mutual.aid|organizer|movement|nonprofit|organizing/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",test:function(m){return /news|research|journal|document|analysis/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",test:function(m){return (m.followers_total||0)>=200000;}}\n  };\n  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n  function dbMates(A){var all=dbAll(),out=[],i;\n    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n    for(i=0;i<ranked.length&&out.length<4;i++){out.push(ranked[i]);}\n    if(out.length<4){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n    for(i=0;i<rest.length&&out.length<4;i++){out.push(rest[i]);}}\n    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n  var QS=[\n    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n    {q:"It is Friday night. You are...",a:[["Ratioing a senator",["agitator",2],["sniper",1]],["Editing video until 3am",["meme",2],["hype",1]],["At the mutual-aid distro",["organizer",2],["meme",1]],["Reading primary sources",["sniper",2],["organizer",1]],["Holding down the group chat",["hype",2],["agitator",1]]]},\n    {q:"Billionaires fear you most when you...",a:[["Name names, loudly",["agitator",2],["hype",1]],["Turn them into a meme",["meme",2],["agitator",1]],["Build what they cannot buy",["organizer",2],["sniper",1]],["Publish the receipts",["sniper",2],["meme",1]],["Mobilize 10,000 people",["hype",2],["organizer",1]]]},\n    {q:"Pick a battlefield.",a:[["The comments section",["agitator",2],["meme",1]],["The group chat",["meme",2],["hype",1]],["The picket line",["organizer",2],["agitator",1]],["The quote-tweet",["sniper",2],["hype",1]],["The For You page",["hype",2],["sniper",1]]]},\n    {q:"Your comrades describe you as...",a:[["Fearless",["agitator",2],["hype",1]],["Funny",["meme",2],["agitator",1]],["Dependable",["organizer",2],["meme",1]],["Rigorous",["sniper",2],["organizer",1]],["Magnetic",["hype",2],["sniper",1]]]}\n  ];\n  /* Daily seed: question + answer order reshuffle every Chicago day. */\n  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n  function daySeed(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n  function shuffle(a,rng){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n  var QUIZ=(function(){var ds=daySeed();var qs=shuffle(QS.slice(),mulberry32(hashStr("mq:"+ds)));return qs.map(function(q){return {q:q.q,a:shuffle(q.a.slice(),mulberry32(hashStr("mq:"+ds+":"+q.q)))};});})();\n  /* Streak: consecutive Chicago days with a completed quiz. */\n  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n  var API=(window.PF_BACKEND_URL);\n  var TRIBES=null;\n  function loadTribes(cb){var done=function(){if(cb)cb();};\n    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n    var name="pfMqT"+Date.now(),fired=false;\n    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.tribes){TRIBES=d.tribes;try{localStorage.setItem("pf_mq_tribes_v1",JSON.stringify({at:Date.now(),d:d.tribes}));}catch(e){}}done();};\n    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=quiz_tribes";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n  var body=document.getElementById("pf-mq-body"),qi=0,scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};\n  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n  function renderStart(){\n    var st=getStreak();\n    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n      +"<button id=\'pf-mq-start\' style=\'padding:0.8rem 2.2rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\'>START</button>";\n    body.innerHTML=h;\n    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n      if(!TRIBES){return;}\n      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n  }\n  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n  function renderCompact(){\n    var st=getStreak();\n    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>"\n      +"<div style=\'margin-top:0.8rem;font-size:0.85rem;\'><a href=\'/sick-left-radicals\' style=\'color:#c1121f;font-weight:700;text-decoration:none;\'>or meet all 62 fighters \\u2192</a></div>"\n    body.innerHTML=h;\n    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n  }\n  function renderQ(){\n    var q=QUIZ[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n    for(var i=0;i<q.a.length;i++){h+="<button data-mq=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(q.a[i][0])+"</button>";}\n    body.innerHTML=h;\n    var btns=body.querySelectorAll("[data-mq]");\n    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n      var opt=q.a[+this.getAttribute("data-mq")];\n      for(var k=1;k<opt.length;k++){scores[opt[k][0]]+=opt[k][1];}\n      qi++;\n      if(qi<QUIZ.length){renderQ();}else{renderR();}\n    };}\n  }\n  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH",storyPre:"MY SLR MATCH IS"};return true;}catch(e){return false;}}\n  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n  function renderR(){\n    var top="agitator",tk=-1;\n    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n    for(var i=0;i<Math.min(3,A.mates.length);i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n    var streakN=bumpStreak();\n    var fourthHtml="<div id=\'pf-mq-fourth\' style=\'margin-top:0.6rem;\'><div style=\'padding:0.7rem;border:2px dashed #c1121f;color:#b8ab8e;font-size:0.85rem;\'>&#128274; <b style=\'color:#f5f0e1;\'>4TH MATCH LOCKED</b><br>Share your archetype card to unlock it.</div></div>";\n    var infHtml="";\n    try{\n      var PFw=window.PF;\n      if(PFw&&typeof PFw.infightNext==="function"){\n        var nx=PFw.infightNext();\n        if(nx&&nx.a&&nx.b){\n          var myIn=null,mi,ms2;\n          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n        }\n      }\n    }catch(e){}\n    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n      +recruitHtml\n      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n      +"<div style=\'margin-top:0.6rem;\'><button id=\'pf-mq-story\' style=\'padding:0.7rem 1.6rem;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE TO STORY (9:16)</button></div>"\n      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n      +infHtml\n      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n    /* COHESION (2026-10-06): terminal-state wiring — the quiz result hands\n       off to the next-move engine, which routes the visitor to a first\n       mission. Slot is the result container; the engine queues if not\n       loaded yet. Zero new XP — routing only. */\n    try{document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:body,context:"quiz-result"}}));}catch(e){}\n    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n    mqPublish(A);\n    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n    var unlocked=false;\n    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n    /* QW-3 (2026-10-05): RECRUIT UNDER YOUR MATCH - enlist under the match\\u2019s name.\n       ?creator= is captured first-touch by core/09-referral.js. Zero new XP. */\n    var recruitHtml="";\n    for(var ri=0;ri<Math.min(3,A.mates.length);ri++){var rs=A.mates[ri];var rslug=(rs&&rs.s)?String(rs.s):"";\n      if(!rslug)continue;\n      recruitHtml+="<a href=\'/?creator="+encodeURIComponent(rslug)+"\' style=\'display:inline-block;margin:0.25rem;padding:0.7rem 1.6rem;background:#c1121f;color:#f5f0e1;font-weight:800;letter-spacing:0.1em;font-size:0.9rem;text-decoration:none;font-family:inherit;\'>RECRUIT UNDER "+esc(String(rs.label||rslug).toUpperCase())+" \\u2192</a>";}\n    if(recruitHtml){recruitHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.9rem;\'>"\n      +"<div style=\'font-size:0.9rem;font-weight:900;letter-spacing:0.12em;color:#c1121f;\'>RECRUIT UNDER YOUR MATCH</div>"\n      +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin:0.4rem 0 0.8rem;\'>Enlist in their name and muster the tribe.</div>"\n      +recruitHtml+"</div>";}\n    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n    document.addEventListener("pf-share-image",mqShareH);\n    document.getElementById("pf-mq-share").onclick=function(){\n      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n      unlock4();\n    };\n    /* A9 (2026-10-04): IG Story chain - 9:16 archetype poster for the link sticker. */\n    /* The share link carries the poster sharer\'s own ?ref= (PF.shareUrl stamps their */\n    /* callsign), so each hop re-attributes. No XP on the story-post side; quiz rewards unchanged. */\n    var mqStoryBtn=document.getElementById("pf-mq-story");\n    if(mqStoryBtn){mqStoryBtn.onclick=function(){\n      try{\n        var PS2=window.PFShare;\n        if(PS2&&PS2.posterStory&&PS2.shareImage){\n          var _cs="";try{_cs=String(window.PFCallsign?window.PFCallsign():"");}catch(_e){}\n          var _lbl="MTCSTW.COM/ARCADE"+(_cs?("?REF="+encodeURIComponent(_cs).toUpperCase()):"");\n          var cv2=PS2.posterStory("slr-match-quiz",{linkLabel:_lbl});\n          if(cv2){PS2.shareImage(cv2,"slr-story.png",A.name+" - my propaganda archetype","slr-match-quiz",{link:"https://www.mtcstw.com/arcade"});return;}\n        }\n      }catch(e2){}\n      try{if(window.PF&&PF.toast)PF.toast("Poster failed - try again.");}catch(e3){}\n    };}\n    var ibf=document.getElementById("pf-mq-infight");\n    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n    document.getElementById("pf-mq-join").onclick=function(){\n      var em=(document.getElementById("pf-mq-email").value||"").trim();\n      var msg=document.getElementById("pf-mq-msg");\n      if(!em||em.indexOf("@")<0){msg.textContent="Enter a valid email.";return;}\n      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n      msg.textContent="Opening your mail app \\u2014 welcome to the factory.";\n    };\n    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n  }\n  if(PF_MODE==="slim"){ renderCompact(); }\n  else { renderStart(); setTimeout(mqRestore,1500); setTimeout(mqRestore,5000); }\n})();\n<\/script>\n</div>\n</template>')}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("infighting")){e.infightHype=function(){try{var e=JSON.parse(localStorage.getItem("pf_infight_hype_v1")||"null");if(e&&e.until>Date.now()&&e.slug)return e}catch(e){}return null},e.infightNext=function(){try{var r;try{r=e.chiNow()}catch(e){r=new Date}var i=r.getMinutes()<30?0:30,o=new Date(r.getTime());o.setMinutes(i,0,0);var a,s=new Date(o.getTime()+6e5);if(r.getTime()>=s.getTime()){var l=new Date(o.getTime()+18e5);a={live:!1,start:l,end:new Date(l.getTime()+6e5),id:n(l)}}else a={live:!0,start:o,end:s,id:n(o)};var c=[];try{c=e.slrAll?e.slrAll():e.ROSTER||[]}catch(e){}if(c.length<2)return null;var d=function(e){return function(){e=1831565813+(e|=0)|0;var t=Math.imul(e^e>>>15,1|e);return(((t=t+Math.imul(t^t>>>7,61|t)^t)^t>>>14)>>>0)/4294967296}}(function(e){for(var t=2166136261,n=0;n<e.length;n++)t^=e.charCodeAt(n),t=Math.imul(t,16777619);return t>>>0}("infight:"+a.id)),f=c.length,m=Math.floor(d()*f),p=Math.floor(d()*f);p===m&&(p=(p+1+Math.floor(d()*(f-1)))%f);var u=Math.max(0,(a.live?a.end:a.start).getTime()-r.getTime());return{id:a.id,live:a.live,clock:t(Math.floor(u/6e4))+":"+t(Math.floor(u%6e4/1e3)),a:{name:c[m].name,slug:c[m].slug},b:{name:c[p].name,slug:c[p].slug}}}catch(e){return null}},e.holder().insertAdjacentHTML("beforeend","<template id=\"pf-ov-infight\">\n<div class=\"fe-block pf-override-block\" id=\"pf-infight-root\"></div>\n<script>\n(function(){\n'use strict';\nvar API=(window.PF_BACKEND_URL);\nvar LS_R='pf_ranks_v1',LS_I='pf_identity_v1';\nvar LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';\n/* 6A-R8 cell bout: CELL BOUT toggle + per-cell standings. Cell identity\n   follows the cells.js convention (pf_cells_v1 cache written by cell_mine:\n   {mult, cell_id, name, t}). */\nvar LS_CELLBOUT='pf_infight_cellbout_v1',LS_CELLCACHE='pf_cells_v1';\nfunction myCell(){try{var c=JSON.parse(localStorage.getItem(LS_CELLCACHE)||'null');if(c&&c.cell_id)return{id:String(c.cell_id),name:String(c.name||'YOUR CELL').slice(0,80)};}catch(e){}return null;}\nfunction cellBoutOn(){try{return localStorage.getItem(LS_CELLBOUT)==='1';}catch(e){return false;}}\nfunction setCellBout(on){try{localStorage.setItem(LS_CELLBOUT,on?'1':'0');}catch(e){}}\n/* Cell tag attached to fire calls: only when CELL BOUT is on and the\n   visitor holds a cell. Server validates membership fail-closed. */\nfunction fireCellId(){if(!cellBoutOn())return'';var m=myCell();return m?m.id:'';}\nvar BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;\nfunction chiNow(){try{return PF.chiNow();}catch(e){return new Date();}}\nfunction pad(n){return (n<10?'0':'')+n;}\nfunction esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});}\nfunction hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\nfunction mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\nfunction dbAll(){try{return PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}catch(e){return[];}}\nfunction xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{\"xp\":0}').xp)||0;}catch(e){return 0;}}\nfunction callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}\nfunction apiGet(params,cb,timeoutMs){\n  /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */\n  if(params && params.action==='infight_fire' && window.PF && PF.postAction){\n    PF.postAction('stats','s_action','infight_fire',\n      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt,cell_id:params.cell_id||''},cb);\n    return;\n  }\n  var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);\n  function fin(v){if(done)return;done=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(v);}\n  window[name]=function(d){fin(d);};\n  var q='?callback='+encodeURIComponent(name);\n  for(var k in params){if(params.hasOwnProperty(k))q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}\n  var scr=document.createElement('script');scr.id=name;scr.src=API+q;\n  scr.onerror=function(){fin(null);};\n  (document.head||document.documentElement).appendChild(scr);\n  setTimeout(function(){fin(null);},timeoutMs||12000);\n}\nfunction dispatch(name,detail){try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){}}\nfunction roundId(d){return d.getFullYear()+''+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}\nfunction battleWindow(now){\n  var d=new Date(now.getTime());\n  var slotMin=d.getMinutes()<SLOT_MIN?0:SLOT_MIN;\n  var start=new Date(d.getTime());start.setMinutes(slotMin,0,0);\n  var end=new Date(start.getTime()+BATTLE_MIN*60000);\n  if(now.getTime()>=end.getTime()){\n    var ns=new Date(start.getTime()+SLOT_MIN*60000);\n    return {live:false,start:ns,end:new Date(ns.getTime()+BATTLE_MIN*60000),id:roundId(ns)};\n  }\n  return {live:true,start:start,end:end,id:roundId(start)};\n}\nfunction matchup(id,roster){\n  var rng=mulberry32(hashStr('infight:'+id)),n=roster.length;\n  if(n<2)return [null,null];\n  var a=Math.floor(rng()*n),b=Math.floor(rng()*n);\n  if(b===a)b=(b+1+Math.floor(rng()*(n-1)))%n;\n  return [roster[a],roster[b]];\n}\nfunction spentMap(){try{return JSON.parse(localStorage.getItem(LS_SPENT)||'{}');}catch(e){return{};}}\nfunction spentThisRound(id){return Number(spentMap()[id]||0);}\nfunction addSpent(id,amt){try{var m=spentMap();m[id]=(Number(m[id])||0)+amt;localStorage.setItem(LS_SPENT,JSON.stringify(m));}catch(e){}}\nfunction opsState(id){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');return o[id]||{};}catch(e){return{};}}\nfunction markOp(id,key){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');o[id]=o[id]||{};o[id][key]=1;localStorage.setItem(LS_OPS,JSON.stringify(o));}catch(e){}}\nvar root=document.getElementById('pf-infight-root');\nif(!root)return;\nvar cur=null,fighters=[null,null],totals={},pending={},side=0,pollTimer=null,lastRound='';\nvar cellTotals={};\nfunction fmtClock(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return pad(m)+':'+pad(s);}\nfunction fighterCard(f,idx,total,maxTotal){\n  var pct=maxTotal>0?Math.round(total/maxTotal*100):0;\n  var sel=side===idx?'outline:3px solid #e10600;':'';\n  var pic=f&&f.picture?'<img src=\"'+esc(f.picture)+'\" alt=\"'+esc(f.name)+'\" loading=\"lazy\" style=\"width:100%;height:150px;object-fit:cover;display:block;background:#1a1a1a;\">':'';\n  return '<div data-if-side=\"'+idx+'\" style=\"flex:1;min-width:0;background:#141414;border:1px solid #333;cursor:pointer;'+sel+'\">'+pic+\n    '<div style=\"padding:10px;\">'+\n    '<div style=\"font-weight:800;font-size:15px;line-height:1.2;\">'+esc(f?f.name:'?')+'</div>'+\n    '<div style=\"color:#999;font-size:12px;margin:4px 0 8px;\">FIRE: <b style=\"color:#fff;\" data-if-total=\"'+idx+'\">'+total.toLocaleString()+'</b></div>'+\n    '<div style=\"height:10px;background:#2a2a2a;\"><div data-if-bar=\"'+idx+'\" style=\"height:10px;background:#e10600;width:'+pct+'%;transition:width .6s;\"></div></div>'+\n    '<div style=\"margin-top:8px;font-size:12px;color:#e10600;font-weight:800;\">'+(side===idx?'▲ YOUR FIGHTER':'TAP TO BACK')+'</div>'+\n    '</div></div>';\n}\nfunction render(){\n  var now=chiNow(),w=battleWindow(now),roster=dbAll();\n  if(!roster.length)return;\n  cur=w;\n  var mm=matchup(w.id,roster);\n  fighters=mm;totals={};pending={};cellTotals={};\n  if(lastRound&&lastRound!==w.id){settleLastBattle(lastRound,roster);}\n  lastRound=w.id;\n  try{localStorage.setItem(LS_SEEN,w.id);}catch(e){}\n  if(w.live)startPoll();else stopPoll();\n  paint(w);\n}\n/* 6A-R8: cell bout standings pane. Per-cell rollup from infight_totals;\n   the visitor's own cell is highlighted. */\nfunction cellPaneHtml(mc){\n  var ids=Object.keys(cellTotals);\n  var rows=ids.map(function(id){return{id:id,name:String((cellTotals[id]&&cellTotals[id].name)||id).slice(0,80),fire:Number(cellTotals[id]&&cellTotals[id].fire)||0};});\n  rows.sort(function(a,b){return b.fire-a.fire;});\n  var maxF=rows.length?rows[0].fire:1;\n  var listHtml=rows.length?rows.map(function(r,i){\n    var mine=mc&&r.id===mc.id;\n    var pct=maxF>0?Math.round(r.fire/maxF*100):0;\n    return '<div style=\"background:#141414;border:1px solid '+(mine?'#e10600':'#333')+';padding:8px 10px;margin-bottom:6px;'+(mine?'outline:2px solid #e10600;':'')+'\">'+\n      '<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;\">'+\n      '<div style=\"font-weight:800;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\">'+(i+1)+'. '+esc(r.name)+(mine?' <span style=\"color:#e10600;font-size:11px;\">▲ YOUR CELL</span>':'')+'</div>'+\n      '<div style=\"font-weight:800;color:#fff;white-space:nowrap;\">'+r.fire.toLocaleString()+'</div></div>'+\n      '<div style=\"height:8px;background:#2a2a2a;margin-top:6px;\"><div style=\"height:8px;background:#e10600;width:'+pct+'%;transition:width .6s;\"></div></div>'+\n      '</div>';\n  }).join(''):'<div style=\"font-size:13px;color:#999;\">No cell fire this bout yet — be the first to light it up.</div>';\n  return '<div style=\"border:1px solid #e10600;padding:10px;background:#0d0d0d;\">'+\n    '<div style=\"font-weight:900;font-size:15px;letter-spacing:1px;margin-bottom:8px;\">CELL BOUT</div>'+\n    listHtml+\n    '<div style=\"font-size:11px;color:#666;margin-top:8px;\">Cell fire counts while CELL BOUT is on — it feeds your cell’s weekly war score. One war, one leaderboard.</div>'+\n    '</div>';\n}\nfunction updateCellPane(){\n  if(!cellBoutOn())return;\n  var mc=myCell();if(!mc)return;\n  var pane=root.querySelector('[data-if-cellpane]');\n  if(pane)pane.innerHTML=cellPaneHtml(mc);\n}\nfunction paint(w){\n  if(!fighters[0]||!fighters[1])return;\n  var now=chiNow();\n  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);\n  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);\n  var maxT=Math.max(tA,tB,1);\n  var ops=opsState(w.id),spent=spentThisRound(w.id);\n  var badge=w.live\n    ?'<span style=\"background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">● LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'\n    :'<span style=\"background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';\n  var lastLine='';\n  try{var lr=JSON.parse(localStorage.getItem(LS_LAST)||'null');\n    if(lr&&lr.a)lastLine='<div style=\"font-size:12px;color:#999;margin-top:10px;\">Last battle: <b style=\"color:#fff;\">'+esc(lr.winner)+'</b> beat '+esc(lr.loser)+' '+lr.wa.toLocaleString()+'–'+lr.wb.toLocaleString()+'</div>';\n  }catch(e){}\n  var fireCtl=w.live\n    ?'<div style=\"display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;\">'+\n     '<span style=\"font-size:12px;color:#999;\">YOUR XP: <b style=\"color:#fff;\" data-if-xp>'+xp().toLocaleString()+'</b></span>'+\n     [5,25,50].map(function(n){return '<button data-if-fire=\"'+n+'\" style=\"background:#e10600;color:#fff;border:0;font-weight:800;padding:8px 14px;cursor:pointer;\">FIRE +'+n+'</button>';}).join('')+\n     '<span style=\"font-size:11px;color:#777;\">cap '+(CAP-spent)+' left this battle</span></div>'\n    :'<div style=\"font-size:13px;color:#999;margin-top:10px;\">Stack XP in the games above — the next battle starts soon.</div>';\n  var opsHtml='';\n  if(w.live){\n    var opBtn=function(key,done){\n      return done\n        ?'<span style=\"font-size:12px;color:#4caf50;font-weight:800;\">✓ CHECKED IN</span>'\n        :'<button data-if-op=\"'+key+'\" style=\"background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;\">CHECK IN +'+AMMO_OP+' AMMO</button>';\n    };\n    opsHtml='<div style=\"margin-top:12px;border-top:1px solid #333;padding-top:10px;\">'+\n      '<div style=\"font-weight:800;font-size:13px;margin-bottom:8px;\">⚡ FIELD OPS <span style=\"color:#999;font-weight:400;\">— go off-site, come back loaded</span></div>'+\n      '<div style=\"font-size:12px;color:#ccc;margin-bottom:6px;\">Go like + comment on <b>'+esc(fighters[0].name)+'</b>’s latest post, then check in: '+opBtn('opA',ops.opA)+'</div>'+\n      '<div style=\"font-size:12px;color:#ccc;margin-bottom:6px;\">Go like + comment on <b>'+esc(fighters[1].name)+'</b>’s latest post, then check in: '+opBtn('opB',ops.opB)+'</div>'+\n      '<div style=\"font-size:12px;color:#ccc;\">'+(ops.share?'<span style=\"font-size:12px;color:#4caf50;font-weight:800;\">✓ SHARED</span>':'<button data-if-op=\"share\" style=\"background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;\">SHARE BATTLE +'+AMMO_SHARE+' AMMO</button>')+' <span style=\"color:#777;\">ammo fires for your picked fighter</span></div>'+\n      '</div>';\n  }\n  /* 6A-R8: CELL BOUT toggle next to the creator bout UI. When on (and the\n     visitor holds a cell), the widget shows the creator bout AND the cell\n     bout side by side; fire calls carry the cell tag. */\n  var mc=myCell(),cbOn=cellBoutOn()&&!!mc;\n  var toggleHtml=mc\n    ?'<button data-if-celltoggle style=\"background:'+(cellBoutOn()?'#e10600':'#222')+';color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;\">CELL BOUT: '+(cellBoutOn()?'ON':'OFF')+'</button>'\n    :'<a href=\"/cells\" style=\"font-size:12px;color:#e10600;font-weight:800;text-decoration:none;\">JOIN A CELL TO BOUT →</a>';\n  var creatorPane=\n    '<div style=\"display:flex;gap:10px;\">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+\n    fireCtl+opsHtml;\n  var bodyHtml=cbOn\n    ?'<div style=\"display:flex;gap:12px;flex-wrap:wrap;\">'+\n     '<div style=\"flex:1.25;min-width:260px;\">'+creatorPane+'</div>'+\n     '<div style=\"flex:1;min-width:240px;\" data-if-cellpane>'+cellPaneHtml(mc)+'</div>'+\n     '</div>'\n    :creatorPane;\n  root.innerHTML=\n    '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n    '<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;\">'+\n    '<div style=\"font-weight:900;font-size:18px;letter-spacing:1px;\">INFIGHTING</div>'+\n    '<div style=\"display:flex;gap:8px;align-items:center;flex-wrap:wrap;\">'+toggleHtml+badge+'</div></div>'+\n    bodyHtml+lastLine+\n    '<div style=\"font-size:11px;color:#666;margin-top:10px;\">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only — no attack moves, this is family.</div>'+\n    '</div>';\n  bind();\n  /* Cohesion §3 (2026-10-05): identity surfacing — invitational claim CTA\n     when no callsign. Non-blocking; the pit still renders and spectates. */\n  try{ if(window.PF&&PF.mountClaimCTA) PF.mountClaimCTA(root,'to fire in the infighting pit'); }catch(e){}\n}\nfunction bind(){\n  var tg=root.querySelector('[data-if-celltoggle]');\n  if(tg){tg.onclick=function(){setCellBout(!cellBoutOn());paint(cur);};}\n  var cards=root.querySelectorAll('[data-if-side]');\n  for(var i=0;i<cards.length;i++){(function(el){el.onclick=function(){side=Number(el.getAttribute('data-if-side'));paint(cur);};})(cards[i]);}\n  var fires=root.querySelectorAll('[data-if-fire]');\n  for(var j=0;j<fires.length;j++){(function(el){el.onclick=function(){doFire(side,Number(el.getAttribute('data-if-fire')));};})(fires[j]);}\n  var ops=root.querySelectorAll('[data-if-op]');\n  for(var k=0;k<ops.length;k++){(function(el){el.onclick=function(){doOp(el.getAttribute('data-if-op'));};})(ops[k]);}\n}\nfunction doFire(idx,amt){\n  if(!cur||!cur.live||!fighters[idx])return;\n  var f=fighters[idx];\n  var room=CAP-spentThisRound(cur.id);\n  amt=Math.min(amt,room);\n  var bal=xp();\n  if(amt>bal)amt=bal;\n  if(amt<=0){flashXp();return;}\n  /* Spend from the shared local ledger (backend settles via infight_fire). */\n  try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}\n  addSpent(cur.id,amt);\n  pending[f.slug]=(pending[f.slug]||0)+amt;\n  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});\n  dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});\n  updateBars();\n  /* M1 dopamine: firing ammo should feel like firing ammo. */\n  try{ if(window.PF&&PF.dope){ PF.dope.xpFloat(root,'+'+amt+' FIRE'); } }catch(e){}\n  var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();\n}\nfunction doOp(key){\n  if(!cur||!cur.live)return;\n  var ops=opsState(cur.id);\n  if(ops[key])return;\n  var slug,amt;\n  if(key==='opA'){slug=fighters[0].slug;amt=AMMO_OP;}\n  else if(key==='opB'){slug=fighters[1].slug;amt=AMMO_OP;}\n  else{\n    slug=fighters[side].slug;amt=AMMO_SHARE;\n    var url='https://www.mtcstw.com/?infight='+encodeURIComponent(cur.id);\n    var done=function(){grantOp(key,slug,amt);};\n    if(navigator.share){navigator.share({title:'INFIGHTING',text:'Back '+fighters[side].name+' in the Infighting battle — fire your XP!',url:url}).then(done,done);}\n    else{try{navigator.clipboard.writeText(url);}catch(e){}done();}\n    return;\n  }\n  grantOp(key,slug,amt);\n}\nfunction grantOp(key,slug,amt){\n  var room=CAP-spentThisRound(cur.id);\n  amt=Math.min(amt,room);\n  markOp(cur.id,key);\n  if(amt>0){\n    addSpent(cur.id,amt);\n    pending[slug]=(pending[slug]||0)+amt;\n    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});\n    dispatch('pf-infight-fire',{slug:slug,amt:amt,round:cur.id,op:key});\n  }\n  updateBars();\n}\nfunction flashXp(){\n  var x=root.querySelector('[data-if-xp]');\n  if(x){x.style.color='#e10600';setTimeout(function(){x.style.color='#fff';},600);}\n}\nfunction pollTotals(){\n  if(!cur||!cur.live)return;\n  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}\n  apiGet({action:'infight_totals',round:cur.id},function(j){\n    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};if(j.cells)cellTotals=j.cells;updateBars();}\n  },8000);\n}\nfunction updateBars(){\n  if(!fighters[0])return;\n  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);\n  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);\n  var maxT=Math.max(tA,tB,1);\n  [[0,tA],[1,tB]].forEach(function(p){\n    var t=root.querySelector('[data-if-total=\"'+p[0]+'\"]');\n    var b=root.querySelector('[data-if-bar=\"'+p[0]+'\"]');\n    if(t)t.textContent=p[1].toLocaleString();\n    if(b)b.style.width=Math.round(p[1]/maxT*100)+'%';\n  });\n  var x=root.querySelector('[data-if-xp]');\n  if(x)x.textContent=xp().toLocaleString();\n  updateCellPane();\n}\nfunction startPoll(){stopPoll();pollTotals();pollTimer=setInterval(pollTotals,10000);}\nfunction stopPoll(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}\nfunction settleLastBattle(prevId,roster){\n  var mm=matchup(prevId,roster);\n  if(!mm[0]||!mm[1])return;\n  apiGet({action:'infight_totals',round:prevId},function(j){\n    if(j&&j.ok&&j.totals){\n      var a=Number(j.totals[mm[0].slug]||0),b=Number(j.totals[mm[1].slug]||0);\n      if(a!==b){\n        var w=a>b?mm[0]:mm[1],l=a>b?mm[1]:mm[0];\n        try{\n          localStorage.setItem('pf_infight_hype_v1',JSON.stringify({slug:w.slug,until:Date.now()+86400000,round:prevId}));\n          localStorage.setItem(LS_LAST,JSON.stringify({winner:w.name,loser:l.name,wa:Math.max(a,b),wb:Math.min(a,b),a:1}));\n        }catch(e){}\n        dispatch('pf-infight',{winner:w.slug,round:prevId});\n        /* New hype record: tell the paint owner (efficiency.js) to re-check. */\n        dispatch('pf-hype',{slug:w.slug,round:prevId});\n      }\n      /* 6A-R8: settle the cell bout too — server-side idempotent, records\n         the winning cell in infight_cell_wins for the war map. Only fires\n         when the round actually saw cell fire. */\n      try{\n        var hasCellFire=j.cells&&Object.keys(j.cells).length>0;\n        if(hasCellFire&&window.PF&&PF.postAction){\n          PF.postAction('stats','s_action','infight_settle',{round:prevId,callsign:callsign()},function(){});\n        }\n      }catch(e){}\n    }\n  },8000);\n}\n/* Display modes (2026-10-03 homepage slimming): slim live-status strip on the\n   homepage (pf-v2) — countdown + matchup only; the full arena on /arcade\n   (pf-arcade). Template id unchanged. Both modes carry loading/error states. */\nvar SLIM=(function(){try{if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page'))return false;}catch(e){}return true;})();\nvar stripW=null;\nfunction renderStrip(){\n  var roster=dbAll();\n  if(!roster||roster.length<2){\n    root.innerHTML=\n      '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n      '<div style=\"font-weight:900;font-size:16px;letter-spacing:1px;\">INFIGHTING</div>'+\n      '<div style=\"font-size:13px;color:#999;margin-top:8px;\" data-if-stripmsg>Loading the battle…</div></div>';\n    var tries=0;\n    var iv=setInterval(function(){\n      tries++;\n      var r=dbAll();\n      if(r&&r.length>=2){ clearInterval(iv); paintStrip(); }\n      else if(tries>=15){\n        clearInterval(iv);\n        var m=root.querySelector('[data-if-stripmsg]');\n        if(m) m.innerHTML='The battle feed went dark. <button data-if-stripretry style=\"background:#e10600;color:#fff;border:0;font-weight:800;padding:6px 12px;cursor:pointer;\">RETRY</button>';\n        var b=root.querySelector('[data-if-stripretry]');\n        if(b) b.onclick=function(){ renderStrip(); };\n      }\n    },2000);\n    return;\n  }\n  paintStrip();\n}\nfunction paintStrip(){\n  var now=chiNow(),w=battleWindow(now),roster=dbAll();\n  var mm=matchup(w.id,roster);\n  if(!mm[0]||!mm[1]) return;\n  stripW=w;\n  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n  var badge=w.live\n    ?'<span style=\"background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">● LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'\n    :'<span style=\"background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;\">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';\n  root.innerHTML=\n    '<div style=\"background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;\">'+\n    '<div style=\"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;\">'+\n    '<div style=\"font-weight:900;font-size:16px;letter-spacing:1px;\">INFIGHTING</div>'+badge+'</div>'+\n    '<div style=\"font-weight:800;font-size:15px;line-height:1.3;\">'+esc(mm[0].name)+' <span style=\"color:#e10600;\">VS</span> '+esc(mm[1].name)+'</div>'+\n    '<div style=\"margin-top:10px;\"><a href=\"/arcade\" style=\"display:inline-block;background:#e10600;color:#fff;font-weight:800;padding:8px 18px;text-decoration:none;\">ENTER THE ARENA →</a></div>'+\n    '</div>';\n}\nfunction stripTick(){\n  try{\n    var w=battleWindow(chiNow());\n    syncLiveStrip(w);\n    if(!stripW||w.id!==stripW.id){ paintStrip(); return; }\n    var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();\n    var c=root.querySelector('[data-if-clock]');\n    if(c) c.textContent=fmtClock(msLeft);\n  }catch(e){}\n}\n/* R33 (Wave 6B): \"LIVE BATTLE\" ambient summon. When a bout is live in SLIM\n   mode (homepage etc. — the arena page already shows the full bout), a fixed\n   bottom strip summons the visitor to fire now. The backend bell emitter\n   also fires; this is the on-page summon. It is the alert layer only — not\n   6A's R8 cell-bout toggle (not in tree; no duplication). Zero XP. */\nvar pfLiveEl=null, pfLiveShown=\"\", pfLiveDismissed=\"\";\nfunction liveStripEl(){\n  if(pfLiveEl) return pfLiveEl;\n  try{\n    var d=document.createElement(\"div\");\n    d.id=\"pfLiveBattle\";\n    d.style.cssText=\"position:fixed;left:0;right:0;bottom:0;z-index:99993;background:#e10600;color:#fff;font:bold 14px Arial,sans-serif;text-align:center;padding:10px 48px 10px 12px;letter-spacing:1px;display:none;box-shadow:0 -2px 16px rgba(0,0,0,.5)\";\n    document.body.appendChild(d);\n    pfLiveEl=d;\n  }catch(e){}\n  return pfLiveEl;\n}\nfunction syncLiveStrip(w){\n  if(!SLIM) return;\n  var el=liveStripEl(); if(!el) return;\n  try{\n    var show=!!(w&&w.live&&pfLiveDismissed!==w.id);\n    if(show&&pfLiveShown!==w.id){\n      var dest=document.getElementById(\"pf-infight-root\")?\"#pf-infight-root\":\"/arcade\";\n      el.innerHTML='<a href=\"'+dest+'\" style=\"color:#fff;text-decoration:none\">● LIVE BATTLE — FIRE NOW →</a>'\n        +'<button id=\"pfLiveBattleX\" aria-label=\"Dismiss\" style=\"position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:1px solid #fff;color:#fff;padding:2px 8px;cursor:pointer;font-size:12px\">✕</button>';\n      el.style.display=\"block\";\n      pfLiveShown=w.id;\n      var x=document.getElementById(\"pfLiveBattleX\");\n      if(x){ x.onclick=function(ev){ try{ev.stopPropagation();}catch(e){} pfLiveDismissed=w.id; pfLiveShown=\"\"; el.style.display=\"none\"; }; }\n    }else if(!show&&pfLiveShown){\n      el.style.display=\"none\"; pfLiveShown=\"\";\n    }\n  }catch(e){}\n}\nfunction arenaTick(){\n  var w=battleWindow(chiNow());\n  if(w.id!==lastRound){render();}\n  else{\n    var now=chiNow(),msLeft=(w.live?w.end:w.start).getTime()-now.getTime();\n    var c=root.querySelector('[data-if-clock]');\n    if(c)c.textContent=fmtClock(msLeft);\n    if(cur)cur.live=w.live;\n  }\n}\nif(SLIM){ renderStrip(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} stripTick(); },1000); }\nelse{ render(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} arenaTick(); },1000); }\n})();\n<\/script>\n</template>")}function t(e){return(e<10?"0":"")+e}function n(e){return e.getFullYear()+""+t(e.getMonth()+1)+t(e.getDate())+"-"+t(e.getHours())+t(e.getMinutes())}}();
+/* PF v1.4.3 bundle-arcade-h.js — concatenated bundle, generated by build/bundle.js.
+   DO NOT EDIT. Regenerate with: node build/bundle.js [--debug]
+   Contains: creator-guess.js, daily-interrogation.js, billionaire-supervillain.js, slr-match-quiz.js, infighting.js
+   Each silo keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== creator-guess.js ===== */
+/* games/creator-guess.js  |  PF v1.4.3 | Guess the Creator: daily SLR roster trivia, 5 rounds, streaks
+   v1.4.3 stickiness pass: daily Chicago-seeded question bank (first run = DAILY, later = PRACTICE),
+   site-wide score stats (guess_scored/guess_stats), missed-creator "study up" catalog links,
+   shareable score card, Infighting tie-in.
+   KILL: ?pf_off=creator-guess  or  localStorage pf_disabled_v1='["creator-guess"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("creator-guess")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend',
+'<template id="pf-ov-guess">\n' +
+'<div class="fe-block pf-override-block">\n' +
+'<div id="pf-guess" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
+'  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9673; GUESS THE CREATOR &#9673;</div>\n' +
+'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">5 questions. One roster. Zero mercy.<br>How well do you know the Sick Left Radicals?</div>\n' +
+'  <div id="pf-guess-streak" style="font-size:0.85rem;color:#c1121f;margin-bottom:0.4rem;letter-spacing:0.1em;"></div>\n' +
+'  <div id="pf-guess-stats" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.1em;"></div>\n' +
+'  <div id="pf-guess-lb" style="font-size:0.8rem;color:#b8ab8e;margin-bottom:1rem;text-align:left;min-height:1.1em;"></div>\n' +
+'  <div id="pf-guess-body"></div>\n' +
+'</div>\n' +
+'<script>\n' +
+'(function(){\n' +
+'  "use strict";\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function trunc(s,n){s=String(s||"");return s.length>n?s.slice(0,n-1)+"\\u2026":s;}\n' +
+'  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n' +
+'  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n' +
+'  function chiDay(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n' +
+'  function buildBank(rng){\n' +
+'    rng=rng||Math.random;\n' +
+'    function sh(a){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'    var all=dbAll();if(all.length<4)return [];\n' +
+'    var ms=sh(all.slice()).slice(0,12),bank=[];\n' +
+'    for(var i=0;i<ms.length;i++){\n' +
+'      var m=ms[i],others=sh(all.filter(function(x){return x.slug!==m.slug;})),w=[others[0].slug,others[1].slug,others[2].slug];\n' +
+'      var t=i%3,qq=null;\n' +
+'      if(t===0&&m.followers_display){qq={q:m.followers_display+" followers"+(m.primary_platform?" on "+m.primary_platform:"")+". Who?",a:m.slug,w:w};}\n' +
+'      else if(t===1&&m.key_strengths&&m.key_strengths[0]){qq={q:"\\u201C"+trunc(m.key_strengths[0],110)+"\\u201D \\u2014 whose key strength is this?",a:m.slug,w:w};}\n' +
+'      else{qq={q:"Content focus: "+trunc(m.content_focus||"leftist propaganda",110)+". Who?",a:m.slug,w:w};}\n' +
+'      if(qq)bank.push(qq);\n' +
+'    }\n' +
+'    return bank;\n' +
+'  }\n' +
+'  function pick(bank){var pool=bank.slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}return pool.slice(0,5);}\n' +
+'  var LS="pf_guess_v1";\n' +
+'  function load(){try{var s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&typeof s.streak==="number")return s;}catch(e){}return{streak:0,last:"",lastDaily:"",dailyScore:-1};}\n' +
+'  function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}\n' +
+'  function todayStr(){try{return new Date().toISOString().slice(0,10);}catch(e){return"";}}\n' +
+'  var API=(window.PF_BACKEND_URL);\n' +
+'  var GSTAT=null;\n' +
+'  function loadStats(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_guess_stats_v1")||"null");if(c&&Date.now()-c.at<6*3600000){GSTAT=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfGsT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&typeof d.plays==="number"){GSTAT=d;try{localStorage.setItem("pf_guess_stats_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_stats";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  function paintStats(){var el=document.getElementById("pf-guess-stats");if(!el)return;\n' +
+'    if(GSTAT&&GSTAT.plays>0){var avg=(GSTAT.plays>0&&GSTAT.avg)?Number(GSTAT.avg).toFixed(1):"\\u2014";\n' +
+'      el.innerHTML="<b style=\'color:#f5f0e1;\'>"+GSTAT.plays.toLocaleString()+"</b> comrades played this week \\u2014 average <b style=\'color:#f5f0e1;\'>"+avg+"/5</b>";}}\n' +
+'  var GLB=null;\n' +
+'  function chiDayPad(){var d=chiDay().split("-");return d[0]+"-"+(d[1].length<2?"0":"")+d[1]+"-"+(d[2].length<2?"0":"")+d[2];}\n' +
+'  function loadLb(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_guess_lb_v1")||"null");if(c&&Date.now()-c.at<10*60000&&c.d&&c.d.ok&&c.d.day===chiDayPad()){GLB=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfGsL"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.ok){GLB=d;try{localStorage.setItem("pf_guess_lb_v1",JSON.stringify({at:Date.now(),d:d}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=guess_leaderboard";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  function paintLb(){var el=document.getElementById("pf-guess-lb");if(!el)return;\n' +
+'    if(!GLB||!GLB.ok||!GLB.entries||!GLB.entries.length){el.innerHTML="";return;}\n' +
+'    var h="<div style=\'letter-spacing:0.2em;color:#c1121f;font-size:0.75rem;margin-bottom:0.4rem;\'>TODAY\\u2019S LEADERBOARD</div>";\n' +
+'    var n=Math.min(GLB.entries.length,10),i,e2,rk,col;\n' +
+'    for(i=0;i<n;i++){e2=GLB.entries[i];rk=i+1;\n' +
+'      col=rk===1?"#ffd166":rk===2?"#c9c9c9":rk===3?"#cd7f32":"#b8ab8e";\n' +
+'      h+="<div style=\'display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid #222;\'><span><b style=\'color:"+col+";\'>"+rk+".</b> <b style=\'color:#f5f0e1;\'>"+esc(e2.callsign)+"</b></span><span style=\'color:#f5f0e1;font-weight:800;\'>"+e2.score+"/5</span></div>";}\n' +
+'    el.innerHTML=h;}\n' +
+'  var body=document.getElementById("pf-guess-body"),streakEl=document.getElementById("pf-guess-streak");\n' +
+'  var st=load(),tdy=chiDay();\n' +
+'  var isDaily=st.lastDaily!==tdy;\n' +
+'  var bank=isDaily?buildBank(mulberry32(hashStr("guess:"+tdy))):buildBank();\n' +
+'  var qs=pick(bank),qi=0,score=0,missed=[];\n' +
+'  function paintStreak(){streakEl.innerHTML=(st.streak>1?("\\uD83D\\uDD25 "+st.streak+"-DAY STREAK"):"")+(isDaily?" <span style=\'border:1px solid #c1121f;padding:0.1rem 0.5rem;font-size:0.7rem;\'>DAILY</span>":" <span style=\'border:1px solid #b8ab8e;color:#b8ab8e;padding:0.1rem 0.5rem;font-size:0.7rem;\'>PRACTICE</span>");}\n' +
+'  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
+'  function disp(s,fb){if(fb)return fb;try{if(window.PF&&PF.rosterBySlug){var r=PF.rosterBySlug(s);if(r&&r.name)return r.name;}}catch(e){}return String(s).replace(/-/g," ");}\n' +
+'  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'  function renderQ(){\n' +
+'    var q=qs[qi],opts=shuffle([q.a].concat(q.w)),h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
+'    for(var i=0;i<opts.length;i++){h+="<button data-g=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(disp(opts[i],opts[i]===q.a?q.al:null))+"</button>";}\n' +
+'    body.innerHTML=h;\n' +
+'    var btns=body.querySelectorAll("[data-g]");\n' +
+'    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n' +
+'      var picked=opts[+this.getAttribute("data-g")],ok=picked===q.a;\n' +
+'      if(ok){score++;}else{missed.push(q.a);}\n' +
+'      var all=body.querySelectorAll("[data-g]");\n' +
+'      for(var k=0;k<all.length;k++){all[k].disabled=true;all[k].style.opacity="0.55";if(all[k].textContent===disp(q.a,q.al)){all[k].style.borderColor="#2a9d48";all[k].style.opacity="1";}}\n' +
+'      this.style.opacity="1";this.style.borderColor=ok?"#2a9d48":"#c1121f";\n' +
+'      setTimeout(function(){qi++;if(qi<qs.length){renderQ();}else{renderR();}},900);\n' +
+'    };}\n' +
+'  }\n' +
+'  function renderR(){\n' +
+'    var t=todayStr(),verdict,perfect=score===5;\n' +
+'    if(perfect){verdict="PERFECT. You know this roster better than the algorithm does.";}\n' +
+'    else if(score>=4){verdict="Certified roster-watcher. One more and it is perfect.";}\n' +
+'    else if(score>=3){verdict="Solid. The factory has use for you.";}\n' +
+'    else{verdict="Study the roster. Come back tomorrow.";}\n' +
+'    if(isDaily){st.lastDaily=tdy;st.dailyScore=score;\n' +
+'      if(score>=3){if(st.last!==t){st.streak=(st.last===yesterday(t))?st.streak+1:1;st.last=t;}}\n' +
+'      else{if(st.last!==t){st.streak=0;st.last=t;}}\n' +
+'      save(st);isDaily=false;}\n' +
+'    paintStreak();paintStats();\n' +
+'    try{localStorage.removeItem("pf_guess_lb_v1");}catch(e){}\n' +
+'    loadLb(paintLb);\n' +
+'    var studyHtml="";\n' +
+'    if(missed.length){\n' +
+'      var links=[];\n' +
+'      for(var mi=0;mi<missed.length;mi++){links.push("<a href=\'/" +missed[mi]+"\' style=\'color:#f5f0e1;text-decoration:underline;margin:0 0.4rem;\'>"+esc(disp(missed[mi]))+"</a>");}\n' +
+'      studyHtml="<div style=\'margin-top:1rem;font-size:0.85rem;color:#b8ab8e;\'>STUDY UP: "+links.join(" \\u00B7 ")+"</div>";\n' +
+'    }\n' +
+'    var infHtml="";\n' +
+'    try{\n' +
+'      var PFw=window.PF;\n' +
+'      if(PFw&&typeof PFw.infightNext==="function"){\n' +
+'        var nx=PFw.infightNext();\n' +
+'        if(nx&&nx.a&&nx.b){\n' +
+'          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Think you know the roster? Put XP where your mouth is.</div>"\n' +
+'            +"<button id=\'pf-guess-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
+'        }\n' +
+'      }\n' +
+'    }catch(e){}\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>FINAL SCORE</div>"\n' +
+'      +"<div style=\'font-size:2.4rem;font-weight:900;margin:0.4rem 0;\'>"+score+"/5</div>"\n' +
+'      +"<div style=\'font-size:0.95rem;color:#b8ab8e;margin-bottom:1rem;\'>"+verdict+"</div>"+studyHtml\n' +
+'      +"<div style=\'margin-top:1rem;\'><button id=\'pf-guess-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE SCORE CARD</button></div>"\n' +
+'      +infHtml\n' +
+'      +"<div><button id=\'pf-guess-again\' style=\'margin-top:1rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>PLAY AGAIN</button></div>";\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-guess-done",{detail:{score:score,day:t}}));}catch(e){}\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-guess-scored",{detail:{score:score}}));}catch(e){}\n' +
+'    /* M1 dopamine: the score card lands with feeling. Perfect game gets the big one. */\n' +
+'    try{if(window.PF&&PF.dope){var gd=document.getElementById("pf-guess")||document.body;var gp=perfect?80:(score>=3?45:25);PF.dope.confetti(gd,gp);if(perfect){PF.dope.ping(gd,"PERFECT 5/5");}else{PF.dope.xpFloat(gd,score+"/5");}}}catch(e){}\n' +
+'    try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["creator-guess"]={title:score+"/5",tag:"GUESS THE CREATOR",lines:[verdict],cta:"TEST YOURSELF"};}}catch(e){}\n' +
+'    document.getElementById("pf-guess-share").onclick=function(){\n' +
+'      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("creator-guess");if(cv){PS.shareImage(cv,"guess-score.png","I scored "+score+"/5 on Guess the Creator","creator-guess");return;}}}catch(e){}\n' +
+'    };\n' +
+'    var ibf=document.getElementById("pf-guess-infight");\n' +
+'    if(ibf){ibf.onclick=function(){var tg=document.getElementById("pf-infight-root");if(tg){try{tg.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){tg.scrollIntoView();}}};}\n' +
+'    document.getElementById("pf-guess-again").onclick=function(){qi=0;score=0;missed=[];qs=pick(buildBank());renderQ();};\n' +
+'  }\n' +
+'  function yesterday(t){try{var d=new Date(t+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-1);return d.toISOString().slice(0,10);}catch(e){return"";}}\n' +
+'  paintStreak();loadStats(paintStats);loadLb(paintLb);\n' +
+'  if(bank.length){renderQ();}else{body.innerHTML="<div style=\'color:#c1121f;font-weight:900;padding:1rem;\'>ROSTER OFFLINE \\u2014 try again soon.</div>";}\n' +
+'})();\n' +
+'<\/script>\n' +
+'</div>\n' +
+'</template>');
+})();
+
+;
+
+/* ===== daily-interrogation.js ===== */
+/* games/daily-interrogation.js  |  PF v1.4.1 | THE DAILY INTERROGATION — one propaganda-literacy trivia question
+   KILL: ?pf_off=daily-interrogation  or  localStorage pf_disabled_v1='["daily-interrogation"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("daily-interrogation")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-interrogation">
+<div id="pf-interrogation">
+<style>
+#pf-interrogation{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-interrogation h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-interrogation .iq-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-interrogation .iq-q{background:#f5ead6;color:#0d0d0d;padding:22px 20px;margin:0 0 14px;font-family:Arial,sans-serif;font-size:17px;font-weight:700;line-height:1.45;text-align:left}
+#pf-interrogation .iq-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+#pf-interrogation .iq-opt{background:#1a1a1a;color:#f5ead6;border:2px solid #f5ead6;padding:12px 14px;font-family:Arial,sans-serif;font-size:14px;cursor:pointer;text-align:left}
+#pf-interrogation .iq-opt:hover:not(:disabled){background:#2a2a2a}
+#pf-interrogation .iq-opt:disabled{cursor:default;opacity:.85}
+#pf-interrogation .iq-opt.hit{background:#1e4d1e;border-color:#7bc96f;color:#fff}
+#pf-interrogation .iq-opt.miss{background:#4d1e1e;border-color:#c1121f;color:#fff}
+#pf-interrogation .iq-why{background:#1a1a1a;border-left:6px solid #c1121f;padding:14px 16px;text-align:left;margin:0 0 12px;display:none}
+#pf-interrogation .iq-verdict{font-size:18px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
+#pf-interrogation .iq-verdict.right{color:#7bc96f}
+#pf-interrogation .iq-verdict.wrong{color:#c1121f}
+#pf-interrogation .iq-why p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
+#pf-interrogation .iq-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
+#pf-interrogation .iq-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#pf-interrogation .iq-btn{background:none;border:2px solid #f5ead6;color:#f5ead6;padding:12px 22px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-interrogation .iq-btn:hover{background:#1a1a1a}
+#pf-interrogation .iq-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+#pf-interrogation .iq-study{margin:12px 0 0}
+#pf-interrogation .iq-study a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}
+#pf-interrogation .iq-study a:hover{text-decoration:underline}
+</style>
+
+<h2>The Daily Interrogation</h2>
+<div class="iq-day" id="iqDay"></div>
+<div class="iq-q" id="iqQ"></div>
+<div class="iq-opts" id="iqOpts"></div>
+<div class="iq-why" id="iqWhy"></div>
+<div class="iq-streak" id="iqStreak"></div>
+<div class="iq-btns" id="iqShareRow" style="display:none">
+  <button class="iq-btn" id="iqCopy">Copy result grid</button>
+  <button class="iq-btn" id="iqShare">Share score card</button>
+</div>
+<div class="iq-note">One question per day. Streak or you&apos;re a liberal.</div>
+
+<script>
+(function(){
+var LAUNCH='2026-10-01';
+/* a = index of correct option */
+var QS=[
+{q:"How many empty homes are there for every homeless person in America?",o:["28 to 1","5 to 1","100 to 1","2 to 1"],a:0,why:"28 empty homes per homeless person. There is no housing shortage \u2014 there's a profit shortage in housing people."},
+{q:"CEOs now make how many times the pay of the average worker?",o:["290x","50x","21x","1,000x"],a:0,why:"290x today vs 21x in 1965. Nothing about leadership got 14 times better."},
+{q:"Which law made the 8-hour workday federal law in the US?",o:["Fair Labor Standards Act, 1938","Wagner Act, 1935","Taft-Hartley Act, 1947","Sherman Act, 1890"],a:0,why:"The FLSA of 1938. Won by strikes, not by asking nicely."},
+{q:"The Ludlow Massacre of 1914 was an attack on\u2026",o:["Striking coal miners","Suffragettes","Railroad barons","Bootleggers"],a:0,why:"Colorado National Guard opened fire on a miners' tent colony. 21 dead, including children."},
+{q:"Who wrote: 'The ruling ideas of each age have ever been the ideas of its ruling class'?",o:["Karl Marx","Vladimir Lenin","George Orwell","Noam Chomsky"],a:0,why:"Marx, in The German Ideology. Read it again next time the news tells you what's 'realistic.'"},
+{q:"COINTELPRO was\u2026",o:["An FBI program targeting activists","A Soviet spy ring","A 1970s rock band","A federal jobs program"],a:0,why:"The FBI's covert program to surveil, infiltrate, and sabotage civil rights, anti-war, and leftist movements."},
+{q:"What share of US wealth does the top 1% own?",o:["About 32%","About 10%","About 50%","About 75%"],a:0,why:"~32% for the top 1%. The bottom 50% holds about 2.5%."},
+{q:"The Haymarket Affair of 1886 gave the world\u2026",o:["International Workers' Day (May Day)","The income tax","Women's suffrage","Prohibition"],a:0,why:"May 1st is Labor Day almost everywhere on Earth \u2014 except the US, which moved it to September to dodge the radicals."},
+{q:"Which country has the most billionaires?",o:["United States","China","India","Russia"],a:0,why:"The US, by a mile. The heist has a headquarters."},
+{q:"In Marxist economics, 'surplus value' is\u2026",o:["Profit from unpaid labor","Stock dividends","Tax revenue","Rent"],a:0,why:"The gap between the value workers produce and the wage they're paid. That's where profit comes from."},
+{q:"The Flint Sit-Down Strike of 1936\u201337 targeted\u2026",o:["General Motors","Ford","US Steel","Standard Oil"],a:0,why:"Workers occupied GM plants for 44 days \u2014 and won union recognition. Sit down. Stay put. Win."},
+{q:"Since 1979, US productivity is up 2.5x. Worker pay is up\u2026",o:["15%","150%","250%","25%"],a:0,why:"Productivity soared. Your paycheck didn't. The difference went to people who've never done your job."},
+{q:"America's first labor union was formed by\u2026",o:["Shoemakers, 1794","Steelworkers, 1901","Coal miners, 1869","Autoworkers, 1935"],a:0,why:"The Federal Society of Journeymen Cordwainers, Philadelphia, 1794. Shoemakers started it all."},
+{q:"'Manufacturing consent' is a term coined by\u2026",o:["Chomsky & Herman","Marx & Engels","George Orwell","Edward Bernays"],a:0,why:"Noam Chomsky and Edward Herman, 1988 \u2014 on how mass media serves power."},
+{q:"Edward Bernays is known as\u2026",o:["The father of public relations","The inventor of television","A US president","A union leader"],a:0,why:"Freud's nephew. He literally wrote the book 'Propaganda' (1928). We just use his tools against him."},
+{q:"The Triangle Shirtwaist fire of 1911 killed 146 workers and led to\u2026",o:["Factory safety reforms","The minimum wage","The 40-hour week","Social Security"],a:0,why:"Locked doors, no fire escapes. The outrage forced New York's first real workplace safety laws."},
+{q:"In labor slang, a 'scab' is\u2026",o:["A strikebreaker","A type of war bond","A tax loophole","A police rank"],a:0,why:"Someone who crosses a picket line. Jack London called them worse \u2014 we can't print it."},
+{q:"The Pullman Strike of 1894 was broken by\u2026",o:["US federal troops","The workers winning outright","Canadian mediators","It never happened"],a:0,why:"President Cleveland sent 12,000 troops against railroad strikers. The state always picks a side."},
+{q:"Who wrote: 'The law, in its majestic equality, forbids rich and poor alike to sleep under bridges'?",o:["Anatole France","Mark Twain","Voltaire","Oscar Wilde"],a:0,why:"Anatole France, 1894. Justice is blind \u2014 it just only sees one class."},
+{q:"Das Kapital was published in\u2026",o:["1867","1917","1848","1936"],a:0,why:"Volume 1, 1867. Still the best autopsy of capitalism ever written."},
+{q:"The Wagner Act of 1935 guaranteed\u2026",o:["Workers' right to unionize","Women's right to vote","The 8-hour day","Social Security"],a:0,why:"The National Labor Relations Act \u2014 the legal backbone of US unions."},
+{q:"The Taft-Hartley Act of 1947 did what?",o:["Restricted unions","Created OSHA","Ended child labor","Founded the Federal Reserve"],a:0,why:"Banned solidarity strikes, allowed 'right to work' laws. The bosses' revenge for the Wagner Act."},
+{q:"How many billionaires are on the Liquidation Bracket?",o:["16","8","32","64"],a:0,why:"16 seeds, one champion of evil. Vote the bracket."},
+{q:"The Do Meter's goal for the network is\u2026",o:["5 million things done","1 million followers","$1M raised","100K members"],a:0,why:"Not followers. Not likes. Things done. 5 million of them."},
+{q:"'If voting changed anything, they'd make it illegal' is attributed to\u2026",o:["Emma Goldman","Susan B. Anthony","Martin Luther King Jr.","FDR"],a:0,why:"Emma Goldman. They're certainly trying to prove her right."},
+{q:"The IWW's nickname is\u2026",o:["Wobblies","Diggers","Levelers","Grangers"],a:0,why:"The Industrial Workers of the World \u2014 the Wobblies. One big union."},
+{q:"A 'general strike' is\u2026",o:["All workers striking at once","A military draft","A stock market selloff","A tax boycott"],a:0,why:"Every worker, every industry, at once. The bosses' worst nightmare."},
+{q:"Which state passed the first $15 minimum wage law?",o:["California","New York","Texas","Florida"],a:0,why:"California, 2016 \u2014 after fast-food workers struck for it. Fight for $15 started as a punchline."},
+{q:"Who is credited with: 'The problem with socialism is that you eventually run out of other people's money'?",o:["Margaret Thatcher","Ronald Reagan","Winston Churchill","Ayn Rand"],a:0,why:"Thatcher, 1976. Meanwhile capitalism runs out of other people's everything."},
+{q:"What does MTCSTW stand for?",o:["Memes That Can Save The World","Make The Capitalists Stop Taking Wealth","My Thoughts Can Shape The World","Marxist Theory Center for Socialist Workers"],a:0,why:"Memes That Can Save The World. You're already inside the machine."}
+];
+function chi(){var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));d.setHours(0,0,0,0);return d;}
+function dayNum(){var l=new Date(LAUNCH+'T00:00:00');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}
+function dayKey(){var d=chi();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+var LS='pf_interrogation_v1';
+function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0,"played":{}}');}catch(e){return{last:'',streak:0,played:{}};}}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var n=dayNum(),Q=QS[(n-1)%QS.length],s=load(),tk=dayKey();
+/* R20 (Wave 6B): wrong-answer study-up targets — the intel desk by default,
+   the bracket for bracket questions, the roster page where one fits. */
+var IQ_STUDY_DFL={label:"STUDY UP: POLITICAL HQ INTEL DESK",href:"/political-hq"};
+var IQ_STUDY={8:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},22:{label:"STUDY UP: THE LIQUIDATION BRACKET",href:"/arcade#pf-bracket"},29:{label:"STUDY UP: MEET MTCSTW",href:"/mtcstw"}};
+var QIDX=(n-1)%QS.length;
+/* deterministic daily rotation: the correct answer must not sit in one slot.
+   Option-count-aware (B1): 4-option static questions rotate exactly as
+   before (n%4); 2-option macro questions rotate over their 2 slots. */
+var _ord=[],QA=0;
+function setupRotation(){
+  var _cnt=Q.o.length,_rot=n%_cnt,_ri,_qi;
+  _ord=[]; for(_ri=0;_ri<_cnt;_ri++)_ord.push(_ri);
+  for(_ri=0;_ri<_rot;_ri++){_ord.push(_ord.shift());}
+  QA=0; for(_qi=0;_qi<_cnt;_qi++){if(_ord[_qi]===Q.a)QA=_qi;}
+}
+setupRotation();
+function el(id){return document.getElementById(id);}
+el('iqDay').textContent='Day '+n+' of the interrogation';
+el('iqQ').textContent=Q.q;
+function streakTxt(){return 'Your streak: '+s.streak+(s.streak===1?' day':' days')+' \u2014 answer daily to keep it';}
+function grid(){return 'THE DAILY INTERROGATION\\nDay '+n+': '+(s.played[tk].correct?'\\uD83D\\uDFE9':'\\uD83D\\uDFE5')+'\\nStreak: '+s.streak+' \\uD83D\\uDD25\\nmtcstw.com';}
+function renderOpts(locked){
+  var h='';
+  for(var i=0;i<Q.o.length;i++){
+    var cls='iq-opt';
+    if(locked){cls+= (i===QA)?' hit':((s.played[tk].pick===i)?' miss':'');}
+    h+='<button class="'+cls+'" data-i="'+i+'"'+(locked?' disabled':'')+'>'+Q.o[_ord[i]]+'</button>';
+  }
+  el('iqOpts').innerHTML=h;
+  if(!locked){
+    var bs=el('iqOpts').querySelectorAll('button');
+    for(var j=0;j<bs.length;j++){bs[j].onclick=function(){answer(parseInt(this.getAttribute('data-i'),10));};}
+  }
+}
+function showWhy(){
+  var p=s.played[tk],w=el('iqWhy');w.style.display='block';
+  w.innerHTML='<p class="iq-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p><p>'+Q.why+'</p>';
+  /* R20b: wrong answers get a study-up link — intel desk, bracket, or roster;
+     macro questions (B1) send the reader to the money page. */
+  if(!p.correct){ var stu=Q.macro?{label:"STUDY UP: THE MONEY PAGE",href:"/follow-the-money"}:(IQ_STUDY[QIDX]||IQ_STUDY_DFL); w.innerHTML+='<p class="iq-study"><a href="'+stu.href+'">'+stu.label+' \u2192</a></p>'; }
+  el('iqShareRow').style.display='flex';
+  el('iqStreak').textContent=streakTxt();
+  /* R20a: PFShare score card on completion ("I scored N"). */
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){PS0.REG["daily-interrogation"]={title:"DAY "+n+(p.correct?" \u2014 CORRECT":" \u2014 WRONG"),tag:"THE DAILY INTERROGATION",lines:["Streak: "+s.streak+" day"+(s.streak===1?"":"s")],cta:"FACE THE INTERROGATION"};}}catch(e){}
+}
+el('iqStreak').textContent=streakTxt();
+if(s.played&&s.played[tk]){renderOpts(true);showWhy();}
+else{renderOpts(false);}
+/* Wave B1 (S-16): MACRO DAY — every 7th day the question comes from the live
+   quiz bank (server-computed answers; figures refresh monthly so answers
+   can't be memorized). CONTENT ONLY — the pf-interrogation-answered event
+   and its XP leg are untouched. If the bank is unavailable (no key, stale,
+   fetch failed), the static rotation stands: never a fabricated question. */
+var MACRO_EVERY=7;
+function apiGet(action,cb){
+  var be=""; try{ be=window.PF_BACKEND_URL||""; }catch(e){}
+  if(!be){ cb(null); return; }
+  var fn="pfIqCb"+Math.floor(Math.random()*1e9), done=false;
+  var s2=document.createElement("script");
+  function fin(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+    if(s2.parentNode)s2.parentNode.removeChild(s2); cb(j); }
+  window[fn]=function(j){ fin(j); };
+  s2.onerror=function(){ fin(null); };
+  s2.src=be+"?action="+encodeURIComponent(action)+"&callback="+fn;
+  document.head.appendChild(s2);
+  setTimeout(function(){ fin(null); },12000);
+}
+(function macroDay(){
+  if(n%MACRO_EVERY!==0) return;
+  if(s.played&&s.played[tk]) return;
+  apiGet('fred_quiz_bank',function(j){
+    try{
+      if(!j||!j.ok||!j.questions||!j.questions.length) return;
+      if(s.played&&s.played[tk]) return; /* answered while fetching */
+      var qi=Math.floor(n/MACRO_EVERY)%j.questions.length;
+      var mq=j.questions[qi];
+      if(!mq||!mq.options||mq.options.length<2) return;
+      var ci=parseInt(mq.correct_index,10);
+      if(!(ci>=0&&ci<mq.options.length)) return;
+      Q={q:String(mq.q),o:mq.options.slice(),a:ci,why:String(mq.why||''),macro:mq.id};
+      QIDX='macro:'+mq.id;
+      setupRotation();
+      el('iqDay').textContent='Day '+n+' of the interrogation \u2014 MACRO DAY';
+      el('iqQ').textContent=Q.q;
+      renderOpts(false);
+    }catch(e){}
+  });
+})();
+function answer(pick){
+  var correct=(pick===QA);
+  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};
+  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}
+  save(s);
+  try{document.dispatchEvent(new CustomEvent('pf-interrogation-answered',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}
+  renderOpts(true);showWhy();
+}
+el('iqCopy').onclick=function(){
+  var t=grid();
+  function done(){try{if(window.PF&&PF.toast)PF.toast('Grid copied. Go shame your friends.');}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
+  else fallback();
+  function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */
+el('iqShare').onclick=function(){
+  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("daily-interrogation");if(cv){PS.shareImage(cv,"interrogation-score.png","I scored "+(s.played[tk].correct?"1/1":"0/1")+" on The Daily Interrogation","daily-interrogation");return;}}}catch(e){}
+  try{if(window.PF&&PF.toast)PF.toast('Score card misfired — the grid copy still works.');}catch(e){}
+};
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== billionaire-supervillain.js ===== */
+/* games/billionaire-supervillain.js  |  PF v1.4.1 | BILLIONAIRE OR SUPERVILLAIN — daily quote game. One real quote per
+   KILL: ?pf_off=billionaire-supervillain  or  localStorage pf_disabled_v1='["billionaire-supervillain"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("billionaire-supervillain")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-billionaire">
+<div id="pf-billionaire">
+<style>
+#pf-billionaire{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f}
+#pf-billionaire h2{color:#c1121f;font-size:26px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-billionaire .bv-day{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:16px}
+#pf-billionaire .bv-quote{background:#f5ead6;color:#0d0d0d;padding:24px 20px;margin:0 0 16px;font-size:19px;line-height:1.45;font-family:Arial,sans-serif;font-style:italic}
+#pf-billionaire .bv-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+#pf-billionaire .bv-btn{background:#c1121f;color:#fff;border:0;padding:14px 26px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+#pf-billionaire .bv-btn:hover{background:#8f0d17}
+#pf-billionaire .bv-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-billionaire .bv-btn.ghost:hover{background:#1a1a1a}
+#pf-billionaire .bv-btn:disabled{opacity:.45;cursor:default}
+#pf-billionaire .bv-reveal{background:#1a1a1a;border-left:6px solid #c1121f;padding:16px;text-align:left;margin:0 0 12px}
+#pf-billionaire .bv-verdict{font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase}
+#pf-billionaire .bv-verdict.right{color:#7bc96f}
+#pf-billionaire .bv-verdict.wrong{color:#c1121f}
+#pf-billionaire .bv-who{font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#f5ead6;margin:0 0 6px}
+#pf-billionaire .bv-ctx{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0;line-height:1.5}
+#pf-billionaire .bv-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#ff5a00;text-transform:uppercase;margin:12px 0}
+#pf-billionaire .bv-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px}
+#pf-billionaire .bv-br{margin:12px 0 0}
+#pf-billionaire .bv-br a{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ff5a00;text-decoration:none;font-weight:700}
+#pf-billionaire .bv-br a:hover{text-decoration:underline}
+</style>
+
+<h2>Billionaire or Supervillain?</h2>
+<div class="bv-day" id="bvDay"></div>
+<div class="bv-quote" id="bvQuote"></div>
+<div class="bv-btns" id="bvBtns">
+  <button class="bv-btn" id="bvB">Billionaire</button>
+  <button class="bv-btn ghost" id="bvS">Supervillain</button>
+</div>
+<div class="bv-reveal" id="bvReveal" style="display:none"></div>
+<div class="bv-streak" id="bvStreak"></div>
+<div class="bv-btns" id="bvShareRow" style="display:none">
+  <button class="bv-btn ghost" id="bvCopy">Copy result grid</button>
+  <button class="bv-btn ghost" id="bvShare">Share score card</button>
+</div>
+<div class="bv-note">One quote per day. Come back tomorrow &mdash; the next monster awaits.</div>
+
+<script>
+(function(){
+var LAUNCH='2026-10-01';
+/* w:0 = billionaire (real, documented) | w:1 = supervillain (film/comics) */
+var QUOTES=[
+{w:0,q:"There's class warfare, all right, but it's my class, the rich class, that's making war, and we're winning.",who:"Warren Buffett",ctx:"Buffett to the New York Times, 2006. He wasn't joking."},
+{w:1,q:"Introduce a little anarchy. Upset the established order, and everything becomes chaos.",who:"The Joker",ctx:"Heath Ledger's Joker, The Dark Knight (2008)."},
+{w:0,q:"We will coup whoever we want! Deal with it.",who:"Elon Musk",ctx:"Tweeted July 2020, about Bolivia's lithium."},
+{w:1,q:"The hardest choices require the strongest wills.",who:"Thanos",ctx:"Avengers: Infinity War (2018). He then deleted half of all life."},
+{w:0,q:"Your margin is my opportunity.",who:"Jeff Bezos",ctx:"The founding philosophy of Amazon."},
+{w:1,q:"Why so serious?",who:"The Joker",ctx:"The Dark Knight (2008). Launched a thousand dorm posters."},
+{w:0,q:"Move fast and break things.",who:"Mark Zuckerberg",ctx:"Facebook's infamous internal motto."},
+{w:1,q:"I am inevitable.",who:"Thanos",ctx:"Avengers: Endgame (2019). Famous last words."},
+{w:0,q:"I no longer believe that freedom and democracy are compatible.",who:"Peter Thiel",ctx:"From his 2009 essay 'The Education of a Libertarian.'"},
+{w:1,q:"You either die a hero, or you live long enough to see yourself become the villain.",who:"Harvey Dent",ctx:"The Dark Knight (2008). Hits different in 2026."},
+{w:0,q:"Competition is for losers.",who:"Peter Thiel",ctx:"The thesis of his book Zero to One."},
+{w:1,q:"You merely adopted the dark. I was born in it, molded by it.",who:"Bane",ctx:"The Dark Knight Rises (2012)."},
+{w:0,q:"If you don't find a way to make money while you sleep, you will work until you die.",who:"Warren Buffett",ctx:"His most-shared piece of wisdom."},
+{w:1,q:"The one thing they love more than a hero is to see a hero fail, fall, die trying.",who:"Norman Osborn",ctx:"Spider-Man (2002). Willem Dafoe knew."},
+{w:0,q:"Being the richest man in the cemetery doesn't matter to me.",who:"Steve Jobs",ctx:"Wall Street Journal interview, 1993."},
+{w:1,q:"Madness, as you know, is like gravity. All it takes is a little push.",who:"The Joker",ctx:"The Dark Knight (2008)."},
+{w:0,q:"Success is a lousy teacher. It seduces smart people into thinking they can't lose.",who:"Bill Gates",ctx:"From his book The Road Ahead."},
+{w:1,q:"There are no strings on me.",who:"Ultron",ctx:"Avengers: Age of Ultron (2015). The AI read the internet and chose violence."},
+{w:0,q:"I will always choose a lazy person to do a difficult job, because a lazy person will find an easy way to do it.",who:"Bill Gates",ctx:"Attributed to Gates for decades."},
+{w:1,q:"Peace in our time.",who:"Ultron",ctx:"Said while building an extinction machine."},
+{w:0,q:"Don't be evil.",who:"Larry Page & Sergey Brin",ctx:"Google's original corporate motto. They quietly removed it."},
+{w:1,q:"I am Loki, of Asgard, and I am burdened with glorious purpose.",who:"Loki",ctx:"The Avengers (2012)."},
+{w:0,q:"Stay hungry, stay foolish.",who:"Steve Jobs",ctx:"Stanford commencement address, 2005."},
+{w:1,q:"Freedom is life's great lie.",who:"Loki",ctx:"Loki's Stuttgart speech, The Avengers (2012)."},
+{w:0,q:"I knew that if I failed I wouldn't regret that, but I knew the one thing I might regret is not trying.",who:"Jeff Bezos",ctx:"On quitting his job to start Amazon."},
+{w:1,q:"If you're good at something, never do it for free.",who:"The Joker",ctx:"The Dark Knight (2008). Genuinely good business advice. That's the problem."},
+{w:0,q:"The people who are crazy enough to think they can change the world are the ones who do.",who:"Steve Jobs",ctx:"Apple's 'Think Different' campaign, 1997."},
+{w:1,q:"You want to know how I got these scars?",who:"The Joker",ctx:"His favorite party trick."},
+{w:0,q:"The most contrarian thing of all is not to oppose the crowd but to think for yourself.",who:"Peter Thiel",ctx:"Also Zero to One. The contrarianism market is crowded."},
+{w:1,q:"When Gotham is ashes, you have my permission to die.",who:"Bane",ctx:"The Dark Knight Rises (2012). Polite about murder."}
+];
+function chi(){var d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Chicago'}));d.setHours(0,0,0,0);return d;}
+function dayNum(){var l=new Date(LAUNCH+'T00:00:00');return Math.max(1,Math.floor((chi()-l)/86400000)+1);}
+function dayKey(){var d=chi();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function yKey(){var d=chi();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+var LS='pf_billionaire_v1';
+function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"last":"","streak":0,"played":{}}');}catch(e){return{last:'',streak:0,played:{}};}}
+function save(s){try{localStorage.setItem(LS,JSON.stringify(s));}catch(e){}}
+var n=dayNum(),Q=QUOTES[(n-1)%QUOTES.length],s=load(),tk=dayKey();
+function el(id){return document.getElementById(id);}
+el('bvDay').textContent='Day '+n+' of the lineup';
+el('bvQuote').textContent='\u201C'+Q.q+'\u201D';
+function streakTxt(){return 'Your streak: '+s.streak+(s.streak===1?' day':' days')+' \u2014 keep it alive tomorrow';}
+function grid(){return 'BILLIONAIRE OR SUPERVILLAIN\\nDay '+n+': '+(s.played[tk].correct?'\\uD83D\\uDFE9':'\\uD83D\\uDFE5')+'\\nStreak: '+s.streak+' \\uD83D\\uDD25 \\u2014 can you tell them apart?\\nmtcstw.com';}
+function showReveal(){
+  var p=s.played[tk];
+  el('bvBtns').style.display='none';
+  var r=el('bvReveal');r.style.display='block';
+  var src=Q.w===0?'BILLIONAIRE':'SUPERVILLAIN';
+  r.innerHTML='<p class="bv-verdict '+(p.correct?'right':'wrong')+'">'+(p.correct?'CORRECT.':'WRONG.')+'</p>'+
+    '<p class="bv-who">'+src+' \u2014 '+Q.who+' said that.</p>'+
+    '<p class="bv-ctx">'+Q.ctx+'</p>';
+  /* R20c: the quote reveal routes real billionaires to their bracket matchup. */
+  if(Q.w===0){ r.innerHTML+='<p class="bv-br"><a href="/arcade#pf-bracket">SEE THEIR BRACKET MATCHUP \u2192</a></p>'; }
+  el('bvShareRow').style.display='flex';
+  el('bvStreak').textContent=streakTxt();
+  /* R20a: PFShare score card on completion ("I scored N"). */
+  try{var PS0=window.PFShare;if(PS0&&PS0.REG){var qq=String(Q.q).replace(/"/g,"");PS0.REG["billionaire-supervillain"]={title:"DAY "+n+(p.correct?" \u2014 RIGHT":" \u2014 WRONG"),tag:"BILLIONAIRE OR SUPERVILLAIN",lines:['"'+qq+'" \u2014 '+Q.who],cta:"TELL THEM APART"};}}catch(e){}
+}
+el('bvStreak').textContent=streakTxt();
+if(s.played&&s.played[tk]){showReveal();}
+else{
+  el('bvB').onclick=function(){answer(0);};
+  el('bvS').onclick=function(){answer(1);};
+}
+function answer(pick){
+  var correct=(pick===Q.w);
+  s.played=s.played||{};s.played[tk]={pick:pick,correct:correct};
+  if(s.last!==tk){s.streak=(s.last===yKey())?s.streak+1:1;s.last=tk;}
+  save(s);
+  try{document.dispatchEvent(new CustomEvent('pf-billionaire-answered',{detail:{day:tk,correct:correct,streak:s.streak}}));}catch(e){}
+  showReveal();
+}
+el('bvCopy').onclick=function(){
+  var t=grid();
+  function done(){try{if(window.PF&&PF.toast)PF.toast('Grid copied. Go shame your friends.');}catch(e){}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();});}
+  else fallback();
+  function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){}}
+};
+/* R20a: PFShare score card — "I scored N" with ?ref= attribution. */
+el('bvShare').onclick=function(){
+  try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("billionaire-supervillain");if(cv){PS.shareImage(cv,"bos-score.png","I called today's Billionaire or Supervillain "+(s.played[tk].correct?"right":"wrong"),"billionaire-supervillain");return;}}}catch(e){}
+  try{if(window.PF&&PF.toast)PF.toast('Score card misfired — the grid copy still works.');}catch(e){}
+};
+})();
+</script>
+</div>
+</template>`);
+})();
+
+;
+
+/* ===== slr-match-quiz.js ===== */
+/* games/slr-match-quiz.js  |  PF v1.4.3 | SLR Match Quiz: 5 questions -> propaganda archetype + 3 creator matches
+   v1.4.3 stickiness pass: daily-seeded question shuffle, streak counter, live tribe counts (quiz_tribes),
+   Infighting cross-game tie-in ("your match is fighting"), share-to-unlock 4th match.
+   KILL: ?pf_off=slr-match-quiz  or  localStorage pf_disabled_v1='["slr-match-quiz"]' */
+
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("slr-match-quiz")) { return; }
+  PF.holder().insertAdjacentHTML('beforeend',
+'<template id="pf-ov-matchquiz">\n' +
+'<div class="fe-block pf-override-block">\n' +
+'<div id="pf-matchquiz" style="max-width:640px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:\'Helvetica Neue\',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;text-align:center;">\n' +
+'  <div style="font-size:1.5rem;font-weight:900;letter-spacing:0.18em;color:#c1121f;">&#9873; FIND YOUR SLR MATCH &#9873;</div>\n' +
+'  <div style="font-size:0.95rem;color:#b8ab8e;margin:0.6rem 0 1.2rem;">Answer 5 questions. We name your propaganda archetype<br>and match you with killers from the Sick Left Radicals roster.</div>\n' +
+'  <div id="pf-mq-body"></div>\n' +
+'</div>\n' +
+'<script>\n' +
+'(function(){\n' +
+'  "use strict";\n' +
+'  /* Display modes (2026-10-03): slim compact card on the homepage (pf-v2);\n' +
+'     full quiz on /arcade (pf-arcade). Template id unchanged. */\n' +
+'  var PF_MODE=(function(){try{if(document.getElementById("pf-arcade")||document.getElementById("pf-cells-page"))return"full";}catch(e){}return"slim";})();\n' +
+'  var ARCH={\n' +
+'    agitator:{name:"THE AGITATOR",desc:"You start fights the ruling class finishes losing. Loud, relentless, allergic to civility politics.",test:function(m){return (m.propaganda_score||0)>=9.0;}},\n' +
+'    meme:{name:"THE MEME SMITH",desc:"You forge jokes into weapons. One image from you does more damage than a thinkpiece.",test:function(m){return /meme|satire|comedy|animator|parody/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    organizer:{name:"THE ORGANIZER",desc:"You turn rage into rosters, marches, and mutual aid. The movement runs on people like you.",test:function(m){return /mutual.aid|organizer|movement|nonprofit|organizing/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    sniper:{name:"THE TRUTH SNIPER",desc:"One sourced thread from you ends careers. You read the footnotes so the timeline does not have to.",test:function(m){return /news|research|journal|document|analysis/i.test((m.content_focus||"")+" "+(m.bio||""));}},\n' +
+'    hype:{name:"THE HYPE ENGINE",desc:"You make the timeline move. Energy, reach, momentum. You are the algorithm\'s worst nightmare.",test:function(m){return (m.followers_total||0)>=200000;}}\n' +
+'  };\n' +
+'  function dbAll(){var a=[];try{if(window.PF){a=PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}}catch(e){}return a||[];}\n' +
+'  function dbLabel(m){var h="";try{h=(m.handles&&(m.handles.primary||m.handles.tiktok||""))||"";}catch(e){}return m.name+(h?" ("+h+")":"");}\n' +
+'  function dbMates(A){var all=dbAll(),out=[],i;\n' +
+'    var ranked=all.filter(function(m){try{return A.test(m);}catch(e){return false;}}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<ranked.length&&out.length<4;i++){out.push(ranked[i]);}\n' +
+'    if(out.length<4){var rest=all.filter(function(m){return out.indexOf(m)<0;}).sort(function(a,b){return (b.propaganda_score||0)-(a.propaganda_score||0);});\n' +
+'    for(i=0;i<rest.length&&out.length<4;i++){out.push(rest[i]);}}\n' +
+'    return out.map(function(m){return {s:m.slug,label:dbLabel(m)};});}\n' +
+'  var QS=[\n' +
+'    {q:"Pick your weapon.",a:[["Memes",["meme",2],["hype",1]],["Sourced mega-threads",["sniper",2],["agitator",1]],["Street organizing",["organizer",2],["agitator",1]],["Livestreams and debates",["hype",2],["sniper",1]],["Wheatpaste and posters",["meme",1],["organizer",1]]]},\n' +
+'    {q:"It is Friday night. You are...",a:[["Ratioing a senator",["agitator",2],["sniper",1]],["Editing video until 3am",["meme",2],["hype",1]],["At the mutual-aid distro",["organizer",2],["meme",1]],["Reading primary sources",["sniper",2],["organizer",1]],["Holding down the group chat",["hype",2],["agitator",1]]]},\n' +
+'    {q:"Billionaires fear you most when you...",a:[["Name names, loudly",["agitator",2],["hype",1]],["Turn them into a meme",["meme",2],["agitator",1]],["Build what they cannot buy",["organizer",2],["sniper",1]],["Publish the receipts",["sniper",2],["meme",1]],["Mobilize 10,000 people",["hype",2],["organizer",1]]]},\n' +
+'    {q:"Pick a battlefield.",a:[["The comments section",["agitator",2],["meme",1]],["The group chat",["meme",2],["hype",1]],["The picket line",["organizer",2],["agitator",1]],["The quote-tweet",["sniper",2],["hype",1]],["The For You page",["hype",2],["sniper",1]]]},\n' +
+'    {q:"Your comrades describe you as...",a:[["Fearless",["agitator",2],["hype",1]],["Funny",["meme",2],["agitator",1]],["Dependable",["organizer",2],["meme",1]],["Rigorous",["sniper",2],["organizer",1]],["Magnetic",["hype",2],["sniper",1]]]}\n' +
+'  ];\n' +
+'  /* Daily seed: question + answer order reshuffle every Chicago day. */\n' +
+'  function hashStr(s){var h=2166136261,i;for(i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}\n' +
+'  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}\n' +
+'  function daySeed(){var n;try{n=window.PF?PF.chiNow():new Date();}catch(e){n=new Date();}return n.getFullYear()+"-"+(n.getMonth()+1)+"-"+n.getDate();}\n' +
+'  function shuffle(a,rng){var i,j,t;for(i=a.length-1;i>0;i--){j=Math.floor(rng()*(i+1));t=a[i];a[i]=a[j];a[j]=t;}return a;}\n' +
+'  var QUIZ=(function(){var ds=daySeed();var qs=shuffle(QS.slice(),mulberry32(hashStr("mq:"+ds)));return qs.map(function(q){return {q:q.q,a:shuffle(q.a.slice(),mulberry32(hashStr("mq:"+ds+":"+q.q)))};});})();\n' +
+'  /* Streak: consecutive Chicago days with a completed quiz. */\n' +
+'  function getStreak(){try{var s=JSON.parse(localStorage.getItem("pf_mq_streak_v1")||"null");if(s&&typeof s.n==="number")return s;}catch(e){}return {last:"",n:0};}\n' +
+'  function bumpStreak(){var s=getStreak(),t=daySeed();if(s.last===t)return s.n;var y;try{y=window.PF?PF.chiNow():new Date();}catch(e){y=new Date();}y=new Date(y.getTime()-86400000);var ys=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();s.n=(s.last===ys)?s.n+1:1;s.last=t;try{localStorage.setItem("pf_mq_streak_v1",JSON.stringify(s));}catch(e){}return s.n;}\n' +
+'  /* Tribe counts: quiz_tribes over the trailing 7 days, cached 6h. */\n' +
+'  var API=(window.PF_BACKEND_URL);\n' +
+'  var TRIBES=null;\n' +
+'  function loadTribes(cb){var done=function(){if(cb)cb();};\n' +
+'    try{var c=JSON.parse(localStorage.getItem("pf_mq_tribes_v1")||"null");if(c&&Date.now()-c.at<6*3600000){TRIBES=c.d;done();return;}}catch(e){}\n' +
+'    var name="pfMqT"+Date.now(),fired=false;\n' +
+'    window[name]=function(d){if(fired)return;fired=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);if(d&&d.tribes){TRIBES=d.tribes;try{localStorage.setItem("pf_mq_tribes_v1",JSON.stringify({at:Date.now(),d:d.tribes}));}catch(e){}}done();};\n' +
+'    try{var scr=document.createElement("script");scr.id=name;scr.src=API+"?callback="+name+"&action=quiz_tribes";scr.onerror=function(){if(!fired){fired=true;done();}};(document.head||document.documentElement).appendChild(scr);}catch(e){if(!fired){fired=true;done();}}\n' +
+'    setTimeout(function(){if(!fired){fired=true;done();}},10000);}\n' +
+'  var body=document.getElementById("pf-mq-body"),qi=0,scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};\n' +
+'  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}\n' +
+'  function renderStart(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 fresh shuffle every day, keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'></div>"\n' +
+'      +"<button id=\'pf-mq-start\' style=\'padding:0.8rem 2.2rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;\'>START</button>";\n' +
+'    body.innerHTML=h;\n' +
+'    document.getElementById("pf-mq-start").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
+'  /* SLIM: compact homepage card — the full quiz lives on /arcade. */\n' +
+'  function renderCompact(){\n' +
+'    var st=getStreak();\n' +
+'    var h="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>DAILY MATCHUP</div>"\n' +
+'      +(st.n>0?"<div style=\'margin:0.5rem 0;font-size:0.95rem;\'>&#128293; <b>"+st.n+"-day streak</b> \\u2014 keep it burning</div>"\n' +
+'        :"<div style=\'margin:0.5rem 0;font-size:0.9rem;color:#b8ab8e;\'>New question shuffle every day. Play daily, build a streak.</div>")\n' +
+'      +"<div id=\'pf-mq-tribes\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:1rem;min-height:1.2em;\'>Loading today\\u2019s tribes\\u2026</div>"\n' +
+'      +"<a href=\'/arcade\' style=\'display:inline-block;padding:0.8rem 2.2rem;background:#c1121f;color:#f5f0e1;font-weight:900;font-size:1rem;letter-spacing:0.1em;text-decoration:none;\'>PLAY THE QUIZ \\u2192</a>"\n' +
+'      +"<div style=\'margin-top:0.8rem;font-size:0.85rem;\'><a href=\'/sick-left-radicals\' style=\'color:#c1121f;font-weight:700;text-decoration:none;\'>or meet all 62 fighters \\u2192</a></div>"\n' +
+'    body.innerHTML=h;\n' +
+'    loadTribes(function(){var t=document.getElementById("pf-mq-tribes");if(!t)return;\n' +
+'      if(!TRIBES){t.innerHTML="The tribes are quiet today \\u2014 be the first to play.";return;}\n' +
+'      var tot=0,bk="",bn=-1,k;for(k in TRIBES){if(k==="unknown")continue;tot+=Number(TRIBES[k])||0;if((Number(TRIBES[k])||0)>bn){bn=Number(TRIBES[k])||0;bk=k;}}\n' +
+'      if(tot>0&&ARCH[bk])t.innerHTML="<b style=\'color:#f5f0e1;\'>"+tot.toLocaleString()+"</b> comrades matched this week \\u2014 biggest tribe: <b style=\'color:#f5f0e1;\'>"+ARCH[bk].name+"</b> ("+bn.toLocaleString()+")";});\n' +
+'  }\n' +
+'  function renderQ(){\n' +
+'    var q=QUIZ[qi],h="<div style=\'font-size:1.05rem;font-weight:700;margin-bottom:1rem;color:#f5f0e1;\'>"+(qi+1)+"/5 \\u2014 "+esc(q.q)+"</div>";\n' +
+'    for(var i=0;i<q.a.length;i++){h+="<button data-mq=\'"+i+"\' style=\'display:block;width:100%;margin:0.4rem 0;padding:0.7rem;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-size:0.9rem;cursor:pointer;font-family:inherit;\'>"+esc(q.a[i][0])+"</button>";}\n' +
+'    body.innerHTML=h;\n' +
+'    var btns=body.querySelectorAll("[data-mq]");\n' +
+'    for(var j=0;j<btns.length;j++){btns[j].onclick=function(){\n' +
+'      var opt=q.a[+this.getAttribute("data-mq")];\n' +
+'      for(var k=1;k<opt.length;k++){scores[opt[k][0]]+=opt[k][1];}\n' +
+'      qi++;\n' +
+'      if(qi<QUIZ.length){renderQ();}else{renderR();}\n' +
+'    };}\n' +
+'  }\n' +
+'  function mqLabels(A){var ml=[],i;for(i=0;i<A.mates.length&&i<3;i++){ml.push(A.mates[i].label||A.mates[i]);}return ml;}\n' +
+'  function mqApplyPoster(A){try{var PS=window.PFShare;if(!PS||!PS.REG||!PS.REG["slr-match-quiz"])return false;var ml=mqLabels(A);PS.REG["slr-match-quiz"]={title:A.name,tag:"YOUR PROPAGANDA ARCHETYPE",lines:["YOUR SLR MATCHES:"].concat(ml),cta:"FIND YOUR MATCH",storyPre:"MY SLR MATCH IS"};return true;}catch(e){return false;}}\n' +
+'  function mqPublish(A){try{localStorage.setItem("pf_mq_result_v1",JSON.stringify({name:A.name,mates:mqLabels(A)}));}catch(e){}mqApplyPoster(A);}\n' +
+'  function mqRestore(){try{var s=JSON.parse(localStorage.getItem("pf_mq_result_v1")||"null");if(s&&s.name&&s.mates&&s.mates.length){mqApplyPoster({name:s.name,mates:s.mates.map(function(m){return{label:m};})});}}catch(e){}}\n' +
+'  function renderR(){\n' +
+'    var top="agitator",tk=-1;\n' +
+'    for(var k in scores){if(scores[k]>tk){tk=scores[k];top=k;}}\n' +
+'    var A=ARCH[top];A.mates=dbMates(A);var mh="";\n' +
+'    for(var i=0;i<Math.min(3,A.mates.length);i++){mh+="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;\'>"+esc(A.mates[i].label||A.mates[i])+"</div>";}\n' +
+'    var streakN=bumpStreak();\n' +
+'    var fourthHtml="<div id=\'pf-mq-fourth\' style=\'margin-top:0.6rem;\'><div style=\'padding:0.7rem;border:2px dashed #c1121f;color:#b8ab8e;font-size:0.85rem;\'>&#128274; <b style=\'color:#f5f0e1;\'>4TH MATCH LOCKED</b><br>Share your archetype card to unlock it.</div></div>";\n' +
+'    var infHtml="";\n' +
+'    try{\n' +
+'      var PFw=window.PF;\n' +
+'      if(PFw&&typeof PFw.infightNext==="function"){\n' +
+'        var nx=PFw.infightNext();\n' +
+'        if(nx&&nx.a&&nx.b){\n' +
+'          var myIn=null,mi,ms2;\n' +
+'          for(mi=0;mi<A.mates.length;mi++){ms2=(A.mates[mi].s||"");if(ms2&&ms2===nx.a.slug||ms2&&ms2===nx.b.slug){myIn=A.mates[mi];break;}}\n' +
+'          infHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.8rem;\'>"\n' +
+'            +"<div style=\'font-size:0.8rem;letter-spacing:0.2em;color:#c1121f;\'>INFIGHTING \\u2014 "+(nx.live?"HAPPENING NOW":"NEXT BATTLE "+nx.clock)+"</div>"\n' +
+'            +"<div style=\'font-weight:800;margin:0.4rem 0;\'>"+esc(nx.a.name)+" <span style=\'color:#c1121f;\'>VS</span> "+esc(nx.b.name)+"</div>"\n' +
+'            +(myIn?"<div style=\'font-size:0.85rem;color:#f5f0e1;margin-bottom:0.6rem;\'>Your match <b>"+esc(myIn.label||myIn.s)+"</b> is fighting.</div>"\n' +
+'              :"<div style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.6rem;\'>Your tribe wants blood. Pick a fighter.</div>")\n' +
+'            +"<button id=\'pf-mq-infight\' style=\'padding:0.6rem 1.4rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>BACK YOUR FIGHTER</button></div>";\n' +
+'        }\n' +
+'      }\n' +
+'    }catch(e){}\n' +
+'    body.innerHTML="<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;\'>YOUR ARCHETYPE</div>"\n' +
+'      +"<div style=\'font-size:1.6rem;font-weight:900;margin:0.4rem 0;\'>"+A.name+"</div>"\n' +
+'      +"<div style=\'font-size:0.9rem;color:#b8ab8e;margin-bottom:1rem;\'>"+A.desc+"</div>"\n' +
+'      +"<div id=\'pf-mq-tribe\' style=\'font-size:0.85rem;color:#b8ab8e;margin-bottom:0.8rem;min-height:1.2em;\'></div>"\n' +
+'      +"<div style=\'font-size:0.85rem;letter-spacing:0.2em;color:#c1121f;margin-bottom:0.4rem;\'>YOUR SLR MATCHES</div>"+mh+fourthHtml\n' +
+'      +recruitHtml\n' +
+'      +"<div style=\'margin-top:1rem;\'><button id=\'pf-mq-share\' style=\'padding:0.7rem 1.6rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE ARCHETYPE CARD</button></div>"\n' +
+'      +"<div style=\'margin-top:0.6rem;\'><button id=\'pf-mq-story\' style=\'padding:0.7rem 1.6rem;background:transparent;border:2px solid #c1121f;color:#f5f0e1;font-weight:800;cursor:pointer;font-family:inherit;\'>SHARE TO STORY (9:16)</button></div>"\n' +
+'      +(streakN>1?"<div style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;\'>&#128293; <b style=\'color:#f5f0e1;\'>"+streakN+"-day streak</b> \\u2014 see you tomorrow</div>":"")\n' +
+'      +infHtml\n' +
+'      +"<div style=\'margin-top:1.2rem;\'><input id=\'pf-mq-email\' type=\'email\' placeholder=\'Email for dispatch updates\' style=\'padding:0.6rem;width:70%;max-width:280px;background:#141414;border:2px solid #c1121f;color:#f5f0e1;font-family:inherit;\'>"\n' +
+'      +" <button id=\'pf-mq-join\' style=\'padding:0.6rem 1rem;background:#c1121f;border:none;color:#f5f0e1;font-weight:700;cursor:pointer;font-family:inherit;\'>ENLIST</button></div>"\n' +
+'      +"<div id=\'pf-mq-msg\' style=\'margin-top:0.6rem;font-size:0.85rem;color:#b8ab8e;min-height:1.2em;\'></div>"\n' +
+'      +"<div><button id=\'pf-mq-again\' style=\'margin-top:0.8rem;background:none;border:1px solid #b8ab8e;color:#b8ab8e;padding:0.5rem 1rem;cursor:pointer;font-family:inherit;font-size:0.8rem;\'>RETAKE QUIZ</button></div>";\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf-quiz-done",{detail:{archetype:top}}));}catch(e){}\n' +
+'    /* COHESION (2026-10-06): terminal-state wiring — the quiz result hands\n' +
+'       off to the next-move engine, which routes the visitor to a first\n' +
+'       mission. Slot is the result container; the engine queues if not\n' +
+'       loaded yet. Zero new XP — routing only. */\n' +
+'    try{document.dispatchEvent(new CustomEvent("pf:terminal",{detail:{slot:body,context:"quiz-result"}}));}catch(e){}\n' +
+'    /* M1 dopamine: archetype reveal is the payoff — celebrate it. */\n' +
+'    try{if(window.PF&&PF.dope){var dq=document.getElementById("pf-matchquiz")||document.body;PF.dope.confetti(dq,50);PF.dope.ping(dq,"ARCHETYPE LOCKED");}}catch(e){}\n' +
+'    mqPublish(A);\n' +
+'    loadTribes(function(){var n=TRIBES?Number(TRIBES[top]||0):0;var t=document.getElementById("pf-mq-tribe");if(t&&n>0){t.innerHTML="<b style=\'color:#f5f0e1;\'>"+n.toLocaleString()+"</b> comrades landed <b style=\'color:#f5f0e1;\'>"+A.name+"</b> this week. The tribe grows.";}});\n' +
+'    var unlocked=false;\n' +
+'    function unlock4(){if(unlocked)return;unlocked=true;var f=document.getElementById("pf-mq-fourth");if(f&&A.mates[3]){f.innerHTML="<div style=\'padding:0.5rem;border:1px solid #c1121f;margin:0.3rem 0;font-weight:700;background:#1a0d0d;\'>"+esc(A.mates[3].label||A.mates[3])+"</div>";}}\n' +
+'    /* QW-3 (2026-10-05): RECRUIT UNDER YOUR MATCH - enlist under the match\\u2019s name.\n' +
+'       ?creator= is captured first-touch by core/09-referral.js. Zero new XP. */\n' +
+'    var recruitHtml="";\n' +
+'    for(var ri=0;ri<Math.min(3,A.mates.length);ri++){var rs=A.mates[ri];var rslug=(rs&&rs.s)?String(rs.s):"";\n' +
+'      if(!rslug)continue;\n' +
+'      recruitHtml+="<a href=\'/?creator="+encodeURIComponent(rslug)+"\' style=\'display:inline-block;margin:0.25rem;padding:0.7rem 1.6rem;background:#c1121f;color:#f5f0e1;font-weight:800;letter-spacing:0.1em;font-size:0.9rem;text-decoration:none;font-family:inherit;\'>RECRUIT UNDER "+esc(String(rs.label||rslug).toUpperCase())+" \\u2192</a>";}\n' +
+'    if(recruitHtml){recruitHtml="<div style=\'margin-top:1.2rem;border:2px solid #c1121f;padding:0.9rem;\'>"\n' +
+'      +"<div style=\'font-size:0.9rem;font-weight:900;letter-spacing:0.12em;color:#c1121f;\'>RECRUIT UNDER YOUR MATCH</div>"\n' +
+'      +"<div style=\'font-size:0.85rem;color:#b8ab8e;margin:0.4rem 0 0.8rem;\'>Enlist in their name and muster the tribe.</div>"\n' +
+'      +recruitHtml+"</div>";}\n' +
+'    function mqShareH(e){try{if(e&&e.detail&&e.detail.game==="slr-match-quiz"){unlock4();document.removeEventListener("pf-share-image",mqShareH);}}catch(err){}}\n' +
+'    document.addEventListener("pf-share-image",mqShareH);\n' +
+'    document.getElementById("pf-mq-share").onclick=function(){\n' +
+'      try{var PS=window.PFShare;if(PS&&PS.poster&&PS.shareImage){var cv=PS.poster("slr-match-quiz");if(cv){PS.shareImage(cv,"slr-archetype.png",A.name+" \\u2014 my propaganda archetype","slr-match-quiz");setTimeout(unlock4,15000);return;}}}catch(e){}\n' +
+'      unlock4();\n' +
+'    };\n' +
+'    /* A9 (2026-10-04): IG Story chain - 9:16 archetype poster for the link sticker. */\n' +
+'    /* The share link carries the poster sharer\'s own ?ref= (PF.shareUrl stamps their */\n' +
+'    /* callsign), so each hop re-attributes. No XP on the story-post side; quiz rewards unchanged. */\n' +
+'    var mqStoryBtn=document.getElementById("pf-mq-story");\n' +
+'    if(mqStoryBtn){mqStoryBtn.onclick=function(){\n' +
+'      try{\n' +
+'        var PS2=window.PFShare;\n' +
+'        if(PS2&&PS2.posterStory&&PS2.shareImage){\n' +
+'          var _cs="";try{_cs=String(window.PFCallsign?window.PFCallsign():"");}catch(_e){}\n' +
+'          var _lbl="MTCSTW.COM/ARCADE"+(_cs?("?REF="+encodeURIComponent(_cs).toUpperCase()):"");\n' +
+'          var cv2=PS2.posterStory("slr-match-quiz",{linkLabel:_lbl});\n' +
+'          if(cv2){PS2.shareImage(cv2,"slr-story.png",A.name+" - my propaganda archetype","slr-match-quiz",{link:"https://www.mtcstw.com/arcade"});return;}\n' +
+'        }\n' +
+'      }catch(e2){}\n' +
+'      try{if(window.PF&&PF.toast)PF.toast("Poster failed - try again.");}catch(e3){}\n' +
+'    };}\n' +
+'    var ibf=document.getElementById("pf-mq-infight");\n' +
+'    if(ibf){ibf.onclick=function(){var t=document.getElementById("pf-infight-root");if(t){try{t.scrollIntoView({behavior:"smooth",block:"start"});}catch(e){t.scrollIntoView();}}};}\n' +
+'    document.getElementById("pf-mq-join").onclick=function(){\n' +
+'      var em=(document.getElementById("pf-mq-email").value||"").trim();\n' +
+'      var msg=document.getElementById("pf-mq-msg");\n' +
+'      if(!em||em.indexOf("@")<0){msg.textContent="Enter a valid email.";return;}\n' +
+'      window.location.href="mailto:mtcstw@gmail.com?subject=SLR%20Match%20Quiz%20Enlistment&body="+encodeURIComponent("Archetype: "+A.name+"\\nEmail: "+em);\n' +
+'      msg.textContent="Opening your mail app \\u2014 welcome to the factory.";\n' +
+'    };\n' +
+'    document.getElementById("pf-mq-again").onclick=function(){qi=0;scores={agitator:0,meme:0,organizer:0,sniper:0,hype:0};renderQ();};\n' +
+'  }\n' +
+'  if(PF_MODE==="slim"){ renderCompact(); }\n' +
+'  else { renderStart(); setTimeout(mqRestore,1500); setTimeout(mqRestore,5000); }\n' +
+'})();\n' +
+'<\/script>\n' +
+'</div>\n' +
+'</template>');
+})();
+
+;
+
+/* ===== infighting.js ===== */
+/* games/infighting.js | PF v1.4.3 | INFIGHTING: real-time creator battle rounds.
+   Call-of-Duty-match meets TikTok-battle: short 10-minute 1v1 rounds, two
+   creators face off, fans spend ledger XP as fire to push their fighter's
+   live bar higher. Winner takes a 24h +0.2 HYPE bump on their DISPLAYED
+   propaganda score (capped at the 9.8 earned max — entertainment layer only,
+   never above what the Efficiency Index earned).
+   THE LOOP: Field Ops send fans OFF-site (go engage the creator's latest
+   post on TikTok/IG/FB, come back and check in) and reward them with free
+   battle ammo ON-site — fans leave, return, and fire in short bursts.
+   Positive-sum by design: you can only boost your fighter, never attack the
+   other one. The "down" is relative — somebody has to lose.
+   Schedule (America/Chicago): 10-minute battles at :00 and :30 each hour.
+   Between battles: countdown + last result.
+   Backend (Apps Script v13.1+): ?action=infight_fire&round=R&slug=S&amt=N
+   &callsign=C  -> logs one row to the "infight" tab; server enforces the
+   200-fire per-callsign per-round cap. ?action=infight_totals&round=R ->
+   {round, totals:{slug:n}}. No PII: slugs + callsign only.
+   6A-R8 CELL BOUT: toggle in the arena header; when on, fire calls carry
+   the visitor's cell_id (from the cells.js pf_cells_v1 cache, validated
+   server-side against cell_members, fail-closed) and the widget shows the
+   creator bout + per-cell standings side by side. Round rollover settles
+   the cell bout via infight_settle (idempotent) into infight_cell_wins —
+   the war map's future input for war-standing points.
+   Homepage mount: registers <template id="pf-ov-infight"> on PF.holder();
+   pages/home-v2.js instantiates it in ORDER. The HYPE score overlay is
+   global: it paints onto [data-eff-score="slug"] slots wherever they render
+   (roster, catalog), independent of the homepage widget.
+   KILL: ?pf_off=infighting  or  localStorage pf_disabled_v1='["infighting"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip('infighting')) { return; }
+
+  /* ---- HYPE overlay (publisher, display-agnostic) ----
+     Layering contract (see games/efficiency.js): infighting OWNS the hype
+     record (who won the last battle) but NEVER paints another silo's DOM.
+     The [data-eff-score="slug"] slots are owned by efficiency.js (rendered
+     by slr-roster.js / slr-catalog.js). efficiency.js applies the HYPE badge
+     when it paints scores, reading the record via PF.infightHype() and
+     re-checking on the 'pf-hype' / 'pf-infight' events. This silo only
+     publishes. */
+  var LS_HYPE = 'pf_infight_hype_v1';
+  function hype() { try { var h = JSON.parse(localStorage.getItem(LS_HYPE) || 'null'); if (h && h.until > Date.now() && h.slug) return h; } catch (e) {} return null; }
+  /* Public reader for the hype-paint owner (efficiency.js). */
+  PF.infightHype = hype;
+
+  /* Public: next/current battle info for cross-game tie-ins (quiz result card).
+     Deterministic — same seed scheme as the widget, so the matchup matches. */
+  function ifPad(n) { return (n < 10 ? '0' : '') + n; }
+  function ifRoundId(d) { return d.getFullYear() + '' + ifPad(d.getMonth() + 1) + ifPad(d.getDate()) + '-' + ifPad(d.getHours()) + ifPad(d.getMinutes()); }
+  function ifHash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function ifRng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  PF.infightNext = function () {
+    try {
+      var now; try { now = PF.chiNow(); } catch (e) { now = new Date(); }
+      var slotMin = now.getMinutes() < 30 ? 0 : 30;
+      var start = new Date(now.getTime()); start.setMinutes(slotMin, 0, 0);
+      var end = new Date(start.getTime() + 10 * 60000), w;
+      if (now.getTime() >= end.getTime()) {
+        var ns = new Date(start.getTime() + 30 * 60000);
+        w = { live: false, start: ns, end: new Date(ns.getTime() + 10 * 60000), id: ifRoundId(ns) };
+      } else {
+        w = { live: true, start: start, end: end, id: ifRoundId(start) };
+      }
+      var roster = []; try { roster = PF.slrAll ? PF.slrAll() : (PF.ROSTER || []); } catch (e) {}
+      if (roster.length < 2) return null;
+      var rng = ifRng(ifHash('infight:' + w.id)), n = roster.length;
+      var a = Math.floor(rng() * n), b = Math.floor(rng() * n);
+      if (b === a) b = (b + 1 + Math.floor(rng() * (n - 1))) % n;
+      var ms = Math.max(0, (w.live ? w.end : w.start).getTime() - now.getTime());
+      return {
+        id: w.id, live: w.live,
+        clock: ifPad(Math.floor(ms / 60000)) + ':' + ifPad(Math.floor(ms % 60000 / 1000)),
+        a: { name: roster[a].name, slug: roster[a].slug },
+        b: { name: roster[b].name, slug: roster[b].slug }
+      };
+    } catch (e) { return null; }
+  };
+
+  /* ---- homepage widget template (instantiated by pages/home-v2.js) ---- */
+  PF.holder().insertAdjacentHTML('beforeend', `<template id="pf-ov-infight">
+<div class="fe-block pf-override-block" id="pf-infight-root"></div>
+<script>
+(function(){
+'use strict';
+var API=(window.PF_BACKEND_URL);
+var LS_R='pf_ranks_v1',LS_I='pf_identity_v1';
+var LS_OPS='pf_infight_ops_v1',LS_SPENT='pf_infight_spent_v1',LS_SEEN='pf_infight_seen_v1',LS_LAST='pf_infight_last_v1';
+/* 6A-R8 cell bout: CELL BOUT toggle + per-cell standings. Cell identity
+   follows the cells.js convention (pf_cells_v1 cache written by cell_mine:
+   {mult, cell_id, name, t}). */
+var LS_CELLBOUT='pf_infight_cellbout_v1',LS_CELLCACHE='pf_cells_v1';
+function myCell(){try{var c=JSON.parse(localStorage.getItem(LS_CELLCACHE)||'null');if(c&&c.cell_id)return{id:String(c.cell_id),name:String(c.name||'YOUR CELL').slice(0,80)};}catch(e){}return null;}
+function cellBoutOn(){try{return localStorage.getItem(LS_CELLBOUT)==='1';}catch(e){return false;}}
+function setCellBout(on){try{localStorage.setItem(LS_CELLBOUT,on?'1':'0');}catch(e){}}
+/* Cell tag attached to fire calls: only when CELL BOUT is on and the
+   visitor holds a cell. Server validates membership fail-closed. */
+function fireCellId(){if(!cellBoutOn())return'';var m=myCell();return m?m.id:'';}
+var BATTLE_MIN=10,SLOT_MIN=30,CAP=200,AMMO_OP=25,AMMO_SHARE=15;
+function chiNow(){try{return PF.chiNow();}catch(e){return new Date();}}
+function pad(n){return (n<10?'0':'')+n;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function dbAll(){try{return PF.slrAll?PF.slrAll():(PF.ROSTER||[]);}catch(e){return[];}}
+function xp(){try{return Number(JSON.parse(localStorage.getItem(LS_R)||'{"xp":0}').xp)||0;}catch(e){return 0;}}
+function callsign(){try{return String(JSON.parse(localStorage.getItem(LS_I)||'{}').callsign||'').toLowerCase();}catch(e){return '';}}
+function apiGet(params,cb,timeoutMs){
+  /* P0 (2026-10-02): infight_fire is POST-only (was CSRF-able via GET). */
+  if(params && params.action==='infight_fire' && window.PF && PF.postAction){
+    PF.postAction('stats','s_action','infight_fire',
+      {callsign:params.callsign,round:params.round,slug:params.slug,amt:params.amt,cell_id:params.cell_id||''},cb);
+    return;
+  }
+  var done=false,name='pfIfCb'+Date.now()+Math.floor(Math.random()*1e6);
+  function fin(v){if(done)return;done=true;try{delete window[name];}catch(e){}var s=document.getElementById(name);if(s&&s.parentNode)s.parentNode.removeChild(s);cb(v);}
+  window[name]=function(d){fin(d);};
+  var q='?callback='+encodeURIComponent(name);
+  for(var k in params){if(params.hasOwnProperty(k))q+='&'+encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}
+  var scr=document.createElement('script');scr.id=name;scr.src=API+q;
+  scr.onerror=function(){fin(null);};
+  (document.head||document.documentElement).appendChild(scr);
+  setTimeout(function(){fin(null);},timeoutMs||12000);
+}
+function dispatch(name,detail){try{document.dispatchEvent(new CustomEvent(name,{detail:detail||{}}));}catch(e){}}
+function roundId(d){return d.getFullYear()+''+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}
+function battleWindow(now){
+  var d=new Date(now.getTime());
+  var slotMin=d.getMinutes()<SLOT_MIN?0:SLOT_MIN;
+  var start=new Date(d.getTime());start.setMinutes(slotMin,0,0);
+  var end=new Date(start.getTime()+BATTLE_MIN*60000);
+  if(now.getTime()>=end.getTime()){
+    var ns=new Date(start.getTime()+SLOT_MIN*60000);
+    return {live:false,start:ns,end:new Date(ns.getTime()+BATTLE_MIN*60000),id:roundId(ns)};
+  }
+  return {live:true,start:start,end:end,id:roundId(start)};
+}
+function matchup(id,roster){
+  var rng=mulberry32(hashStr('infight:'+id)),n=roster.length;
+  if(n<2)return [null,null];
+  var a=Math.floor(rng()*n),b=Math.floor(rng()*n);
+  if(b===a)b=(b+1+Math.floor(rng()*(n-1)))%n;
+  return [roster[a],roster[b]];
+}
+function spentMap(){try{return JSON.parse(localStorage.getItem(LS_SPENT)||'{}');}catch(e){return{};}}
+function spentThisRound(id){return Number(spentMap()[id]||0);}
+function addSpent(id,amt){try{var m=spentMap();m[id]=(Number(m[id])||0)+amt;localStorage.setItem(LS_SPENT,JSON.stringify(m));}catch(e){}}
+function opsState(id){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');return o[id]||{};}catch(e){return{};}}
+function markOp(id,key){try{var o=JSON.parse(localStorage.getItem(LS_OPS)||'{}');o[id]=o[id]||{};o[id][key]=1;localStorage.setItem(LS_OPS,JSON.stringify(o));}catch(e){}}
+var root=document.getElementById('pf-infight-root');
+if(!root)return;
+var cur=null,fighters=[null,null],totals={},pending={},side=0,pollTimer=null,lastRound='';
+var cellTotals={};
+function fmtClock(ms){if(ms<0)ms=0;var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return pad(m)+':'+pad(s);}
+function fighterCard(f,idx,total,maxTotal){
+  var pct=maxTotal>0?Math.round(total/maxTotal*100):0;
+  var sel=side===idx?'outline:3px solid #e10600;':'';
+  var pic=f&&f.picture?'<img src="'+esc(f.picture)+'" alt="'+esc(f.name)+'" loading="lazy" style="width:100%;height:150px;object-fit:cover;display:block;background:#1a1a1a;">':'';
+  return '<div data-if-side="'+idx+'" style="flex:1;min-width:0;background:#141414;border:1px solid #333;cursor:pointer;'+sel+'">'+pic+
+    '<div style="padding:10px;">'+
+    '<div style="font-weight:800;font-size:15px;line-height:1.2;">'+esc(f?f.name:'?')+'</div>'+
+    '<div style="color:#999;font-size:12px;margin:4px 0 8px;">FIRE: <b style="color:#fff;" data-if-total="'+idx+'">'+total.toLocaleString()+'</b></div>'+
+    '<div style="height:10px;background:#2a2a2a;"><div data-if-bar="'+idx+'" style="height:10px;background:#e10600;width:'+pct+'%;transition:width .6s;"></div></div>'+
+    '<div style="margin-top:8px;font-size:12px;color:#e10600;font-weight:800;">'+(side===idx?'\u25B2 YOUR FIGHTER':'TAP TO BACK')+'</div>'+
+    '</div></div>';
+}
+function render(){
+  var now=chiNow(),w=battleWindow(now),roster=dbAll();
+  if(!roster.length)return;
+  cur=w;
+  var mm=matchup(w.id,roster);
+  fighters=mm;totals={};pending={};cellTotals={};
+  if(lastRound&&lastRound!==w.id){settleLastBattle(lastRound,roster);}
+  lastRound=w.id;
+  try{localStorage.setItem(LS_SEEN,w.id);}catch(e){}
+  if(w.live)startPoll();else stopPoll();
+  paint(w);
+}
+/* 6A-R8: cell bout standings pane. Per-cell rollup from infight_totals;
+   the visitor's own cell is highlighted. */
+function cellPaneHtml(mc){
+  var ids=Object.keys(cellTotals);
+  var rows=ids.map(function(id){return{id:id,name:String((cellTotals[id]&&cellTotals[id].name)||id).slice(0,80),fire:Number(cellTotals[id]&&cellTotals[id].fire)||0};});
+  rows.sort(function(a,b){return b.fire-a.fire;});
+  var maxF=rows.length?rows[0].fire:1;
+  var listHtml=rows.length?rows.map(function(r,i){
+    var mine=mc&&r.id===mc.id;
+    var pct=maxF>0?Math.round(r.fire/maxF*100):0;
+    return '<div style="background:#141414;border:1px solid '+(mine?'#e10600':'#333')+';padding:8px 10px;margin-bottom:6px;'+(mine?'outline:2px solid #e10600;':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'+
+      '<div style="font-weight:800;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(i+1)+'. '+esc(r.name)+(mine?' <span style="color:#e10600;font-size:11px;">\u25B2 YOUR CELL</span>':'')+'</div>'+
+      '<div style="font-weight:800;color:#fff;white-space:nowrap;">'+r.fire.toLocaleString()+'</div></div>'+
+      '<div style="height:8px;background:#2a2a2a;margin-top:6px;"><div style="height:8px;background:#e10600;width:'+pct+'%;transition:width .6s;"></div></div>'+
+      '</div>';
+  }).join(''):'<div style="font-size:13px;color:#999;">No cell fire this bout yet \u2014 be the first to light it up.</div>';
+  return '<div style="border:1px solid #e10600;padding:10px;background:#0d0d0d;">'+
+    '<div style="font-weight:900;font-size:15px;letter-spacing:1px;margin-bottom:8px;">CELL BOUT</div>'+
+    listHtml+
+    '<div style="font-size:11px;color:#666;margin-top:8px;">Cell fire counts while CELL BOUT is on \u2014 it feeds your cell\u2019s weekly war score. One war, one leaderboard.</div>'+
+    '</div>';
+}
+function updateCellPane(){
+  if(!cellBoutOn())return;
+  var mc=myCell();if(!mc)return;
+  var pane=root.querySelector('[data-if-cellpane]');
+  if(pane)pane.innerHTML=cellPaneHtml(mc);
+}
+function paint(w){
+  if(!fighters[0]||!fighters[1])return;
+  var now=chiNow();
+  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);
+  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);
+  var maxT=Math.max(tA,tB,1);
+  var ops=opsState(w.id),spent=spentThisRound(w.id);
+  var badge=w.live
+    ?'<span style="background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">\u25CF LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'
+    :'<span style="background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';
+  var lastLine='';
+  try{var lr=JSON.parse(localStorage.getItem(LS_LAST)||'null');
+    if(lr&&lr.a)lastLine='<div style="font-size:12px;color:#999;margin-top:10px;">Last battle: <b style="color:#fff;">'+esc(lr.winner)+'</b> beat '+esc(lr.loser)+' '+lr.wa.toLocaleString()+'\u2013'+lr.wb.toLocaleString()+'</div>';
+  }catch(e){}
+  var fireCtl=w.live
+    ?'<div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;">'+
+     '<span style="font-size:12px;color:#999;">YOUR XP: <b style="color:#fff;" data-if-xp>'+xp().toLocaleString()+'</b></span>'+
+     [5,25,50].map(function(n){return '<button data-if-fire="'+n+'" style="background:#e10600;color:#fff;border:0;font-weight:800;padding:8px 14px;cursor:pointer;">FIRE +'+n+'</button>';}).join('')+
+     '<span style="font-size:11px;color:#777;">cap '+(CAP-spent)+' left this battle</span></div>'
+    :'<div style="font-size:13px;color:#999;margin-top:10px;">Stack XP in the games above \u2014 the next battle starts soon.</div>';
+  var opsHtml='';
+  if(w.live){
+    var opBtn=function(key,done){
+      return done
+        ?'<span style="font-size:12px;color:#4caf50;font-weight:800;">\u2713 CHECKED IN</span>'
+        :'<button data-if-op="'+key+'" style="background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">CHECK IN +'+AMMO_OP+' AMMO</button>';
+    };
+    opsHtml='<div style="margin-top:12px;border-top:1px solid #333;padding-top:10px;">'+
+      '<div style="font-weight:800;font-size:13px;margin-bottom:8px;">\u26A1 FIELD OPS <span style="color:#999;font-weight:400;">\u2014 go off-site, come back loaded</span></div>'+
+      '<div style="font-size:12px;color:#ccc;margin-bottom:6px;">Go like + comment on <b>'+esc(fighters[0].name)+'</b>\u2019s latest post, then check in: '+opBtn('opA',ops.opA)+'</div>'+
+      '<div style="font-size:12px;color:#ccc;margin-bottom:6px;">Go like + comment on <b>'+esc(fighters[1].name)+'</b>\u2019s latest post, then check in: '+opBtn('opB',ops.opB)+'</div>'+
+      '<div style="font-size:12px;color:#ccc;">'+(ops.share?'<span style="font-size:12px;color:#4caf50;font-weight:800;">\u2713 SHARED</span>':'<button data-if-op="share" style="background:#222;color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">SHARE BATTLE +'+AMMO_SHARE+' AMMO</button>')+' <span style="color:#777;">ammo fires for your picked fighter</span></div>'+
+      '</div>';
+  }
+  /* 6A-R8: CELL BOUT toggle next to the creator bout UI. When on (and the
+     visitor holds a cell), the widget shows the creator bout AND the cell
+     bout side by side; fire calls carry the cell tag. */
+  var mc=myCell(),cbOn=cellBoutOn()&&!!mc;
+  var toggleHtml=mc
+    ?'<button data-if-celltoggle style="background:'+(cellBoutOn()?'#e10600':'#222')+';color:#fff;border:1px solid #e10600;font-weight:800;padding:6px 12px;cursor:pointer;font-size:12px;">CELL BOUT: '+(cellBoutOn()?'ON':'OFF')+'</button>'
+    :'<a href="/cells" style="font-size:12px;color:#e10600;font-weight:800;text-decoration:none;">JOIN A CELL TO BOUT \u2192</a>';
+  var creatorPane=
+    '<div style="display:flex;gap:10px;">'+fighterCard(fighters[0],0,tA,maxT)+fighterCard(fighters[1],1,tB,maxT)+'</div>'+
+    fireCtl+opsHtml;
+  var bodyHtml=cbOn
+    ?'<div style="display:flex;gap:12px;flex-wrap:wrap;">'+
+     '<div style="flex:1.25;min-width:260px;">'+creatorPane+'</div>'+
+     '<div style="flex:1;min-width:240px;" data-if-cellpane>'+cellPaneHtml(mc)+'</div>'+
+     '</div>'
+    :creatorPane;
+  root.innerHTML=
+    '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">'+
+    '<div style="font-weight:900;font-size:18px;letter-spacing:1px;">INFIGHTING</div>'+
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+toggleHtml+badge+'</div></div>'+
+    bodyHtml+lastLine+
+    '<div style="font-size:11px;color:#666;margin-top:10px;">Winner takes a 24h +0.2 HYPE bump on their displayed score (never above 9.8). Boost only \u2014 no attack moves, this is family.</div>'+
+    '</div>';
+  bind();
+  /* Cohesion §3 (2026-10-05): identity surfacing — invitational claim CTA
+     when no callsign. Non-blocking; the pit still renders and spectates. */
+  try{ if(window.PF&&PF.mountClaimCTA) PF.mountClaimCTA(root,'to fire in the infighting pit'); }catch(e){}
+}
+function bind(){
+  var tg=root.querySelector('[data-if-celltoggle]');
+  if(tg){tg.onclick=function(){setCellBout(!cellBoutOn());paint(cur);};}
+  var cards=root.querySelectorAll('[data-if-side]');
+  for(var i=0;i<cards.length;i++){(function(el){el.onclick=function(){side=Number(el.getAttribute('data-if-side'));paint(cur);};})(cards[i]);}
+  var fires=root.querySelectorAll('[data-if-fire]');
+  for(var j=0;j<fires.length;j++){(function(el){el.onclick=function(){doFire(side,Number(el.getAttribute('data-if-fire')));};})(fires[j]);}
+  var ops=root.querySelectorAll('[data-if-op]');
+  for(var k=0;k<ops.length;k++){(function(el){el.onclick=function(){doOp(el.getAttribute('data-if-op'));};})(ops[k]);}
+}
+function doFire(idx,amt){
+  if(!cur||!cur.live||!fighters[idx])return;
+  var f=fighters[idx];
+  var room=CAP-spentThisRound(cur.id);
+  amt=Math.min(amt,room);
+  var bal=xp();
+  if(amt>bal)amt=bal;
+  if(amt<=0){flashXp();return;}
+  /* Spend from the shared local ledger (backend settles via infight_fire). */
+  try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,amt); }catch(e){}
+  addSpent(cur.id,amt);
+  pending[f.slug]=(pending[f.slug]||0)+amt;
+  apiGet({action:'infight_fire',round:cur.id,slug:f.slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});
+  dispatch('pf-infight-fire',{slug:f.slug,amt:amt,round:cur.id});
+  updateBars();
+  /* M1 dopamine: firing ammo should feel like firing ammo. */
+  try{ if(window.PF&&PF.dope){ PF.dope.xpFloat(root,'+'+amt+' FIRE'); } }catch(e){}
+  var x=root.querySelector('[data-if-xp]');if(x)x.textContent=xp().toLocaleString();
+}
+function doOp(key){
+  if(!cur||!cur.live)return;
+  var ops=opsState(cur.id);
+  if(ops[key])return;
+  var slug,amt;
+  if(key==='opA'){slug=fighters[0].slug;amt=AMMO_OP;}
+  else if(key==='opB'){slug=fighters[1].slug;amt=AMMO_OP;}
+  else{
+    slug=fighters[side].slug;amt=AMMO_SHARE;
+    var url='https://www.mtcstw.com/?infight='+encodeURIComponent(cur.id);
+    var done=function(){grantOp(key,slug,amt);};
+    if(navigator.share){navigator.share({title:'INFIGHTING',text:'Back '+fighters[side].name+' in the Infighting battle \u2014 fire your XP!',url:url}).then(done,done);}
+    else{try{navigator.clipboard.writeText(url);}catch(e){}done();}
+    return;
+  }
+  grantOp(key,slug,amt);
+}
+function grantOp(key,slug,amt){
+  var room=CAP-spentThisRound(cur.id);
+  amt=Math.min(amt,room);
+  markOp(cur.id,key);
+  if(amt>0){
+    addSpent(cur.id,amt);
+    pending[slug]=(pending[slug]||0)+amt;
+    apiGet({action:'infight_fire',round:cur.id,slug:slug,amt:amt,callsign:callsign(),cell_id:fireCellId()},function(){pollTotals();});
+    dispatch('pf-infight-fire',{slug:slug,amt:amt,round:cur.id,op:key});
+  }
+  updateBars();
+}
+function flashXp(){
+  var x=root.querySelector('[data-if-xp]');
+  if(x){x.style.color='#e10600';setTimeout(function(){x.style.color='#fff';},600);}
+}
+function pollTotals(){
+  if(!cur||!cur.live)return;
+  try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){}
+  apiGet({action:'infight_totals',round:cur.id},function(j){
+    if(j&&j.ok&&j.round===cur.id&&j.totals){totals=j.totals;pending={};if(j.cells)cellTotals=j.cells;updateBars();}
+  },8000);
+}
+function updateBars(){
+  if(!fighters[0])return;
+  var tA=(totals[fighters[0].slug]||0)+(pending[fighters[0].slug]||0);
+  var tB=(totals[fighters[1].slug]||0)+(pending[fighters[1].slug]||0);
+  var maxT=Math.max(tA,tB,1);
+  [[0,tA],[1,tB]].forEach(function(p){
+    var t=root.querySelector('[data-if-total="'+p[0]+'"]');
+    var b=root.querySelector('[data-if-bar="'+p[0]+'"]');
+    if(t)t.textContent=p[1].toLocaleString();
+    if(b)b.style.width=Math.round(p[1]/maxT*100)+'%';
+  });
+  var x=root.querySelector('[data-if-xp]');
+  if(x)x.textContent=xp().toLocaleString();
+  updateCellPane();
+}
+function startPoll(){stopPoll();pollTotals();pollTimer=setInterval(pollTotals,10000);}
+function stopPoll(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
+function settleLastBattle(prevId,roster){
+  var mm=matchup(prevId,roster);
+  if(!mm[0]||!mm[1])return;
+  apiGet({action:'infight_totals',round:prevId},function(j){
+    if(j&&j.ok&&j.totals){
+      var a=Number(j.totals[mm[0].slug]||0),b=Number(j.totals[mm[1].slug]||0);
+      if(a!==b){
+        var w=a>b?mm[0]:mm[1],l=a>b?mm[1]:mm[0];
+        try{
+          localStorage.setItem('pf_infight_hype_v1',JSON.stringify({slug:w.slug,until:Date.now()+86400000,round:prevId}));
+          localStorage.setItem(LS_LAST,JSON.stringify({winner:w.name,loser:l.name,wa:Math.max(a,b),wb:Math.min(a,b),a:1}));
+        }catch(e){}
+        dispatch('pf-infight',{winner:w.slug,round:prevId});
+        /* New hype record: tell the paint owner (efficiency.js) to re-check. */
+        dispatch('pf-hype',{slug:w.slug,round:prevId});
+      }
+      /* 6A-R8: settle the cell bout too — server-side idempotent, records
+         the winning cell in infight_cell_wins for the war map. Only fires
+         when the round actually saw cell fire. */
+      try{
+        var hasCellFire=j.cells&&Object.keys(j.cells).length>0;
+        if(hasCellFire&&window.PF&&PF.postAction){
+          PF.postAction('stats','s_action','infight_settle',{round:prevId,callsign:callsign()},function(){});
+        }
+      }catch(e){}
+    }
+  },8000);
+}
+/* Display modes (2026-10-03 homepage slimming): slim live-status strip on the
+   homepage (pf-v2) — countdown + matchup only; the full arena on /arcade
+   (pf-arcade). Template id unchanged. Both modes carry loading/error states. */
+var SLIM=(function(){try{if(document.getElementById('pf-arcade')||document.getElementById('pf-cells-page'))return false;}catch(e){}return true;})();
+var stripW=null;
+function renderStrip(){
+  var roster=dbAll();
+  if(!roster||roster.length<2){
+    root.innerHTML=
+      '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+      '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+
+      '<div style="font-size:13px;color:#999;margin-top:8px;" data-if-stripmsg>Loading the battle\u2026</div></div>';
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      var r=dbAll();
+      if(r&&r.length>=2){ clearInterval(iv); paintStrip(); }
+      else if(tries>=15){
+        clearInterval(iv);
+        var m=root.querySelector('[data-if-stripmsg]');
+        if(m) m.innerHTML='The battle feed went dark. <button data-if-stripretry style="background:#e10600;color:#fff;border:0;font-weight:800;padding:6px 12px;cursor:pointer;">RETRY</button>';
+        var b=root.querySelector('[data-if-stripretry]');
+        if(b) b.onclick=function(){ renderStrip(); };
+      }
+    },2000);
+    return;
+  }
+  paintStrip();
+}
+function paintStrip(){
+  var now=chiNow(),w=battleWindow(now),roster=dbAll();
+  var mm=matchup(w.id,roster);
+  if(!mm[0]||!mm[1]) return;
+  stripW=w;
+  var msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+  var badge=w.live
+    ?'<span style="background:#e10600;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">\u25CF LIVE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>'
+    :'<span style="background:#333;color:#fff;font-weight:800;font-size:12px;padding:3px 10px;">NEXT BATTLE <span data-if-clock>'+fmtClock(msLeft)+'</span></span>';
+  root.innerHTML=
+    '<div style="background:#0a0a0a;border:2px solid #e10600;padding:14px;font-family:inherit;color:#fff;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+    '<div style="font-weight:900;font-size:16px;letter-spacing:1px;">INFIGHTING</div>'+badge+'</div>'+
+    '<div style="font-weight:800;font-size:15px;line-height:1.3;">'+esc(mm[0].name)+' <span style="color:#e10600;">VS</span> '+esc(mm[1].name)+'</div>'+
+    '<div style="margin-top:10px;"><a href="/arcade" style="display:inline-block;background:#e10600;color:#fff;font-weight:800;padding:8px 18px;text-decoration:none;">ENTER THE ARENA \u2192</a></div>'+
+    '</div>';
+}
+function stripTick(){
+  try{
+    var w=battleWindow(chiNow());
+    syncLiveStrip(w);
+    if(!stripW||w.id!==stripW.id){ paintStrip(); return; }
+    var msLeft=(w.live?w.end:w.start).getTime()-chiNow().getTime();
+    var c=root.querySelector('[data-if-clock]');
+    if(c) c.textContent=fmtClock(msLeft);
+  }catch(e){}
+}
+/* R33 (Wave 6B): "LIVE BATTLE" ambient summon. When a bout is live in SLIM
+   mode (homepage etc. — the arena page already shows the full bout), a fixed
+   bottom strip summons the visitor to fire now. The backend bell emitter
+   also fires; this is the on-page summon. It is the alert layer only — not
+   6A's R8 cell-bout toggle (not in tree; no duplication). Zero XP. */
+var pfLiveEl=null, pfLiveShown="", pfLiveDismissed="";
+function liveStripEl(){
+  if(pfLiveEl) return pfLiveEl;
+  try{
+    var d=document.createElement("div");
+    d.id="pfLiveBattle";
+    d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99993;background:#e10600;color:#fff;font:bold 14px Arial,sans-serif;text-align:center;padding:10px 48px 10px 12px;letter-spacing:1px;display:none;box-shadow:0 -2px 16px rgba(0,0,0,.5)";
+    document.body.appendChild(d);
+    pfLiveEl=d;
+  }catch(e){}
+  return pfLiveEl;
+}
+function syncLiveStrip(w){
+  if(!SLIM) return;
+  var el=liveStripEl(); if(!el) return;
+  try{
+    var show=!!(w&&w.live&&pfLiveDismissed!==w.id);
+    if(show&&pfLiveShown!==w.id){
+      var dest=document.getElementById("pf-infight-root")?"#pf-infight-root":"/arcade";
+      el.innerHTML='<a href="'+dest+'" style="color:#fff;text-decoration:none">\u25CF LIVE BATTLE \u2014 FIRE NOW \u2192</a>'
+        +'<button id="pfLiveBattleX" aria-label="Dismiss" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:1px solid #fff;color:#fff;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
+      el.style.display="block";
+      pfLiveShown=w.id;
+      var x=document.getElementById("pfLiveBattleX");
+      if(x){ x.onclick=function(ev){ try{ev.stopPropagation();}catch(e){} pfLiveDismissed=w.id; pfLiveShown=""; el.style.display="none"; }; }
+    }else if(!show&&pfLiveShown){
+      el.style.display="none"; pfLiveShown="";
+    }
+  }catch(e){}
+}
+function arenaTick(){
+  var w=battleWindow(chiNow());
+  if(w.id!==lastRound){render();}
+  else{
+    var now=chiNow(),msLeft=(w.live?w.end:w.start).getTime()-now.getTime();
+    var c=root.querySelector('[data-if-clock]');
+    if(c)c.textContent=fmtClock(msLeft);
+    if(cur)cur.live=w.live;
+  }
+}
+if(SLIM){ renderStrip(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} stripTick(); },1000); }
+else{ render(); setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catch(e){} arenaTick(); },1000); }
+})();
+<\/script>
+</template>`);
+})();
+
+;

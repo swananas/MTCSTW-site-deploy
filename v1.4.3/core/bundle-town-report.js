@@ -1,1 +1,655 @@
-!function(){"use strict";var t=window.PF;if(t&&!t.skip("townreport")&&!window.pfTownReportDone){var e=document.getElementById("pf-town-report");if(e&&!function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var t=document.body;if(t&&(t.classList.contains("sqs-edit-mode")||t.classList.contains("sqs-editing")))return!0}catch(t){}return!1}()){window.pfTownReportDone=!0;var i="#c1121f",n="#fdfdfa",o="#1a1814",r="#8a8474",l="#e7e1d0",a="#d8d2bd",s="#a67c00",d=window.PF_BACKEND_URL,p="font-family:'Helvetica Neue',Arial,sans-serif;",c={landlords:"CORPORATE OWNERS",eviction:"EVICTION RATE",wages_rent:"WAGES VS RENT",pollution:"POLLUTION",federal:"FEDERAL MONEY",police:"POLICE VIOLENCE",hospitals:"HOSPITAL PRICES"},f={zip:"",town:null,highlights:[],title:"",story:"",photos:[]};"loading"===document.readyState?document.addEventListener("DOMContentLoaded",N):N(),setTimeout(N,1500)}}function u(e){try{t&&t.error&&t.error("townreport",e)}catch(t){}}function h(t){return String(null==t?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function g(t){var e=String(null==t?"":t).trim();if(!e)return"";if("/"===e.charAt(0))return e;try{var i=new URL(e,"https://x.invalid").protocol;if("http:"===i||"https:"===i)return e}catch(t){}return""}function x(t){try{var e=new RegExp("[?&]"+t+"=([^&#]*)").exec(window.location.search||"");return e?decodeURIComponent(e[1]):""}catch(t){return""}}function v(e){try{if(t&&t.toast)return void t.toast(e)}catch(t){}try{var i=document.createElement("div");i.textContent=e,i.style.cssText="position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999",document.body.appendChild(i),setTimeout(function(){i.remove()},2800)}catch(t){}}function y(){try{return window.PFCallsign?window.PFCallsign():""}catch(t){return""}}function m(){try{return t&&t.getAuthSecret?t.getAuthSecret():""}catch(t){return""}}function w(t){try{return new Date(t).toLocaleDateString("en-US",{timeZone:"America/Chicago",month:"short",day:"numeric",year:"numeric"})}catch(t){return""}}function b(t,e,i){if(d){var n="pfTownReportCb"+Math.floor(1e9*Math.random()),o=document.createElement("script"),r=!1;window[n]=function(t){s(t)},o.onerror=function(){s(null)};var l="?action="+encodeURIComponent(t);for(var a in e)null!=e[a]&&""!==e[a]&&(l+="&"+encodeURIComponent(a)+"="+encodeURIComponent(e[a]));l+="&callback="+n,o.src=d+l,o.async=!0;try{document.head.appendChild(o)}catch(t){s(null)}setTimeout(function(){s(null)},15e3)}else i(null);function s(t){if(!r){r=!0;try{delete window[n]}catch(t){}try{o.parentNode&&o.parentNode.removeChild(o)}catch(t){}i(t)}}}function T(t,e,i){if(d){var n=null;try{n=new AbortController}catch(t){}var o=setTimeout(function(){try{n&&n.abort()}catch(t){}},2e4);fetch(d+"?action="+encodeURIComponent(t),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e),signal:n?n.signal:void 0}).then(function(t){return clearTimeout(o),t.json().catch(function(){return null})}).then(function(t){i(t)}).catch(function(){clearTimeout(o),i(null)})}else i(null)}function E(t){return t?"background:"+i+";border:2px solid "+i+";color:#fff;font-weight:900;letter-spacing:2px;padding:14px 34px;font-size:15px;cursor:pointer;border-radius:3px;":"background:transparent;border:2px solid "+o+";color:"+o+";font-weight:800;letter-spacing:2px;padding:11px 26px;font-size:14px;cursor:pointer;border-radius:3px;"}function S(){return"width:100%;box-sizing:border-box;background:#fff;border:2px solid "+o+";color:"+o+";padding:12px 14px;font-size:16px;border-radius:3px;outline:none;"}function z(t,e){return'<div style="font-size:11px;letter-spacing:3px;color:'+i+';font-weight:900;margin:16px 0 6px;">'+h(t)+(e?' <span style="color:'+r+';letter-spacing:1px;">('+e+")</span>":"")+"</div>"}function R(t){return'<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:'+i+";border:2px solid "+i+';border-radius:3px;padding:5px 10px;margin-bottom:12px;">'+h(t)+"</div>"}function O(t){return'<div style="max-width:680px;margin:0 auto;'+p+"color:"+o+';">'+t+"</div>"}function k(){e.innerHTML=O('<div style="text-align:center;margin:6px 0 18px;"><div style="font-size:12px;letter-spacing:5px;color:'+i+';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div><div style="font-size:26px;font-weight:900;margin-bottom:8px;">Hyperlocal is movement gold.</div><div style="font-size:14px;color:'+r+';line-height:1.6;">Take your town’s data. Add what you’ve seen. Publish the page.<br>The numbers stay locked — your words sit beside them, clearly yours.</div><div style="margin-top:16px;"><a href="/town-report?new=1" style="'+E(!0)+'text-decoration:none;display:inline-block;">WRITE YOUR TOWN’S REPORT</a></div></div><div style="border-top:2px dashed '+a+';margin:18px 0;"></div><div style="font-size:12px;letter-spacing:4px;color:'+i+';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div><div id="pf-tr-feedlist" style="text-align:center;color:'+r+';font-size:14px;padding:10px;">Loading the feed…</div>');var t=e.querySelector("#pf-tr-feedlist");b("town_report_feed",{},function(e){if(e&&e.ok&&e.reports&&e.reports.length){var a="";e.reports.forEach(function(t){var e=t.highlight_headlines&&t.highlight_headlines[0]||"";a+='<a href="/town-report?id='+h(t.id)+'" style="display:block;background:'+n+";border:1px solid "+l+";border-radius:3px;padding:16px;margin:0 0 10px;text-decoration:none;color:"+o+';text-align:left;"><div style="font-size:11px;letter-spacing:3px;color:'+i+';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: '+h(t.zip5)+'</div><div style="font-size:18px;font-weight:900;line-height:1.35;">'+h(t.title)+'</div><div style="font-size:13px;color:'+r+';margin-top:6px;">'+h(t.coarse_area)+' · by <strong style="color:'+o+';">'+h(t.author_callsign)+"</strong>"+(t.created_at?" · "+h(w(t.created_at)):"")+"</div>"+(e?'<div style="font-size:14px;margin-top:8px;line-height:1.5;border-left:3px solid '+i+';padding-left:10px;"><strong>'+h(e)+"</strong></div>":"")+'<div style="font-size:13px;margin-top:8px;line-height:1.55;color:'+r+';">'+h(t.excerpt)+'…</div><div style="font-size:12px;color:'+i+';font-weight:800;margin-top:8px;">READ THE REPORT →</div></a>'}),a+='<div style="font-size:11px;color:'+r+';text-align:center;margin-top:8px;line-height:1.6;">Town reports feed the movement — shares, campaigns, evidence. Never sold.</div>',t.innerHTML=a}else t.innerHTML="No reports published yet. Write the first one above."})}function I(t){t.innerHTML=R("STEP 1 · YOUR ZIP")+'<div style="display:flex;gap:8px;justify-content:center;"><input id="pf-tr-zip" inputmode="numeric" maxlength="5" placeholder="70801" aria-label="5-digit ZIP code" value="'+h(f.zip)+'" style="width:150px;background:#fff;border:2px solid '+o+";color:"+o+';border-radius:3px;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;"><button id="pf-tr-go" type="button" style="'+E(!0)+'">SEE MY TOWN’S DATA</button></div><div style="font-size:12px;color:'+r+';text-align:center;margin-top:10px;line-height:1.6;">Coarse only — your zip never leaves the county bucket.<br>No addresses, no names of private individuals.</div><div id="pf-tr-err" style="text-align:center;color:'+i+';font-size:14px;margin-top:10px;"></div><div id="pf-tr-data"></div>';var e=t.querySelector("#pf-tr-zip"),a=function(){var o=String(e.value||"").replace(/\D/g,"").slice(0,5);/^\d{5}$/.test(o)?(t.querySelector("#pf-tr-err").textContent="",f.zip=o,function(t,e){var o=t.querySelector("#pf-tr-data");o.innerHTML='<div style="text-align:center;color:'+r+';font-size:14px;padding:18px;">Pulling your town’s data…</div>',b("town_power",{zip:e},function(a){if(!a||!0!==a.ok||!a.geo_live)return o.innerHTML='<div style="text-align:center;color:'+i+';font-size:14px;padding:14px;">Couldn’t load this town — try another ZIP.</div>',void u("town_power failed for zip "+e);f.town=a;try{history.replaceState(null,"","/town-report?new=1&zip="+encodeURIComponent(e))}catch(t){}o.innerHTML='<div style="text-align:center;font-size:13px;color:'+s+';font-weight:800;letter-spacing:1px;margin:14px 0 10px;">YOUR AREA: '+h(String(a.area.coarse_area||"").toUpperCase())+'</div><div style="font-size:11px;letter-spacing:3px;color:'+i+';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div><div style="font-size:12px;color:'+r+';text-align:center;margin-bottom:12px;">Check the cards you want to highlight on your report.</div>'+function(t){var e=Object.keys(c),o="";return e.forEach(function(e){var a=(t.cards||{})[e]||{},s='<div style="font-size:11px;letter-spacing:3px;color:'+r+';font-weight:800;">'+c[e]+"</div>";a.live&&a.headline?s+='<div style="font-size:22px;font-weight:900;margin:2px 0;">'+h(a.headline)+' <span style="font-size:12px;font-weight:400;color:'+r+';">'+h(a.headline_label||"")+'</span></div><div style="font-size:12px;color:'+r+';line-height:1.5;">'+h((a.lines||[]).slice(0,2).join(" · "))+"</div>":s+='<div style="font-size:13px;color:'+r+';font-style:italic;">Not yet tracked for this area.</div>';var d=a.live&&a.headline?"":" disabled";o+='<label style="display:block;background:'+n+";border:1px solid "+l+';border-radius:3px;padding:12px 14px;margin:0 0 8px;cursor:pointer;"><div style="display:flex;gap:10px;align-items:flex-start;"><input type="checkbox" data-tr-hl="'+e+'"'+d+' style="margin-top:4px;width:20px;height:20px;accent-color:'+i+';"><div style="flex:1;">'+s+"</div></div></label>"}),o}(a)+'<div style="text-align:center;margin-top:18px;"><button id="pf-tr-next" type="button" style="'+E(!0)+'">ADD YOUR CONTEXT →</button></div>',o.querySelector("#pf-tr-next").addEventListener("click",function(){var e=[];o.querySelectorAll("[data-tr-hl]:checked").forEach(function(t){e.push(t.getAttribute("data-tr-hl"))}),e.length?(f.highlights=e,C(t)):v("Pick at least one card to highlight.")})})}(t,o)):t.querySelector("#pf-tr-err").textContent="Enter a 5-digit ZIP."};t.querySelector("#pf-tr-go").addEventListener("click",a),e.addEventListener("keydown",function(t){"Enter"===t.key&&a()}),/^\d{5}$/.test(f.zip)&&a()}function C(e){var i=R("STEP 2 · ADD YOUR CONTEXT")+'<div style="text-align:center;margin-bottom:6px;"><button id="pf-tr-back" type="button" style="'+E(!1)+'padding:8px 18px;font-size:12px;">← BACK</button></div><div style="font-size:12px;letter-spacing:3px;color:'+r+';font-weight:900;text-align:center;margin:6px 0 2px;">YOUR CONTEXT GOES BELOW — THE NUMBERS ABOVE STAY LOCKED</div>'+z("REPORT TITLE","120")+'<input id="pf-tr-title" type="text" maxlength="120" placeholder="Give your report a headline" value="'+h(f.title)+'" style="'+S()+'">'+z("WHAT YOU’VE SEEN","2000")+'<textarea id="pf-tr-story" rows="6" maxlength="2000" placeholder="In your words: what have you seen in your town? The rent hikes, the shuttered plant, the landlord everyone knows…" style="'+S()+'resize:vertical;">'+h(f.story)+"</textarea>"+z("YOUR PHOTOS","5 links")+'<div id="pf-tr-photos"></div><div style="font-size:12px;color:'+r+';margin-top:6px;line-height:1.6;">Paste links to your photos (uploads landing soon). Your callsign is the only name on the report — no addresses, no private individuals.</div><div style="text-align:center;margin-top:20px;"><button id="pf-tr-preview" type="button" style="'+E(!0)+'">PREVIEW THE REPORT</button></div>';e.innerHTML=i;for(var n=e.querySelector("#pf-tr-photos"),o=0;o<5;o++){var l=document.createElement("input");l.type="url",l.placeholder="https://… photo link "+(o+1),l.value=f.photos[o]||"",l.setAttribute("style",S()+"margin-bottom:8px;"),n.appendChild(l)}e.querySelector("#pf-tr-back").addEventListener("click",function(){I(e)}),e.querySelector("#pf-tr-preview").addEventListener("click",function(){f.title=e.querySelector("#pf-tr-title").value.trim(),f.story=e.querySelector("#pf-tr-story").value.trim(),f.photos=[],n.querySelectorAll("input").forEach(function(t){var e=t.value.trim();e&&f.photos.push(e)}),f.title?f.story.length<10?v("Tell us a little more of what you’ve seen."):function(e){var i={zip5:f.zip,author_callsign:y()||"YOU",title:f.title,story:f.story,highlights:f.highlights,photo_urls:f.photos,town_snapshot:A(f.town),created_at:0};e.innerHTML=R("STEP 3 · PREVIEW — EXACTLY AS IT WILL PUBLISH")+L(i,i.town_snapshot,!0)+'<div style="text-align:center;margin:18px 0 8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"><button id="pf-tr-edit" type="button" style="'+E(!1)+'">← EDIT</button><button id="pf-tr-pub" type="button" style="'+E(!0)+'">PUBLISH THE REPORT</button></div><div style="text-align:center;font-size:12px;color:'+r+';margin-bottom:10px;line-height:1.6;">Publishing routes through your callsign.<br>Zero XP for building or viewing.</div>',e.querySelector("#pf-tr-edit").addEventListener("click",function(){C(e)}),e.querySelector("#pf-tr-pub").addEventListener("click",function(){!function(e){function i(t){var i={type:"townreport",tr_action:"town_report_publish",callsign:t,auth_secret:m(),zip5:f.zip,title:f.title,story:f.story,highlights:f.highlights,photo_urls:f.photos},n=e.querySelector("#pf-tr-pub");n&&(n.textContent="PUBLISHING…"),T("town_report_publish",i,function(t){if(!t||!t.ok||!t.id)return u("publish failed: "+(t&&t.err)),v("Publish failed — "+(t&&t.err||"try again.")),void(n&&(n.textContent="PUBLISH THE REPORT"));try{window.history&&window.history.replaceState&&window.history.replaceState(null,"","/town-report?id="+encodeURIComponent(t.id))}catch(t){}P(t.id)})}if(!y())return t.requireCallsign?void t.requireCallsign(function(t){t?i(t):v("Claim a callsign to publish.")},{context:"to publish your town report"}):void v("Claim a callsign to publish.");i(y())}(e)});try{window.scrollTo({top:0,behavior:"smooth"})}catch(t){}}(e):v("Give your report a title first.")})}function L(t,e,s){var d=t.zip5||e&&e.zip||"",f=e&&e.area||{},u='<div style="'+p+"color:"+o+';"><div style="text-align:center;margin:6px 0 14px;"><div style="font-size:11px;letter-spacing:4px;color:'+i+';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div><div style="font-size:30px;font-weight:900;letter-spacing:1px;">THIS IS MY TOWN: '+h(d)+'</div><div style="font-size:24px;font-weight:900;line-height:1.3;margin-top:10px;">'+h(t.title)+'</div><div style="font-size:13px;color:'+r+';margin-top:8px;">by <strong style="color:'+o+';">'+h(t.author_callsign||"YOU")+"</strong>"+(f.coarse_area?" · "+h(f.coarse_area):"")+(t.created_at&&!s?" · "+h(w(t.created_at)):"")+'</div></div><div style="font-size:12px;letter-spacing:3px;color:'+i+';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';(t.highlights&&t.highlights.length?t.highlights:Object.keys(c)).forEach(function(t){var i=e&&e.cards&&e.cards[t]||{};u+='<div style="background:'+n+";border:1px solid "+l+';border-radius:3px;padding:14px 16px;margin:0 0 10px;"><div style="font-size:11px;letter-spacing:3px;color:'+r+';font-weight:800;">'+h(c[t]||t)+function(t){if(!t||!t.label)return'<span style="font-size:10px;color:'+r+";border:1px solid "+l+';border-radius:3px;padding:2px 6px;margin-left:8px;">UNKNOWN</span>';var e="FRESH"===t.label?"#1d6b35":"STALE"===t.label?"#a67c00":r,i=null!=t.days&&t.days>=0?" · "+t.days+"d":"";return'<span style="font-size:10px;font-weight:800;color:'+e+";border:1px solid "+l+';border-radius:3px;padding:2px 6px;margin-left:8px;">'+h(t.label)+i+"</span>"}(i.staleness)+"</div>",i.live&&i.headline?u+='<div style="font-size:24px;font-weight:900;margin:4px 0;">'+h(i.headline)+' <span style="font-size:13px;font-weight:400;color:'+r+';">'+h(i.headline_label||"")+'</span></div><div style="font-size:13px;color:'+r+';line-height:1.55;">'+(i.lines||[]).map(h).join("<br>")+"</div>":u+='<div style="font-size:13px;color:'+r+';font-style:italic;">Not yet tracked for this area.</div>',u+='<div style="margin-top:10px;padding-top:8px;border-top:1px dashed '+a+';">'+function(t){if(!t||!t.name)return'<div style="font-size:11px;color:'+r+';">Source: not yet published</div>';var e=[t.name];return t.period&&e.push(t.period),t.retrieved&&"unknown"!==t.retrieved&&e.push("retrieved "+t.retrieved),'<div style="font-size:11px;color:'+r+';">Source: '+h(e.join(" · "))+"</div>"}(i.source)+"</div></div>"}),u+='<div style="font-size:12px;letter-spacing:4px;color:'+i+';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I’VE SEEN — USER CONTENT</div><div style="background:#fff;border:2px solid '+o+';border-radius:3px;padding:18px;margin-bottom:10px;"><div style="font-size:11px;letter-spacing:3px;color:'+i+';font-weight:900;margin-bottom:8px;">USER ADDED · A NEIGHBOR’S WORDS</div><div style="font-size:15px;line-height:1.65;white-space:pre-line;">'+h(t.story)+"</div></div>",(t.photo_urls||[]).forEach(function(t){var e=g(t);e&&(u+='<div style="margin:0 0 10px;"><img src="'+h(e)+'" alt="User-submitted photo for '+h(d)+'" loading="lazy" style="width:100%;border-radius:3px;border:1px solid '+l+';display:block;" onerror="this.style.display=\'none\'"><div style="font-size:11px;color:'+r+';margin-top:4px;">USER ADDED · photo</div></div>')});var x=t.sticky||{};return u+='<div style="background:#f4f1e6;border:1px solid '+l+';border-radius:3px;padding:16px;margin:16px 0 10px;"><div style="font-size:12px;font-weight:900;letter-spacing:2px;color:'+i+';margin-bottom:10px;">FOLLOW THE THREAD</div><div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:800;"><a href="'+h(g(x.town_url)||"/town?zip="+encodeURIComponent(d))+'" style="color:'+i+';text-decoration:none;">🧾 THE TOWN DATA →</a><a href="'+h(g(x.receipt_url)||"/receipt")+'" style="color:'+i+';text-decoration:none;">WHO FUNDS THE POLITICIANS →</a><a href="'+h(g(x.extraction_url)||"/extraction")+'" style="color:'+i+';text-decoration:none;">EXTRACTION STORIES →</a><a href="'+h(g(x.index_url)||"/index")+'" style="color:'+i+';text-decoration:none;">CORRUPTION INDEX →</a></div></div><a href="/town-report?new=1" style="display:block;background:'+n+";border:1px solid "+l+";border-radius:3px;padding:14px 16px;margin:0 0 10px;text-decoration:none;color:"+o+';"><div style="font-size:12px;font-weight:900;letter-spacing:2px;color:'+i+';margin-bottom:6px;">✍️ WRITE YOUR TOWN’S REPORT</div><div style="font-size:14px;line-height:1.5;">Your area has a story too. Take the town data, add what you’ve seen.</div></a>',s||(u+='<div style="text-align:center;margin:10px 0 26px;"><button id="pf-tr-share" type="button" style="'+E(!0)+'">SHARE THIS REPORT</button></div>'),u+='<div style="font-size:11px;color:'+r+';text-align:center;line-height:1.6;margin-bottom:8px;">Sourced numbers come from the town data and cannot be edited here. The story and photos are user content and do not reflect the movement’s data.</div></div>'}function A(t){var e={};return Object.keys(c).forEach(function(i){var n=t&&t.cards&&t.cards[i]||{};e[i]={live:!!n.live,headline:n.headline||"",headline_label:n.headline_label||"",lines:(n.lines||[]).slice(0,3),source:n.source||null,staleness:n.staleness||null}}),{zip:t?t.zip:f.zip,area:t?t.area:null,cards:e}}function P(t){e.innerHTML=O('<div style="text-align:center;padding:30px 10px;color:'+r+';font-size:15px;">Pulling the report…</div>');try{window.history&&window.history.replaceState&&x("id")!==t&&window.history.replaceState(null,"","/town-report?id="+encodeURIComponent(t))}catch(t){}b("town_report_get",{id:t},function(n){if(n&&n.ok){e.innerHTML=O(L(n,n.town_snapshot,!1));var o=e.querySelector("#pf-tr-share");if(o&&o.addEventListener("click",function(){!function(t){var e=function(t){var e=1080,i=1350,n=document.createElement("canvas");n.width=e,n.height=i;var o=n.getContext("2d");if(!o)return null;var r=t.zip5||"",l=t.town_snapshot||{},a=l.area&&l.area.coarse_area||"",s=(t.highlights||[])[0],d=s&&l.cards&&l.cards[s]||{};o.fillStyle="#f4f1e6",o.fillRect(0,0,e,i),o.fillStyle="#fdfdfa",o.fillRect(70,70,e-140,i-140),o.strokeStyle="#c1121f",o.lineWidth=10,o.strokeRect(70,70,e-140,i-140),o.strokeStyle="#d8d2bd",o.lineWidth=2,o.setLineDash([14,10]),o.strokeRect(100,100,e-200,i-200),o.setLineDash([]),o.textAlign="center";var p=210;o.fillStyle="#c1121f",o.font="700 32px Arial,sans-serif",o.fillText("★ MY TOWN REPORT ★",e/2,p),p+=78,o.fillStyle="#1a1814",o.font='900 62px "Arial Black",Arial,sans-serif',_(o,"THIS IS MY TOWN: "+r,e-260).slice(0,2).forEach(function(t){o.fillText(t,e/2,p),p+=74}),p+=6,o.fillStyle="#8a8474",o.font="700 32px Arial,sans-serif",_(o,String(a).toUpperCase()+(t.author_callsign?"  ·  BY "+String(t.author_callsign).toUpperCase():""),e-280).slice(0,2).forEach(function(t){o.fillText(t,e/2,p),p+=44}),p+=30,o.fillStyle="#c1121f",o.fillRect(140,p-12,e-280,3),p+=56,d.live&&d.headline&&(o.fillStyle="#c1121f",o.font='900 84px "Arial Black",Arial,sans-serif',o.fillText(String(d.headline).slice(0,40),e/2,p),p+=54,o.fillStyle="#8a8474",o.font="700 30px Arial,sans-serif",o.fillText(String(c[s]||s||"").toUpperCase().slice(0,60),e/2,p),p+=66);return o.fillStyle="#1a1814",o.font="italic 700 44px Georgia,serif",_(o,"“"+String(t.title||"").slice(0,160)+"”",e-280).slice(0,4).forEach(function(t){o.fillText(t,e/2,p),p+=60}),p+=30,o.fillStyle="#8a8474",o.font="700 28px Arial,sans-serif",o.fillText("— a neighbor’s words, not the newsroom",e/2,p),o.fillStyle="#c1121f",o.font='900 62px "Arial Black",Arial,sans-serif',o.fillText("JOIN THE FIGHT.",e/2,i-240),o.fillStyle="#1a1814",o.font='900 46px "Arial Black",Arial,sans-serif',o.fillText("MTCSTW.COM",e/2,i-165),o.fillStyle="#8a8474",o.font="400 30px Arial,sans-serif",o.fillText("mtcstw.com/town-report?id="+String(t.id||"").slice(0,40),e/2,i-105),n}(t);if(!e)return void v("Poster failed — try again.");try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(e,"pfn-townreport-"+(t.zip5||"town")+".png","THIS IS MY TOWN: "+(t.zip5||""),"townreport")}catch(t){u("PFShare failed: "+(t&&t.message))}try{e.toBlob(function(e){if(e){var i=new File([e],"my-town-"+(t.zip5||"report")+".png",{type:"image/png"});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[i]}))navigator.share({files:[i],title:"THIS IS MY TOWN: "+(t.zip5||"")}).catch(function(){});else{var n=document.createElement("a");n.href=URL.createObjectURL(e),n.download="my-town-"+(t.zip5||"report")+".png",document.body.appendChild(n),n.click(),setTimeout(function(){try{n.remove()}catch(t){}},500)}}else v("Poster failed — try again.")},"image/png")}catch(t){u("share failed: "+(t&&t.message))}}(n)}),y()&&n.author_callsign&&y().toLowerCase()===String(n.author_callsign).toLowerCase()){var l=document.createElement("div");l.style.cssText="text-align:center;margin:0 0 30px;",l.innerHTML='<button id="pf-tr-del" type="button" style="background:transparent;border:0;color:'+r+';font-size:12px;text-decoration:underline;cursor:pointer;">Delete this report</button>',e.appendChild(l),l.querySelector("#pf-tr-del").addEventListener("click",function(){window.confirm("Delete this report? This cannot be undone.")&&T("town_report_delete",{type:"townreport",tr_action:"town_report_delete",callsign:y(),auth_secret:m(),id:t},function(t){if(t&&t.ok)try{window.location.href="/town-report"}catch(t){}else v("Delete failed — "+(t&&t.err||"try again."))})})}try{window.scrollTo(0,0)}catch(t){}}else e.innerHTML=O('<div style="text-align:center;padding:30px 10px;color:'+r+';font-size:15px;">No report at that address. <a href="/town-report" style="color:'+i+';font-weight:800;">Read the feed →</a></div>')})}function _(t,e,i){var n=String(e).split(/\s+/),o=[],r="";return n.forEach(function(e){var n=r?r+" "+e:e;t.measureText(n).width>i&&r?(o.push(r),r=e):r=n}),r&&o.push(r),o}function N(){if(e&&!e.getAttribute("data-pf-townreport-mounted")){e.setAttribute("data-pf-townreport-mounted","1");var t,n=x("id");if(!n)return x("new")||x("zip")?(t=x("zip").replace(/\D/g,"").slice(0,5),f.zip=/^\d{5}$/.test(t)?t:"",e.innerHTML=O('<div style="text-align:center;margin:6px 0 18px;"><div style="font-size:12px;letter-spacing:5px;color:'+i+';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div><div style="font-size:24px;font-weight:900;margin-bottom:8px;">BUILD THE REPORT</div><div style="font-size:14px;color:'+r+';line-height:1.6;">Your zip pulls the town data. You pick the cards to highlight,<br>then add what you’ve seen. Publish the page.</div></div><div id="pf-tr-steps"></div>'),void I(e.querySelector("#pf-tr-steps"))):void k();P(n)}}}();
+/* PF v1.4.3 core/bundle-town-report.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: core/town-report.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== core/town-report.js ===== */
+/* core/town-report.js  |  PF v1.4.3 | UGC TOWN REPORT BUILDER.
+   CEO directive 2026-10-07 "Let it blossom" — UGC tools.
+   Users take their zip code data (WHO OWNS YOUR TOWN), add local context
+   (title, story, photos), pick which town cards to highlight, preview, and
+   publish a shareable page at /town-report?id=<report-id>.
+   Self-mounting silo: renders into <div id="pf-town-report"></div>
+   (Squarespace page /town-report carries the div as a Code block +
+   nav entry — CEO hand-step).
+   Deep links: /town-report (feed) · /town-report?new=1 or ?zip=<zip>
+   (builder — ?zip= is the deep-link contract from /town) ·
+   /town-report?id=<report-id> (published page).
+   Backend (be/ugc-town-report, v176):
+     GET  ?action=town_report_get&id=    (public JSONP, read-only, 0 XP)
+     GET  ?action=town_report_feed       (public JSONP, read-only, 0 XP)
+     POST {type:'townreport', tr_action:'town_report_publish' |
+           'town_report_delete', callsign, auth_secret, zip5, title,
+           story, highlights, photo_urls} -> {ok:true, id, url}
+           (AUTH_MAP 'townreport:<action>' -> callsign; moderate is
+           admin-gated in-module, never from the client.)
+   RULES:
+   - Town data IMMUTABLE: the published page renders the server-side
+     snapshot (source-stamped, staleness-badged), never editable — users
+     add context, never edit numbers.
+   - User content CLEARLY LABELED. Coarse zip5 only: no addresses, no
+     individual identification. Copy rule: "your area," never a pinpoint;
+     heuristic matches stay labeled "likely corporate owner (estimated)."
+   - 0 XP for viewing. Publishing grants 0 XP (movement value, not a faucet).
+   - STICKY WEB: every report links back to /town?zip= (source town data),
+     the state Receipt, Extraction stories, and the Corruption Index.
+   DESIGN (CEO 2026-10-07): CLEAN, LIGHT — paper palette like the dossier
+   builder; mobile-first; no bloated layouts.
+   BUTTER RULE: the 1080x1350 share painter runs ONLY on tap.
+   KILL: ?pf_off=townreport (master). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('townreport')) { return; }
+  if (window.pfTownReportDone) return;
+  var host = document.getElementById('pf-town-report');
+  if (!host) return;
+  if (isEditor()) return;
+  window.pfTownReportDone = true;
+
+  function isEditor() {
+    try {
+      var h = window.location.href || '';
+      if (h.indexOf('/config/') !== -1) return true;
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) return true;
+    } catch (e) {}
+    return false;
+  }
+  function err(m) { try { if (PF && PF.error) PF.error('townreport', m); } catch (e) {} }
+
+  /* Light paper palette (matches the dossier builder; CEO: clean, light). */
+  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+    HAIR = '#e7e1d0', DASH = '#d8d2bd', GOLD = '#a67c00', FIELD = '#f4f1e6';
+  var BACKEND = window.PF_BACKEND_URL;
+  var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
+
+  var CARD_LABELS = {
+    landlords: 'CORPORATE OWNERS', eviction: 'EVICTION RATE',
+    wages_rent: 'WAGES VS RENT', pollution: 'POLLUTION',
+    federal: 'FEDERAL MONEY', police: 'POLICE VIOLENCE',
+    hospitals: 'HOSPITAL PRICES'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function safeUrl(u) {
+    var x = String(u == null ? '' : u).trim();
+    if (!x) return '';
+    if (x.charAt(0) === '/') return x;
+    try {
+      var p = new URL(x, 'https://x.invalid').protocol;
+      if (p === 'http:' || p === 'https:') return x;
+    } catch (e) {}
+    return '';
+  }
+  function qs(name) {
+    try {
+      var m = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.search || '');
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+  function toast(m) {
+    try { if (PF && PF.toast) { PF.toast(m); return; } } catch (e) {}
+    try {
+      var t = document.createElement('div'); t.textContent = m;
+      t.style.cssText = 'position:fixed;left:50%;top:16%;transform:translateX(-50%);background:#c1121f;color:#fff;font:bold 15px monospace;padding:12px 22px;border:2px solid #fff;z-index:99999';
+      document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800);
+    } catch (e2) {}
+  }
+  function callsign() {
+    try { return window.PFCallsign ? window.PFCallsign() : ''; } catch (e) { return ''; }
+  }
+  function authSecret() {
+    try { return (PF && PF.getAuthSecret) ? PF.getAuthSecret() : ''; } catch (e) { return ''; }
+  }
+  function chiDate(ts) {
+    try {
+      return new Date(ts).toLocaleDateString('en-US',
+        { timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) { return ''; }
+  }
+
+  /* JSONP, same contract as core/town-page.js. */
+  function api(action, params, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var fn = 'pfTownReportCb' + Math.floor(Math.random() * 1e9);
+    var s = document.createElement('script'), done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      try { delete window[fn]; } catch (e) {}
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+      cb(j);
+    }
+    window[fn] = function (j) { finish(j); };
+    s.onerror = function () { finish(null); };
+    var q = '?action=' + encodeURIComponent(action);
+    for (var k in params) {
+      if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }
+    q += '&callback=' + fn;
+    s.src = BACKEND + q;
+    s.async = true;
+    try { document.head.appendChild(s); } catch (e) { finish(null); }
+    setTimeout(function () { finish(null); }, 15000);
+  }
+
+  /* Authenticated JSON POST (games/dossier.js precedent). */
+  function postJSON(prAction, body, cb) {
+    if (!BACKEND) { cb(null); return; }
+    var ctl = null;
+    try { ctl = new AbortController(); } catch (e) {}
+    var to = setTimeout(function () { try { ctl && ctl.abort(); } catch (e) {} }, 20000);
+    fetch(BACKEND + '?action=' + encodeURIComponent(prAction), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctl ? ctl.signal : undefined
+    }).then(function (r) {
+      clearTimeout(to);
+      return r.json().catch(function () { return null; });
+    }).then(function (j) { cb(j); })
+      .catch(function () { clearTimeout(to); cb(null); });
+  }
+
+  /* ---------- shared render bits (paper theme) ---------- */
+
+  function btnStyle(primary) {
+    return primary
+      ? 'background:' + RED + ';border:2px solid ' + RED + ';color:#fff;font-weight:900;letter-spacing:2px;padding:14px 34px;font-size:15px;cursor:pointer;border-radius:3px;'
+      : 'background:transparent;border:2px solid ' + INK + ';color:' + INK + ';font-weight:800;letter-spacing:2px;padding:11px 26px;font-size:14px;cursor:pointer;border-radius:3px;';
+  }
+  function inputStyle() {
+    return 'width:100%;box-sizing:border-box;background:#fff;border:2px solid ' + INK + ';color:' + INK
+      + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
+  }
+  function labelHTML(t, max) {
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+      + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
+  }
+  function divider() {
+    return '<div style="border-top:2px dashed ' + DASH + ';margin:18px 0;"></div>';
+  }
+  function badge(t) {
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+      + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">' + esc(t) + '</div>';
+  }
+  function staleBadge(st) {
+    if (!st || !st.label) return '<span style="font-size:10px;color:' + MUTED + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:2px 6px;margin-left:8px;">UNKNOWN</span>';
+    var c = st.label === 'FRESH' ? '#1d6b35' : (st.label === 'STALE' ? '#a67c00' : MUTED);
+    var days = (st.days != null && st.days >= 0) ? ' · ' + st.days + 'd' : '';
+    return '<span style="font-size:10px;font-weight:800;color:' + c + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:2px 6px;margin-left:8px;">' + esc(st.label) + days + '</span>';
+  }
+  function sourceLine(src) {
+    if (!src || !src.name) return '<div style="font-size:11px;color:' + MUTED + ';">Source: not yet published</div>';
+    var bits = [src.name];
+    if (src.period) bits.push(src.period);
+    if (src.retrieved && src.retrieved !== 'unknown') bits.push('retrieved ' + src.retrieved);
+    return '<div style="font-size:11px;color:' + MUTED + ';">Source: ' + esc(bits.join(' · ')) + '</div>';
+  }
+  function shell(inner) {
+    return '<div style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">' + inner + '</div>';
+  }
+
+  /* ---------- feed: published town reports ---------- */
+
+  function renderFeedPage() {
+    host.innerHTML = shell(
+      '<div style="text-align:center;margin:6px 0 18px;">'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:26px;font-weight:900;margin-bottom:8px;">Hyperlocal is movement gold.</div>'
+      + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Take your town\u2019s data. Add what you\u2019ve seen. Publish the page.<br>The numbers stay locked — your words sit beside them, clearly yours.</div>'
+      + '<div style="margin-top:16px;"><a href="/town-report?new=1" style="' + btnStyle(true) + 'text-decoration:none;display:inline-block;">WRITE YOUR TOWN\u2019S REPORT</a></div>'
+      + '</div>'
+      + divider()
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div>'
+      + '<div id="pf-tr-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed\u2026</div>'
+    );
+    var list = host.querySelector('#pf-tr-feedlist');
+    api('town_report_feed', {}, function (j) {
+      if (!j || !j.ok || !j.reports || !j.reports.length) {
+        list.innerHTML = 'No reports published yet. Write the first one above.';
+        return;
+      }
+      var html = '';
+      j.reports.forEach(function (r) {
+        var hl = (r.highlight_headlines && r.highlight_headlines[0]) || '';
+        html += '<a href="/town-report?id=' + esc(r.id) + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
+          + ';border-radius:3px;padding:16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';text-align:left;">'
+          + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: ' + esc(r.zip5) + '</div>'
+          + '<div style="font-size:18px;font-weight:900;line-height:1.35;">' + esc(r.title) + '</div>'
+          + '<div style="font-size:13px;color:' + MUTED + ';margin-top:6px;">' + esc(r.coarse_area) + ' · by <strong style="color:' + INK + ';">' + esc(r.author_callsign) + '</strong>'
+          + (r.created_at ? ' · ' + esc(chiDate(r.created_at)) : '') + '</div>'
+          + (hl ? '<div style="font-size:14px;margin-top:8px;line-height:1.5;border-left:3px solid ' + RED + ';padding-left:10px;"><strong>' + esc(hl) + '</strong></div>' : '')
+          + '<div style="font-size:13px;margin-top:8px;line-height:1.55;color:' + MUTED + ';">' + esc(r.excerpt) + '\u2026</div>'
+          + '<div style="font-size:12px;color:' + RED + ';font-weight:800;margin-top:8px;">READ THE REPORT \u2192</div>'
+          + '</a>';
+      });
+      html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;margin-top:8px;line-height:1.6;">'
+        + 'Town reports feed the movement — shares, campaigns, evidence. Never sold.</div>';
+      list.innerHTML = html;
+    });
+  }
+
+  /* ---------- builder ---------- */
+
+  var build = { zip: '', town: null, highlights: [], title: '', story: '', photos: [] };
+
+  function renderBuilder() {
+    var pre = qs('zip').replace(/\D/g, '').slice(0, 5);
+    build.zip = (/^\d{5}$/.test(pre)) ? pre : '';
+    host.innerHTML = shell(
+      '<div style="text-align:center;margin:6px 0 18px;">'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:24px;font-weight:900;margin-bottom:8px;">BUILD THE REPORT</div>'
+      + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Your zip pulls the town data. You pick the cards to highlight,<br>then add what you\u2019ve seen. Publish the page.</div>'
+      + '</div>'
+      + '<div id="pf-tr-steps"></div>'
+    );
+    renderStep1(host.querySelector('#pf-tr-steps'));
+  }
+
+  function renderStep1(el) {
+    el.innerHTML = badge('STEP 1 · YOUR ZIP')
+      + '<div style="display:flex;gap:8px;justify-content:center;">'
+      + '<input id="pf-tr-zip" inputmode="numeric" maxlength="5" placeholder="70801" aria-label="5-digit ZIP code" value="' + esc(build.zip) + '"'
+      + ' style="width:150px;background:#fff;border:2px solid ' + INK + ';color:' + INK + ';border-radius:3px;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;">'
+      + '<button id="pf-tr-go" type="button" style="' + btnStyle(true) + '">SEE MY TOWN\u2019S DATA</button></div>'
+      + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-top:10px;line-height:1.6;">Coarse only — your zip never leaves the county bucket.<br>No addresses, no names of private individuals.</div>'
+      + '<div id="pf-tr-err" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>'
+      + '<div id="pf-tr-data"></div>';
+    var input = el.querySelector('#pf-tr-zip');
+    var go = function () {
+      var z = String(input.value || '').replace(/\D/g, '').slice(0, 5);
+      if (!/^\d{5}$/.test(z)) {
+        el.querySelector('#pf-tr-err').textContent = 'Enter a 5-digit ZIP.';
+        return;
+      }
+      el.querySelector('#pf-tr-err').textContent = '';
+      build.zip = z;
+      loadTownData(el, z);
+    };
+    el.querySelector('#pf-tr-go').addEventListener('click', go);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+    if (/^\d{5}$/.test(build.zip)) go();
+  }
+
+  function loadTownData(el, zip) {
+    var box = el.querySelector('#pf-tr-data');
+    box.innerHTML = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:18px;">Pulling your town\u2019s data\u2026</div>';
+    api('town_power', { zip: zip }, function (r) {
+      if (!r || r.ok !== true || !r.geo_live) {
+        box.innerHTML = '<div style="text-align:center;color:' + RED + ';font-size:14px;padding:14px;">Couldn\u2019t load this town — try another ZIP.</div>';
+        err('town_power failed for zip ' + zip);
+        return;
+      }
+      build.town = r;
+      try { history.replaceState(null, '', '/town-report?new=1&zip=' + encodeURIComponent(zip)); } catch (e) {}
+      box.innerHTML = '<div style="text-align:center;font-size:13px;color:' + GOLD + ';font-weight:800;letter-spacing:1px;margin:14px 0 10px;">YOUR AREA: ' + esc(String(r.area.coarse_area || '').toUpperCase()) + '</div>'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>'
+        + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-bottom:12px;">Check the cards you want to highlight on your report.</div>'
+        + renderCardChecks(r)
+        + '<div style="text-align:center;margin-top:18px;"><button id="pf-tr-next" type="button" style="' + btnStyle(true) + '">ADD YOUR CONTEXT \u2192</button></div>';
+      box.querySelector('#pf-tr-next').addEventListener('click', function () {
+        var picked = [];
+        box.querySelectorAll('[data-tr-hl]:checked').forEach(function (c) { picked.push(c.getAttribute('data-tr-hl')); });
+        if (!picked.length) { toast('Pick at least one card to highlight.'); return; }
+        build.highlights = picked;
+        renderStep2(el);
+      });
+    });
+  }
+
+  function renderCardChecks(r) {
+    var keys = Object.keys(CARD_LABELS);
+    var html = '';
+    keys.forEach(function (k) {
+      var c = (r.cards || {})[k] || {};
+      var inner = '<div style="font-size:11px;letter-spacing:3px;color:' + MUTED + ';font-weight:800;">' + CARD_LABELS[k] + '</div>';
+      if (c.live && c.headline) {
+        inner += '<div style="font-size:22px;font-weight:900;margin:2px 0;">' + esc(c.headline) + ' <span style="font-size:12px;font-weight:400;color:' + MUTED + ';">' + esc(c.headline_label || '') + '</span></div>'
+          + '<div style="font-size:12px;color:' + MUTED + ';line-height:1.5;">' + esc((c.lines || []).slice(0, 2).join(' · ')) + '</div>';
+      } else {
+        inner += '<div style="font-size:13px;color:' + MUTED + ';font-style:italic;">Not yet tracked for this area.</div>';
+      }
+      var dis = (c.live && c.headline) ? '' : ' disabled';
+      html += '<label style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:12px 14px;margin:0 0 8px;cursor:pointer;">'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+        + '<input type="checkbox" data-tr-hl="' + k + '"' + dis + ' style="margin-top:4px;width:20px;height:20px;accent-color:' + RED + ';">'
+        + '<div style="flex:1;">' + inner + '</div></div></label>';
+    });
+    return html;
+  }
+
+  function renderStep2(el) {
+    var html = badge('STEP 2 · ADD YOUR CONTEXT')
+      + '<div style="text-align:center;margin-bottom:6px;"><button id="pf-tr-back" type="button" style="' + btnStyle(false) + 'padding:8px 18px;font-size:12px;">\u2190 BACK</button></div>'
+      + '<div style="font-size:12px;letter-spacing:3px;color:' + MUTED + ';font-weight:900;text-align:center;margin:6px 0 2px;">YOUR CONTEXT GOES BELOW — THE NUMBERS ABOVE STAY LOCKED</div>'
+      + labelHTML('REPORT TITLE', '120')
+      + '<input id="pf-tr-title" type="text" maxlength="120" placeholder="Give your report a headline" value="' + esc(build.title) + '" style="' + inputStyle() + '">'
+      + labelHTML('WHAT YOU\u2019VE SEEN', '2000')
+      + '<textarea id="pf-tr-story" rows="6" maxlength="2000" placeholder="In your words: what have you seen in your town? The rent hikes, the shuttered plant, the landlord everyone knows\u2026" style="' + inputStyle() + 'resize:vertical;">' + esc(build.story) + '</textarea>'
+      + labelHTML('YOUR PHOTOS', '5 links')
+      + '<div id="pf-tr-photos"></div>'
+      + '<div style="font-size:12px;color:' + MUTED + ';margin-top:6px;line-height:1.6;">Paste links to your photos (uploads landing soon). Your callsign is the only name on the report — no addresses, no private individuals.</div>'
+      + '<div style="text-align:center;margin-top:20px;"><button id="pf-tr-preview" type="button" style="' + btnStyle(true) + '">PREVIEW THE REPORT</button></div>';
+    el.innerHTML = html;
+    var pbox = el.querySelector('#pf-tr-photos');
+    for (var i = 0; i < 5; i++) {
+      var inp = document.createElement('input');
+      inp.type = 'url'; inp.placeholder = 'https://… photo link ' + (i + 1);
+      inp.value = build.photos[i] || '';
+      inp.setAttribute('style', inputStyle() + 'margin-bottom:8px;');
+      pbox.appendChild(inp);
+    }
+    el.querySelector('#pf-tr-back').addEventListener('click', function () { renderStep1(el); });
+    el.querySelector('#pf-tr-preview').addEventListener('click', function () {
+      build.title = el.querySelector('#pf-tr-title').value.trim();
+      build.story = el.querySelector('#pf-tr-story').value.trim();
+      build.photos = [];
+      pbox.querySelectorAll('input').forEach(function (p) {
+        var v = p.value.trim();
+        if (v) build.photos.push(v);
+      });
+      if (!build.title) { toast('Give your report a title first.'); return; }
+      if (build.story.length < 10) { toast('Tell us a little more of what you\u2019ve seen.'); return; }
+      renderPreview(el);
+    });
+  }
+
+  /* Published-layout render — shared by preview and the published page. */
+  function renderPublished(doc, snapshot, isPreview) {
+    var zip = doc.zip5 || (snapshot && snapshot.zip) || '';
+    var area = (snapshot && snapshot.area) || {};
+    var html = '<div style="' + FONT + 'color:' + INK + ';">'
+      + '<div style="text-align:center;margin:6px 0 14px;">'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div>'
+      + '<div style="font-size:30px;font-weight:900;letter-spacing:1px;">THIS IS MY TOWN: ' + esc(zip) + '</div>'
+      + '<div style="font-size:24px;font-weight:900;line-height:1.3;margin-top:10px;">' + esc(doc.title) + '</div>'
+      + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">' + esc(doc.author_callsign || 'YOU') + '</strong>'
+      + (area.coarse_area ? ' · ' + esc(area.coarse_area) : '')
+      + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
+      + '</div>'
+      + '<div style="font-size:12px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';
+    var keys = (doc.highlights && doc.highlights.length ? doc.highlights : Object.keys(CARD_LABELS));
+    keys.forEach(function (k) {
+      var c = (snapshot && snapshot.cards && snapshot.cards[k]) || {};
+      html += '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:14px 16px;margin:0 0 10px;">'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + MUTED + ';font-weight:800;">' + esc(CARD_LABELS[k] || k) + staleBadge(c.staleness) + '</div>';
+      if (c.live && c.headline) {
+        html += '<div style="font-size:24px;font-weight:900;margin:4px 0;">' + esc(c.headline) + ' <span style="font-size:13px;font-weight:400;color:' + MUTED + ';">' + esc(c.headline_label || '') + '</span></div>'
+          + '<div style="font-size:13px;color:' + MUTED + ';line-height:1.55;">' + (c.lines || []).map(esc).join('<br>') + '</div>';
+      } else {
+        html += '<div style="font-size:13px;color:' + MUTED + ';font-style:italic;">Not yet tracked for this area.</div>';
+      }
+      html += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed ' + DASH + ';">' + sourceLine(c.source) + '</div></div>';
+    });
+    html += '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I\u2019VE SEEN — USER CONTENT</div>'
+      + '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
+      + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · A NEIGHBOR\u2019S WORDS</div>'
+      + '<div style="font-size:15px;line-height:1.65;white-space:pre-line;">' + esc(doc.story) + '</div></div>';
+    (doc.photo_urls || []).forEach(function (u) {
+      var su = safeUrl(u);
+      if (!su) return;
+      html += '<div style="margin:0 0 10px;"><img src="' + esc(su) + '" alt="User-submitted photo for ' + esc(zip) + '" loading="lazy"'
+        + ' style="width:100%;border-radius:3px;border:1px solid ' + HAIR + ';display:block;"'
+        + ' onerror="this.style.display=\'none\'">'
+        + '<div style="font-size:11px;color:' + MUTED + ';margin-top:4px;">USER ADDED · photo</div></div>';
+    });
+    /* Sticky web: back to the source town data + neighbors. */
+    var st = doc.sticky || {};
+    html += '<div style="background:' + FIELD + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:16px;margin:16px 0 10px;">'
+      + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED + ';margin-bottom:10px;">FOLLOW THE THREAD</div>'
+      + '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:800;">'
+      + '<a href="' + esc(safeUrl(st.town_url) || ('/town?zip=' + encodeURIComponent(zip))) + '" style="color:' + RED + ';text-decoration:none;">\uD83E\uDDFE THE TOWN DATA \u2192</a>'
+      + '<a href="' + esc(safeUrl(st.receipt_url) || '/receipt') + '" style="color:' + RED + ';text-decoration:none;">WHO FUNDS THE POLITICIANS \u2192</a>'
+      + '<a href="' + esc(safeUrl(st.extraction_url) || '/extraction') + '" style="color:' + RED + ';text-decoration:none;">EXTRACTION STORIES \u2192</a>'
+      + '<a href="' + esc(safeUrl(st.index_url) || '/index') + '" style="color:' + RED + ';text-decoration:none;">CORRUPTION INDEX \u2192</a>'
+      + '</div></div>'
+      + '<a href="/town-report?new=1" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR + ';border-radius:3px;padding:14px 16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';">'
+      + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED + ';margin-bottom:6px;">\u270D\uFE0F WRITE YOUR TOWN\u2019S REPORT</div>'
+      + '<div style="font-size:14px;line-height:1.5;">Your area has a story too. Take the town data, add what you\u2019ve seen.</div></a>';
+    if (!isPreview) {
+      html += '<div style="text-align:center;margin:10px 0 26px;">'
+        + '<button id="pf-tr-share" type="button" style="' + btnStyle(true) + '">SHARE THIS REPORT</button></div>';
+    }
+    html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;line-height:1.6;margin-bottom:8px;">'
+      + 'Sourced numbers come from the town data and cannot be edited here. The story and photos are user content and do not reflect the movement\u2019s data.</div>'
+      + '</div>';
+    return html;
+  }
+
+  /* Step 3: preview — the exact published layout. */
+  function renderPreview(el) {
+    var fake = {
+      zip5: build.zip, author_callsign: callsign() || 'YOU',
+      title: build.title, story: build.story,
+      highlights: build.highlights, photo_urls: build.photos,
+      town_snapshot: trimForPreview(build.town), created_at: 0
+    };
+    el.innerHTML = badge('STEP 3 · PREVIEW — EXACTLY AS IT WILL PUBLISH')
+      + renderPublished(fake, fake.town_snapshot, true)
+      + '<div style="text-align:center;margin:18px 0 8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
+      + '<button id="pf-tr-edit" type="button" style="' + btnStyle(false) + '">\u2190 EDIT</button>'
+      + '<button id="pf-tr-pub" type="button" style="' + btnStyle(true) + '">PUBLISH THE REPORT</button></div>'
+      + '<div style="text-align:center;font-size:12px;color:' + MUTED + ';margin-bottom:10px;line-height:1.6;">Publishing routes through your callsign.<br>Zero XP for building or viewing.</div>';
+    el.querySelector('#pf-tr-edit').addEventListener('click', function () { renderStep2(el); });
+    el.querySelector('#pf-tr-pub').addEventListener('click', function () { publishReport(el); });
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+  }
+
+  /* The backend snapshots town_power server-side; the preview reuses the
+     live rail output with the same trim shape. */
+  function trimForPreview(tp) {
+    var cards = {};
+    Object.keys(CARD_LABELS).forEach(function (k) {
+      var c = (tp && tp.cards && tp.cards[k]) || {};
+      cards[k] = {
+        live: !!c.live, headline: c.headline || '', headline_label: c.headline_label || '',
+        lines: (c.lines || []).slice(0, 3), source: c.source || null, staleness: c.staleness || null
+      };
+    });
+    return { zip: tp ? tp.zip : build.zip, area: tp ? tp.area : null, cards: cards };
+  }
+
+  function publishReport(el) {
+    function doPublish(cs) {
+      var body = {
+        type: 'townreport', tr_action: 'town_report_publish',
+        callsign: cs, auth_secret: authSecret(),
+        zip5: build.zip, title: build.title, story: build.story,
+        highlights: build.highlights, photo_urls: build.photos
+      };
+      var btn = el.querySelector('#pf-tr-pub');
+      if (btn) btn.textContent = 'PUBLISHING\u2026';
+      postJSON('town_report_publish', body, function (j) {
+        if (!j || !j.ok || !j.id) {
+          err('publish failed: ' + (j && j.err));
+          toast('Publish failed — ' + ((j && j.err) || 'try again.'));
+          if (btn) btn.textContent = 'PUBLISH THE REPORT';
+          return;
+        }
+        /* Sticky web: land on the published page via the deep link. */
+        try {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', '/town-report?id=' + encodeURIComponent(j.id));
+          }
+        } catch (e) {}
+        renderPublishedPage(j.id);
+      });
+    }
+    if (!callsign()) {
+      if (PF.requireCallsign) {
+        PF.requireCallsign(function (cs) { if (cs) doPublish(cs); else toast('Claim a callsign to publish.'); },
+          { context: 'to publish your town report' });
+        return;
+      }
+      toast('Claim a callsign to publish.');
+      return;
+    }
+    doPublish(callsign());
+  }
+
+  /* ---------- published page ---------- */
+
+  function renderPublishedPage(id) {
+    host.innerHTML = shell('<div style="text-align:center;padding:30px 10px;color:' + MUTED + ';font-size:15px;">Pulling the report\u2026</div>');
+    try {
+      if (window.history && window.history.replaceState && qs('id') !== id) {
+        window.history.replaceState(null, '', '/town-report?id=' + encodeURIComponent(id));
+      }
+    } catch (e) {}
+    api('town_report_get', { id: id }, function (j) {
+      if (!j || !j.ok) {
+        host.innerHTML = shell('<div style="text-align:center;padding:30px 10px;color:' + MUTED + ';font-size:15px;">No report at that address. '
+          + '<a href="/town-report" style="color:' + RED + ';font-weight:800;">Read the feed \u2192</a></div>');
+        return;
+      }
+      host.innerHTML = shell(renderPublished(j, j.town_snapshot, false));
+      var btn = host.querySelector('#pf-tr-share');
+      if (btn) btn.addEventListener('click', function () { shareReport(j); });
+      /* Author can take their own report down. */
+      if (callsign() && j.author_callsign && callsign().toLowerCase() === String(j.author_callsign).toLowerCase()) {
+        var del = document.createElement('div');
+        del.style.cssText = 'text-align:center;margin:0 0 30px;';
+        del.innerHTML = '<button id="pf-tr-del" type="button" style="background:transparent;border:0;color:' + MUTED + ';font-size:12px;text-decoration:underline;cursor:pointer;">Delete this report</button>';
+        host.appendChild(del);
+        del.querySelector('#pf-tr-del').addEventListener('click', function () {
+          if (!window.confirm('Delete this report? This cannot be undone.')) return;
+          postJSON('town_report_delete', {
+            type: 'townreport', tr_action: 'town_report_delete',
+            callsign: callsign(), auth_secret: authSecret(), id: id
+          }, function (rj) {
+            if (rj && rj.ok) { try { window.location.href = '/town-report'; } catch (e) {} }
+            else toast('Delete failed — ' + ((rj && rj.err) || 'try again.'));
+          });
+        });
+      }
+      try { window.scrollTo(0, 0); } catch (e) {}
+    });
+  }
+
+  /* ---------- share image — 1080x1350 canvas, light paper, tap-only ---------- */
+
+  function wrap(x, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) {
+      var t = line ? line + ' ' + w : w;
+      if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; }
+      else { line = t; }
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function paintReport(doc) {
+    var W = 1080, H = 1350;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    var zip = doc.zip5 || '';
+    var snap = doc.town_snapshot || {};
+    var area = (snap.area && snap.area.coarse_area) || '';
+    var hl = (doc.highlights || [])[0];
+    var card = (hl && snap.cards && snap.cards[hl]) || {};
+    /* Light paper. */
+    x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeRect(100, 100, W - 200, H - 200);
+    x.setLineDash([]);
+    x.textAlign = 'center';
+    var y = 210;
+    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+    x.fillText('\u2605 MY TOWN REPORT \u2605', W / 2, y); y += 78;
+    x.fillStyle = '#1a1814'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+    wrap(x, 'THIS IS MY TOWN: ' + zip, W - 260).slice(0, 2).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 74;
+    });
+    y += 6;
+    x.fillStyle = '#8a8474'; x.font = '700 32px Arial,sans-serif';
+    wrap(x, String(area).toUpperCase() + (doc.author_callsign ? '  ·  BY ' + String(doc.author_callsign).toUpperCase() : ''), W - 280)
+      .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    y += 30;
+    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 56;
+    /* The user's highlight — a sourced number, clearly the town data. */
+    if (card.live && card.headline) {
+      x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
+      x.fillText(String(card.headline).slice(0, 40), W / 2, y); y += 54;
+      x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
+      x.fillText(String(CARD_LABELS[hl] || hl || '').toUpperCase().slice(0, 60), W / 2, y); y += 66;
+    }
+    /* The user's title — clearly user content. */
+    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    wrap(x, '\u201C' + String(doc.title || '').slice(0, 160) + '\u201D', W - 280).slice(0, 4).forEach(function (l) {
+      x.fillText(l, W / 2, y); y += 60;
+    });
+    y += 30;
+    x.fillStyle = '#8a8474'; x.font = '700 28px Arial,sans-serif';
+    x.fillText('\u2014 a neighbor\u2019s words, not the newsroom', W / 2, y);
+    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
+    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
+    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
+    x.fillText('MTCSTW.COM', W / 2, H - 165);
+    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    x.fillText('mtcstw.com/town-report?id=' + String(doc.id || '').slice(0, 40), W / 2, H - 105);
+    return cv;
+  }
+
+  function shareReport(doc) {
+    var cv = paintReport(doc);
+    if (!cv) { toast('Poster failed — try again.'); return; }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        /* Native share sheet w/ download fallback — the existing share
+           mechanics (dossier precedent). */
+        window.PFShare.shareImage(cv, 'pfn-townreport-' + (doc.zip5 || 'town') + '.png',
+          'THIS IS MY TOWN: ' + (doc.zip5 || ''), 'townreport');
+        return;
+      }
+    } catch (e) { err('PFShare failed: ' + (e && e.message)); }
+    /* Fallback: Web Share API, else download (town-page.js contract). */
+    try {
+      cv.toBlob(function (blob) {
+        if (!blob) { toast('Poster failed — try again.'); return; }
+        var file = new File([blob], 'my-town-' + (doc.zip5 || 'report') + '.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: 'THIS IS MY TOWN: ' + (doc.zip5 || '') }).catch(function () {});
+        } else {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'my-town-' + (doc.zip5 || 'report') + '.png';
+          document.body.appendChild(a); a.click();
+          setTimeout(function () { try { a.remove(); } catch (e2) {} }, 500);
+        }
+      }, 'image/png');
+    } catch (e) { err('share failed: ' + (e && e.message)); }
+  }
+
+  /* ---------- mount + routing ---------- */
+
+  function mount() {
+    if (!host || host.getAttribute('data-pf-townreport-mounted')) return;
+    host.setAttribute('data-pf-townreport-mounted', '1');
+    var id = qs('id');
+    if (id) { renderPublishedPage(id); return; }
+    if (qs('new') || qs('zip')) { renderBuilder(); return; }
+    renderFeedPage();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+  /* Late-mount guard: the footer loader may inject #pf-town-report after us. */
+  setTimeout(mount, 1500);
+})();
+
+;

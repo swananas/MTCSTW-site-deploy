@@ -346,6 +346,11 @@ var SECTIONS = {
        registers as a /create workshop tool; pins cell-targeted bounties on
        #pf-cell-hq. Kill: ?pf_off=databounties. */
     'data-bounties.js',
+    /* FACT GENERATOR (2026-10-07, CEO directive): type a claim, get sourced
+       facts with citations, share as a PFN poster. Self-mounts into
+       #pf-factgen via pf-create page order. Display-only, zero XP.
+       Kill: ?pf_off=fact-generator. */
+    'fact-generator.js',
     /* TEARDOWN WS-4 (2026-10-06, fe/teardown-create): CREATE — THE PRINT SHOP.
        Template-first creation: template picker organized by fight, slot-filling
        editor, full-screen preview, P6 Action Bar. Exposes window.PFPress.mount

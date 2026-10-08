@@ -20,7 +20,10 @@
    price stands.
    READ-ONLY: no POST, no auth, ZERO XP. Self-mounts on div#pf-robreport
    (silent no-op when absent); money-page.js also calls PFRobReport.mount.
-   KILL: ?pf_off=robreport  or  localStorage pf_disabled_v1='["robreport"]' */
+      READ SIGNAL (pipeline audit 2026-10-06): every mount fires the existing
+      anonymous pageview beacon (slug 'robreport') so card reads feed the
+      Efficiency Index site-pull signal. Fail-soft: the beacon never breaks
+      design (stats.js pageview).   KILL: ?pf_off=robreport  or  localStorage pf_disabled_v1='["robreport"]' */
 (function () {
   'use strict';
   var PF = window.PF;
@@ -534,6 +537,12 @@
   function mount(host) {
     if (!host || host.querySelector('.pf-rr')) return false;
     cssOnce();
+    /* READ SIGNAL: the report was viewed — fire the anonymous pageview
+       beacon (slug 'robreport'). Fail-soft; the widget never depends on
+       it. Dedupe is server-side (one counted view per IP per hour). */
+    try {
+      if (PF && PF.postAction) PF.postAction('stats', 's_action', 'pageview', { slug: 'robreport' }, function () {});
+    } catch (e) {}
     var h = '<div class="pf-rr">';
     h += '<div class="pf-rr-head">' +
          '<h3>THE ROBBERY REPORT</h3>' +

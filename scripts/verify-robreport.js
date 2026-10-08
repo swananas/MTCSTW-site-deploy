@@ -267,8 +267,16 @@ function makeHost() {
 }
 function loadRender(skipKill, withPatterns) {
   var painters = {};
+  var beaconCalls = [];
   var win = {
-    PF: { skip: function (id) { return skipKill && id === 'robreport'; }, error: function () {} },
+    PF: {
+      skip: function (id) { return skipKill && id === 'robreport'; },
+      error: function () {},
+      postAction: function (type, key, action, params, cb) {
+        beaconCalls.push({ type: type, key: key, action: action, params: params });
+        if (cb) { try { cb({ ok: true }); } catch (e) {} }
+      }
+    },
     PFShare: { setPoster: function (id, fn) { painters[id] = fn; } },
     PF_BACKEND_URL: ''
   };
@@ -295,7 +303,7 @@ function loadRender(skipKill, withPatterns) {
   vm.createContext(sandbox);
   vm.runInContext(dataSrc, sandbox, { filename: 'robreport-data.js' });
   vm.runInContext(renderSrc, sandbox, { filename: 'robreport.js' });
-  return { win: win, doc: doc, painters: painters };
+  return { win: win, doc: doc, painters: painters, beaconCalls: beaconCalls };
 }
 (function smoke() {
   /* production path: P2 Intel + P4 Strip */
@@ -328,7 +336,17 @@ function loadRender(skipKill, withPatterns) {
   ok((html.match(/https:\/\/www\.sec\.gov\/Archives\/edgar\//g) || []).length >= 30, 'EDGAR links missing in rendered HTML');
   /* silent no-op + kill */
   ok(r.win.PFRobReport.mount(null) === false, 'mount(null) must return false');
+<<<<<<< HEAD
   var r2 = loadRender(true, true);
+=======
+  /* read-signal beacon: mount fires the anonymous pageview beacon once */
+  var beacons = r.beaconCalls.filter(function (c) {
+    return c.type === 'stats' && c.key === 's_action' && c.action === 'pageview' &&
+      c.params && c.params.slug === 'robreport';
+  });
+  ok(beacons.length === 1, 'mount must fire exactly one pageview beacon (slug robreport), got ' + r.beaconCalls.length + ' postAction calls');
+  var r2 = loadRender(true);
+>>>>>>> fe/data-pipeline-audit3
   ok(!r2.win.PFRobReport, 'kill switch ?pf_off=robreport must prevent exposure');
 })();
 /* fail-open fallback: patterns killed -> legacy markup, same contract */

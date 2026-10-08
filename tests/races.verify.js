@@ -19,6 +19,12 @@
  *  12. zero reach into campaign.js's race_list contract (no 'race_list' read)
  *  13. real backend shape: top-level stale/last_updated + per-race
  *      source_date (board-level stale banner, Board data: footer, YMD day fix)
+ *  14. v84 level toggle: Federal / Down-ballot / All (default All)
+ *  15. v84 local card: office headline, no chamber badge, DOWN-BALLOT badge,
+ *      state line, source/date line kept
+ *  16. v84 kill switch ?pf_off=downballot hides the toggle only (board
+ *      still renders all races; chamber filter unaffected)
+ *  17. v84 level + chamber filters compose (locals have no chamber)
  * Run: node tests/races.verify.js
  */
 'use strict';
@@ -331,6 +337,87 @@ function RB(stale, oldSourceDate) {
   var h = xRacesHTML(r);
   var cardBanners = (h.match(/<div class="rc-stale" role="alert">Last updated/g) || []).length;
   ok('>14d-old source_date -> per-card stale banner (1)', cardBanners === 1, 'found ' + cardBanners);
+})();
+
+/* ---------- 14. v84 level toggle: Federal / Down-ballot / All ---------- */
+function DB() {
+  return {
+    ok: true, count: 4, total: 4,
+    last_updated: '2026-10-04T12:00:00Z', stale: false,
+    races: [
+      { id: 'db-fed', state: 'NC', chamber: 'Senate', office: 'U.S. Senate', level: 'federal',
+        candidates: [{ name: 'Fed Fiona', party: 'D' }], rating: 'Toss-up (D)',
+        source: 'Cook Political Report', source_date: '2026-09-30', stakes: 'S.' },
+      { id: 'db-fed-old', state: 'TX', chamber: 'House', office: 'U.S. House', seat: 'TX-01',
+        /* no level -> pre-v84 row, must default to federal */
+        candidates: [{ name: 'Old Otto', party: 'R' }], rating: 'Lean R',
+        source: 'Sabato', source_date: '2026-09-15', stakes: 'S.' },
+      { id: 'db-mayor', state: 'CA', chamber: null, office: 'Mayor', seat: 'Los Angeles Mayor',
+        level: 'local',
+        candidates: [{ name: 'Karen Bass', party: 'D' }, { name: 'Nithya Raman', party: 'D' }],
+        rating: 'Toss-up', source: 'Bolts', source_date: '2026-10-01', stakes: 'Housing.' },
+      { id: 'db-sheriff', state: 'IL', chamber: null, office: 'Sheriff', seat: 'Sangamon County Sheriff',
+        level: 'local',
+        candidates: [{ name: 'Not yet verified', party: '' }],
+        rating: 'Toss-up', source: 'Bolts', source_date: '2026-10-01', stakes: 'Reform.' }
+    ]
+  };
+}
+function clickLvl(r, val) {
+  var btns = r.els['xRaces'].querySelectorAll('[data-rc-lvl]');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].getAttribute('data-rc-lvl') === val) { btns[i].onclick(); return true; }
+  }
+  return false;
+}
+function cardCount(h) { return (h.match(/<article class="rc-card"/g) || []).length; }
+(function () {
+  var r = run({ backend: { races_list: DB() } });
+  var h = xRacesHTML(r);
+  ok('level toggle buttons present (3)', (h.match(/data-rc-lvl="/g) || []).length === 3);
+  ok('default All shows all 4 races', cardCount(h) === 4, 'found ' + cardCount(h));
+  ok('local filter button found', clickLvl(r, 'local'));
+  var hl = xRacesHTML(r);
+  var tl = titles(hl);
+  ok('Down-ballot filter shows only local (2)', cardCount(hl) === 2, tl.join(' | '));
+  ok('local titles are offices', tl.every(function (s) { return s === 'Mayor' || s === 'Sheriff'; }), tl.join(' | '));
+  ok('federal filter button found', clickLvl(r, 'federal'));
+  var hf = xRacesHTML(r);
+  var tf = titles(hf);
+  ok('Federal filter shows only federal (2)', cardCount(hf) === 2, tf.join(' | '));
+  ok('pre-v84 row (no level) defaults to federal', /TX &mdash; U.S. House/.test(hf), tf.join(' | '));
+  ok('all filter button found', clickLvl(r, 'all'));
+  ok('All restores 4 races', cardCount(xRacesHTML(r)) === 4);
+})();
+
+/* ---------- 15. local card shape: office headline, no chamber badge ---------- */
+(function () {
+  var r = run({ backend: { races_list: DB() } });
+  clickLvl(r, 'local');
+  var h = xRacesHTML(r);
+  ok('DOWN-BALLOT badge on local cards', (h.match(/rc-badge rc-local/g) || []).length === 2);
+  ok('no chamber badge on local cards', h.indexOf('rc-senate') < 0 && h.indexOf('rc-house') < 0);
+  ok('state kept as small line', (h.match(/class="rc-state"/g) || []).length === 2);
+  ok('source/date line kept on local cards', h.indexOf('Rating: Bolts, Oct 1') >= 0, (h.match(/Rating: [^<]*/) || [])[0]);
+  ok('seat shown when it differs from office', h.indexOf('Los Angeles Mayor') >= 0 && h.indexOf('Sangamon County Sheriff') >= 0);
+})();
+
+/* ---------- 16. ?pf_off=downballot kills the toggle only ---------- */
+(function () {
+  var r = run({ search: '?pf_off=downballot', backend: { races_list: DB() } });
+  var h = xRacesHTML(r);
+  ok('kill-switch hides the level toggle', h.indexOf('data-rc-lvl') < 0);
+  ok('board still renders all 4 races', cardCount(h) === 4, 'found ' + cardCount(h));
+  ok('local cards still office-headline', /class="rc-title">Mayor</.test(h));
+  ok('chamber filter still works under kill-switch', clickCham(r, 'Senate') && cardCount(xRacesHTML(r)) === 1);
+})();
+
+/* ---------- 17. level + chamber filters compose ---------- */
+(function () {
+  var r = run({ backend: { races_list: DB() } });
+  clickLvl(r, 'local');
+  clickCham(r, 'House');
+  ok('chamber=House under Down-ballot -> 0 (locals have no chamber)', cardCount(xRacesHTML(r)) === 0);
 })();
 
 if (failures) { console.error('\n' + failures + ' FAILURE(S)'); process.exit(1); }

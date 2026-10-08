@@ -8,6 +8,10 @@
    Backend contract (backend crew, Political HQ expansion #3):
      races_list -> {ok, races:[...], count, total, last_updated, stale}
      races_get {id} -> {ok, race:{...}}   (detail drill-down)
+   - v84 down-ballot: races carry `level` ("federal" | "local"); local rows
+     have no chamber (null) and render with office as the headline.
+   - v84 KILL (new filter UI only): ?pf_off=downballot hides the Federal /
+     Down-ballot / All toggle; the board falls back to showing all races.
    - last_updated: top-level board timestamp.
    - stale: TOP-LEVEL flag (authoritative — never silent). A board-level
      stale banner renders whenever it is set, in addition to per-race logic.
@@ -128,9 +132,12 @@ function isWatched(id){
 }
 /* ---------- state ---------- */
 var RACES=null,            /* normalized races from races_list */
+/* v84 down-ballot kill switch: ?pf_off=downballot hides ONLY the new
+   Federal / Down-ballot / All toggle (board keeps rendering, all levels). */
+    DB_LEVEL_UI=!(window.PF && window.PF.skip && window.PF.skip("downballot")),
     LIST_UPDATED=null,     /* backend top-level last_updated */
     LIST_STALE=false,      /* backend top-level stale flag (authoritative) */
-    F={chamber:"all",state:"all",sort:"comp"},  /* filters */
+    F={chamber:"all",state:"all",sort:"comp",level:"all"},  /* filters */
     EXPANDED={},           /* id -> true (detail open) */
     DETAIL={};             /* id -> races_get payload (cached) */
 /* ---------- rating normalization ---------- */
@@ -174,9 +181,12 @@ function normCands(c){
 }
 function normRace(r){
   var cands=normCands(r.candidates);
+  /* v84: level discriminator; pre-v84 rows (no level) are federal. */
+  var lvl=String(r.level||"").toLowerCase()==="local"?"local":"federal";
   return {
     id:String(r.id!=null?r.id:""),
     state:String(r.state||""),
+    level:lvl,
     chamber:chamberOf(r),
     office:String(r.office||""),
     seat:String(r.seat||r.district||""),
@@ -290,6 +300,16 @@ function controlsHTML(){
     h+='<button class="rc-cham'+(F.chamber===chs[i][0]?" rc-on":"")+'" data-rc-cham="'+chs[i][0]+'" aria-pressed="'+(F.chamber===chs[i][0])+'">'+esc(chs[i][1])+'</button>';
   }
   h+='</div></div>';
+  /* v84: Federal / Down-ballot / All toggle. Kill-switched by
+     ?pf_off=downballot (UI hidden, board falls back to All). */
+  if (DB_LEVEL_UI) {
+    h+='<div class="rc-fgroup"><span class="rc-label">Level</span><div class="rc-lvlwrap" role="group" aria-label="Level filter">';
+    var lvs=[["all","All"],["federal","Federal"],["local","Down-ballot"]];
+    for(i=0;i<lvs.length;i++){
+      h+='<button class="rc-lvl'+(F.level===lvs[i][0]?" rc-on":"")+'" data-rc-lvl="'+lvs[i][0]+'" aria-pressed="'+(F.level===lvs[i][0])+'">'+esc(lvs[i][1])+'</button>';
+    }
+    h+='</div></div>';
+  }
   h+='<div class="rc-fgroup"><label class="rc-label" for="rcState">State</label>'
     +'<select class="rc-select" id="rcState"><option value="all">All states</option>';
   for(i=0;i<sl.length;i++){
@@ -308,6 +328,7 @@ function filteredSorted(){
   var out=[], i;
   for(i=0;i<(RACES||[]).length;i++){
     var r=RACES[i];
+    if(F.level!=="all"&&r.level!==F.level) continue;
     if(F.chamber!=="all"&&r.chamber!==F.chamber) continue;
     if(F.state!=="all"&&r.state!==F.state) continue;
     out.push(r);
@@ -418,10 +439,19 @@ function shareRaceCall(id){
 }
 function cardHTML(r){
   var h='<article class="rc-card" data-rc-id="'+esc(r.id)+'">';
-  h+='<div class="rc-top"><div class="rc-title">'+esc(r.state)+(r.office?" &mdash; "+esc(r.office):"")+'</div>';
-  if(r.chamber) h+='<span class="rc-badge '+(r.chamber==="Senate"?"rc-senate":"rc-house")+'">'+esc(r.chamber.toUpperCase())+'</span>';
-  h+='</div>';
-  if(r.seat) h+='<div class="rc-seat">'+esc(r.seat)+'</div>';
+  var isLocal=r.level==="local";
+  if(isLocal&&r.office){
+    /* Down-ballot: office is the headline, no chamber badge (local rows
+       have no chamber). State is kept as a small line. */
+    h+='<div class="rc-top"><div class="rc-title">'+esc(r.office)+'</div>';
+    h+='<span class="rc-badge rc-local">DOWN-BALLOT</span></div>';
+  } else {
+    h+='<div class="rc-top"><div class="rc-title">'+esc(r.state)+(r.office?" &mdash; "+esc(r.office):"")+'</div>';
+    if(r.chamber) h+='<span class="rc-badge '+(r.chamber==="Senate"?"rc-senate":"rc-house")+'">'+esc(r.chamber.toUpperCase())+'</span>';
+    h+='</div>';
+  }
+  if(r.seat&&r.seat!==r.office) h+='<div class="rc-seat">'+esc(r.seat)+'</div>';
+  if(isLocal&&r.state) h+='<div class="rc-state">'+esc(r.state)+'</div>';
   h+=staleBanner(r);
   h+='<div class="rc-rate-row">'+ratingChip(r)+'<div class="rc-source">'+sourceLine(r)+'</div></div>';
   h+=callHTML(r);
@@ -492,6 +522,13 @@ function wireControls(el){
     (function(btn){
       btn.onclick=function(){ F.chamber=btn.getAttribute("data-rc-cham"); render(); };
     })(cb[i]);
+  }
+  /* v84 level toggle (absent when ?pf_off=downballot). */
+  var lb=el.querySelectorAll("[data-rc-lvl]");
+  for(var k=0;k<lb.length;k++){
+    (function(btn){
+      btn.onclick=function(){ F.level=btn.getAttribute("data-rc-lvl"); render(); };
+    })(lb[k]);
   }
   var ss=document.getElementById("rcState");
   if(ss) ss.onchange=function(){ F.state=ss.value; render(); };

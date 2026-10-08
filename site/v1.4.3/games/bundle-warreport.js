@@ -34,7 +34,7 @@
 <div class="fe-block pf-override-block" id="pf-warreport">
 <h2>&#9876; War Report</h2>
 <div class="c-tag">The week that was, straight from Command. Read it. Then move.</div>
-<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>
+<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#e5383b;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>
 <div id="xWarReport"><div class="c-load">Requesting the report&hellip;</div></div>
 <div data-react-surface="war-report" aria-label="React to the War Report"></div>
 </div>
@@ -76,7 +76,7 @@ function wrCss(){
     +".wr-lines{padding:10px 12px}"
     +".wr-tx{font-family:Arial,sans-serif;font-size:14px;color:#ddd;line-height:1.55;margin:0 0 6px}"
     +".wr-li{font-family:Arial,sans-serif;font-size:14px;color:#ddd;line-height:1.55;margin:0 0 6px;padding-left:18px;position:relative}"
-    +".wr-li:before{content:'\\u25B8';color:#c1121f;position:absolute;left:2px}"
+    +".wr-li:before{content:'\\u25B8';color:#e5383b;position:absolute;left:2px}"
     +".wr-nav{display:flex;align-items:center;gap:8px;margin:0 0 12px}"
     +".wr-weeksel{flex:1;background:#161616;color:#f5ead6;border:1px solid #555;font:bold 13px monospace;padding:8px}"
     +".wr-navbtn{padding:8px 12px!important}"
@@ -88,7 +88,7 @@ function wrCss(){
        utility buttons below ride .c-btn.ghost (non-red). */
     +".wr-contract{font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e8b64c;margin:0 0 14px}"
     +".wr-item{margin:0 0 26px}"
-    +".wr-orders-kicker{font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#c1121f;margin:16px 0 8px}"
+    +".wr-orders-kicker{font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#e5383b;margin:16px 0 8px}"
     +".wr-orders-cta{margin:0 0 4px}";
   document.head.appendChild(s);
 }
@@ -263,31 +263,91 @@ function wrReportPoster(){
     var r=WR_LAST; if(!r) return null;
     var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
     var x=cv.getContext("2d"); if(!x) return null;
-    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-H; btD<W+H; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    x.fillStyle=btVg; x.fillRect(0,0,W,H);
+    var btBar=x.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    x.fillStyle=btBar; x.fillRect(0,0,W,10);
+    x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+    x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+    x.fillText("★",W/2,H*0.60); x.restore();
     x.textAlign="center";
-    var y=170;
-    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=110;
-    x.fillStyle="#c1121f"; x.font="900 76px 'Arial Black',Arial,sans-serif";
+    var y=130;
+    /* kicker: letterspaced gold */
+    x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("THE PROPAGANDA FACTORY",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e2){}
+    y+=36;
+    x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(W/2-150,y); x.lineTo(W/2+150,y); x.stroke();
+    y+=82;
+    /* masthead: monumental serif, red gradient */
+    x.font='900 80px Georgia,"Times New Roman",serif';
+    var btFg=x.createLinearGradient(0,y-80,0,y);
+    btFg.addColorStop(0,"#e63946"); btFg.addColorStop(1,btRD);
+    x.fillStyle=btFg;
     x.fillText("WAR REPORT",W/2,y); y+=100;
-    x.fillStyle="#e8b64c"; x.font="700 38px Arial,sans-serif";
-    x.fillText("WEEK OF "+String(r.week_start||"").toUpperCase(),W/2,y); y+=110;
+    x.fillStyle=btG; x.font="700 32px Arial,sans-serif";
+    try{ x.letterSpacing="8px"; }catch(e3){}
+    x.fillText("WEEK OF "+String(r.week_start||"").toUpperCase(),W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e4){}
+    y+=92;
+    /* red diamond rule */
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.beginPath(); x.moveTo(W/2-190,y); x.lineTo(W/2-26,y); x.stroke();
+    x.beginPath(); x.moveTo(W/2+26,y); x.lineTo(W/2+190,y); x.stroke();
+    x.save(); x.translate(W/2,y); x.rotate(Math.PI/4);
+    x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+    y+=72;
     var p=parseReport(r.body||""), shown=0;
-    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
+    x.fillStyle=btC; x.font='400 36px Georgia,"Times New Roman",serif';
     for(var i=0;i<p.secs.length&&shown<4;i++){
       var sec=p.secs[i];
       for(var j=0;j<sec.lines.length&&shown<4;j++){
         var t=String(sec.lines[j]).replace(/^\\s+|\\s+$/g,"").replace(/^[-•*]\\s*/,"");
         if(!t||t.length>90) continue;
-        x.fillText(t.length>64?t.slice(0,61)+"...":t,W/2,y); y+=58; shown++;
+        x.fillText(t.length>64?t.slice(0,61)+"...":t,W/2,y); y+=56; shown++;
       }
     }
-    x.fillStyle="#c1121f"; x.font="900 52px 'Arial Black',Arial,sans-serif";
-    x.fillText("MTCSTW.COM",W/2,H-168);
-    x.font="900 46px 'Arial Black',Arial,sans-serif";
-    x.fillText("JOIN THE FIGHT.",W/2,H-104);
+    /* source citation */
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.letterSpacing="2px"; }catch(e5){}
+    x.fillText("SOURCE — THE WAR REPORT DESK",W/2,H-252);
+    try{ x.letterSpacing="0px"; }catch(e6){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=H-215;
+    x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+    fy+=58;
+    x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+    try{ x.letterSpacing="8px"; }catch(e7){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=x.measureText(btCta).width;
+    x.fillText(btCta,W/2,fy);
+    x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+    try{ x.letterSpacing="0px"; }catch(e8){}
+    fy+=52;
+    x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e9){}
+    x.fillText("MTCSTW.COM",W/2,fy);
+    try{ x.letterSpacing="0px"; }catch(e10){}
+    fy+=42;
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.fillText(String(r.week_start||"").toUpperCase(),W/2,fy); }catch(e11){}
+    var btBar2=x.createLinearGradient(0,H-10,0,H);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
     return cv;
   }catch(e){ return null; }
 }
@@ -381,27 +441,98 @@ function wrPaintFavPoster(name,votes){
   try{
     var W=1080,H=1350,cv=document.createElement("canvas"); cv.width=W; cv.height=H;
     var x=cv.getContext("2d"); if(!x){ toast("Canvas unavailable."); return; }
-    x.fillStyle="#0d0d0d"; x.fillRect(0,0,W,H);
-    x.strokeStyle="#c1121f"; x.lineWidth=18; x.strokeRect(16,16,W-32,H-32);
-    x.strokeStyle="#f5ead6"; x.lineWidth=3; x.strokeRect(52,52,W-104,H-104);
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR="#c1121f", btRD="#7d0b16", btC="#f2ecdc", btG="#c9a227",
+        btM="#a89a7d", btF="#6f6350";
+    x.fillStyle="#0e0d0c"; x.fillRect(0,0,W,H);
+    x.save(); x.globalAlpha=0.032; x.strokeStyle="#ffffff"; x.lineWidth=1;
+    for(var btD=-H; btD<W+H; btD+=26){
+      x.beginPath(); x.moveTo(btD,0); x.lineTo(btD+H,H); x.stroke();
+    }
+    x.restore();
+    var btVg=x.createRadialGradient(W/2,H*0.40,H*0.16,W/2,H*0.50,H*0.85);
+    btVg.addColorStop(0,"rgba(0,0,0,0)"); btVg.addColorStop(1,"rgba(0,0,0,0.55)");
+    x.fillStyle=btVg; x.fillRect(0,0,W,H);
+    var btBar=x.createLinearGradient(0,0,0,10);
+    btBar.addColorStop(0,btR); btBar.addColorStop(1,btRD);
+    x.fillStyle=btBar; x.fillRect(0,0,W,10);
+    x.save(); x.globalAlpha=0.05; x.fillStyle=btC;
+    x.font="900 620px Arial,sans-serif"; x.textAlign="center";
+    x.fillText("★",W/2,H*0.60); x.restore();
     x.textAlign="center";
-    var y=180;
-    x.fillStyle="#f5ead6"; x.font="700 34px Arial,sans-serif";
-    x.fillText("\u2605 THE PROPAGANDA FACTORY \u2605",W/2,y); y+=110;
-    x.fillStyle="#c1121f"; x.font="900 72px 'Arial Black',Arial,sans-serif";
-    x.fillText("\u2605 FAN FAVORITE \u2605",W/2,y); y+=110;
-    x.fillStyle="#f5ead6"; x.font="900 64px 'Arial Black',Arial,sans-serif";
-    wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=78; });
-    y+=30;
-    x.fillStyle="#c9bfa8"; x.font="700 40px Arial,sans-serif";
-    x.fillText("PROPAGANDIST OF THE WEEK",W/2,y); y+=70;
-    x.fillStyle="#e8b64c"; x.font="700 36px Arial,sans-serif";
-    x.fillText(Number(votes||0)+" NETWORK VOTES",W/2,y);
-    /* Footer: MTCSTW.COM + JOIN THE FIGHT. (red, bold) — the share-image CTA standard. */
-    x.fillStyle="#c1121f"; x.font="900 48px 'Arial Black',Arial,sans-serif";
-    x.fillText("MTCSTW.COM",W/2,H-168);
-    x.font="900 44px 'Arial Black',Arial,sans-serif";
-    x.fillText("JOIN THE FIGHT.",W/2,H-108);
+    var y=140;
+    /* kicker: letterspaced gold */
+    x.fillStyle=btG; x.font="700 27px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e){}
+    x.fillText("THE PROPAGANDA FACTORY",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e2){}
+    y+=36;
+    x.strokeStyle="rgba(201,162,39,0.5)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(W/2-150,y); x.lineTo(W/2+150,y); x.stroke();
+    y+=86;
+    /* masthead: monumental serif, red gradient */
+    x.font='900 76px Georgia,"Times New Roman",serif';
+    var btFg=x.createLinearGradient(0,y-76,0,y);
+    btFg.addColorStop(0,"#e63946"); btFg.addColorStop(1,btRD);
+    x.fillStyle=btFg;
+    x.fillText("★ FAN FAVORITE ★",W/2,y); y+=110;
+    /* champion name: monumental serif cream */
+    x.fillStyle=btC; x.font='900 68px Georgia,"Times New Roman",serif';
+    wrWrap(x,String(name).toUpperCase(),W-180).slice(0,3).forEach(function(l){ x.fillText(l,W/2,y); y+=82; });
+    y+=24;
+    /* red diamond rule */
+    x.strokeStyle=btR; x.lineWidth=2;
+    x.beginPath(); x.moveTo(W/2-190,y); x.lineTo(W/2-26,y); x.stroke();
+    x.beginPath(); x.moveTo(W/2+26,y); x.lineTo(W/2+190,y); x.stroke();
+    x.save(); x.translate(W/2,y); x.rotate(Math.PI/4);
+    x.fillStyle=btR; x.fillRect(-9,-9,18,18); x.restore();
+    y+=74;
+    x.fillStyle=btG; x.font="700 34px Arial,sans-serif";
+    try{ x.letterSpacing="8px"; }catch(e3){}
+    x.fillText("PROPAGANDIST OF THE WEEK",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e4){}
+    y+=96;
+    /* the figure: monumental gold gradient, drop shadow */
+    x.font='900 96px Georgia,"Times New Roman",serif';
+    var btFig=String(Number(votes||0));
+    x.fillStyle="rgba(0,0,0,0.55)";
+    x.fillText(btFig,W/2+5,y+7);
+    var btGg=x.createLinearGradient(0,y-96,0,y);
+    btGg.addColorStop(0,"#f0d060"); btGg.addColorStop(1,"#8a6d1c");
+    x.fillStyle=btGg;
+    x.fillText(btFig,W/2,y); y+=78;
+    x.fillStyle=btM; x.font="700 30px Arial,sans-serif";
+    try{ x.letterSpacing="8px"; }catch(e5){}
+    x.fillText("NETWORK VOTES",W/2,y);
+    try{ x.letterSpacing="0px"; }catch(e6){}
+    /* source citation */
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.letterSpacing="2px"; }catch(e7){}
+    x.fillText("SOURCE — THE PROPAGANDIST OF THE WEEK BALLOT",W/2,H-252);
+    try{ x.letterSpacing="0px"; }catch(e8){}
+    /* ---- butter footer: CTA standard ---- */
+    var fy=H-215;
+    x.strokeStyle="rgba(201,162,39,0.45)"; x.lineWidth=1;
+    x.beginPath(); x.moveTo(120,fy); x.lineTo(W-120,fy); x.stroke();
+    fy+=58;
+    x.font="900 44px Arial,sans-serif"; x.fillStyle=btC;
+    try{ x.letterSpacing="8px"; }catch(e9){}
+    var btCta="JOIN THE FIGHT";
+    var btCtaW=x.measureText(btCta).width;
+    x.fillText(btCta,W/2,fy);
+    x.fillStyle=btR; x.fillText(".",W/2+btCtaW/2-4,fy);
+    try{ x.letterSpacing="0px"; }catch(e10){}
+    fy+=52;
+    x.fillStyle=btR; x.font="900 32px Arial,sans-serif";
+    try{ x.letterSpacing="10px"; }catch(e11){}
+    x.fillText("MTCSTW.COM",W/2,fy);
+    try{ x.letterSpacing="0px"; }catch(e12){}
+    fy+=42;
+    x.fillStyle=btF; x.font="400 24px Arial,sans-serif";
+    try{ x.fillText(new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}).toUpperCase(),W/2,fy); }catch(e13){}
+    var btBar2=x.createLinearGradient(0,H-10,0,H);
+    btBar2.addColorStop(0,btRD); btBar2.addColorStop(1,btR);
+    x.fillStyle=btBar2; x.fillRect(0,H-10,W,10);
     if(window.PFShare&&PFShare.shareImage) PFShare.shareImage(cv,"pfn-fan-favorite.png","Fan Favorite — "+name,"fan-favorite");
     else toast("Share engine still loading.");
   }catch(e){ toast("Poster failed — try again."); }

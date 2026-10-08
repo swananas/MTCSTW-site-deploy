@@ -118,7 +118,7 @@
     s.id = "pf-theater-css";
     s.textContent =
       "#pf-ranks .th-rack{margin-top:22px;border-top:2px solid #c1121f;padding-top:18px;text-align:center}"
-      + "#pf-ranks .th-head{font-size:22px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:4px}"
+      + "#pf-ranks .th-head{font-size:22px;letter-spacing:4px;color:#e5383b;text-transform:uppercase;margin-bottom:4px}"
       + "#pf-ranks .th-sub{font-family:Arial,sans-serif;font-size:12px;color:#c9bfa8;margin-bottom:14px;letter-spacing:1px;line-height:1.5}"
       + "#pf-ranks .th-load{font-family:Arial,sans-serif;font-size:12px;color:#777;padding:12px}"
       + "#pf-ranks .th-gate{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;padding:14px;border:1px dashed #555;line-height:1.6}"

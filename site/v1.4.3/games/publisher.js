@@ -588,7 +588,7 @@
     var el = document.getElementById('pubChecklist');
     if (!el) return;
     el.innerHTML = state.checklist.map(function (it) {
-      var icon = it.ok ? '<span style="color:#3fb950">&#10003;</span>' : '<span style="color:#c1121f">&#10007;</span>';
+      var icon = it.ok ? '<span style="color:#3fb950">&#10003;</span>' : '<span style="color:#e5383b">&#10007;</span>';
       return '<div style="padding:3px 0">' + icon + ' <b>' + esc(it.label) + '</b>'
         + (it.detail ? ' <span class="x-note">&mdash; ' + esc(it.detail) + '</span>' : '') + '</div>';
     }).join('');

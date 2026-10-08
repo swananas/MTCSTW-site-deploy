@@ -334,7 +334,7 @@
         return { t: isNaN(t) ? null : t, y: Number(o.value) };
       }).filter(function (p) { return p.t != null && isFinite(p.y); });
       var cpiReb = pctSince(cpiPts);
-      var series = [{ label: 'Official CPI-U (BLS)', color: '#c1121f', pts: cpiReb }];
+      var series = [{ label: 'Official CPI-U (BLS)', color: '#e5383b', pts: cpiReb }];
       var piNote = '';
       var pi = (piJ && piJ.ok && Array.isArray(piJ.peoples_index)) ? piJ.peoples_index : [];
       if (pi.length) {
@@ -408,7 +408,7 @@
       var chart = svgLine([
         { label: 'Median real earnings growth (SA)', color: '#e8b923',
           pts: pts.map(function (p) { return { t: p.t, y: p.w }; }) },
-        { label: 'Price growth — CPI-U (NSA)', color: '#c1121f',
+        { label: 'Price growth — CPI-U (NSA)', color: '#e5383b',
           pts: pts.map(function (p) { return { t: p.t, y: p.c }; }) }
       ], {});
       var h = '<div class="pf-fe-chart">' +

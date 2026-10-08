@@ -276,7 +276,7 @@
       : 'You have a squad now. Three moves to become dangerous.';
 
     card.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.16em;font-size:.85rem;margin-bottom:.3rem;">' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:.16em;font-size:.85rem;margin-bottom:.3rem;">' +
       '&#9873; ' + kicker + '</div>' +
       '<div style="color:#f5ead6;font-weight:900;font-size:1.35rem;letter-spacing:.04em;margin-bottom:.3rem;">' +
       title + '</div>' +

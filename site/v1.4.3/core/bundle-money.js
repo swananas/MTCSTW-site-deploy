@@ -74,7 +74,7 @@
     '.pf-ws-billtitle{font:700 18px Arial,sans-serif;color:#f5ead6}',
     '.pf-ws-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 6px 10px}',
     '.pf-ws-card{flex:0 0 86%;scroll-snap-align:center;background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
-    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-ws-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e5383b;margin-bottom:10px}',
     '.pf-ws-bill{font:700 16px Arial,sans-serif;color:#e8b923;margin-bottom:12px}',
     '.pf-ws-name{font:900 34px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
     '.pf-ws-sub{font:700 16px Arial,sans-serif;color:#c9bfa8;margin-bottom:14px}',
@@ -778,13 +778,13 @@
       '.pf-rr .pf-pat-data{margin:12px 0 4px}' +
       /* P2 fallback (patterns killed): same contract, legacy classes */
       '.pf-rr-card{background:#0a0a0a;border:1px solid #2a2a2a;border-top:3px solid #c1121f;border-radius:4px;padding:16px;margin:0 0 16px}' +
-      '.pf-rr-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;margin:0 0 6px}' +
+      '.pf-rr-kicker{color:#e5383b;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:700;margin:0 0 6px}' +
       '.pf-rr-h{font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:17px;color:#fff;margin:0 0 8px;line-height:1.3}' +
       '.pf-rr-mech{font-size:14px;color:#fff;margin:0 0 12px;line-height:1.45}' +
       /* P4 fallback (patterns killed): same contract, legacy classes */
       '.pf-rr-dstrip{text-align:center;padding:18px 12px;margin:12px 0}' +
       '.pf-rr-dfig{font-size:44px;font-weight:bold;color:#fff;line-height:1.1;margin:0}' +
-      '.pf-rr-dlabel{color:#c1121f;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold;margin:8px 0 0}' +
+      '.pf-rr-dlabel{color:#e5383b;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:bold;margin:8px 0 0}' +
       '.pf-rr-dsrc{color:#8a8a8a;font-size:11px;line-height:1.5;margin:12px 0 0}' +
       '.pf-rr-dtime{color:#8a8a8a;font-size:11px;letter-spacing:1px;margin:2px 0 0}' +
       /* the wonks' table: one tap deep, never the lead */
@@ -1099,23 +1099,44 @@
   }
 
   /* ---------------- share posters (canvas, no free text in pixels) ---------------- */
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only — wrapText,
+     takeLine/bar data, item+basket registration, share plumbing untouched. */
+  function butterGround(x) {
+    var g = x.createLinearGradient(0, 0, 0, 1350);
+    g.addColorStop(0, '#131316'); g.addColorStop(0.5, '#0a0a0c'); g.addColorStop(1, '#060607');
+    x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
+    var v = x.createRadialGradient(540, 430, 90, 540, 675, 830);
+    v.addColorStop(0, 'rgba(245,234,214,0.035)'); v.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = v; x.fillRect(0, 0, 1080, 1350);
+    var rh = x.createLinearGradient(0, 0, 1080, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(86, 32, 908, 5);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(52, 52, 976, 1246);
+  }
+  function butterTrack(x, text, cx, y, ls) {
+    var chs = String(text).split(''), ws = [], tot = 0, i, w;
+    for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+    tot += ls * Math.max(0, chs.length - 1);
+    var pen = cx - tot / 2, pa = x.textAlign; x.textAlign = 'left';
+    for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+    x.textAlign = pa;
+  }
   function basePoster(title, sub) {
     var cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1350;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 18; x.strokeRect(16, 16, 1048, 1318);
+    butterGround(x);
     x.textAlign = 'center';
-    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', 540, 130);
-    x.fillStyle = '#c1121f'; x.font = '900 76px "Arial Black",Arial,sans-serif';
-    wrapText(x, 'THE ROBBERY REPORT', 910).forEach(function (l, i) { x.fillText(l, 540, 230 + i * 88); });
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    var y = 380;
+    x.fillStyle = '#c9bfa8'; x.font = '700 30px Arial,sans-serif';
+    butterTrack(x, 'THE PROPAGANDA FACTORY', 540, 130, 8);
+    x.fillStyle = '#c1121f'; x.font = 'bold 74px Georgia, "Times New Roman", serif';
+    wrapText(x, 'THE ROBBERY REPORT', 910).forEach(function (l, i) { x.fillText(l, 540, 232 + i * 86); });
+    x.fillStyle = '#f5ead6'; x.font = 'bold 40px Georgia, "Times New Roman", serif';
+    var y = 386;
     wrapText(x, title, 910).forEach(function (l) { x.fillText(l, 540, y); y += 54; });
-    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
-    wrapText(x, sub, 910).forEach(function (l) { x.fillText(l, 540, y); y += 44; });
+    x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial,sans-serif';
+    wrapText(x, sub, 910).forEach(function (l) { butterTrack(x, l, 540, y, 3); y += 46; });
     return { cv: cv, x: x, y: y };
   }
   function wrapText(x, text, maxW) {
@@ -1130,12 +1151,16 @@
   function footerPoster(p) {
     var x = p.x, cv = p.cv;
     x.textAlign = 'center';
-    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 30px Arial,sans-serif';
+    var fg = x.createLinearGradient(0, 0, 1080, 0);
+    fg.addColorStop(0, 'rgba(201,191,168,0)'); fg.addColorStop(0.5, '#5a5344'); fg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = fg; x.fillRect(172, 1030, 736, 2);
+    /* the source citation, first: their own filings */
+    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 30px Georgia, "Times New Roman", serif';
     x.fillText('Estimated from their own filings.', 540, 1080);
     x.fillStyle = '#c1121f'; x.font = '900 46px "Arial Black",Arial,sans-serif';
     x.fillText('JOIN THE FIGHT.', 540, 1180);
-    x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', 540, 1240);
+    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
+    butterTrack(x, 'MTCSTW.COM', 540, 1240, 10);
     try {
       x.fillStyle = '#8f887a'; x.font = '400 26px Arial,sans-serif';
       x.fillText(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), 540, 1290);
@@ -1161,7 +1186,8 @@
         var p = basePoster(it.name.toUpperCase(), 'YOU PAID ' + (it.price != null ? money(it.price) : '—'));
         if (!p) { done(null); return; }
         var x = p.x, y = p.y + 40;
-        x.fillStyle = '#e8352e'; x.font = '900 56px "Arial Black",Arial,sans-serif';
+        /* butter: the take is the hero — serif red */
+        x.fillStyle = '#e8352e'; x.font = 'bold 56px Georgia, "Times New Roman", serif';
         wrapText(x, takeLine, 910).forEach(function (l) { x.fillText(l, 540, y); y += 68; });
         /* split bar */
         var total = bar.reduce(function (a, b) { return a + b; }, 0) || 1;
@@ -1191,7 +1217,8 @@
         var x = p.x, y = p.y + 60;
         x.fillStyle = '#f5ead6'; x.font = '700 44px Arial,sans-serif';
         x.fillText('YOU PAID ' + money(b.paid), 540, y); y += 80;
-        x.fillStyle = '#e8352e'; x.font = '900 64px "Arial Black",Arial,sans-serif';
+        /* butter: the take is the hero — serif red */
+        x.fillStyle = '#e8352e'; x.font = 'bold 64px Georgia, "Times New Roman", serif';
         x.fillText('THEIR TAKE \u2248 ' + money(b.take), 540, y); y += 76;
         x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
         x.fillText('\u2248' + b.takePct + '% of your ' + money(b.paid), 540, y);
@@ -1872,7 +1899,7 @@
     '.pf-mv-name{font:900 20px "Arial Black",Arial,sans-serif;color:#f5ead6}',
     '.pf-mv-sub{display:block;font:700 13px Arial,sans-serif;color:#c9bfa8;margin-top:4px}',
     '.pf-mv-vote{font:700 15px Arial,sans-serif;color:#e8b923;margin:8px 0}',
-    '.pf-mv-vote b{color:#c1121f}',
+    '.pf-mv-vote b{color:#e5383b}',
     '.pf-mv-inds{list-style:none;margin:0;padding:0}',
     '.pf-mv-inds li{font:400 15px Arial,sans-serif;color:#c9bfa8;padding:4px 0}',
     '.pf-mv-inds li b{color:#f5ead6}',
@@ -2024,7 +2051,7 @@
   var CSS = [
     '.pf-ledger{max-width:680px;margin:0 auto;padding:8px 0}',
     '.pf-ledger-head{text-align:center;margin-bottom:10px}',
-    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:8px}',
+    '.pf-ledger-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e5383b;margin-bottom:8px}',
     '.pf-ledger-title{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 6px}',
     '.pf-ledger-sub{font:400 14px Arial,sans-serif;color:#c9bfa8;margin-bottom:4px}',
     '.pf-ledger-row{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:20px 20px 18px;margin:0 0 14px;color:#f5ead6}',
@@ -2490,14 +2517,14 @@
   var CSS = [
     '.pf-cp{max-width:680px;margin:0 auto;padding:8px 0}',
     '.pf-cp-card{background:#0d0d0d;border:2px solid #c1121f;border-radius:10px;padding:26px 22px;color:#f5ead6;text-align:center}',
-    '.pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
+    '.pf-cp-kicker{font:700 15px Arial,sans-serif;letter-spacing:6px;color:#e5383b;margin-bottom:10px}',
     '.pf-cp-name{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 4px}',
     '.pf-cp-ticker{font:700 15px Arial,sans-serif;color:#e8b923;margin-bottom:16px}',
     '.pf-cp-vs{display:flex;gap:12px;margin-bottom:8px}',
     '.pf-cp-col{flex:1;background:#141414;border:1px solid #3a3a3a;border-radius:8px;padding:14px 8px}',
     '.pf-cp-lab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:8px}',
     '.pf-cp-amt{font:900 30px "Arial Black",Arial,sans-serif;color:#f5ead6}',
-    '.pf-cp-amt.red{color:#c1121f}',
+    '.pf-cp-amt.red{color:#e5383b}',
     '.pf-cp-rate{font:900 22px "Arial Black",Arial,sans-serif;color:#e8b923;margin:14px 0 4px}',
     '.pf-cp-ratelab{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#c9bfa8;margin-bottom:12px}',
     '.pf-cp-lob{font:700 16px Arial,sans-serif;color:#f5ead6;margin-bottom:4px}',
@@ -4201,16 +4228,39 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 92;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 110;
     x.textAlign = 'center';
-    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('STACK \u2019EM \u00B7 OFFICIAL DATA \u00B7 FRED', cx, y); y += 66;
-    /* headline */
-    x.fillStyle = '#f5ead6'; x.font = '900 46px Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 30;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 66;
+    /* headline: monumental serif */
+    x.fillStyle = btC; x.font = '900 48px Georgia,"Times New Roman",serif';
     var hl = wrapText(x, j.headline || '', W - 140);
-    for (var i = 0; i < hl.length && i < 4; i++) { x.fillText(hl[i], cx, y); y += 56; }
+    for (var i = 0; i < hl.length && i < 4; i++) { x.fillText(hl[i], cx, y); y += 60; }
     y += 16;
     /* mini chart: first two legs */
     var legs = (j.legs || []).filter(function (l) { return l.points && l.points.length > 1; }).slice(0, 2);
@@ -4233,11 +4283,12 @@
         });
         x.stroke();
       });
-      x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+      x.fillStyle = btF; x.font = 'italic 400 24px Georgia,serif';
       x.fillText('axis starts at ' + lo.toFixed(1) + ' \u2014 not zero', cx, chY + chH + 34);
       y = chY + chH + 70;
       /* legend (Prohibition 2: SA/NSA inline) */
       x.font = '700 26px Arial,sans-serif';
+      try { x.letterSpacing = '2px'; } catch (e3) {}
       legs.forEach(function (l, li) {
         x.fillStyle = LEG_COLORS[li % LEG_COLORS.length];
         var sa1 = String(l.sa_nsa || '').toUpperCase();
@@ -4245,29 +4296,53 @@
         x.fillText('\u2014 ' + (l.title || l.series_id) + saLbl1, cx, y);
         y += 36;
       });
+      try { x.letterSpacing = '0px'; } catch (e4) {}
       y += 10;
     }
     /* read: first two sentences */
-    x.fillStyle = '#c9bfa8'; x.font = '400 30px Arial,sans-serif';
+    x.fillStyle = btM; x.font = '400 30px Georgia,"Times New Roman",serif';
     var rs = (j.read || []).slice(0, 2).join(' ');
     var rl = wrapText(x, rs, W - 160);
     for (var r2 = 0; r2 < rl.length && r2 < 3; r2++) { x.fillText(rl[r2], cx, y); y += 40; }
     y += 24;
-    /* source strips */
-    x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+    /* source strips: hairline box */
+    x.font = '400 22px Georgia,serif';
+    var btStrips = [];
     (j.citations || []).forEach(function (c) {
       if (!c) return;
-      var cl = wrapText(x, String(c), W - 160);
-      for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, y); y += 32; }
+      wrapText(x, String(c), W - 240).slice(0, 2).forEach(function (l) { btStrips.push(l); });
     });
-    y += 10;
-    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
-    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 70;
-    /* CTA */
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 58;
-    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', cx, y);
+    btStrips = btStrips.slice(0, 4);
+    if (btStrips.length) {
+      var btSh = btStrips.length * 32 + 40;
+      x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+      x.strokeRect(cx - (W - 220)/2, y, W - 220, btSh);
+      x.fillStyle = btC;
+      for (var c2 = 0; c2 < btStrips.length; c2++) { x.fillText(btStrips[c2], cx, y + 38 + c2 * 32); }
+      y += btSh + 30;
+    } else { y += 10; }
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e5) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 
@@ -4738,35 +4813,89 @@
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 110;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 120;
     x.textAlign = 'center';
-    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('YOUR MONEY, EXPLAINED \u00B7 FRED', cx, y); y += 90;
-    x.fillStyle = '#f5ead6'; x.font = '900 64px Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 40;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 84;
+    /* headline: monumental serif */
+    x.fillStyle = btC; x.font = '900 62px Georgia,"Times New Roman",serif';
     var fl = wrapText(x, (j.figure && j.figure.headline) || '', W - 140);
     for (var i = 0; i < fl.length && i < 3; i++) { x.fillText(fl[i], cx, y); y += 74; }
-    y += 30;
-    /* takeaway: beat 4, first sentence */
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(cx - 190, y); x.lineTo(cx - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 26, y); x.lineTo(cx + 190, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-8, -8, 16, 16); x.restore();
+    y += 62;
+    /* takeaway: beat 4, first sentence — quiet serif */
     var b4 = '';
     (j.beats || []).forEach(function (b) { if (b.n === 4) b4 = b.text; });
     b4 = String(b4).split(/\. /)[0] + '.';
-    x.fillStyle = '#c9bfa8'; x.font = '400 32px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 32px Georgia,serif';
     var tl = wrapText(x, b4, W - 160);
-    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 42; }
-    y += 40;
-    x.fillStyle = '#8a8271'; x.font = '400 24px Arial,sans-serif';
+    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 44; }
+    y += 36;
+    /* source citation: hairline box with the real figure citation */
+    x.font = '700 22px Arial,sans-serif';
+    try { x.letterSpacing = '3px'; } catch (e3) {}
     var cite = (j.figure && j.figure.citation) || '';
-    var cl = wrapText(x, cite, W - 160);
-    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, y); y += 32; }
-    y += 24;
-    x.fillStyle = '#8a8271'; x.font = 'italic 400 26px Arial,sans-serif';
-    x.fillText('Info, not advice. Data: FRED.', cx, y); y += 90;
-    x.fillStyle = '#f5ead6'; x.font = '700 40px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 58;
-    x.fillStyle = '#c1121f'; x.font = '900 58px Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', cx, y);
+    var cl = wrapText(x, cite, W - 220);
+    var srcH = Math.min(cl.length, 2) * 34 + 44;
+    var sy = y;
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(cx - (W - 200)/2, sy, W - 200, srcH);
+    x.fillStyle = btC;
+    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, sy + 40 + c2 * 34); }
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y = sy + srcH + 44;
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e5) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 
@@ -5083,52 +5212,74 @@
     return lines;
   }
 
+  /* BUTTER PASS (2026-10-07): editorial restyle, visual-only. fig fields,
+     wrapText, fmtVintage, deep-link proof flow and share plumbing untouched. */
+  function butterTrack(x, text, cx, y, ls) {
+    var chs = String(text).split(''), ws = [], tot = 0, i, w;
+    for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+    tot += ls * Math.max(0, chs.length - 1);
+    var pen = cx - tot / 2, pa = x.textAlign; x.textAlign = 'left';
+    for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+    x.textAlign = pa;
+  }
   function paintStatCard(fig) {
     var W = 1080, H = 1080;
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     var x = cv.getContext('2d');
     if (!x) return null;
-    x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#c1121f'; x.fillRect(0, 0, W, 16);
-    var cx = W / 2, y = 96;
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    var vg = x.createRadialGradient(W / 2, H * 0.32, 90, W / 2, H / 2, H * 0.62);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0, 0, W, H);
+    /* red gradient hairline — the one structural red accent */
+    var rh = x.createLinearGradient(0, 0, W, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(90, 28, W - 180, 6);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(40, 46, W - 80, H - 92);
+    var cx = W / 2, y = 110;
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    /* kicker */
-    x.fillStyle = '#e8b923'; x.font = '700 34px Arial,sans-serif';
-    x.fillText('OFFICIAL DATA · FRED', cx, y); y += 28;
+    /* kicker — tracked gold authority label */
+    x.fillStyle = '#e8b923'; x.font = '700 32px Arial,sans-serif';
+    butterTrack(x, 'OFFICIAL DATA \u00b7 FRED', cx, y, 8); y += 30;
     /* SA/NSA chip */
     if (fig.sa_nsa) {
       x.font = '700 26px Arial,sans-serif';
       var chip = String(fig.sa_nsa), cw = x.measureText(chip).width + 36;
-      x.fillStyle = '#2a2a2a'; x.fillRect(cx - cw / 2, y, cw, 44);
+      x.fillStyle = '#1e1d1a'; x.fillRect(cx - cw / 2, y, cw, 44);
+      x.strokeStyle = '#3a362e'; x.lineWidth = 1; x.strokeRect(cx - cw / 2, y, cw, 44);
       x.fillStyle = '#c9bfa8'; x.fillText(chip, cx, y + 32); y += 76;
     } else { y += 30; }
-    /* title */
-    x.fillStyle = '#f5ead6'; x.font = '900 52px Arial,sans-serif';
+    /* title — serif headline */
+    x.fillStyle = '#f5ead6'; x.font = 'bold 52px Georgia, "Times New Roman", serif';
     var tl = wrapText(x, fig.title || fig.series_id || '', W - 160);
-    for (var i = 0; i < tl.length && i < 2; i++) { x.fillText(tl[i], cx, y); y += 62; }
+    for (var i = 0; i < tl.length && i < 2; i++) { x.fillText(tl[i], cx, y); y += 64; }
     y += 18;
-    /* value */
-    x.font = '900 170px Arial,sans-serif';
+    /* value — the hero number, editorial serif */
+    x.fillStyle = '#f5ead6'; x.font = 'bold 168px Georgia, "Times New Roman", serif';
     x.fillText(fig.value_label || '—', cx, y + 130); y += 210;
     /* unit + period */
-    x.fillStyle = '#c9bfa8'; x.font = '400 34px Arial,sans-serif';
+    x.fillStyle = '#c9bfa8'; x.font = 'italic 400 34px Georgia, "Times New Roman", serif';
     if (fig.unit_label) { x.fillText(fig.unit_label, cx, y); y += 48; }
     x.font = '700 40px Arial,sans-serif'; x.fillStyle = '#f5ead6';
-    x.fillText(fig.period_label || fig.period || '', cx, y); y += 62;
+    butterTrack(x, fig.period_label || fig.period || '', cx, y, 4); y += 62;
     /* change */
     if (fig.change_label) {
-      x.font = '900 52px Arial,sans-serif'; x.fillStyle = '#e8b923';
+      x.font = 'bold 52px Georgia, "Times New Roman", serif'; x.fillStyle = '#e8b923';
       x.fillText(fig.change_label, cx, y); y += 70;
     }
-    /* source stamp */
-    x.fillStyle = '#2a2a2a'; x.fillRect(80, y + 10, W - 160, 2); y += 56;
+    /* source stamp — the citation, tracked */
+    var sg = x.createLinearGradient(0, 0, W, 0);
+    sg.addColorStop(0, 'rgba(201,191,168,0)'); sg.addColorStop(0.5, '#5a5344'); sg.addColorStop(1, 'rgba(201,191,168,0)');
+    x.fillStyle = sg; x.fillRect(140, y + 8, W - 280, 2); y += 58;
     x.fillStyle = '#8a8271'; x.font = '400 28px Arial,sans-serif';
-    x.fillText('FRED · ' + (fig.series_id || '') + ' · RETRIEVED ' + fmtVintage(fig), cx, y); y += 60;
+    butterTrack(x, 'FRED \u00b7 ' + (fig.series_id || '') + ' \u00b7 RETRIEVED ' + fmtVintage(fig), cx, y, 3); y += 62;
     /* footer CTA */
-    x.fillStyle = '#f5ead6'; x.font = '700 38px Arial,sans-serif';
-    x.fillText('MTCSTW.COM', cx, y); y += 56;
-    x.fillStyle = '#c1121f'; x.font = '900 54px Arial,sans-serif';
+    x.fillStyle = '#f5ead6'; x.font = '700 36px Arial,sans-serif';
+    butterTrack(x, 'MTCSTW.COM', cx, y, 10); y += 56;
+    x.fillStyle = '#c1121f'; x.font = '900 54px "Arial Black",Arial,sans-serif';
     x.fillText('JOIN THE FIGHT.', cx, y);
     return cv;
   }
@@ -5499,7 +5650,7 @@
     } else if (lay === 'banner') {
       inner = '<div><div class="pf-mgal-fig" style="font-size:40px;">' + val + '</div>' +
         '<div style="font-size:15px;color:#c9bfa8;margin-top:8px;">' + title + ' · ' + per + '</div>' +
-        (chg ? '<div style="font-weight:900;font-size:18px;color:#c1121f;margin-top:8px;">' + chg + '</div>' : '') + '</div>';
+        (chg ? '<div style="font-weight:900;font-size:18px;color:#e5383b;margin-top:8px;">' + chg + '</div>' : '') + '</div>';
     } else if (lay === 'ticker') {
       inner = '<div style="width:100%;"><div style="display:flex;justify-content:space-between;align-items:baseline;">' +
         '<span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e8b923;">' + title + '</span>' +

@@ -862,7 +862,7 @@ function warplanCard(){
     var d=document.createElement("div");
     d.id="dpWarplan";
     d.style.cssText="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99995;background:#0a0a0a;border:2px solid #c1121f;color:#f5ead6;font:bold 14px Arial,sans-serif;padding:14px 18px;max-width:92vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.6)";
-    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;margin-bottom:6px">WELCOME BACK, SOLDIER</div>'
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#e5383b;margin-bottom:6px">WELCOME BACK, SOLDIER</div>'
       +'<a href="/#pf-warplan" style="color:#f5ead6;text-decoration:none;font-size:16px;letter-spacing:1px">YOUR WAR PLAN FOR TODAY \u2192</a>'
       +'<button id="dpWarplanX" aria-label="Dismiss" style="margin-left:12px;background:none;border:1px solid #666;color:#999;padding:2px 8px;cursor:pointer;font-size:12px">\u2715</button>';
     document.body.appendChild(d);

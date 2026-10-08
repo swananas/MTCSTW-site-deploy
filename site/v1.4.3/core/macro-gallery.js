@@ -150,7 +150,7 @@
     } else if (lay === 'banner') {
       inner = '<div><div class="pf-mgal-fig" style="font-size:40px;">' + val + '</div>' +
         '<div style="font-size:15px;color:#c9bfa8;margin-top:8px;">' + title + ' · ' + per + '</div>' +
-        (chg ? '<div style="font-weight:900;font-size:18px;color:#c1121f;margin-top:8px;">' + chg + '</div>' : '') + '</div>';
+        (chg ? '<div style="font-weight:900;font-size:18px;color:#e5383b;margin-top:8px;">' + chg + '</div>' : '') + '</div>';
     } else if (lay === 'ticker') {
       inner = '<div style="width:100%;"><div style="display:flex;justify-content:space-between;align-items:baseline;">' +
         '<span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e8b923;">' + title + '</span>' +

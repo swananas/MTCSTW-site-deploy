@@ -47,7 +47,7 @@
   var FETCH_TIMEOUT_MS = 12000;
   var CACHE_MS = 10 * 60 * 1000;
 
-  var RED = '#c1121f', CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, CREAM = '#f5f0e1', BLACK = '#0a0a0a', MUTED = '#b8ab8e';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -123,7 +123,7 @@
         link = 'https://bsky.app/hashtag/' + encodeURIComponent(String(feat.tag));
       }
       out += link
-        ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="color:' + RED + ';font-weight:700;">' + esc(chunk) + '</a>'
+        ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="color:' + RED_TX + ';font-weight:700;">' + esc(chunk) + '</a>'
         : esc(chunk);
       cur = be;
     });
@@ -136,7 +136,7 @@
     var name = esc((author && author.displayName) || (author && author.handle) || '?');
     if (av) return '<img src="' + esc(av) + '" alt="' + name + '" loading="lazy" referrerpolicy="no-referrer" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:2px solid ' + RED + ';display:block;">';
     var init = String(name.replace(/&[^;]+;/g, '')).replace(/&/g, '').charAt(0).toUpperCase() || '?';
-    return '<span style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#1a1a1a;border:2px solid ' + RED + ';display:inline-flex;align-items:center;justify-content:center;color:' + RED + ';font-weight:900;font-size:' + Math.round(size * 0.4) + 'px;flex:none;">' + esc(init) + '</span>';
+    return '<span style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#1a1a1a;border:2px solid ' + RED + ';display:inline-flex;align-items:center;justify-content:center;color:' + RED_TX + ';font-weight:900;font-size:' + Math.round(size * 0.4) + 'px;flex:none;">' + esc(init) + '</span>';
   }
 
   function embedHTML(pv) {
@@ -161,7 +161,7 @@
       h += '<div style="padding:0.6rem 0.8rem;">'
         + (x.title ? '<div style="font-weight:800;font-size:0.85rem;color:' + CREAM + ';">' + esc(x.title) + '</div>' : '')
         + (x.description ? '<div style="font-size:0.78rem;color:' + MUTED + ';margin-top:0.25rem;">' + esc(String(x.description).slice(0, 160)) + '</div>' : '')
-        + (xurl ? '<div style="font-size:0.72rem;color:' + RED + ';margin-top:0.3rem;">' + esc(String(x.uri).replace(/^https?:\/\//, '').slice(0, 60)) + '</div>' : '')
+        + (xurl ? '<div style="font-size:0.72rem;color:' + RED_TX + ';margin-top:0.3rem;">' + esc(String(x.uri).replace(/^https?:\/\//, '').slice(0, 60)) + '</div>' : '')
         + '</div></div>';
     } else if (/embed\.record#view/i.test(t) && e.record) {
       var r = e.record, rt = String(r.$type || '');
@@ -208,7 +208,7 @@
         + '<span>&#8646; ' + num(post.repostCount) + '</span>'
         + '<span>&hearts; ' + num(post.likeCount) + '</span>'
         + (post.quoteCount ? '<span>&ldquo; ' + num(post.quoteCount) + '</span>' : '')
-        + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="margin-left:auto;color:' + RED + ';font-weight:800;letter-spacing:0.08em;">VIEW &rarr;</a>' : '')
+        + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" style="margin-left:auto;color:' + RED_TX + ';font-weight:800;letter-spacing:0.08em;">VIEW &rarr;</a>' : '')
         + '</div>';
       return '<article class="pf-bsky-card" style="background:' + BLACK + ';border:2px solid #2a2a2a;border-left:4px solid ' + RED + ';color:' + CREAM + ';padding:1rem 1.1rem;border-radius:4px;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         + byline

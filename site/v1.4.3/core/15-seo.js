@@ -55,7 +55,7 @@ function boot(){ inject(); injectSocial(); }
 /* A dedicated 1200x630 social card is the follow-up; this is the      */
 /* verified-live asset until it lands.                                 */
 /* ------------------------------------------------------------------ */
-var PF_OG_IMAGE = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/pwa/icon-512.png';
+var PF_OG_IMAGE = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/v1.4.3/pwa/icon-512.png';
 var PF_RED = '#c1121f';
 var PF_HOME_DESC = '62 vetted leftist creators. 8M+ combined reach. One machine. ' +
   'Propaganda, games, and organizing tools for the movement.';

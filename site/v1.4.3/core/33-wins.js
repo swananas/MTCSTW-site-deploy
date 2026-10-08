@@ -184,13 +184,13 @@
 
   var CSS = [
     '.pf-wins{margin:10px 0 12px;}',
-    '.pf-wins .pw-kick{font-size:10px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}',
+    '.pf-wins .pw-kick{font-size:10px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}',
     '.pf-wins .pw-mute{background:none;border:1px solid #3a3a3a;color:#a89e88;font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:3px;cursor:pointer;font-weight:700;}',
     '.pf-wins .pw-mute:active{border-color:#c1121f;color:#f5ead6;}',
     '.pf-wins .pw-row{border-left:3px solid #c1121f;background:#141414;padding:8px 10px;margin-bottom:6px;border-radius:0 4px 4px 0;}',
     '.pf-wins .pw-t{font-size:13px;font-weight:900;letter-spacing:.04em;color:#f5ead6;}',
     '.pf-wins .pw-d{font-size:11.5px;color:#a89e88;margin-top:2px;line-height:1.45;}',
-    '.pf-wins .pw-m{font-size:9px;letter-spacing:2px;color:#c1121f;font-weight:800;margin-top:3px;}',
+    '.pf-wins .pw-m{font-size:9px;letter-spacing:2px;color:#e5383b;font-weight:800;margin-top:3px;}',
     '.pf-wins .pw-m.net{color:#e8b923;}'
   ].join('');
   function injectCss() {

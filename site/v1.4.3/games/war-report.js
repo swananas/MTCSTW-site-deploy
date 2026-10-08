@@ -28,7 +28,7 @@
 <div class="fe-block pf-override-block" id="pf-warreport">
 <h2>&#9876; War Report</h2>
 <div class="c-tag">The week that was, straight from Command. Read it. Then move.</div>
-<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>
+<div class="c-note" style="margin:8px 0;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#e5383b;">THE WAR CALENDAR</a> — every mobilization, deadline, and briefing in one place.</div>
 <div id="xWarReport"><div class="c-load">Requesting the report&hellip;</div></div>
 <div data-react-surface="war-report" aria-label="React to the War Report"></div>
 </div>
@@ -70,7 +70,7 @@ function wrCss(){
     +".wr-lines{padding:10px 12px}"
     +".wr-tx{font-family:Arial,sans-serif;font-size:14px;color:#ddd;line-height:1.55;margin:0 0 6px}"
     +".wr-li{font-family:Arial,sans-serif;font-size:14px;color:#ddd;line-height:1.55;margin:0 0 6px;padding-left:18px;position:relative}"
-    +".wr-li:before{content:'\\u25B8';color:#c1121f;position:absolute;left:2px}"
+    +".wr-li:before{content:'\\u25B8';color:#e5383b;position:absolute;left:2px}"
     +".wr-nav{display:flex;align-items:center;gap:8px;margin:0 0 12px}"
     +".wr-weeksel{flex:1;background:#161616;color:#f5ead6;border:1px solid #555;font:bold 13px monospace;padding:8px}"
     +".wr-navbtn{padding:8px 12px!important}"
@@ -82,7 +82,7 @@ function wrCss(){
        utility buttons below ride .c-btn.ghost (non-red). */
     +".wr-contract{font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#e8b64c;margin:0 0 14px}"
     +".wr-item{margin:0 0 26px}"
-    +".wr-orders-kicker{font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#c1121f;margin:16px 0 8px}"
+    +".wr-orders-kicker{font-family:'Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#e5383b;margin:16px 0 8px}"
     +".wr-orders-cta{margin:0 0 4px}";
   document.head.appendChild(s);
 }

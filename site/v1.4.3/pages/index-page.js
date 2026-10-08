@@ -79,7 +79,7 @@
     st.textContent =
       '#pf-index{font-family:Arial,Helvetica,sans-serif;color:#f5ead6;max-width:720px;margin:0 auto;padding:0 12px 40px;box-sizing:border-box}' +
       '.pf-idx-head{text-align:center;padding:26px 8px 6px}' +
-      '.pf-idx-kicker{font-size:11px;letter-spacing:.32em;color:#c1121f;font-weight:800}' +
+      '.pf-idx-kicker{font-size:11px;letter-spacing:.32em;color:#e5383b;font-weight:800}' +
       '.pf-idx-head h1{font-family:"Arial Black",Arial,sans-serif;font-size:30px;margin:8px 0 6px;letter-spacing:.02em}' +
       '.pf-idx-sub{color:#a89e88;font-size:14px;line-height:1.5;max-width:520px;margin:0 auto}' +
       '.pf-idx-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 4px}' +
@@ -105,7 +105,7 @@
       '.pf-idx-meta{font-size:11px;color:#a89e88;letter-spacing:.06em;margin-top:3px}' +
       '.pf-idx-score{text-align:right}' +
       '.pf-idx-num{font-family:"Arial Black",Arial,sans-serif;font-size:30px;color:#e8b923;line-height:1}' +
-      '.pf-idx-label{font-size:10px;font-weight:800;letter-spacing:.14em;color:#c1121f;margin-top:4px}' +
+      '.pf-idx-label{font-size:10px;font-weight:800;letter-spacing:.14em;color:#e5383b;margin-top:4px}' +
       '.pf-idx-bars{display:flex;gap:4px;margin-top:10px}' +
       '.pf-idx-bar{flex:1;height:5px;border-radius:3px;background:#2a2a2a;overflow:hidden}' +
       '.pf-idx-bar i{display:block;height:100%;background:#c1121f}' +

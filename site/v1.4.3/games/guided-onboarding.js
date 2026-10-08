@@ -107,7 +107,7 @@
       '<div id="pf-ob-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;' +
       'top:0;right:0;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;' +
       'padding:.6rem;min-width:44px;min-height:44px;box-sizing:border-box;text-align:center;">&times;</div>' +
-      '<div style="font-size:.8rem;font-weight:900;letter-spacing:.22em;color:#c1121f;margin-bottom:.9rem;">' +
+      '<div style="font-size:.8rem;font-weight:900;letter-spacing:.22em;color:#e5383b;margin-bottom:.9rem;">' +
       '&#9873; YOUR FIRST 2 MINUTES</div>' +
       '<div id="pf-ob-dots"></div><div id="pf-ob-body"></div>';
     overlay.appendChild(box);

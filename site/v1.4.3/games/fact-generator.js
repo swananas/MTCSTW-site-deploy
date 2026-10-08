@@ -10,7 +10,7 @@
 <div class="fe-block pf-override-block" id="pf-factgen">
 <style>
 #pf-factgen{max-width:720px;margin:2rem auto;background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem 1.5rem;box-sizing:border-box;}
-#pf-factgen .fg-kicker{font-size:0.8rem;letter-spacing:0.28em;color:#c1121f;font-weight:900;text-align:center;}
+#pf-factgen .fg-kicker{font-size:0.8rem;letter-spacing:0.28em;color:#e5383b;font-weight:900;text-align:center;}
 #pf-factgen h2{font-size:1.9rem;font-weight:900;letter-spacing:0.08em;color:#f5f0e1;text-align:center;margin:0.4rem 0 0.2rem;}
 #pf-factgen .fg-sub{font-size:0.95rem;color:#b8ab8e;text-align:center;margin-bottom:1.2rem;}
 #pf-factgen .fg-row{display:flex;gap:0.6rem;margin-bottom:0.8rem;}

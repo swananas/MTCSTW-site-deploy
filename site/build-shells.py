@@ -195,9 +195,12 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
   .pf-shell-nav a{{color:#fff;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.05em;}}
   .pf-shell-nav a:hover{{color:#c1121f;}}
   .pf-shell-brand{{color:#c1121f!important;font-size:18px!important;letter-spacing:.1em!important;}}
+  .pf-skip-link{{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}}
+  .pf-skip-link:focus{{left:0;}}
 </style>
 </head>
 <body>
+<a href="#main" class="pf-skip-link">Skip to main content</a>
 <div id="pf-boot">
   <nav class="pf-shell-nav" aria-label="Main">
     <a href="/" class="pf-shell-brand">MTCSTW</a>
@@ -207,7 +210,9 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
     <a href="/sick-left-radicals">RADICALS</a>
     <a href="/money">MONEY</a>
   </nav>
+<main id="main">
 {mounts}
+</main>
 </div>
 <script>
 (function(){{

@@ -206,7 +206,7 @@ function renderVault(id){
   var spendable=(BAL&&typeof BAL.balance==="number")?Math.round(BAL.balance):null;
   /* big balance */
   h+='<div style="text-align:center;padding:18px 8px 6px;">'
-    +'<div style="font-size:44px;line-height:1;color:#f5f0e6;">'+bal.toLocaleString()+' <span style="font-size:18px;color:#c1121f;">XP</span></div>'
+    +'<div style="font-size:44px;line-height:1;color:#f5f0e6;">'+bal.toLocaleString()+' <span style="font-size:18px;color:#e5383b;">XP</span></div>'
     +'<div class="x-note" style="margin:8px 0 0;">in the vault &middot; ACCT '+esc(acctNum(id.callsign))+'</div></div>';
   /* interest rate */
   h+='<div class="x-note" style="text-align:center;margin:6px 0 0;">Earning <b>'+rate+'%/week</b>';

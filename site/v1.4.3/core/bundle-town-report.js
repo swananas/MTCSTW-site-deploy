@@ -60,7 +60,7 @@
   function err(m) { try { if (PF && PF.error) PF.error('townreport', m); } catch (e) {} }
 
   /* Light paper palette (matches the dossier builder; CEO: clean, light). */
-  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
     HAIR = '#e7e1d0', DASH = '#d8d2bd', GOLD = '#a67c00', FIELD = '#f4f1e6';
   var BACKEND = window.PF_BACKEND_URL;
   var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
@@ -167,14 +167,14 @@
       + ';padding:12px 14px;font-size:16px;border-radius:3px;outline:none;';
   }
   function labelHTML(t, max) {
-    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin:16px 0 6px;">'
+    return '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin:16px 0 6px;">'
       + esc(t) + (max ? ' <span style="color:' + MUTED + ';letter-spacing:1px;">(' + max + ')</span>' : '') + '</div>';
   }
   function divider() {
     return '<div style="border-top:2px dashed ' + DASH + ';margin:18px 0;"></div>';
   }
   function badge(t) {
-    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED + ';border:2px solid ' + RED
+    return '<div style="display:inline-block;font-size:11px;letter-spacing:3px;font-weight:900;color:' + RED_TX + ';border:2px solid ' + RED
       + ';border-radius:3px;padding:5px 10px;margin-bottom:12px;">' + esc(t) + '</div>';
   }
   function staleBadge(st) {
@@ -199,13 +199,13 @@
   function renderFeedPage() {
     host.innerHTML = shell(
       '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
       + '<div style="font-size:26px;font-weight:900;margin-bottom:8px;">Hyperlocal is movement gold.</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Take your town\u2019s data. Add what you\u2019ve seen. Publish the page.<br>The numbers stay locked — your words sit beside them, clearly yours.</div>'
       + '<div style="margin-top:16px;"><a href="/town-report?new=1" style="' + btnStyle(true) + 'text-decoration:none;display:inline-block;">WRITE YOUR TOWN\u2019S REPORT</a></div>'
       + '</div>'
       + divider()
-      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:12px;">PUBLISHED REPORTS</div>'
       + '<div id="pf-tr-feedlist" style="text-align:center;color:' + MUTED + ';font-size:14px;padding:10px;">Loading the feed\u2026</div>'
     );
     var list = host.querySelector('#pf-tr-feedlist');
@@ -219,13 +219,13 @@
         var hl = (r.highlight_headlines && r.highlight_headlines[0]) || '';
         html += '<a href="/town-report?id=' + esc(r.id) + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
           + ';border-radius:3px;padding:16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';text-align:left;">'
-          + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: ' + esc(r.zip5) + '</div>'
+          + '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;margin-bottom:6px;">THIS IS MY TOWN: ' + esc(r.zip5) + '</div>'
           + '<div style="font-size:18px;font-weight:900;line-height:1.35;">' + esc(r.title) + '</div>'
           + '<div style="font-size:13px;color:' + MUTED + ';margin-top:6px;">' + esc(r.coarse_area) + ' · by <strong style="color:' + INK + ';">' + esc(r.author_callsign) + '</strong>'
           + (r.created_at ? ' · ' + esc(chiDate(r.created_at)) : '') + '</div>'
           + (hl ? '<div style="font-size:14px;margin-top:8px;line-height:1.5;border-left:3px solid ' + RED + ';padding-left:10px;"><strong>' + esc(hl) + '</strong></div>' : '')
           + '<div style="font-size:13px;margin-top:8px;line-height:1.55;color:' + MUTED + ';">' + esc(r.excerpt) + '\u2026</div>'
-          + '<div style="font-size:12px;color:' + RED + ';font-weight:800;margin-top:8px;">READ THE REPORT \u2192</div>'
+          + '<div style="font-size:12px;color:' + RED_TX + ';font-weight:800;margin-top:8px;">READ THE REPORT \u2192</div>'
           + '</a>';
       });
       html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;margin-top:8px;line-height:1.6;">'
@@ -243,7 +243,7 @@
     build.zip = (/^\d{5}$/.test(pre)) ? pre : '';
     host.innerHTML = shell(
       '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">MY TOWN REPORTS</div>'
       + '<div style="font-size:24px;font-weight:900;margin-bottom:8px;">BUILD THE REPORT</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Your zip pulls the town data. You pick the cards to highlight,<br>then add what you\u2019ve seen. Publish the page.</div>'
       + '</div>'
@@ -259,7 +259,7 @@
       + ' style="width:150px;background:#fff;border:2px solid ' + INK + ';color:' + INK + ';border-radius:3px;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:4px;outline:none;">'
       + '<button id="pf-tr-go" type="button" style="' + btnStyle(true) + '">SEE MY TOWN\u2019S DATA</button></div>'
       + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-top:10px;line-height:1.6;">Coarse only — your zip never leaves the county bucket.<br>No addresses, no names of private individuals.</div>'
-      + '<div id="pf-tr-err" style="text-align:center;color:' + RED + ';font-size:14px;margin-top:10px;"></div>'
+      + '<div id="pf-tr-err" style="text-align:center;color:' + RED_TX + ';font-size:14px;margin-top:10px;"></div>'
       + '<div id="pf-tr-data"></div>';
     var input = el.querySelector('#pf-tr-zip');
     var go = function () {
@@ -282,14 +282,14 @@
     box.innerHTML = '<div style="text-align:center;color:' + MUTED + ';font-size:14px;padding:18px;">Pulling your town\u2019s data\u2026</div>';
     api('town_power', { zip: zip }, function (r) {
       if (!r || r.ok !== true || !r.geo_live) {
-        box.innerHTML = '<div style="text-align:center;color:' + RED + ';font-size:14px;padding:14px;">Couldn\u2019t load this town — try another ZIP.</div>';
+        box.innerHTML = '<div style="text-align:center;color:' + RED_TX + ';font-size:14px;padding:14px;">Couldn\u2019t load this town — try another ZIP.</div>';
         err('town_power failed for zip ' + zip);
         return;
       }
       build.town = r;
       try { history.replaceState(null, '', '/town-report?new=1&zip=' + encodeURIComponent(zip)); } catch (e) {}
       box.innerHTML = '<div style="text-align:center;font-size:13px;color:' + GOLD + ';font-weight:800;letter-spacing:1px;margin:14px 0 10px;">YOUR AREA: ' + esc(String(r.area.coarse_area || '').toUpperCase()) + '</div>'
-        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>'
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;text-align:center;margin-bottom:8px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>'
         + '<div style="font-size:12px;color:' + MUTED + ';text-align:center;margin-bottom:12px;">Check the cards you want to highlight on your report.</div>'
         + renderCardChecks(r)
         + '<div style="text-align:center;margin-top:18px;"><button id="pf-tr-next" type="button" style="' + btnStyle(true) + '">ADD YOUR CONTEXT \u2192</button></div>';
@@ -366,14 +366,14 @@
     var area = (snapshot && snapshot.area) || {};
     var html = '<div style="' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 14px;">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:8px;">MY TOWN REPORT · USER-GENERATED</div>'
       + '<div style="font-size:30px;font-weight:900;letter-spacing:1px;">THIS IS MY TOWN: ' + esc(zip) + '</div>'
       + '<div style="font-size:24px;font-weight:900;line-height:1.3;margin-top:10px;">' + esc(doc.title) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin-top:8px;">by <strong style="color:' + INK + ';">' + esc(doc.author_callsign || 'YOU') + '</strong>'
       + (area.coarse_area ? ' · ' + esc(area.coarse_area) : '')
       + (doc.created_at && !isPreview ? ' · ' + esc(chiDate(doc.created_at)) : '') + '</div>'
       + '</div>'
-      + '<div style="font-size:12px;letter-spacing:3px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';
+      + '<div style="font-size:12px;letter-spacing:3px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">THE NUMBERS — SOURCED, NOT EDITABLE</div>';
     var keys = (doc.highlights && doc.highlights.length ? doc.highlights : Object.keys(CARD_LABELS));
     keys.forEach(function (k) {
       var c = (snapshot && snapshot.cards && snapshot.cards[k]) || {};
@@ -387,7 +387,7 @@
       }
       html += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed ' + DASH + ';">' + sourceLine(c.source) + '</div></div>';
     });
-    html += '<div style="font-size:12px;letter-spacing:4px;color:' + RED + ';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I\u2019VE SEEN — USER CONTENT</div>'
+    html += '<div style="font-size:12px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;text-align:center;margin:18px 0 10px;">WHAT I\u2019VE SEEN — USER CONTENT</div>'
       + '<div style="background:#fff;border:2px solid ' + INK + ';border-radius:3px;padding:18px;margin-bottom:10px;">'
       + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:900;margin-bottom:8px;">USER ADDED · A NEIGHBOR\u2019S WORDS</div>'
       + '<div style="font-size:15px;line-height:1.65;white-space:pre-line;">' + esc(doc.story) + '</div></div>';
@@ -505,7 +505,7 @@
     api('town_report_get', { id: id }, function (j) {
       if (!j || !j.ok) {
         host.innerHTML = shell('<div style="text-align:center;padding:30px 10px;color:' + MUTED + ';font-size:15px;">No report at that address. '
-          + '<a href="/town-report" style="color:' + RED + ';font-weight:800;">Read the feed \u2192</a></div>');
+          + '<a href="/town-report" style="color:' + RED_TX + ';font-weight:800;">Read the feed \u2192</a></div>');
         return;
       }
       host.innerHTML = shell(renderPublished(j, j.town_snapshot, false));
@@ -556,49 +556,93 @@
     var area = (snap.area && snap.area.coarse_area) || '';
     var hl = (doc.highlights || [])[0];
     var card = (hl && snap.cards && snap.cards[hl]) || {};
-    /* Light paper. */
+    /* ---- butter: editorial paper (factgen standard, light variant) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btInk='#1a1814', btM='#8a8474', btF='#a89a7d';
     x.fillStyle = '#f4f1e6'; x.fillRect(0, 0, W, H);
+    var btVg = x.createRadialGradient(W/2, H*0.42, H*0.18, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(60,40,20,0.14)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
     x.fillStyle = '#fdfdfa'; x.fillRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 10; x.strokeRect(70, 70, W - 140, H - 140);
-    x.strokeStyle = '#d8d2bd'; x.lineWidth = 2; x.setLineDash([14, 10]);
+    x.strokeStyle = btR; x.lineWidth = 8; x.strokeRect(70, 70, W - 140, H - 140);
+    x.strokeStyle = '#d8d2bd'; x.lineWidth = 1.5;
     x.strokeRect(100, 100, W - 200, H - 200);
-    x.setLineDash([]);
     x.textAlign = 'center';
     var y = 210;
-    x.fillStyle = '#c1121f'; x.font = '700 32px Arial,sans-serif';
+    /* kicker: letterspaced red */
+    x.fillStyle = btR; x.font = '700 30px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
     x.fillText('\u2605 MY TOWN REPORT \u2605', W / 2, y); y += 78;
-    x.fillStyle = '#1a1814'; x.font = '900 62px "Arial Black",Arial,sans-serif';
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 52;
+    x.strokeStyle = 'rgba(193,18,31,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(W/2 - 150, y); x.lineTo(W/2 + 150, y); x.stroke();
+    y += 72;
+    /* title: monumental serif, ink */
+    x.fillStyle = btInk; x.font = '900 62px Georgia,"Times New Roman",serif';
     wrap(x, 'THIS IS MY TOWN: ' + zip, W - 260).slice(0, 2).forEach(function (l) {
-      x.fillText(l, W / 2, y); y += 74;
+      x.fillText(l, W / 2, y); y += 76;
     });
-    y += 6;
-    x.fillStyle = '#8a8474'; x.font = '700 32px Arial,sans-serif';
+    y += 12;
+    x.fillStyle = btM; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
     wrap(x, String(area).toUpperCase() + (doc.author_callsign ? '  ·  BY ' + String(doc.author_callsign).toUpperCase() : ''), W - 280)
       .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 44; });
+    try { x.letterSpacing = '0px'; } catch (e4) {}
     y += 30;
-    x.fillStyle = '#c1121f'; x.fillRect(140, y - 12, W - 280, 3); y += 56;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(W/2 - 190, y); x.lineTo(W/2 - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(W/2 + 26, y); x.lineTo(W/2 + 190, y); x.stroke();
+    x.save(); x.translate(W/2, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 68;
     /* The user's highlight — a sourced number, clearly the town data. */
     if (card.live && card.headline) {
-      x.fillStyle = '#c1121f'; x.font = '900 84px "Arial Black",Arial,sans-serif';
-      x.fillText(String(card.headline).slice(0, 40), W / 2, y); y += 54;
-      x.fillStyle = '#8a8474'; x.font = '700 30px Arial,sans-serif';
-      x.fillText(String(CARD_LABELS[hl] || hl || '').toUpperCase().slice(0, 60), W / 2, y); y += 66;
+      /* the figure: monumental red gradient, drop shadow */
+      x.font = '900 84px Georgia,"Times New Roman",serif';
+      var btFig = String(card.headline).slice(0, 40);
+      x.fillStyle = 'rgba(0,0,0,0.25)';
+      x.fillText(btFig, W/2 + 4, y + 5);
+      var btFg2 = x.createLinearGradient(0, y - 84, 0, y);
+      btFg2.addColorStop(0, '#e63946'); btFg2.addColorStop(1, btRD);
+      x.fillStyle = btFg2;
+      x.fillText(btFig, W / 2, y); y += 58;
+      x.fillStyle = btM; x.font = '700 28px Arial,sans-serif';
+      try { x.letterSpacing = '4px'; } catch (e5) {}
+      x.fillText(String(CARD_LABELS[hl] || hl || '').toUpperCase().slice(0, 60), W / 2, y);
+      try { x.letterSpacing = '0px'; } catch (e6) {}
+      y += 70;
     }
     /* The user's title — clearly user content. */
-    x.fillStyle = '#1a1814'; x.font = 'italic 700 44px Georgia,serif';
+    x.fillStyle = btInk; x.font = 'italic 700 44px Georgia,serif';
     wrap(x, '\u201C' + String(doc.title || '').slice(0, 160) + '\u201D', W - 280).slice(0, 4).forEach(function (l) {
       x.fillText(l, W / 2, y); y += 60;
     });
     y += 30;
-    x.fillStyle = '#8a8474'; x.font = '700 28px Arial,sans-serif';
+    x.fillStyle = btM; x.font = 'italic 400 28px Georgia,serif';
     x.fillText('\u2014 a neighbor\u2019s words, not the newsroom', W / 2, y);
-    /* CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
-    x.fillStyle = '#c1121f'; x.font = '900 62px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 240);
-    x.fillStyle = '#1a1814'; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 165);
-    x.fillStyle = '#8a8474'; x.font = '400 30px Arial,sans-serif';
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 235;
+    x.strokeStyle = 'rgba(193,18,31,0.4)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 62;
+    x.fillStyle = btR; x.font = '900 56px Arial,sans-serif';
+    try { x.letterSpacing = '6px'; } catch (e7) {}
+    x.fillText('JOIN THE FIGHT.', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    fy += 62;
+    x.fillStyle = btInk; x.font = '900 42px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e9) {}
+    x.fillText('MTCSTW.COM', W / 2, fy);
+    try { x.letterSpacing = '0px'; } catch (e10) {}
+    x.fillStyle = btM; x.font = '400 28px Arial,sans-serif';
     x.fillText('mtcstw.com/town-report?id=' + String(doc.id || '').slice(0, 40), W / 2, H - 105);
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
     return cv;
   }
 

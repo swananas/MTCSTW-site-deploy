@@ -33,7 +33,7 @@
   window.pfReceiptDone = true;
 
   /* Light receipt-paper palette (CEO: clean, light — no bloated layouts). */
-  var RED = '#c1121f', PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
+  var RED = '#c1121f', RED_TX = '#e5383b' /* CONTRAST FIX 2026-10-08: text-safe red, 4.68:1 on #0a0a0a */, PAPER = '#fdfdfa', INK = '#1a1814', MUTED = '#8a8474',
     HAIR = '#e7e1d0', DASH = '#d8d2bd', MONO = "'SF Mono',Menlo,Consolas,monospace";
   var BACKEND = window.PF_BACKEND_URL;
   var FONT = "font-family:'Helvetica Neue',Arial,sans-serif;";
@@ -85,7 +85,7 @@
   function shellHTML() {
     return '<div class="pf-receipt" style="max-width:680px;margin:0 auto;' + FONT + 'color:' + INK + ';">'
       + '<div style="text-align:center;margin:6px 0 18px;">'
-      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED + ';font-weight:800;margin-bottom:10px;">FOLLOW THE MONEY</div>'
+      + '<div style="font-size:12px;letter-spacing:5px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">FOLLOW THE MONEY</div>'
       + '<div style="font-size:24px;font-weight:900;letter-spacing:.5px;margin-bottom:8px;">WHO DO YOU WANT THE RECEIPT ON?</div>'
       + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;">Type a politician\u2019s name. Get the money dossier.<br>Every figure sourced. Nothing estimated. Nothing invented.</div>'
       + '</div>'
@@ -107,8 +107,7 @@
   function sectionCard(title, inner, stamp) {
     return '<details' + (MOBILE_COLLAPSE ? '' : ' open') + ' style="background:' + PAPER
       + ';border:1px solid ' + HAIR + ';border-radius:3px;margin:0 0 10px;overflow:hidden;">'
-      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED
-      + ';border-bottom:2px dashed ' + DASH + ';outline:none;">'
+      + '<summary style="list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:900;letter-spacing:3px;color:' + RED_TX + ';border-bottom:2px dashed ' + DASH + ';outline:none;">'
       + '<span class="pf-r-chev" style="display:inline-block;margin-right:8px;transition:transform .15s;color:' + MUTED + ';">\u25b8</span>' + esc(title) + '</summary>'
       + '<div style="padding:14px 16px;">' + inner
       + (stamp ? '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed ' + DASH + ';font-size:11px;color:' + MUTED + ';line-height:1.6;">'
@@ -153,7 +152,7 @@
     var office = r.office === 'S' ? 'U.S. Senate' : r.office === 'H' ? 'U.S. House' : '';
     var html = '<div style="background:' + PAPER + ';border:1px solid ' + HAIR + ';border-top:4px solid ' + RED
       + ';border-radius:3px;padding:22px 20px;text-align:center;margin-bottom:12px;">'
-      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED + ';font-weight:800;margin-bottom:10px;">ITEMIZED RECEIPT</div>'
+      + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:800;margin-bottom:10px;">ITEMIZED RECEIPT</div>'
       + '<div style="font-size:27px;font-weight:900;letter-spacing:.5px;">' + esc(r.display_name) + '</div>'
       + '<div style="font-size:13px;color:' + MUTED + ';margin:6px 0 16px;">' + esc(office + (r.state ? ' · ' + r.state : '') + party) + '</div>'
       + '<div style="border-top:2px dashed ' + DASH + ';border-bottom:2px dashed ' + DASH + ';padding:14px 0;margin:0 -20px 16px;">';
@@ -167,7 +166,7 @@
     /* Top industries — always headline-visible, honestly labeled. */
     if (h.top_industries && h.top_industries.length) {
       html += '<div style="text-align:left;margin-bottom:14px;">'
-        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED + ';font-weight:800;margin-bottom:6px;">TOP INDUSTRIES</div>';
+        + '<div style="font-size:11px;letter-spacing:3px;color:' + RED_TX + ';font-weight:800;margin-bottom:6px;">TOP INDUSTRIES</div>';
       h.top_industries.forEach(function (t) {
         html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed ' + DASH + ';font-size:13px;">'
           + '<span>' + esc(t.industry) + ' <span style="color:' + MUTED + ';">(est.)</span></span>'
@@ -191,7 +190,7 @@
     function linkCard(href, icon, title, copy) {
       return '<a href="' + href + '" style="display:block;background:' + PAPER + ';border:1px solid ' + HAIR
         + ';border-radius:3px;padding:14px 16px;margin:0 0 10px;text-decoration:none;color:' + INK + ';">'
-        + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED + ';margin-bottom:6px;">'
+        + '<div style="font-size:12px;font-weight:900;letter-spacing:2px;color:' + RED_TX + ';margin-bottom:6px;">'
         + icon + ' ' + esc(title) + '</div>'
         + '<div style="font-size:14px;line-height:1.5;">' + copy + '</div>'
         + '<div style="font-size:12px;color:' + MUTED + ';margin-top:6px;">' + esc(href) + ' \u2192</div></a>';
@@ -382,7 +381,7 @@
 
   function renderDisambiguation(host, d) {
     var html = '<div style="background:' + PAPER + ';border:2px solid ' + RED + ';border-radius:3px;padding:18px;margin-bottom:14px;">'
-      + '<div style="font-size:14px;font-weight:900;letter-spacing:2px;margin-bottom:10px;color:' + RED + ';">DID YOU MEAN…</div>';
+      + '<div style="font-size:14px;font-weight:900;letter-spacing:2px;margin-bottom:10px;color:' + RED_TX + ';">DID YOU MEAN…</div>';
     d.disambiguation.forEach(function (m) {
       html += '<button type="button" data-pf-receipt-pick="' + esc(m.display_name) + '"'
         + ' style="display:block;width:100%;text-align:left;background:#fff;border:1px solid ' + HAIR + ';color:' + INK

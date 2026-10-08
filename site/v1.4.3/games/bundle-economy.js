@@ -2075,28 +2075,49 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       var cv = document.createElement('canvas');
       cv.width = 1080; cv.height = 1350;
       var x = cv.getContext('2d');
-      x.fillStyle = '#0d0d0d'; x.fillRect(0, 0, 1080, 1350);
-      x.fillStyle = '#c1121f'; x.fillRect(0, 0, 1080, 26);
-      x.fillStyle = '#c1121f'; x.fillRect(0, 1324, 1080, 26);
+      /* ---- butter: editorial kit (factgen standard) ---- */
+      var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+          btM='#a89a7d', btF='#6f6350';
+      x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, 1080, 1350);
+      x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+      for (var btD = -1350; btD < 2430; btD += 26) {
+        x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + 1350, 1350); x.stroke();
+      }
+      x.restore();
+      var btVg = x.createRadialGradient(540, 540, 216, 540, 675, 1147);
+      btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      x.fillStyle = btVg; x.fillRect(0, 0, 1080, 1350);
+      var btBar = x.createLinearGradient(0, 0, 0, 10);
+      btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+      x.fillStyle = btBar; x.fillRect(0, 0, 1080, 10);
+      x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+      x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+      x.fillText('★', 540, 810); x.restore();
       x.textAlign = 'center';
-      x.fillStyle = '#f5f0e6';
-      x.font = 'bold 76px system-ui, sans-serif';
+      /* headline: monumental serif */
+      x.fillStyle = btC;
+      x.font = '900 72px Georgia,"Times New Roman",serif';
       x.fillText('PRICES IN ' + String(area).toUpperCase().slice(0, 24), 540, 150);
-      x.font = 'bold 30px system-ui, sans-serif'; x.fillStyle = '#c1121f';
+      /* kicker: letterspaced gold */
+      x.font = '700 28px Arial,sans-serif'; x.fillStyle = btG;
+      try { x.letterSpacing = '8px'; } catch (e) {}
       x.fillText('THE PEOPLE\u2019S PRICE BOARD', 540, 205);
-      x.font = '24px system-ui, sans-serif'; x.fillStyle = '#b8b0a0';
-      x.fillText('community-reported · ' + String(range).slice(0, 48), 540, 245);
+      try { x.letterSpacing = '0px'; } catch (e6) {}
+      x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(390, 232); x.lineTo(690, 232); x.stroke();
+      x.font = 'italic 400 26px Georgia,serif'; x.fillStyle = '#a89a7d';
+      x.fillText('community-reported · ' + String(range).slice(0, 48), 540, 268);
       var y = 330;
       if (!shown.length) {
-        x.fillStyle = '#b8b0a0'; x.font = '30px system-ui, sans-serif';
+        x.fillStyle = '#a89a7d'; x.font = 'italic 400 32px Georgia,serif';
         x.fillText('Not enough reports yet.', 540, y + 40);
         x.fillText('Report a price at MTCSTW.COM', 540, y + 90);
       } else {
         shown.forEach(function (r) {
           var item = itemById(r.item_id);
-          x.textAlign = 'left'; x.fillStyle = '#f5f0e6'; x.font = 'bold 34px system-ui, sans-serif';
+          x.textAlign = 'left'; x.fillStyle = '#f2ecdc'; x.font = '700 34px Georgia,"Times New Roman",serif';
           x.fillText(item.name + ' / ' + item.unit, 90, y);
-          x.textAlign = 'right'; x.fillStyle = '#ffffff'; x.font = 'bold 44px system-ui, sans-serif';
+          x.textAlign = 'right'; x.fillStyle = '#ffffff'; x.font = '900 44px Georgia,"Times New Roman",serif';
           x.fillText(money(r.median_cents), 990, y);
           var d = Number(r.delta_pct);
           /* WS-6: trend colors gray/white only — the arrow carries direction. */
@@ -2106,18 +2127,34 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
             var arrow = d > 0 ? '\u25B2' : (d < 0 ? '\u25BC' : '\u25AA');
             x.fillText(arrow + ' ' + Math.abs(d).toFixed(1) + '% vs last wk', 990, y + 40);
           }
-          x.strokeStyle = '#2a2a2a'; x.lineWidth = 2;
+          x.strokeStyle = 'rgba(201,162,39,0.25)'; x.lineWidth = 1;
           x.beginPath(); x.moveTo(90, y + 62); x.lineTo(990, y + 62); x.stroke();
           y += 118;
         });
       }
       x.textAlign = 'center';
-      x.fillStyle = '#8f887a'; x.font = '22px system-ui, sans-serif';
-      x.fillText('Community-reported prices — not official data.', 540, 1150);
-      x.fillStyle = '#c1121f'; x.font = 'bold 54px system-ui, sans-serif';
-      x.fillText('JOIN THE FIGHT.', 540, 1215);
-      x.fillStyle = '#f5f0e6'; x.font = 'bold 34px system-ui, sans-serif';
-      x.fillText('MTCSTW.COM', 540, 1270);
+      x.fillStyle = '#6f6350'; x.font = 'italic 400 24px Georgia,serif';
+      x.fillText('Community-reported prices — not official data.', 540, 1120);
+      /* ---- butter footer: CTA standard ---- */
+      var fy = 1160;
+      x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(120, fy); x.lineTo(960, fy); x.stroke();
+      fy += 56;
+      x.font = '900 44px Arial,sans-serif'; x.fillStyle = '#f2ecdc';
+      try { x.letterSpacing = '8px'; } catch (e2) {}
+      var btCta = 'JOIN THE FIGHT';
+      var btCtaW = x.measureText(btCta).width;
+      x.fillText(btCta, 540, fy);
+      x.fillStyle = '#c1121f'; x.fillText('.', 540 + btCtaW/2 - 4, fy);
+      try { x.letterSpacing = '0px'; } catch (e3) {}
+      fy += 52;
+      x.fillStyle = '#c1121f'; x.font = '900 32px Arial,sans-serif';
+      try { x.letterSpacing = '10px'; } catch (e4) {}
+      x.fillText('MTCSTW.COM', 540, fy);
+      try { x.letterSpacing = '0px'; } catch (e5) {}
+      var btBar2 = x.createLinearGradient(0, 1340, 0, 1350);
+      btBar2.addColorStop(0, '#7d0b16'); btBar2.addColorStop(1, '#c1121f');
+      x.fillStyle = btBar2; x.fillRect(0, 1340, 1080, 10);
       return cv;
     }
     try {
@@ -3725,7 +3762,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
         return { t: isNaN(t) ? null : t, y: Number(o.value) };
       }).filter(function (p) { return p.t != null && isFinite(p.y); });
       var cpiReb = pctSince(cpiPts);
-      var series = [{ label: 'Official CPI-U (BLS)', color: '#c1121f', pts: cpiReb }];
+      var series = [{ label: 'Official CPI-U (BLS)', color: '#e5383b', pts: cpiReb }];
       var piNote = '';
       var pi = (piJ && piJ.ok && Array.isArray(piJ.peoples_index)) ? piJ.peoples_index : [];
       if (pi.length) {
@@ -3799,7 +3836,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       var chart = svgLine([
         { label: 'Median real earnings growth (SA)', color: '#e8b923',
           pts: pts.map(function (p) { return { t: p.t, y: p.w }; }) },
-        { label: 'Price growth — CPI-U (NSA)', color: '#c1121f',
+        { label: 'Price growth — CPI-U (NSA)', color: '#e5383b',
           pts: pts.map(function (p) { return { t: p.t, y: p.c }; }) }
       ], {});
       var h = '<div class="pf-fe-chart">' +

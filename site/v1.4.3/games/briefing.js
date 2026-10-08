@@ -355,7 +355,7 @@ function paintCivicLine(){
         dv.className="br-civic";
         dv.style.cssText="margin:10px 0 0;padding:8px 12px;border:1px solid #3a2c22;background:#0d0b06;color:#f5ead6;font:13px monospace;";
         dv.innerHTML='TODAY IN POLITICAL HQ: <b style="color:#e8b64c">'+esc(t)+'</b>'
-          +' &nbsp;<a href="/political-hq" style="color:#c1121f;font-weight:bold;text-decoration:none;">ENTER &rarr;</a>';
+          +' &nbsp;<a href="/political-hq" style="color:#e5383b;font-weight:bold;text-decoration:none;">ENTER &rarr;</a>';
         el.insertBefore(dv,el.firstChild);
       }catch(e){}
     },function(){});
@@ -379,7 +379,7 @@ function paintHallMention(){
     var d=document.createElement("div");
     d.className="br-hall";
     d.style.cssText="border:1px solid #c1121f;background:#140606;border-radius:6px;padding:10px 12px;margin:10px 0";
-    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#c1121f;font-weight:bold">HALL OF PROOF</div>'
+    d.innerHTML='<div style="font-size:11px;letter-spacing:2px;color:#e5383b;font-weight:bold">HALL OF PROOF</div>'
       +'<div style="font-size:13px;margin-top:4px;color:#f5ead6">You were pinned this week &mdash; '+esc(String(mine.length))
       +' feat'+(mine.length===1?"":"s")+' on the wall: '+esc(feats)+'.</div>';
     var arc=el.querySelector(".br-arc"), head=el.querySelector(".br-head");
@@ -788,7 +788,7 @@ function bannerCss(){
     +"#pf-brief .br-tierfill{height:100%;background:#e8b64c;transition:width .5s}"
     +"#pf-brief .br-tierfill.br-war{background:#c1121f}"
     +"#pf-brief .br-sec{margin:14px 0;padding:12px;border:1px solid #333;background:#101010}"
-    +"#pf-brief .br-sect{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .br-sect{font:bold 13px monospace;color:#e5383b;letter-spacing:2px;margin-bottom:10px}"
     +"#pf-brief .br-urg{border:2px solid #c1121f;background:#1a0505;padding:10px;margin-bottom:8px}"
     +"#pf-brief .br-ut{font:bold 13px monospace;color:#ff6b6b;margin-bottom:4px}"
     +"#pf-brief .br-ubtn{margin-top:8px}"
@@ -799,7 +799,7 @@ function bannerCss(){
     +"#pf-brief .br-seasonline{display:flex;justify-content:space-between;font:bold 12px monospace;color:#ff6b6b;margin-bottom:8px}"
     +"#pf-brief .br-gate{font:14px monospace;color:#ccc;padding:16px;border:1px dashed #666}"
     /* wave-live-rails (2026-10-05): Top Stories rail slots into the brief. */
-    +"#pf-brief .pf-newstop-head{font:bold 13px monospace;color:#c1121f;letter-spacing:2px;margin-bottom:10px}"
+    +"#pf-brief .pf-newstop-head{font:bold 13px monospace;color:#e5383b;letter-spacing:2px;margin-bottom:10px}"
     +"#pf-brief .pf-newstop-list{list-style:none;margin:0;padding:0}"
     +"#pf-brief .pf-newstop-item{padding:8px 4px;border-bottom:1px solid #222;font:13px monospace}"
     +"#pf-brief .pf-newstop-item a{color:#f5ead6;text-decoration:none}"
@@ -816,10 +816,10 @@ function bannerCss(){
     +"#pf-brief .br-rmday{font:bold 11px monospace;color:#e8b64c;letter-spacing:1px}"
     +"#pf-brief .br-rmstop{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #222;font:13px monospace;color:#ddd;text-decoration:none}"
     +"#pf-brief .br-rmstop.done{color:#7ddf8a}"
-    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#c1121f;min-width:54px}"
+    +"#pf-brief .br-rmn{font:bold 12px monospace;color:#e5383b;min-width:54px}"
     +"#pf-brief .br-rmstop.done .br-rmn{color:#7ddf8a}"
     +"#pf-brief .br-rml{flex:1}"
-    +"#pf-brief .br-rmgo{color:#c1121f;font-weight:bold}"
+    +"#pf-brief .br-rmgo{color:#e5383b;font-weight:bold}"
     +"#pf-brief .br-rmbtn{margin-top:2px}"
     +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"

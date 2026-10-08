@@ -712,7 +712,7 @@ window.PF_SLR_DB_SNAPSHOT = {"meta": {"version": "2026-10-02", "total_members": 
   function fetchFallback() {
     var b = ownBase();
     var url = b ? b + '/src/data/slr-master-db.json'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json';
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
     return fetch(url, { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('slr-db HTTP ' + r.status); return r.json(); })
       .then(function (d) {
@@ -739,13 +739,14 @@ window.PF_SLR_DB_SNAPSHOT = {"meta": {"version": "2026-10-02", "total_members": 
      it. Concurrent callers share one promise; the 15s backstop plus the JSON
      fallback mean a failed load resolves to [] instead of hanging — every
      consumer already degrades on an empty roster.
-     AUTO-UPDATE (2026-10-07): before touching the bundled snapshot, try the
-     live master DB JSON from @main with a short timeout. A push to
-     src/data/slr-master-db.json on main auto-propagates to all catalog/roster
-     pages within jsDelivr cache time — no code ship, no pin change, no footer
-     edit. On any failure the bundled snapshot path runs unchanged. */
+     AUTO-UPDATE (2026-10-07, PINNED 2026-10-08 per roster-@main audit fix):
+     before touching the bundled snapshot, try the master DB JSON with a short
+     timeout. The URL is pinned to a commit SHA (was @main) so roster data is
+     deterministic — a push to src/data/slr-master-db.json now needs a pin
+     bump in LIVE_DB_URL to propagate. On any failure the bundled snapshot
+     path runs unchanged. */
   var _slrPending = null;
-  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/src/data/slr-master-db.json';
+  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
   var LIVE_TIMEOUT_MS = 3000;
   function fetchLive() {
     return new Promise(function (resolve) {
@@ -773,13 +774,14 @@ window.PF_SLR_DB_SNAPSHOT = {"meta": {"version": "2026-10-02", "total_members": 
   function dataUrl() {
     var b = ownBase();
     return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@main/v1.4.3/core/07-slr-db-data.js');
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/v1.4.3/core/07-slr-db-data.js');
   }
   PF.ensureSLRDB = function () {
     var s0 = window.PF_SLR_DB_SNAPSHOT;
-    /* AUTO-UPDATE: live JSON first (fresh data, no ship needed). The bundled
-       snapshot stays as the synchronous fast path only when the live fetch
-       hasn't resolved yet — the live result wins whenever it arrives valid. */
+    /* PINNED-UPDATE (was AUTO-UPDATE; pinned 2026-10-08): pinned JSON first
+       (deterministic data). The bundled snapshot stays as the synchronous
+       fast path only when the pinned fetch hasn't resolved yet — the pinned
+       result wins whenever it arrives valid. */
     if (MEMBERS.length && !MEMBERS._liveStale) return Promise.resolve(MEMBERS);
     if (_slrPending) return _slrPending;
     _slrPending = new Promise(function (resolve) {
@@ -1553,24 +1555,43 @@ window.pfShareAchievement = function(gameName, detailText){
     var c = document.createElement('canvas');
     c.width = 1080; c.height = 1080;
     var x = c.getContext('2d');
-    /* Background: black with red border. */
-    x.fillStyle = '#0d0d0d'; x.fillRect(0,0,1080,1080);
-    x.strokeStyle = '#c1121f'; x.lineWidth = 24; x.strokeRect(24,24,1032,1032);
-    x.strokeStyle = '#f5ead6'; x.lineWidth = 4; x.strokeRect(60,60,960,960);
-    /* Header. */
-    x.fillStyle = '#c1121f'; x.font = '900 72px Arial Black, Arial, sans-serif';
+    /* BUTTER PASS (2026-10-07) — editorial restyle, visual-only. Data, the
+       shrink-to-fit/ellipsis logic, callsign stamp and share plumbing are
+       untouched. */
+    var W = 1080, H = 1080;
+    var bg = x.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#131316'); bg.addColorStop(0.5, '#0a0a0c'); bg.addColorStop(1, '#060607');
+    x.fillStyle = bg; x.fillRect(0,0,W,H);
+    var vg = x.createRadialGradient(540, 360, 80, 540, 540, 700);
+    vg.addColorStop(0, 'rgba(245,234,214,0.035)'); vg.addColorStop(1, 'rgba(0,0,0,0.32)');
+    x.fillStyle = vg; x.fillRect(0,0,W,H);
+    x.strokeStyle = '#33302a'; x.lineWidth = 2; x.strokeRect(60,60,960,960);
+    /* red gradient hairline — the one structural red accent */
+    var rh = x.createLinearGradient(0, 0, W, 0);
+    rh.addColorStop(0, 'rgba(193,18,31,0)'); rh.addColorStop(0.5, '#c1121f'); rh.addColorStop(1, 'rgba(193,18,31,0)');
+    x.fillStyle = rh; x.fillRect(90, 34, W - 180, 5);
+    /* Header — letterspaced authority label, not a shout. */
+    x.fillStyle = '#c9bfa8'; x.font = '700 32px Arial, sans-serif';
     x.textAlign = 'center';
-    x.fillText('THE PROPAGANDA FACTORY', 540, 160);
-    /* Game name — shrink-to-fit so long names (e.g. 'BILLIONAIRE OR
-       SUPERVILLAIN?') stay inside the 920px inner border instead of
-       overflowing the canvas at a fixed 96px. */
+    (function tracked(t, cx, y, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, i, w;
+      for (i = 0; i < chs.length; i++) { w = x.measureText(chs[i]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (i = 0; i < chs.length; i++) { x.fillText(chs[i], pen, y); pen += ws[i] + ls; }
+      x.textAlign = prev;
+    })('THE PROPAGANDA FACTORY', 540, 140, 9);
+    /* Game name — serif headline, shrink-to-fit so long names (e.g.
+       'BILLIONAIRE OR SUPERVILLAIN?') stay inside the 920px inner border
+       instead of overflowing the canvas at a fixed 96px. */
     x.fillStyle = '#c1121f';
     var gn = (gameName || 'MISSION').toUpperCase();
     var gnSize = 96;
-    x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+    var fam = function (s) { return 'bold ' + s + 'px Georgia, "Times New Roman", serif'; };
+    x.font = fam(gnSize);
     while (gnSize > 36 && x.measureText(gn).width > 920) {
       gnSize -= 4;
-      x.font = '900 ' + gnSize + 'px Arial Black, Arial, sans-serif';
+      x.font = fam(gnSize);
     }
     /* Ellipsis cap: names still wider than 920px at the 36px floor get
        truncated with … so they can't overflow the inner border. */
@@ -1580,11 +1601,11 @@ window.pfShareAchievement = function(gameName, detailText){
       gn = gn.trim() + '…';
     }
     x.fillText(gn, 540, 320);
-    /* Star divider. */
-    x.fillStyle = '#f5ead6'; x.font = '64px Arial';
-    x.fillText('\u2605 \u2605 \u2605', 540, 420);
-    /* Detail text (wrapped). */
-    x.fillStyle = '#f5ead6'; x.font = '48px Arial, sans-serif';
+    /* Gold divider. */
+    x.fillStyle = '#e8b923'; x.font = '40px Arial';
+    x.fillText('\u25C6', 540, 400);
+    /* Detail text (wrapped), editorial serif. */
+    x.fillStyle = '#f5ead6'; x.font = '400 46px Georgia, "Times New Roman", serif';
     var words = String(detailText || '').split(' ');
     var lines = [], line = '';
     for(var i=0; i<words.length; i++){
@@ -1593,15 +1614,22 @@ window.pfShareAchievement = function(gameName, detailText){
       else { line = t; }
     }
     if(line.trim()) lines.push(line.trim());
-    var y = 520;
-    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 70; }
+    var y = 510;
+    for(var j=0; j<Math.min(lines.length, 6); j++){ x.fillText(lines[j], 540, y); y += 68; }
     /* Timestamp. */
-    x.fillStyle = '#b8ab8e'; x.font = '36px Arial, sans-serif';
+    x.fillStyle = '#8a8471'; x.font = '34px Arial, sans-serif';
     var d = new Date();
     x.fillText(d.toLocaleDateString() + ' ' + d.toLocaleTimeString(), 540, 920);
     /* Footer. */
-    x.fillStyle = '#c1121f'; x.font = '900 48px Arial Black, Arial, sans-serif';
-    x.fillText('MTCSTW.COM', 540, 990);
+    x.fillStyle = '#f5ead6'; x.font = '700 34px Arial, sans-serif';
+    (function tracked2(t, cx, y2, ls) {
+      var chs = String(t).split(''), ws = [], tot = 0, k, w;
+      for (k = 0; k < chs.length; k++) { w = x.measureText(chs[k]).width; ws.push(w); tot += w; }
+      tot += ls * Math.max(0, chs.length - 1);
+      var pen = cx - tot / 2, prev = x.textAlign; x.textAlign = 'left';
+      for (k = 0; k < chs.length; k++) { x.fillText(chs[k], pen, y2); pen += ws[k] + ls; }
+      x.textAlign = prev;
+    })('MTCSTW.COM', 540, 990, 10);
     x.fillStyle = '#c1121f'; x.font = '900 40px Arial Black, Arial, sans-serif';
     x.fillText('JOIN THE FIGHT.', 540, 1046);
     /* Callsign attribution on every achievement image. */
@@ -1642,7 +1670,7 @@ window.pfShareAchievement = function(gameName, detailText){
         bar.id='pf-storage-notice';
         bar.setAttribute('role','note');
         bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#0a0a0a;border-top:3px solid #c1121f;color:#f5f0e1;font-family:"Helvetica Neue",Arial,sans-serif;font-size:12px;line-height:1.5;padding:10px 52px 10px 16px;box-sizing:border-box;text-align:left;';
-        bar.innerHTML='<b style="color:#c1121f;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.' +
+        bar.innerHTML='<b style="color:#e5383b;letter-spacing:0.08em;">HEADS UP, SOLDIER</b> &mdash; this site remembers you in your own browser: XP, streaks, vote flags and your callsign live in local storage (clear your browser data and it&rsquo;s gone). Our code loads from the jsDelivr CDN and Squarespace hosts the site &mdash; standard Squarespace cookies apply. We never sell your data. Ever.' +
           '<button id="pf-storage-x" aria-label="Dismiss" style="position:absolute;top:8px;right:12px;background:#c1121f;color:#f5f0e1;border:none;font-weight:900;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;font-family:inherit;">GOT IT</button>';
         document.body.appendChild(bar);
         document.getElementById('pf-storage-x').onclick=function(){
@@ -2561,7 +2589,7 @@ window.PF.boostReceipt = function(){
         'padding:8px 10px;background:#0d0d0d;border-top:2px solid #c1121f}' +
         '.pf-ns-fig{font:900 20px Arial,sans-serif;color:#f5ead6;white-space:nowrap}' +
         '.pf-ns-body{min-width:0}' +
-        '.pf-ns-label{font:700 11px Arial,sans-serif;color:#c1121f;letter-spacing:1px}' +
+        '.pf-ns-label{font:700 11px Arial,sans-serif;color:#e5383b;letter-spacing:1px}' +
         '.pf-ns-src{display:block;font:10px Arial,sans-serif;color:#8a8a8a;margin-top:2px}';
       document.head.appendChild(st);
     } catch (e) {}
@@ -6129,7 +6157,7 @@ function afterGame(justPlayed){
   lapCount++; /* count only shown laps (2026-10-06 QC) */
   function kill(){ try{ d.remove(); }catch(e){} try{ if(window.PF&&PF.popupQueue) PF.popupQueue.release('convert-card'); }catch(e2){} }
   var h=document.createElement('div');
-  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.style.cssText='color:#e5383b;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
   h.textContent='\u2691 NEXT MISSION';
   var t=document.createElement('div');
   t.style.cssText='font-size:15px;font-weight:900;margin-bottom:2px;';
@@ -6158,7 +6186,7 @@ function nudge(){
   try{ localStorage.setItem('pf_enlist_nudge_v1',today); }catch(e){}
   var d=cardShell('pf-enlist-nudge');
   var h=document.createElement('div');
-  h.style.cssText='color:#c1121f;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
+  h.style.cssText='color:#e5383b;font-weight:900;letter-spacing:2px;font-size:12px;margin-bottom:6px;';
   h.textContent='\u2691 BANK THIS XP';
   var t=document.createElement('div');
   t.style.cssText='font-size:13px;margin-bottom:2px;';
@@ -6472,11 +6500,16 @@ setTimeout(scan,4000);
 ;
 
 /* ===== core/15-seo.js ===== */
-/* core/15-seo.js  |  PF v1.4.3 | Structured data (JSON-LD) for SEO.
+/* core/15-seo.js  |  PF v1.4.3 | Structured data (JSON-LD) + social cards for SEO.
    Injects schema.org Organization markup so search engines understand the
    network entity. Google processes JS-injected JSON-LD on render.
-   Static OG tags (og:title/og:image) live in Squarespace page settings —
-   this file covers only what JS can do: JSON-LD.
+   SOCIAL CARDS (butter pass, workstream 5, 2026-10-07): this file also
+   injects the full OG + Twitter Card meta set client-side. The CANONICAL
+   card tags live in Squarespace page settings (link crawlers — X,
+   Facebook, Discord, iMessage — do not execute JS, so the static HTML is
+   authoritative for them); this layer upgrades/sets the tags for any
+   renderer that does run JS, with butter copy and the house brand image,
+   so on-site → off-site shares render premium PFN cards everywhere.
    KILL: ?pf_off=15-seo  or  localStorage pf_disabled_v1='["15-seo"]' */
 (function(){ 'use strict';
 if(window.PF&&window.PF.skip('15-seo'))return;
@@ -6508,8 +6541,117 @@ function inject(){
 }
 
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',inject);
-}else{ inject(); }
+  document.addEventListener('DOMContentLoaded',boot);
+}else{ boot(); }
+function boot(){ inject(); injectSocial(); }
+
+/* ------------------------------------------------------------------ */
+/* Social share cards — OG + Twitter Card meta, client-side upgrade.    */
+/* Butter pass 2026-10-07: punchy titles, engagement-primed            */
+/* descriptions, PFN red theme-color, house brand image. Sets (never   */
+/* duplicates) each tag; existing static tags get upgraded in place.   */
+/* Visual-only: meta tags, no behavior changes.                        */
+/*                                                                     */
+/* og:image: the verified house brand mark (black/red MTCSTW frame,    */
+/* v1.4.3/pwa/icon-512.png in the deploy repo, served via jsDelivr).   */
+/* A dedicated 1200x630 social card is the follow-up; this is the      */
+/* verified-live asset until it lands.                                 */
+/* ------------------------------------------------------------------ */
+var PF_OG_IMAGE = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/v1.4.3/pwa/icon-512.png';
+var PF_RED = '#c1121f';
+var PF_HOME_DESC = '62 vetted leftist creators. 8M+ combined reach. One machine. ' +
+  'Propaganda, games, and organizing tools for the movement.';
+/* Per-page card copy — punchy titles, primed for engagement.          */
+var PF_CARD_RULES = {
+  '/': {
+    title: 'The Propaganda Factory — JOIN THE FIGHT.',
+    desc: PF_HOME_DESC
+  },
+  '/studio': {
+    title: 'PFN Studio — Make Propaganda. Spread It.',
+    desc: 'Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.'
+  },
+  '/create': {
+    title: 'PFN Studio — Make Propaganda. Spread It.',
+    desc: 'Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.'
+  },
+  '/cells': {
+    title: 'Find Your Cell — JOIN THE FIGHT.',
+    desc: 'The network runs on cells. Lone wolves get picked off. Find your people.'
+  },
+  '/sick-left-radicals': {
+    title: 'Sick Left Radicals — 62 Creators, 8M+ Reach.',
+    desc: 'The leftist creator network. Vetted propagandists, ranked by propaganda score. Find your match.'
+  },
+  '/data-bounties': {
+    title: 'Data Bounties — Your Content Becomes Action.',
+    desc: 'Claim bounties. Confirm intel. Fuel the movement\u2019s intelligence — never sold, never ad inventory.'
+  },
+  '/academy': {
+    title: 'The Academy — Trained. Not Born.',
+    desc: 'Courses that make agitators. Graduate. Then organize.'
+  },
+  '/arcade': {
+    title: 'The Arcade — Play. Earn. Spread.',
+    desc: 'Games that recruit. Weekly medals, full deployment, your callsign on the wall.'
+  },
+  '/war-report': {
+    title: 'War Report — The Week That Was.',
+    desc: 'Straight from Command. Read it. Now move.'
+  },
+  '/index': {
+    title: 'The People\u2019s Index — Prices We Reported Ourselves.',
+    desc: 'Community-reported medians vs official numbers. Join the count.'
+  }
+};
+
+function pfCardRule() {
+  var p = '/';
+  try {
+    p = String(location.pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
+  } catch (e) {}
+  return PF_CARD_RULES[p] || null;
+}
+function pfSetMeta(attr, key, content) {
+  try {
+    var m = document.querySelector('meta[' + attr + '="' + key + '"]');
+    if (!m) {
+      m = document.createElement('meta');
+      m.setAttribute(attr, key);
+      document.head.appendChild(m);
+    }
+    m.setAttribute('content', String(content == null ? '' : content));
+  } catch (e) {}
+}
+function injectSocial() {
+  try {
+    var rule = pfCardRule();
+    var title = rule ? rule.title : String(document.title || 'The Propaganda Factory — JOIN THE FIGHT.');
+    var desc = rule ? rule.desc : PF_HOME_DESC;
+    var path = '/';
+    try {
+      path = String(location.pathname || '/');
+      if (path.charAt(0) !== '/') path = '/' + path;
+    } catch (e) {}
+    var url = 'https://www.mtcstw.com' + path;
+    pfSetMeta('property', 'og:type', 'website');
+    pfSetMeta('property', 'og:site_name', 'The Propaganda Factory');
+    pfSetMeta('property', 'og:title', title);
+    pfSetMeta('property', 'og:description', desc);
+    pfSetMeta('property', 'og:url', url);
+    pfSetMeta('property', 'og:locale', 'en_US');
+    pfSetMeta('property', 'og:image', PF_OG_IMAGE);
+    pfSetMeta('property', 'og:image:width', '512');
+    pfSetMeta('property', 'og:image:height', '512');
+    pfSetMeta('property', 'og:image:alt', 'MTCSTW — The Propaganda Factory');
+    pfSetMeta('name', 'twitter:card', 'summary_large_image');
+    pfSetMeta('name', 'twitter:title', title);
+    pfSetMeta('name', 'twitter:description', desc);
+    pfSetMeta('name', 'twitter:image', PF_OG_IMAGE);
+    pfSetMeta('name', 'twitter:image:alt', 'MTCSTW — The Propaganda Factory');
+    pfSetMeta('name', 'theme-color', PF_RED);
+  } catch (e) {}
+}
 })();
 
 ;
@@ -7379,7 +7521,7 @@ if(document.readyState==='loading'){
     }
     return null;
   }
-  var LINK_STYLE = 'color:#c1121f;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
+  var LINK_STYLE = 'color:#e5383b;font-weight:900;letter-spacing:0.12em;font-size:11px;text-decoration:underline;cursor:pointer;margin-left:14px;white-space:nowrap;';
   function makeLink() {
     var a = document.createElement('a');
     a.id = 'pf-delete-data-link';
@@ -7414,7 +7556,7 @@ if(document.readyState==='loading'){
     box.setAttribute('aria-modal', 'true');
     box.style.cssText = 'background:#0a0a0a;border:3px solid #c1121f;color:#f5f0e1;max-width:520px;width:100%;padding:28px;font-family:"Helvetica Neue",Arial,sans-serif;line-height:1.6;box-sizing:border-box;';
     box.innerHTML =
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>' +
+      '<div style="color:#e5383b;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">BURN YOUR RECORD</div>' +
       '<p style="font-size:13px;margin:0 0 12px;">This wipes <b>everything</b> the Propaganda Factory holds on you' +
       (id.callsign ? ' under callsign <b>' + esc(id.callsign) + '</b>' : ' on this browser') +
       ': your XP, streaks, medals, votes, cells, referrals, contact info' +
@@ -7452,7 +7594,7 @@ if(document.readyState==='loading'){
            UI stops presenting as the deleted identity. */
         wipeLocal();
         box.innerHTML =
-          '<div style="color:#c1121f;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>' +
+          '<div style="color:#e5383b;font-weight:900;letter-spacing:0.1em;font-size:15px;margin-bottom:12px;">RECORD BURNED</div>' +
           '<p style="font-size:13px;margin:0;">' + esc((j && j.note) || 'All your data has been erased. Gone like it was never here.') + '</p>' +
           '<p style="font-size:12px;margin:12px 0 0;color:#b8ab8e;">This page will reload in a few seconds.</p>';
         toast('Data erased.');
@@ -7694,7 +7836,7 @@ if(document.readyState==='loading'){
     st.textContent =
       '#pf-crossnav{border-top:3px solid #c1121f;border-bottom:3px solid #c1121f;background:#0a0a0a;' +
       'padding:14px 10px 12px;margin:0 0 22px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}' +
-      '#pf-crossnav .pf-xn-kicker{color:#c1121f;font-weight:900;letter-spacing:.28em;font-size:10px;margin-bottom:10px}' +
+      '#pf-crossnav .pf-xn-kicker{color:#e5383b;font-weight:900;letter-spacing:.28em;font-size:10px;margin-bottom:10px}' +
       '#pf-crossnav .pf-xn-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}' +
       '#pf-crossnav .pf-xn-nav a{color:#f5ead6;font-weight:700;font-size:11px;letter-spacing:.16em;text-decoration:none;' +
       'border:1px solid #3d3d3d;padding:9px 12px;background:#141414;display:inline-block;box-sizing:border-box}' +
@@ -7706,7 +7848,7 @@ if(document.readyState==='loading'){
       '.pf-xn-banner .pf-xn-bl{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-weight:900;' +
       'font-size:12px;letter-spacing:.14em;padding:11px 22px;text-decoration:none}' +
       '#pf-xn-deploy{margin:26px auto;max-width:880px;text-align:center;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;padding:0 12px}' +
-      '#pf-xn-deploy .pf-xn-dk{color:#c1121f;font-weight:900;letter-spacing:.3em;font-size:11px;margin-bottom:8px}' +
+      '#pf-xn-deploy .pf-xn-dk{color:#e5383b;font-weight:900;letter-spacing:.3em;font-size:11px;margin-bottom:8px}' +
       '#pf-xn-deploy .pf-xn-dt{font-family:\'Arial Black\',Arial,sans-serif;font-size:26px;letter-spacing:.08em;color:#f5ead6;margin-bottom:6px}' +
       '#pf-xn-deploy .pf-xn-ds{font-size:13px;color:#a89e88;margin-bottom:16px}' +
       '#pf-xn-deploy .pf-xn-dg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
@@ -10996,13 +11138,13 @@ if(document.readyState==='loading'){
 
   var CSS = [
     '.pf-wins{margin:10px 0 12px;}',
-    '.pf-wins .pw-kick{font-size:10px;letter-spacing:4px;color:#c1121f;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}',
+    '.pf-wins .pw-kick{font-size:10px;letter-spacing:4px;color:#e5383b;font-weight:800;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}',
     '.pf-wins .pw-mute{background:none;border:1px solid #3a3a3a;color:#a89e88;font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:3px;cursor:pointer;font-weight:700;}',
     '.pf-wins .pw-mute:active{border-color:#c1121f;color:#f5ead6;}',
     '.pf-wins .pw-row{border-left:3px solid #c1121f;background:#141414;padding:8px 10px;margin-bottom:6px;border-radius:0 4px 4px 0;}',
     '.pf-wins .pw-t{font-size:13px;font-weight:900;letter-spacing:.04em;color:#f5ead6;}',
     '.pf-wins .pw-d{font-size:11.5px;color:#a89e88;margin-top:2px;line-height:1.45;}',
-    '.pf-wins .pw-m{font-size:9px;letter-spacing:2px;color:#c1121f;font-weight:800;margin-top:3px;}',
+    '.pf-wins .pw-m{font-size:9px;letter-spacing:2px;color:#e5383b;font-weight:800;margin-top:3px;}',
     '.pf-wins .pw-m.net{color:#e8b923;}'
   ].join('');
   function injectCss() {
@@ -11630,7 +11772,7 @@ if(document.readyState==='loading'){
       ov.innerHTML=
         '<div style="position:relative;background:#0b0b0c;border:3px solid #c1121f;max-width:440px;width:100%;padding:2rem 1.5rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         +'<div id="pf-sq-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>'
-        +'<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; SICK LEFT RADICALS &#9733;</div>'
+        +'<div style="color:#e5383b;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; SICK LEFT RADICALS &#9733;</div>'
         +'<div style="color:#f5ead6;font-weight:900;font-size:1.7rem;line-height:1.25;margin-bottom:0.4rem;">YOU HAVE A NAME.<br>NOW GET A SQUAD.</div>'
         +'<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem;">Five callsigns. One streak.<br>Nobody left behind.</div>'
         +'<a href="/cells" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2rem;border:2px solid #c1121f;">FIND YOUR CELL &rarr;</a>'
@@ -11815,12 +11957,24 @@ if(document.readyState==='loading'){
     try { if (document.getElementById('pf-enlisted')) { settle(cs, 'card'); return; } } catch (e3) {}
 
     /* Short-screen safety: shrink the card below 640px viewport height so
-       the CTAs stay reachable. Injected once. */
+       the CTAs stay reachable. Injected once.
+       Butter pass (workstream 5): cinematic entrance + premium CTA hover. */
     try {
       if (!document.getElementById('pf-enlisted-css')) {
         var pfs = document.createElement('style');
         pfs.id = 'pf-enlisted-css';
-        pfs.textContent = '@media (max-height:640px){#pf-enlisted .pf-en-card{padding:1.25rem 1rem !important;}#pf-enlisted .pf-en-head{font-size:1.3rem !important;}#pf-enlisted .pf-en-poster{max-width:170px !important;margin-bottom:0.7rem !important;}}';
+        pfs.textContent = '@media (max-height:640px){#pf-enlisted .pf-en-card{padding:1.25rem 1rem !important;}#pf-enlisted .pf-en-head{font-size:1.3rem !important;}#pf-enlisted .pf-en-poster{max-width:170px !important;margin-bottom:0.7rem !important;}}'
+          + '#pf-enlisted{animation:pfEnFade .28s ease-out}'
+          + '@keyframes pfEnFade{from{opacity:0}to{opacity:1}}'
+          + '#pf-enlisted .pf-en-card{animation:pfEnRise .34s cubic-bezier(.2,.9,.25,1.15)}'
+          + '@keyframes pfEnRise{from{transform:translateY(26px) scale(.97);opacity:0}to{transform:none;opacity:1}}'
+          + '#pf-enlisted .pf-en-poster img{box-shadow:0 6px 28px rgba(193,18,31,.35)}'
+          + '#pf-en-cta{transition:background .15s ease,transform .12s ease,box-shadow .15s ease;box-shadow:0 4px 18px rgba(193,18,31,.4)}'
+          + '#pf-en-cta:hover{background:#e01424;border-color:#e01424;transform:translateY(-1px);box-shadow:0 8px 28px rgba(193,18,31,.55)}'
+          + '#pf-en-cta:active{transform:scale(.98)}'
+          + '#pf-en-cta:focus-visible{outline:3px solid #f5ead6;outline-offset:2px}'
+          + '#pf-en-x:hover,#pf-en-no:hover{color:#f5ead6}'
+          + '@media(prefers-reduced-motion:reduce){#pf-enlisted,#pf-enlisted .pf-en-card{animation:none}#pf-en-cta{transition:none}}';
         (document.head || document.documentElement).appendChild(pfs);
       }
     } catch (eCss) {}
@@ -11841,7 +11995,7 @@ if(document.readyState==='loading'){
       ov.innerHTML =
         '<div class="pf-en-card" style="position:relative;background:#0b0b0c;border:3px solid #c1121f;max-width:440px;width:100%;margin:auto;padding:2rem 1.5rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;">'
         + '<div id="pf-en-x" role="button" tabindex="0" aria-label="Close" style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>'
-        + '<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; ENLISTED &#9733;</div>'
+        + '<div style="color:#e5383b;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.8rem;">&#9733; ENLISTED &#9733;</div>'
         + imgHtml
         + '<div class="pf-en-head" style="color:#f5ead6;font-weight:900;font-size:1.7rem;line-height:1.25;margin-bottom:0.4rem;">YOU HAVE A NAME.<br>NOW GET A SQUAD.</div>'
         + '<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem;">The network runs on cells. Lone wolves get picked off.</div>'
@@ -12068,7 +12222,7 @@ if(document.readyState==='loading'){
       card.setAttribute('aria-label', 'First mission');
       card.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;max-width:680px;width:calc(100% - 2rem);margin:1rem auto;padding:1.5rem 1.25rem;text-align:center;box-sizing:border-box;font-family:\'Helvetica Neue\',Arial,sans-serif;';
       card.innerHTML =
-        '<div style="color:#c1121f;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.7rem;">&#9733; FIRST MISSION &#8212; 60 SECONDS. NO NAME REQUIRED. &#9733;</div>'
+        '<div style="color:#e5383b;font-weight:800;letter-spacing:0.3em;font-size:0.72rem;margin-bottom:0.7rem;">&#9733; FIRST MISSION &#8212; 60 SECONDS. NO NAME REQUIRED. &#9733;</div>'
         + '<div style="color:#f5ead6;font-weight:900;font-size:1.5rem;line-height:1.25;margin-bottom:0.4rem;">YOU DON\'T NEED A NAME TO FIRE THE FIRST SHOT.</div>'
         + '<div style="color:#c9bfa8;font-size:0.95rem;line-height:1.6;margin-bottom:1.1rem;">One vote. Sixty seconds. Then decide if you\'re staying.</div>'
         + '<a id="pf-fm-cta" href="#pf-vote" style="display:inline-block;background:#c1121f;color:#fff;font-weight:900;letter-spacing:0.12em;font-size:0.95rem;text-decoration:none;padding:0.9rem 2.2rem;border:2px solid #c1121f;">FIRE &#8594;</a>'
@@ -12780,7 +12934,7 @@ if(document.readyState==='loading'){
     '#pf-rx-bank .rx-meta{border:2px solid #c1121f;background:#100808;' +
       'padding:12px;margin:12px 0 4px}' +
     '#pf-rx-bank .rx-meta-head{font:bold 13px Arial;letter-spacing:2px;color:#fff;margin:0 0 2px}' +
-    '#pf-rx-bank .rx-meta-head span{color:#c1121f;letter-spacing:1px;font-size:11px}' +
+    '#pf-rx-bank .rx-meta-head span{color:#e5383b;letter-spacing:1px;font-size:11px}' +
     '#pf-rx-bank .rx-meta-sub{font:400 12px/1.5 Arial;color:#b8a98a;margin:0 0 4px}' +
     '#pf-rx-bank .rx-meta-res{margin:6px 0 0;max-height:220px;overflow-y:auto}' +
     '#pf-rx-bank .rx-meta-hit{display:block;width:100%;text-align:left;background:#1a1a1a;' +
@@ -12791,7 +12945,7 @@ if(document.readyState==='loading'){
     '#pf-rx-bank .rx-meta-sel{margin:8px 0 0}' +
     '#pf-rx-bank .rx-meta-chip{display:inline-block;background:#1c1a1a;border:1px solid #c1121f;' +
       'color:#fff;font:bold 12px Arial;letter-spacing:1px;padding:6px 10px;margin:0 6px 6px 0}' +
-    '#pf-rx-bank .rx-meta-chip button{background:none;border:0;color:#c1121f;font:bold 14px Arial;' +
+    '#pf-rx-bank .rx-meta-chip button{background:none;border:0;color:#e5383b;font:bold 14px Arial;' +
       'cursor:pointer;margin-left:8px;padding:0}' +
     '#pf-rx-bank .rx-meta-note{font:400 12px/1.6 Arial;color:#ffd9a0;background:#1a1206;' +
       'border:1px solid #8a6a2a;padding:8px 10px;margin:0 0 8px}' +
@@ -13977,7 +14131,7 @@ if(document.readyState==='loading'){
   /* ---- self-contained styles (no dependency on dopamine CSS) ---- */
   var CSS = '.dd-card{border:2px solid #c1121f;background:#0d0d0f;color:#f2f2f2;' +
     'border-radius:10px;padding:16px 18px;margin:14px 0;position:relative;overflow:hidden}' +
-    '.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#c1121f;margin-bottom:6px}' +
+    '.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#e5383b;margin-bottom:6px}' +
     '.dd-riddle{font:700 17px/1.45 Georgia,serif;font-style:italic;margin:6px 0 10px}' +
     '.dd-meta{font:12px/1.6 monospace;color:#bdbdbd}' +
     '.dd-meta b{color:#ffd166}' +
@@ -14191,20 +14345,20 @@ if(document.readyState==='loading'){
   }
 
   /* Invitational banner HTML. context: short purpose string rendered under
-     the copy, e.g. 'to muster with your cell'. */
+     the copy, e.g. 'to muster with your cell'.
+     BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+     .pf-claim-cta class library in core/02-design-system.css. Markup order,
+     copy, data attributes, and wiring are byte-for-byte the same —
+     visual-only. */
   window.PF.claimCTA = function (context) {
     if (hasCallsign()) return '';
-    var ctx = context ? '<div style="font-size:.72rem;color:#b8ab8e;margin-top:.3rem;letter-spacing:.06em;">' +
-      esc(context) + '</div>' : '';
-    return '<div class="pf-claim-cta" style="max-width:560px;margin:1rem auto;background:#0d0d0d;' +
-      'border:2px solid #c1121f;color:#f5ead6;padding:1rem 1.25rem;text-align:center;' +
-      'font-family:Arial,sans-serif;box-sizing:border-box;">' +
-      '<div style="font-size:.95rem;font-weight:900;letter-spacing:.12em;color:#c1121f;">' +
-      '&#9733; ' + esc(COPY) + ' &#9733;</div>' +
-      '<div style="font-size:.78rem;color:#b8ab8e;margin:.4rem 0 .8rem;">' + esc(SUB) + '</div>' + ctx +
-      '<button data-pf-claim-cs="1" style="background:#c1121f;color:#fff;border:none;' +
-      'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.85rem;' +
-      'padding:.7rem 1.8rem;cursor:pointer;">CLAIM A CALLSIGN</button>' +
+    var ctx = context ? '<div class="pf-claim-cta-ctx">' + esc(context) + '</div>' : '';
+    return '<div class="pf-claim-cta">' +
+      '<div class="pf-claim-cta-copy">' +
+      '<span class="pf-claim-cta-star" aria-hidden="true">&#9733;</span> ' + esc(COPY) +
+      ' <span class="pf-claim-cta-star" aria-hidden="true">&#9733;</span></div>' +
+      '<div class="pf-claim-cta-sub">' + esc(SUB) + '</div>' + ctx +
+      '<button type="button" data-pf-claim-cs="1" class="pf-claim-cta-btn">CLAIM A CALLSIGN</button>' +
       /* 2026-10-06 CEO directive: every claim prompt needs the recovery path.
          data-pf-recover-cs is owned by core/29-callsign-recovery.js. */
       (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
@@ -14318,24 +14472,22 @@ if(document.readyState==='loading'){
     } catch (e) { finish(null); }
   }
 
-  /* ---------- modal shell ---------- */
+  /* ---------- modal shell ----------
+     BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+     .pf-rec-* class library in core/02-design-system.css. IDs, ARIA,
+     wiring, dismissal behavior — all unchanged, visual-only. */
   function overlayShell(label) {
     var old = document.getElementById('pf-recover-modal');
     if (old && old.parentNode) { try { old.parentNode.removeChild(old); } catch (e) {} }
     var overlay = document.createElement('div');
     overlay.id = 'pf-recover-modal';
+    overlay.className = 'pf-rec-veil';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', label || 'Recover your callsign');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;' +
-      'background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
-      'padding:1rem;box-sizing:border-box;overflow-y:auto;';
     var box = document.createElement('div');
-    box.style.cssText = 'background:#0a0a0a;border:3px solid #d4af37;color:#f5f0e1;' +
-      'font-family:"Helvetica Neue",Arial,sans-serif;padding:1.75rem;max-width:440px;width:100%;' +
-      'box-sizing:border-box;text-align:center;position:relative;';
-    box.innerHTML = '<div data-pf-rec-x role="button" tabindex="0" aria-label="Close" ' +
-      'style="position:absolute;top:0.4rem;right:0.7rem;cursor:pointer;font-size:1.4rem;color:#b8ab8e;line-height:1;">&times;</div>' +
+    box.className = 'pf-rec-card';
+    box.innerHTML = '<div class="pf-rec-x" data-pf-rec-x role="button" tabindex="0" aria-label="Close">&times;</div>' +
       '<div id="pf-rec-body"></div>';
     overlay.appendChild(box);
     document.body.appendChild(overlay);
@@ -14352,17 +14504,9 @@ if(document.readyState==='loading'){
     overlay.onkeydown = function (e) { if (e.key === 'Escape') dismiss(); };
     return { overlay: overlay, box: box, body: box.querySelector('#pf-rec-body'), close: close };
   }
-  function inputStyle() {
-    return 'width:100%;background:#141414;color:#f5f0e1;border:2px solid #d4af37;' +
-      'padding:0.8rem;font-size:1rem;font-family:inherit;box-sizing:border-box;' +
-      'margin-bottom:0.5rem;text-align:center;min-height:48px;';
-  }
-  function btnStyle(primary) {
-    return 'display:inline-block;background:' + (primary ? '#d4af37' : 'transparent') + ';' +
-      'color:' + (primary ? '#0a0a0a' : '#d4af37') + ';font-weight:900;letter-spacing:.12em;' +
-      'border:' + (primary ? 'none' : '2px solid #d4af37') + ';padding:0.85rem 2rem;font-size:0.95rem;' +
-      'cursor:pointer;font-family:inherit;min-height:48px;';
-  }
+  /* inputStyle/btnStyle retired in the 2026-10-07 butter pass: inputs and
+     buttons now use .pf-rec-input / .pf-rec-btn classes from
+     core/02-design-system.css. Kept as a comment so the contract stays visible. */
 
   /* ---------- the recovery modal ---------- */
   window.PF.openCallsignRecovery = function (opts) {
@@ -14371,26 +14515,25 @@ if(document.readyState==='loading'){
     var b = m.body;
     var csHint = esc(myCallsign());
     b.innerHTML =
-      '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#d4af37;margin-bottom:.6rem;">' +
-      '&#9733; RECOVER YOUR CALLSIGN &#9733;</div>' +
-      '<div style="font-size:.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">' +
+      '<div class="pf-rec-title">&#9733; RECOVER YOUR CALLSIGN &#9733;</div>' +
+      '<div class="pf-rec-sub">' +
       'Got a callsign on another device? Type it plus your recovery code and it moves here &mdash; XP and all.</div>' +
-      '<label for="pf-rec-cs" style="display:block;font-size:.72rem;letter-spacing:.14em;color:#d4af37;margin-bottom:.3rem;">YOUR CALLSIGN</label>' +
-      '<input id="pf-rec-cs" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" ' +
-      'autocorrect="off" spellcheck="false" value="' + csHint + '" style="' + inputStyle() + '" />' +
-      '<label for="pf-rec-code" style="display:block;font-size:.72rem;letter-spacing:.14em;color:#d4af37;margin-bottom:.3rem;">RECOVERY CODE</label>' +
-      '<input id="pf-rec-code" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" ' +
-      'autocomplete="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + 'font-family:monospace;letter-spacing:.1em;" />' +
-      '<div id="pf-rec-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-      '<button id="pf-rec-btn" style="' + btnStyle(true) + '">RECOVER IT</button>' +
-      '<div style="margin:1rem 0;border-top:1px solid #3a3a3a;padding-top:1rem;">' +
-      '<div style="font-size:.85rem;font-weight:900;letter-spacing:.1em;color:#d4af37;margin-bottom:.5rem;">FORGOT YOUR CALLSIGN?</div>' +
-      '<div style="font-size:.8rem;color:#b8ab8e;margin-bottom:.5rem;">Enter the email you signed up with:</div>' +
-      '<input id="pf-rec-email" type="email" maxlength="128" placeholder="you@example.com" ' +
-      'autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + '" />' +
-      '<div id="pf-rec-email-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-      '<button id="pf-rec-email-btn" style="' + btnStyle(false) + '">FIND MY CALLSIGN</button></div>' +
-      '<div style="font-size:.75rem;color:#8a7f68;margin-top:.8rem;line-height:1.5;">No code yet? ' +
+      '<label for="pf-rec-cs" class="pf-rec-label">YOUR CALLSIGN</label>' +
+      '<input id="pf-rec-cs" class="pf-rec-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" ' +
+      'autocorrect="off" spellcheck="false" value="' + csHint + '" />' +
+      '<label for="pf-rec-code" class="pf-rec-label">RECOVERY CODE</label>' +
+      '<input id="pf-rec-code" class="pf-rec-input pf-rec-input-mono" maxlength="24" placeholder="XXXX-XXXX-XXXX-XXXX" autocapitalize="characters" ' +
+      'autocomplete="off" autocorrect="off" spellcheck="false" />' +
+      '<div id="pf-rec-err" role="alert" class="pf-rec-err"></div>' +
+      '<button id="pf-rec-btn" class="pf-rec-btn">RECOVER IT</button>' +
+      '<div class="pf-rec-div">' +
+      '<div class="pf-rec-title pf-rec-sect">FORGOT YOUR CALLSIGN?</div>' +
+      '<div class="pf-rec-sub">Enter the email you signed up with:</div>' +
+      '<input id="pf-rec-email" class="pf-rec-input" type="email" maxlength="128" placeholder="you@example.com" ' +
+      'autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" />' +
+      '<div id="pf-rec-email-err" role="alert" class="pf-rec-err"></div>' +
+      '<button id="pf-rec-email-btn" class="pf-rec-btn pf-rec-btn-ghost">FIND MY CALLSIGN</button></div>' +
+      '<div class="pf-rec-note">No code yet? ' +
       'On the device that has your callsign: <b>Enlistment Ranks &rarr; Get a recovery code</b>.</div>';
     var csEl = b.querySelector('#pf-rec-cs'), codeEl = b.querySelector('#pf-rec-code'),
         errEl = b.querySelector('#pf-rec-err'), btn = b.querySelector('#pf-rec-btn');
@@ -14423,9 +14566,8 @@ if(document.readyState==='loading'){
         } catch (e3) {}
         setErr('');
         b.innerHTML =
-          '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#7ddf8a;margin-bottom:.6rem;">' +
-          '&#9733; RECOVERED &#9733;</div>' +
-          '<div style="font-size:.95rem;color:#f5ead6;line-height:1.55;">Welcome back, <b>' +
+          '<div class="pf-rec-success">&#9733; RECOVERED &#9733;</div>' +
+          '<div class="pf-rec-sub pf-rec-sub-bright">Welcome back, <b>' +
           esc(String(j.callsign || cs).toUpperCase()) + '</b>. Your name, XP, and rank are back on this device.</div>';
         try { document.dispatchEvent(new CustomEvent('pf-callsign-claimed', { detail: { callsign: String(j.callsign || cs) } })); } catch (e4) {}
         /* The old claim modal (pfClaimModal) may still be open underneath —
@@ -14488,22 +14630,21 @@ if(document.readyState==='loading'){
     var b = m.body;
     var cs = myCallsign();
     if (!cs) {
-      b.innerHTML = '<div style="font-size:.95rem;color:#b8ab8e;line-height:1.6;">' +
-        'You need a callsign on this device first. Claim or recover one, then come back for your code.</div>';
+      b.innerHTML = '<div class="pf-rec-sub">You need a callsign on this device first. ' +
+        'Claim or recover one, then come back for your code.</div>';
       return;
     }
     b.innerHTML =
-      '<div style="font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#d4af37;margin-bottom:.6rem;">' +
-      '&#9733; YOUR RECOVERY CODE &#9733;</div>' +
+      '<div class="pf-rec-title">&#9733; YOUR RECOVERY CODE &#9733;</div>' +
       '<div id="pf-rec-i-body"></div>';
     var ib = b.querySelector('#pf-rec-i-body');
     function issueView() {
       ib.innerHTML =
-        '<div style="font-size:.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">' +
-        'A recovery code moves <b style="color:#f5ead6;">' + esc(cs.toUpperCase()) +
+        '<div class="pf-rec-sub">' +
+        'A recovery code moves <b class="pf-rec-b">' + esc(cs.toUpperCase()) +
         '</b> to a new phone, tablet, or browser &mdash; one code, one move.</div>' +
-        '<div id="pf-rec-i-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
-        '<button id="pf-rec-i-btn" style="' + btnStyle(true) + '">GET A RECOVERY CODE</button>';
+        '<div id="pf-rec-i-err" role="alert" class="pf-rec-err"></div>' +
+        '<button id="pf-rec-i-btn" class="pf-rec-btn">GET A RECOVERY CODE</button>';
       var btn = ib.querySelector('#pf-rec-i-btn'), errEl = ib.querySelector('#pf-rec-i-err');
       btn.onclick = function () {
         errEl.textContent = 'Writing your code\u2026';
@@ -14534,17 +14675,14 @@ if(document.readyState==='loading'){
        in the page. Typable groups, copy button, hard warning. */
     function codeView(code) {
       ib.innerHTML =
-        '<div style="font-size:1rem;font-weight:900;letter-spacing:.1em;color:#f5ead6;margin-bottom:.5rem;">' +
+        '<div class="pf-rec-title pf-rec-sect pf-rec-sect-cream">' +
         'WRITE THIS DOWN &mdash; IT WON\u2019T BE SHOWN AGAIN</div>' +
-        '<div id="pf-rec-i-code" style="font-family:monospace;font-size:1.5rem;font-weight:900;' +
-        'letter-spacing:.28em;color:#d4af37;background:#141414;border:2px dashed #d4af37;' +
-        'padding:1rem .6rem 1rem 1rem;margin:.4rem 0 .8rem;word-break:keep-all;">' + esc(code) + '</div>' +
-        '<button id="pf-rec-i-copy" style="' + btnStyle(false) + 'font-size:.8rem;padding:.7rem 1.4rem;">COPY CODE</button>' +
-        '<div id="pf-rec-i-copied" style="font-size:.78rem;color:#7ddf8a;min-height:1.3em;margin-top:.4rem;"></div>' +
-        '<div style="font-size:.8rem;color:#ff6b6b;line-height:1.6;margin-top:.8rem;border:2px solid #c1121f;' +
-        'padding:.7rem;text-align:left;">&#9888; Anyone with this code can move your callsign to <i>their</i> device. ' +
+        '<div id="pf-rec-i-code" class="pf-rec-code">' + esc(code) + '</div>' +
+        '<button id="pf-rec-i-copy" class="pf-rec-btn pf-rec-btn-ghost pf-rec-copybtn">COPY CODE</button>' +
+        '<div id="pf-rec-i-copied" class="pf-rec-copy-ok"></div>' +
+        '<div class="pf-rec-warn">&#9888; Anyone with this code can move your callsign to <i>their</i> device. ' +
         'Keep it secret &mdash; treat it like a password.</div>' +
-        '<div style="font-size:.75rem;color:#8a7f68;margin-top:.8rem;">Need another later? A new code cancels the old one.</div>';
+        '<div class="pf-rec-note">Need another later? A new code cancels the old one.</div>';
       var copyBtn = ib.querySelector('#pf-rec-i-copy'), copiedEl = ib.querySelector('#pf-rec-i-copied');
       copyBtn.onclick = function () {
         function done() { try { copiedEl.textContent = 'Copied. Now write it down somewhere safe.'; } catch (e) {} }
@@ -14572,10 +14710,8 @@ if(document.readyState==='loading'){
      opens the modal, and never navigates. The delegated tap handler below
      owns it, so it works from banners, modals, game panes, and bundles. */
   window.PF.recoverLinkHTML = function () {
-    return '<div class="pf-recover-row" style="margin-top:.7rem;">' +
-      '<button type="button" data-pf-recover-cs="1" ' +
-      'style="background:none;border:none;color:#d4af37;font-size:.78rem;letter-spacing:.08em;' +
-      'text-decoration:underline;cursor:pointer;font-family:inherit;padding:.5rem;min-height:44px;">' +
+    return '<div class="pf-recover-row">' +
+      '<button type="button" data-pf-recover-cs="1" class="pf-recover-link">' +
       'Already have one? Recover it &rarr;</button></div>';
   };
 
@@ -14588,14 +14724,11 @@ if(document.readyState==='loading'){
       if (node.querySelector && node.querySelector('[data-pf-recovery-entry]')) return true;
       var wrap = document.createElement('div');
       wrap.setAttribute('data-pf-recovery-entry', '1');
-      wrap.style.cssText = 'margin-top:.4rem;';
+      wrap.className = 'pf-recovery-entry';
       wrap.innerHTML =
-        '<button type="button" data-pf-recovery-issue="1" ' +
-        'style="background:none;border:1px solid #d4af37;color:#d4af37;font-size:.7rem;' +
-        'letter-spacing:.12em;padding:.45rem .9rem;cursor:pointer;font-family:inherit;min-height:44px;">' +
+        '<button type="button" data-pf-recovery-issue="1" class="pf-rec-entrybtn">' +
         'GET A RECOVERY CODE</button>' +
-        '<div style="font-size:.68rem;color:#8a7f68;margin-top:.3rem;letter-spacing:.06em;">' +
-        'Move this callsign to a new device.</div>';
+        '<div class="pf-rec-entrysub">Move this callsign to a new device.</div>';
       node.appendChild(wrap);
       return true;
     } catch (e) { return false; }
@@ -15254,7 +15387,7 @@ if(document.readyState==='loading'){
 
   var CSS = [
     '.pf-wc{max-width:680px;margin:0 auto;padding:8px 4px;color:#f5ead6;font-family:Arial,sans-serif}',
-    '.pf-wc-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#c1121f;text-align:center;margin-bottom:8px}',
+    '.pf-wc-kicker{font-weight:700;font-size:13px;letter-spacing:6px;color:#e5383b;text-align:center;margin-bottom:8px}',
     '.pf-wc-title{font-weight:900;font-size:32px;text-align:center;margin:0 0 6px;letter-spacing:2px;color:#f5ead6}',
     '.pf-wc-sub{font-size:14px;color:#c9bfa8;text-align:center;margin:0 0 18px}',
     '.pf-wc-herofig{font-weight:900;font-size:44px;text-align:center;color:#e8b923;margin:2px 0 4px}',
@@ -16116,7 +16249,7 @@ if(document.readyState==='loading'){
     ' width:min(92vw,460px);max-height:92vh;overflow-y:auto;background:#0a0a0a;color:#f2f2f2;',
     ' border:2px solid #c81e1e;border-radius:10px;padding:18px 16px 14px;box-sizing:border-box;}',
     '.pf-sharein-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}',
-    '.pf-sharein-head h2{margin:0;color:#c81e1e;font-size:1.05rem;letter-spacing:.12em;}',
+    '.pf-sharein-head h2{margin:0;color:#e5383b;font-size:1.05rem;letter-spacing:.12em;}',
     '.pf-sharein-x{background:none;border:1px solid #555;color:#ccc;border-radius:6px;',
     ' font-size:1rem;padding:2px 10px;cursor:pointer;}',
     '.pf-sharein-prev{background:#141414;border:1px solid #333;border-radius:8px;',
@@ -16133,7 +16266,7 @@ if(document.readyState==='loading'){
     '.pf-sharein-btn.ghost{background:#1c1c1c;border:1px solid #555;color:#ddd;}',
     '.pf-sharein-btn:disabled{opacity:.45;cursor:default;}',
     '.pf-sharein-note{margin-top:10px;font-size:.72rem;color:#888;letter-spacing:.04em;}',
-    '.pf-sharein-note b{color:#c81e1e;}',
+    '.pf-sharein-note b{color:#e5383b;}',
     '.pf-sharein-drafts{margin-top:14px;border-top:1px solid #2a2a2a;padding-top:10px;}',
     '.pf-sharein-drafts h3{margin:0 0 8px;font-size:.75rem;letter-spacing:.14em;color:#999;}',
     '.pf-sharein-draft{display:flex;justify-content:space-between;align-items:center;',
@@ -16143,7 +16276,7 @@ if(document.readyState==='loading'){
     ' padding:4px 8px;cursor:pointer;font-size:.72rem;margin-left:6px;}',
     '.pf-sharein-pick{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;}',
     '.pf-sharein-step{margin-top:12px;}',
-    '.pf-sharein-step h3{margin:0 0 6px;font-size:.8rem;letter-spacing:.1em;color:#c81e1e;}',
+    '.pf-sharein-step h3{margin:0 0 6px;font-size:.8rem;letter-spacing:.1em;color:#e5383b;}',
     '.pf-sharein-step p{font-size:.82rem;color:#bbb;margin:0 0 8px;line-height:1.45;}'
   ].join('\n');
 
@@ -16879,7 +17012,8 @@ if(document.readyState==='loading'){
   var SS_BUDGET = 'pf_popup_budget_v1';
   var BUDGET_MAX = 3;
   var PROMPT_MS = 5000;
-  var Z = 99998; /* below the callsign modal (99999), same as guided-onboarding */
+  var Z = 99998; /* legacy: below the callsign modal (99999). Now owned by
+     .pf-op-veil in core/02-design-system.css; kept for reference. */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -16969,30 +17103,23 @@ if(document.readyState==='loading'){
     if (!queueRequest('one-prompt', 'auto')) return false;
     overlay = document.createElement('div');
     overlay.id = 'pf-oneprompt';
+    overlay.className = 'pf-op-veil';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Welcome to the Propaganda Factory');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:' + Z +
-      ';background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;' +
-      'padding:1rem;box-sizing:border-box;';
+    /* BUTTER PASS 2026-10-07 (workstream 4): inline styles moved to the
+       .pf-op-* class library in core/02-design-system.css. IDs, ARIA,
+       wiring, dismissal, focus — all unchanged, visual-only. */
     overlay.innerHTML =
-      '<div style="background:#0a0a0a;border:3px solid #c1121f;color:#f5ead6;' +
-      'font-family:\'Helvetica Neue\',Arial,sans-serif;padding:2rem 1.5rem;max-width:440px;width:100%;' +
-      'max-height:92vh;overflow-y:auto;box-sizing:border-box;text-align:center;position:relative;">' +
-      '<div style="font-size:.78rem;font-weight:900;letter-spacing:.24em;color:#c1121f;margin-bottom:.9rem;">' +
-      '&#9733; THE PROPAGANDA FACTORY &#9733;</div>' +
-      '<div style="font-size:1.5rem;font-weight:900;line-height:1.25;margin-bottom:.6rem;letter-spacing:.02em;">' +
-      'THE MEMES ARE THE WEAPON.<br>YOU ARE THE ARMY.</div>' +
-      '<div style="font-size:.85rem;color:#b8ab8e;line-height:1.6;margin-bottom:1.4rem;">' +
+      '<div class="pf-op-card">' +
+      '<div class="pf-op-kicker">&#9733; THE PROPAGANDA FACTORY &#9733;</div>' +
+      '<div class="pf-op-head">THE MEMES ARE THE WEAPON.<br>YOU ARE THE ARMY.</div>' +
+      '<div class="pf-op-sub">' +
       'A leftist creator network turning posts into power. One tap and ' +
       'you&rsquo;re in &mdash; your XP follows you everywhere.</div>' +
-      '<button type="button" id="pf-op-claim" style="background:#c1121f;color:#fff;border:none;' +
-      'font-family:inherit;font-weight:900;letter-spacing:.12em;font-size:.95rem;' +
-      'padding:.9rem 2rem;cursor:pointer;min-height:48px;width:100%;box-sizing:border-box;">' +
+      '<button type="button" id="pf-op-claim" class="pf-op-claim">' +
       'CLAIM YOUR CALLSIGN</button>' +
-      '<div style="margin-top:.8rem;"><button type="button" id="pf-op-no" style="background:none;border:0;' +
-      'color:#8a7f68;cursor:pointer;font-size:.78rem;text-decoration:underline;padding:.6rem;' +
-      'min-height:44px;font-family:inherit;">just looking</button></div>' +
+      '<div class="pf-op-no-wrap"><button type="button" id="pf-op-no" class="pf-op-no">just looking</button></div>' +
       /* CEO directive 2026-10-06: every claim prompt needs the recovery path. */
       (function () { try { return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; } catch (e) { return ''; } })() +
       '</div>';
@@ -17045,17 +17172,11 @@ if(document.readyState==='loading'){
   }
   function stepRow(n, title, sub, btnLabel, btnId) {
     var done = stepsDone[n];
-    return '<div data-op-step="' + n + '" style="display:flex;align-items:center;gap:.8rem;' +
-      'padding:.7rem 0;border-bottom:1px solid #2a2a2a;text-align:left;">' +
-      '<div style="flex:none;width:26px;height:26px;border:2px solid ' + (done ? '#c1121f' : '#4a4033') + ';' +
-      'color:' + (done ? '#c1121f' : '#4a4033') + ';font-weight:900;display:flex;align-items:center;' +
-      'justify-content:center;font-size:.85rem;box-sizing:border-box;">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
-      '<div style="flex:1;min-width:0;"><div style="font-weight:900;font-size:.85rem;letter-spacing:.08em;' +
-      'color:' + (done ? '#8a7f68' : '#f5ead6') + ';' + (done ? 'text-decoration:line-through;' : '') + '">' + esc(title) + '</div>' +
-      '<div style="font-size:.72rem;color:#8a7f68;">' + esc(sub) + '</div></div>' +
-      (done ? '' : '<button type="button" id="' + btnId + '" style="flex:none;background:#c1121f;color:#fff;' +
-      'border:none;font-family:inherit;font-weight:900;font-size:.72rem;letter-spacing:.1em;' +
-      'padding:.55rem .9rem;cursor:pointer;min-height:40px;white-space:nowrap;">' + esc(btnLabel) + '</button>') +
+    return '<div data-op-step="' + n + '" class="pf-op-step' + (done ? ' is-done' : '') + '">' +
+      '<div class="pf-op-step-dot">' + (done ? '&#10003;' : n === 'fight' ? '1' : n === 'claim' ? '2' : '3') + '</div>' +
+      '<div class="pf-op-step-main"><div class="pf-op-step-title">' + esc(title) + '</div>' +
+      '<div class="pf-op-step-sub">' + esc(sub) + '</div></div>' +
+      (done ? '' : '<button type="button" id="' + btnId + '" class="pf-op-step-btn">' + esc(btnLabel) + '</button>') +
       '</div>';
   }
   function renderChecklist() {
@@ -17072,10 +17193,9 @@ if(document.readyState==='loading'){
       return;
     }
     checklistEl.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;">' +
-      '<div style="color:#c1121f;font-weight:900;letter-spacing:.22em;font-size:.72rem;">&#9873; YOUR FIRST MOVES</div>' +
-      '<button type="button" id="pf-op-cl-x" aria-label="Dismiss checklist" style="background:none;border:0;' +
-      'color:#8a7f68;cursor:pointer;font-size:1.2rem;line-height:1;padding:.4rem;min-width:40px;min-height:40px;">&times;</button>' +
+      '<div class="pf-op-cl-headrow">' +
+      '<div class="pf-op-cl-head">&#9873; YOUR FIRST MOVES</div>' +
+      '<button type="button" id="pf-op-cl-x" class="pf-op-cl-x" aria-label="Dismiss checklist">&times;</button>' +
       '</div>' +
       stepRow('fight', 'PICK YOUR FIGHT', 'Tunes what you see first.', 'PICK →', 'pf-op-cl-fight') +
       (stepsDone.claim ? '' : stepRow('claim', 'CLAIM YOUR CALLSIGN', 'Your XP follows it everywhere.', 'CLAIM →', 'pf-op-cl-claim')) +
@@ -17118,11 +17238,9 @@ if(document.readyState==='loading'){
       if (document.getElementById('pf-first-mission')) return;
       checklistEl = document.createElement('div');
       checklistEl.id = 'pf-oneprompt-checklist';
+      checklistEl.className = 'pf-op-checklist';
       checklistEl.setAttribute('role', 'region');
       checklistEl.setAttribute('aria-label', 'Your first moves');
-      checklistEl.style.cssText = 'background:#0b0b0c;border:3px solid #c1121f;max-width:680px;' +
-        'width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;' +
-        'font-family:\'Helvetica Neue\',Arial,sans-serif;';
       host.parentNode.insertBefore(checklistEl, host);
       renderChecklist();
     } catch (e) {}

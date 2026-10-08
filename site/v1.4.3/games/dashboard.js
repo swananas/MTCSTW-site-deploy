@@ -132,7 +132,7 @@ function renderThisWeek(){
       if(ev.ts>=now-3600000&&ev.ts<=cutoff) items.push(ev);
     }
     if(!items.length) return '';
-    var h='<div class="x-pane"><h4>This week <a href="/events#pf-mastercal" style="font:bold 10px monospace;color:#c1121f;margin-left:8px;">FULL CALENDAR &rarr;</a></h4>';
+    var h='<div class="x-pane"><h4>This week <a href="/events#pf-mastercal" style="font:bold 10px monospace;color:#e5383b;margin-left:8px;">FULL CALENDAR &rarr;</a></h4>';
     for(var j=0;j<items.length;j++){
       var e2=items[j];
       var u2=String(e2.url||'/events');
@@ -141,7 +141,7 @@ function renderThisWeek(){
       if(!/^(https?:\\/\\/|\\/)/i.test(u2)) u2='/events';
       h+='<div class="cp-mission"><div class="cp-mtext">'+esc(e2.title)+
         '<br><span style="font-size:11px;color:#a89e88;">'+esc(e2.date_label)+'</span></div>'+
-        '<div class="cp-mxp"><a href="'+esc(u2)+'" style="color:#c1121f;font-weight:800;">GO &rarr;</a></div></div>';
+        '<div class="cp-mxp"><a href="'+esc(u2)+'" style="color:#e5383b;font-weight:800;">GO &rarr;</a></div></div>';
     }
     return h+'</div>';
   }catch(e){ return ''; }

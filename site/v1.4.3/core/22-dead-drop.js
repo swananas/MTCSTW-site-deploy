@@ -85,7 +85,7 @@
   /* ---- self-contained styles (no dependency on dopamine CSS) ---- */
   var CSS = '.dd-card{border:2px solid #c1121f;background:#0d0d0f;color:#f2f2f2;' +
     'border-radius:10px;padding:16px 18px;margin:14px 0;position:relative;overflow:hidden}' +
-    '.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#c1121f;margin-bottom:6px}' +
+    '.dd-kicker{font:700 11px/1.4 monospace;letter-spacing:.18em;color:#e5383b;margin-bottom:6px}' +
     '.dd-riddle{font:700 17px/1.45 Georgia,serif;font-style:italic;margin:6px 0 10px}' +
     '.dd-meta{font:12px/1.6 monospace;color:#bdbdbd}' +
     '.dd-meta b{color:#ffd166}' +

@@ -873,7 +873,7 @@ function bannerCss(){
     +"#pf-brief .br-rml{flex:1}"
     +"#pf-brief .br-rmgo{color:#e5383b;font-weight:bold}"
     +"#pf-brief .br-rmbtn{margin-top:2px}"
-    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px}"
+    +"#pf-seasonbar{position:fixed;top:0;left:0;right:0;z-index:99990;background:#0a0a0a;border-bottom:2px solid #c1121f;color:#fff;font:bold 12px monospace;padding:7px 12px;display:flex;align-items:center;gap:10px;letter-spacing:1px;box-sizing:border-box;min-height:36px}"
     +"#pf-seasonbar .sb-name{color:#ff6b6b;white-space:nowrap}"
     +"#pf-seasonbar .sb-bar{flex:1;height:6px;background:#222;border-radius:3px;overflow:hidden;min-width:60px}"
     +"#pf-seasonbar .sb-fill{height:100%;background:#c1121f}"
@@ -881,6 +881,11 @@ function bannerCss(){
     +"#pf-seasonbar .sb-link{display:flex;align-items:center;gap:10px;flex:1;color:inherit;text-decoration:none;cursor:pointer}"
     +"#pf-seasonbar .sb-x{background:none;border:none;color:#888;font:bold 16px monospace;cursor:pointer;padding:2px 6px;line-height:1}"
     +"#pf-seasonbar .sb-x:hover{color:#fff}"
+    /* 2026-10-08 fix/mobile-visual: the fixed banner (z-index 99990) was
+       overlapping the sticky topbar (z-index 10000) when scrolled, clipping
+       the nav items. Offset the sticky topbar below the banner. */
+    +"body[data-pf-banner=\"on\"] .pf-topbar{top:36px !important}"
+    +"body[data-pf-banner=\"off\"] .pf-topbar{top:0 !important}"
     /* 2026-10-03: FEATURED DROP slot (Daily Drop consolidation) — the drop's
        own styles, rescoped from #pf-drop to #pf-brief.br-*. */
     +"#pf-brief .br-dday{font-family:Arial,sans-serif;font-size:13px;letter-spacing:3px;color:#ff5a00;text-transform:uppercase;margin-bottom:12px}"
@@ -914,7 +919,8 @@ function bannerCss(){
 function renderSeasonBanner(){
   bannerCss();
   /* 2026-10-06: dismissible season bar — X persists in localStorage. */
-  try{ if(localStorage.getItem("pf_seasonbar_hide")==="1") return; }catch(e){}
+  try{ if(localStorage.getItem("pf_seasonbar_hide")==="1"){ try{document.body.setAttribute("data-pf-banner","off");}catch(e){} return; } }catch(e){}
+  try{ document.body.setAttribute("data-pf-banner","on"); }catch(e2){}
   try{
     var sn=seasonInfo();
     var dl=Math.max(0,Math.ceil((sn.endsAt-Date.now())/86400000));
@@ -938,7 +944,7 @@ function renderSeasonBanner(){
         try{ ev.stopPropagation(); ev.preventDefault(); }catch(e){}
         try{ localStorage.setItem("pf_seasonbar_hide","1"); }catch(e2){}
         var b=document.getElementById("pf-seasonbar");
-        try{ if(b) b.style.display="none"; document.body.style.paddingTop="0px"; }catch(e3){}
+        try{ if(b) b.style.display="none"; document.body.style.paddingTop="0px"; document.body.setAttribute("data-pf-banner","off"); }catch(e3){}
       }); }
     }catch(e){}
     /* keep clear of the dopamine comeback banner if it appears */

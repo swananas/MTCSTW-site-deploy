@@ -291,12 +291,17 @@ ROUTES = {
         "core": "bundle-core.js",
         "games": ["games/bundle-create.js"],
     },
-    # NOTE: /my-hq and /bounty are static redirect shells (not in ROUTES —
-    # the template only builds full app shells):
+    # NOTE: /my-hq, /bounty, /follow-the-money are static redirect shells
+    # (not in ROUTES — the template only builds full app shells):
     #   site/my-hq/index.html -> /dashboard (Karl's "MY HQ dashboard" link)
     #   site/bounty/index.html -> /data-bounties (brand-integration links;
     #     the crossnav JS redirect never fired on the text/plain fallback)
-    # /privacy and /terms are still open — they need Shane's policy copy.
+    #   site/follow-the-money/index.html -> /money (Karl + sitemap alias)
+    # /creator-onboard is a static form shell (documented spec 2026-09-26:
+    # name/email/platform link/follower count/short pitch -> mtcstw@gmail.com
+    # via mailto) — kept out of ROUTES so rebuilds never clobber the form.
+    # /privacy, /terms, /about, /faqs, /network are still open — they need
+    # Shane's copy.
 }
 
 SHELL_TEMPLATE = """<!DOCTYPE html>

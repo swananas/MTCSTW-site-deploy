@@ -195,8 +195,7 @@ var FIX = {
   'phq-pressure': {
     title: 'BLOCK H.R.3633 — THE CLARITY ACT', target: 'U.S. SENATE',
     demand: 'VOTE NO ON CLOTURE — KILL THE BILL', signatures: 12847, signaturesGoal: 25000
-  },
-  'phq-prediction': {
+  },  'phq-prediction': {
     statement: 'SENATE REJECTS CLARITY ACT CLOTURE', outcome: 'correct', wins: 7, losses: 2
   },
   'phq-prediction-missed': {
@@ -785,6 +784,126 @@ else {
     ok('pledge no-callsign: funnel line, no blank stamp, variant kept');
   else no('pledge no-cs', 'swap wrong');
 
+
+  /* --- Surface 5: phq-pledge (deadline variants, real ballot seed rows) --- */
+  var PD = PHQ.pledgeData;
+  if (typeof PD !== 'function') no('pledgeData', 'not a function');
+  else {
+    ok('pledgeData exposed');
+    /* malformed / missing rows fail soft */
+    if (PD(null) === null && PD({}) === null && PD({ state: 'XX', registration_deadline: 'not-a-date' }) === null)
+      ok('pledgeData: null/missing/malformed rows -> null (fail-soft)');
+    else no('pledgeData degrade', 'did not fail soft');
+    /* expired state (AK, seed deadline 2026-10-04): no card */
+    var akLeft = daysLeftOf(ROW_AK.registration_deadline);
+    if (akLeft < 0 && PD(ROW_AK) === null) ok('pledgeData: expired AK deadline -> null (fail-soft, caller shows "deadline passed")');
+    else no('pledgeData expired', 'AK left=' + akLeft + ' data=' + JSON.stringify(PD(ROW_AK)));
+    /* same-day state (CO, NULL deadline): sameday variant, never fake urgency */
+    var coData = PD(ROW_CO);
+    if (coData && coData.daysLeft === 'sameday' && coData.deadline === null && coData.stateCode === 'CO')
+      ok('pledgeData: CO NULL deadline -> sameday variant');
+    else no('pledgeData sameday', 'CO data wrong: ' + JSON.stringify(coData));
+    /* standard state (MO, seed deadline 2026-10-07): real date, real count */
+    var moData = PD(ROW_MO), moLeft = daysLeftOf(ROW_MO.registration_deadline);
+    if (moData && moData.deadline === '2026-10-07' && moData.daysLeft === moLeft &&
+        moData.registerUrl === ROW_MO.register_url && moData.electionDay === '2026-11-03')
+      ok('pledgeData: MO deadline/count/registerUrl/electionDay from ballot row');
+    else no('pledgeData standard', 'MO data wrong: ' + JSON.stringify(moData));
+    /* TX row carries the seed deadline through unchanged */
+    var txData = PD(ROW_TX), txLeft = daysLeftOf(ROW_TX.registration_deadline);
+    if (txData && txData.deadline === '2026-10-05' && txData.daysLeft === txLeft)
+      ok('pledgeData: TX deadline 2026-10-05 carried through (traceable)');
+    else no('pledgeData TX', 'TX data wrong: ' + JSON.stringify(txData));
+  }
+
+  /* painter-level fail-soft: expired or malformed deadline -> no card */
+  if (PHQ.paint('phq-pledge', { stateName: 'Alaska', deadline: '2020-01-01' }) === null)
+    ok('pledge paint: expired deadline -> null (no card)');
+  else no('pledge expired paint', 'card rendered for a past deadline');
+  if (PHQ.paint('phq-pledge', { stateName: 'X', deadline: 'garbage' }) === null &&
+      PHQ.paint('phq-pledge', {}) === null)
+    ok('pledge paint: malformed/missing data -> null (no invented card)');
+  else no('pledge malformed paint', 'card rendered from bad data');
+
+  /* pledge card common chrome */
+  function pledgeChrome(cv, label) {
+    if (!cv || cv.width !== 1080 || cv.height !== 1350) { no('pledge mount', label + ': no 1080x1350 canvas'); return false; }
+    var probs = [];
+    if (!hasText(cv, "I'M IN.")) probs.push('headline');
+    if (!hasText(cv, '\u2605 THE PROPAGANDA FACTORY \u2605')) probs.push('kicker');
+    if (!hasFrag(cv, 'VOTER PLEDGE')) probs.push('badge');
+    if (!hasText(cv, 'FIGHTING AS WARHAWK') || cv._pfStamped !== true) probs.push('stamp');
+    if (!hasText(cv, 'MTCSTW.COM/POLITICAL-HQ')) probs.push('deep link');
+    if (!hasText(cv, 'JOIN THE FIGHT.')) probs.push('CTA');
+    if (!hasText(cv, expectedDate())) probs.push('date');
+    if (!hasFrag(cv, 'SOURCE:PFBALLOTCENTERDATA')) probs.push('source');
+    if (!hasText(cv, 'VOTE NOVEMBER 3, 2026')) probs.push('election day');
+    if (probs.length) { no('pledge chrome', label + ' missing: ' + probs.join(',')); return false; }
+    ok('pledge chrome: ' + label + ' (headline, badge, stamp, link, CTA, source+date)');
+    return true;
+  }
+
+  /* standard variant: MO (future deadline from seed) */
+  var moD = PD(ROW_MO), moL = daysLeftOf(ROW_MO.registration_deadline);
+  cv = PHQ.paint('phq-pledge', moD);
+  if (pledgeChrome(cv, 'MO standard')) {
+    if (hasText(cv, 'MISSOURI')) ok('pledge state name: MISSOURI');
+    else no('pledge state', 'MISSOURI missing');
+    if (hasFrag(cv, 'REGISTER BY OCTOBER 7, 2026')) ok('pledge real deadline printed (OCTOBER 7, 2026)');
+    else no('pledge deadline', 'REGISTER BY line missing: ' + joined(cv).slice(0, 400));
+    if (moL > 0 && hasText(cv, moL + ' DAYS LEFT')) ok('pledge days-left count (' + moL + ' DAYS LEFT)');
+    else no('pledge count', 'days-left missing for left=' + moL);
+    if (hasText(cv, 'REGISTER: VOTE.GOV/REGISTER/MO')) ok('pledge vote.gov link (VOTE.GOV/REGISTER/MO)');
+    else no('pledge vote.gov', 'register line missing');
+  }
+
+  /* today variant: TX (seed deadline 2026-10-05) — asserted dynamically */
+  var txD = PD(ROW_TX), txL = daysLeftOf(ROW_TX.registration_deadline);
+  cv = txD ? PHQ.paint('phq-pledge', txD) : null;
+  if (txL === 0) {
+    if (cv && hasFrag(cv, 'TODAY IS THE LAST DAY TO REGISTER')) ok('pledge today variant (TX, deadline is today)');
+    else no('pledge today', 'TX today-variant missing: ' + (cv ? joined(cv).slice(0, 300) : 'null'));
+    if (cv) pledgeChrome(cv, 'TX today');
+  } else if (txL > 0) {
+    if (cv && hasFrag(cv, 'REGISTER BY OCTOBER 5, 2026')) ok('pledge TX future variant (deadline not yet reached)');
+    else no('pledge TX future', 'missing');
+  } else {
+    if (txD === null) ok('pledge TX expired variant: pledgeData -> null (deadline has passed)');
+    else no('pledge TX expired', 'expected null, got data');
+  }
+
+  /* same-day variant: CO (NULL deadline) — the correct variant, no fake urgency */
+  cv = PHQ.paint('phq-pledge', PD(ROW_CO));
+  if (pledgeChrome(cv, 'CO same-day')) {
+    if (hasText(cv, 'REGISTER AT THE POLLS')) ok('pledge same-day variant: REGISTER AT THE POLLS');
+    else no('pledge sameday', 'REGISTER AT THE POLLS missing');
+    if (hasFrag(cv, 'SAME-DAY REGISTRATION')) ok('pledge same-day registration line');
+    else no('pledge sameday line', 'missing');
+    if (!hasFrag(cv, 'DAYS LEFT') && !hasFrag(cv, 'LAST DAY')) ok('pledge same-day: no fake urgency copy');
+    else no('pledge fake urgency', 'urgency copy on a same-day card');
+    if (hasText(cv, 'REGISTER: VOTE.GOV/REGISTER/CO')) ok('pledge CO vote.gov link');
+    else no('pledge CO link', 'missing');
+  }
+
+  /* kill switch: ?pf_off=card-pledge kills the card, pledgeData still shapes data */
+  function makeKillEnv() {
+    var e = makeEnv();
+    e.sb.PF.skip = function (silo) { return silo === 'card-pledge'; };
+    return e;
+  }
+  var kenv = makeKillEnv();
+  var KPHQ = kenv.sb.PF.PHQShare;
+  if (KPHQ.paint('phq-pledge', PD(ROW_MO)) === null) ok('kill switch: ?pf_off=card-pledge -> painter returns null');
+  else no('kill switch', 'card rendered with card-pledge killed');
+  if (KPHQ.pledgeData(ROW_MO) !== null) ok('kill switch: pledgeData still shapes data (kill gates the card only)');
+  else no('kill switch data', 'pledgeData gated by kill switch');
+
+  /* no-callsign: no blank stamp, claim-line funnel */
+  cv = PHQ2.paint('phq-pledge', PD(ROW_CO));
+  if (cv && !hasFrag(cv, 'FIGHTING AS') && cv._pfStamped !== true &&
+      hasText(cv, 'CLAIM YOUR CALLSIGN AT MTCSTW.COM') && hasText(cv, 'REGISTER AT THE POLLS'))
+    ok('pledge no-callsign: funnel line, no blank stamp, variant kept');
+  else no('pledge no-cs', 'swap wrong');
 
   /* --- share/save routing through PFShare --- */
   var r1 = PHQ.share('phq-pressure', FIX['phq-pressure']);

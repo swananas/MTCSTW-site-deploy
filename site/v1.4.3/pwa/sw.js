@@ -60,6 +60,16 @@ self.addEventListener('push', function (e) {
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
   var url = (e.notification.data && e.notification.data.url) || '/';
+  /* L-1 (2026-10-08): validate the push-payload URL before opening — a
+     compromised push sender must not be able to navigate users off-site.
+     Only same-origin (or mtcstw.com) targets are honored; anything else
+     falls back to the app root. */
+  try {
+    var _t = new URL(url, self.registration.scope);
+    var _ok = _t.origin === location.origin ||
+      /(^|\.)mtcstw\.com$/.test(_t.hostname);
+    if (!_ok) url = '/';
+  } catch (err3) { url = '/'; }
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
       var i, c, cUrl, tUrl;

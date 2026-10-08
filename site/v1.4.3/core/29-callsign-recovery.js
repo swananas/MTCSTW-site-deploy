@@ -187,8 +187,11 @@
     codeEl.onkeydown = function (e) { if (e.key === 'Enter') doRecover(); };
     csEl.onkeydown = function (e) { if (e.key === 'Enter') { try { codeEl.focus(); } catch (e2) {} } };
     /* Email-based callsign lookup (CEO directive 2026-10-07): "one email in,
-       callsign out." Hits ?action=recover_callsign, fills the callsign field
-       on success so the user can continue with recovery code flow. */
+       callsign in your inbox." POST {action:'recover_callsign'} — the
+       backend answers {ok:true} for every valid email and emails the
+       callsign when the address is registered (2026-10-08 H-1: the old
+       GET rail disclosed the callsign and was a user-enumeration oracle;
+       M-2: email no longer rides the query string). */
     var emailEl = b.querySelector('#pf-rec-email'), emailErrEl = b.querySelector('#pf-rec-email-err'),
         emailBtn = b.querySelector('#pf-rec-email-btn');
     function setEmailErr(x) { if (emailErrEl) emailErrEl.textContent = x; }
@@ -199,28 +202,27 @@
       setEmailErr('Looking up\u2026'); setEmailBusy(true);
       var url = backend();
       if (!url) { setEmailErr('Network error. Try again.'); setEmailBusy(false); return; }
-      fetch(url + '?action=recover_callsign&email=' + encodeURIComponent(em))
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          setEmailBusy(false);
-          if (j && j.ok && j.callsign) {
-            var found = String(j.callsign);
-            setEmailErr('');
-            try { csEl.value = found; } catch (e) {}
-            setEmailErr('');
-            /* Show the found callsign prominently. */
-            emailErrEl.style.color = '#7ddf8a';
-            setEmailErr('Found: ' + found.toUpperCase() + ' \u2014 now enter your recovery code above.');
-            try { codeEl.focus(); } catch (e2) {}
-          } else if (j && j.error === 'rate_limited') {
-            emailErrEl.style.color = '#ff6b6b';
-            setEmailErr('Too many tries \u2014 wait 10 minutes.');
-          } else {
-            emailErrEl.style.color = '#ff6b6b';
-            setEmailErr('No callsign found for that email.');
-          }
-        })
-        .catch(function () { setEmailBusy(false); emailErrEl.style.color = '#ff6b6b'; setEmailErr('Network error. Try again.'); });
+      /* POST (M-2): email rides the JSON body, never the query string. The
+         backend answers {ok:true} for every valid email (H-1: no oracle)
+         and emails the callsign when the address is registered. */
+      postJSON({ action: 'recover_callsign', email: em }, function (j) {
+        setEmailBusy(false);
+        if (j && j.ok) {
+          emailErrEl.style.color = '#7ddf8a';
+          setEmailErr('If that email is on file, your callsign is on its way to your inbox. ' +
+            'Enter it above with your recovery code.');
+          try { csEl.focus(); } catch (e2) {}
+        } else if (j && (j.error === 'rate_limited' || j.err === 'rate_limited')) {
+          emailErrEl.style.color = '#ff6b6b';
+          setEmailErr('Too many tries \u2014 wait 10 minutes.');
+        } else if (j && (j.error === 'bad_email' || j.err === 'bad_email')) {
+          emailErrEl.style.color = '#ff6b6b';
+          setEmailErr('Enter a valid email address.');
+        } else {
+          emailErrEl.style.color = '#ff6b6b';
+          setEmailErr('Network error. Try again.');
+        }
+      });
     }
     if (emailBtn) emailBtn.onclick = doEmailLookup;
     if (emailEl) emailEl.onkeydown = function (e) { if (e.key === 'Enter') doEmailLookup(); };

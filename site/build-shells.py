@@ -230,6 +230,13 @@ ROUTES = {
         "core": "bundle-core.js",
         "games": ["games/bundle-receipt.js"],
     },
+    "/data-bounties": {
+        "title": "Data Bounties — Your Content Becomes Action.",
+        "desc": "Open bounties for real targets. Your photos, prices, and evidence become movement action — never sold.",
+        "mounts": ["pf-data-bounties"],
+        "core": "bundle-core.js",
+        "games": ["games/bundle-create.js"],
+    },
     "/town": {
         "title": "Your Town — Local Power, Mapped.",
         "desc": "Who runs your town? Reps, money, and pressure points — by zip code.",

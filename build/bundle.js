@@ -184,10 +184,17 @@ var SECTIONS = {
        joiner induction on pf-cell-formed / pf-cell-joined. */
     'cells.js',
     'cell-first-hour.js',
+<<<<<<< HEAD
     /* Political HQ weave #5 (2026-10-05): "Your cell's fight" one-time
        briefing — slim dup of bundle-home's copy; /cells fetches this bundle
        INSTEAD of bundle-home, never both. */
     'cell-briefing.js',
+=======
+    /* TEARDOWN WS-3 (2026-10-06): SOUND OFF — the ONE named first action
+       after a one-tap join (pf-cell-joined). Kill: ?pf_off=cell-soundoff.
+       Zero XP, zero new backend actions. */
+    'cell-soundoff.js',
+>>>>>>> fe/teardown-cells
     /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
        INSTEAD of bundle-home on /cells, never both). */
     'war-room-ticker.js',
@@ -693,7 +700,7 @@ var DEAD = ['bank.js', 'casino.js', 'daily-drop.js', 'daily-fire.js', 'boost-rai
    unbundled-file gate like SLIM_DUP. */
 var SLIM_ONLY = ['creator-guess.js', 'daily-interrogation.js',
   'billionaire-supervillain.js', 'slr-match-quiz.js', 'infighting.js',
-  'cells.js', 'cell-first-hour.js', 'poster-forge.js',
+  'cells.js', 'cell-first-hour.js', 'cell-soundoff.js', 'poster-forge.js',
   'poster-forge-political.js', 'feed.js'];
 /* Global chrome: notify.js (header bell) + flash-siren.js (A2 site-wide siren
    banner) are bundled by build/bundle-core.js into pages/bundle-pages.js —

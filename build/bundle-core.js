@@ -80,6 +80,10 @@ var CORE_FILES = [
      After 03-global (PF_BACKEND_URL); lazy, no load-time DOM/DB dependency. */
   'core/creator-stats.js',
   'core/14-auth.js',
+  /* TEARDOWN WS-3 (2026-10-06): the pattern library moves up so game/core
+     modules that consume PF.patterns (squadjoin, cells) can call it
+     synchronously at mount. Pure HTML builders, no load-time deps. */
+  'core/33-patterns.js',
   /* Pod 4 (2026-10-05): "Sign in with Bluesky" OAuth link card. After
      14-auth (needs PF.authPost/authGetJSONP + requireCallsign). */
   'core/28-bsky-link.js',
@@ -210,6 +214,7 @@ var CORE_FILES = [
   /* freshness (Cohesion §4, 2026-10-05): PF.freshBadge / PF.degradedVintage /
      PF.honestZero — LIVE badges only on <=15-min-fresh data, automatic label
      degradation, honest zero states. Kill: ?pf_off=27-freshness. */
+<<<<<<< HEAD
   'core/27-freshness.js',
   /* PLAY 6 (UX Combination Plays Wave 2, 2026-10-06): YOUR WAR CHEST — the
      unified money view (personal balance, bounty earnings + surge, liberty
@@ -252,6 +257,9 @@ var CORE_FILES = [
      bundle-footer-chrome (crossnav precedent). Last: touches only the nav
      list, no consumer deps. Kill: ?pf_off=42-mobile-nav-trim. */
   'core/42-mobile-nav-trim.js'
+=======
+  'core/27-freshness.js'
+>>>>>>> fe/teardown-cells
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

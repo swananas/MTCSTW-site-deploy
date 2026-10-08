@@ -128,6 +128,24 @@
     if (id.device) p.device = id.device;
     return p;
   }
+  /* S-31 forecast pools: {type:'pool', pl_action}. Same 15s-abort pattern as
+     the other mutation rails; PF.postAction preferred when available. */
+  function poolMut(pAction, params, cb){
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('pool','pl_action',pAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      var body = Object.assign({ type:'pool', pl_action:pAction }, withIdent(params));
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
 
   /* Finance mutations: {type:'finance', f_action}. Campaign: {type:'campaign', c_action}. */
   function postFin(fAction, params, cb){
@@ -1301,6 +1319,224 @@
     return out;
   }
 
+  /* ---------- FORECAST POOLS (helpers — pure, extracted by tests/fcpools.verify.cjs) ----------
+     S-31 (2026-10-05): pooled civic-literacy game — "reading the economy
+     together." One pool per cell per week; members make one call each; the
+     pool resolves from official FRED figures, backend-only. Zero XP.
+     Copy rules (Psych binding): invitation-only language — never
+     "required"/"mandatory"/"cell duty"/"quota"; non-pickers never displayed
+     (pooled side totals only); no streak linkage; resolution is
+     informational ("the print came in at X"), never won/lost; voids use the
+     approved strings + "We only resolve on official data — never on a guess."
+     Banned from all pool copy: bet, odds, wager, winnings, payout, stake,
+     pot, jackpot, betting, bookmaker, "market", won/lost.
+     KILL: ?pf_off=fc_pools (PF.skip("fc_pools")) hides the card. */
+  function poolOff(){ try { return PF.skip("fc_pools"); } catch (e){ return false; } }
+  function poolCountdown(ts){
+    var ms = Number(ts)||0;
+    if (!ms) return 'no lock set';
+    var d = ms - Date.now();
+    if (d <= 0) return 'locked';
+    var h = Math.floor(d/3600000), dd = Math.floor(h/24);
+    if (dd > 0) return dd+'d '+(h%24)+'h left';
+    if (h > 0) return h+'h left';
+    return Math.max(1, Math.floor(d/60000))+'m left';
+  }
+  function poolPct(n, total){
+    n = Number(n)||0; total = Number(total)||0;
+    return total > 0 ? Math.round(n/total*100) : 0;
+  }
+  function poolTotals(p){
+    var t = 0, sides = p.sides || [], totals = p.totals || {};
+    sides.forEach(function(s){ t += Number(totals[s])||0; });
+    return t;
+  }
+  /* One open pool block. me = my callsign; canLead = founder/officer. */
+  function poolOpenCard(p, me, canLead, cellId){
+    var pid = String(p.id||'');
+    var cid = esc(String(cellId||''));
+    var sides = p.sides || [], labels = p.labels || {}, totals = p.totals || {};
+    var total = poolTotals(p);
+    var mine = p.my_pick ? String(p.my_pick) : '';
+    var isPoster = String(p.created_by||'').toLowerCase() === String(me||'').toLowerCase();
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';
+    h += '<div style="margin:6px 0"><b>'+esc(p.question||'')+'</b></div>';
+    h += '<div class="hq-note">Cell consensus so far — pooled totals only.</div>';
+    sides.forEach(function(s){
+      var n = Number(totals[s])||0, pc = poolPct(n, total);
+      var lab = labels[s] || s;
+      h += '<div class="hq-mem"><span><b>'+esc(lab)+'</b> ' +
+        '<span class="hq-note">'+n+' call'+(n===1?'':'s')+' ('+pc+'%)</span></span><span>';
+      if (p.can_pick && !isPoster){
+        h += '<button class="hq-btn sm" data-hq="pool-pick" data-cell="'+cid+'" data-pool="'+esc(pid)+'" data-side="'+esc(s)+'">CALL IT</button>';
+      }
+      h += '</span></div>' +
+        '<div class="hq-bar" style="margin:2px 0 8px"><div style="width:'+pc+'%"></div></div>';
+    });
+    if (mine){
+      h += '<div class="hq-note" style="margin-top:6px">Your call: <b>'+esc(labels[mine]||mine)+
+        '</b> — locked in, no re-picks.</div>';
+    } else if (isPoster){
+      h += '<div class="hq-note" style="margin-top:6px">You posted this pool — posters don\u2019t pick, keeps it fair.</div>';
+    } else if (p.can_pick){
+      h += '<div class="hq-note" style="margin-top:6px">You\u2019re invited to make a call — always optional, no pressure.</div>';
+    }
+    h += '<div class="hq-row" style="margin-top:6px"><span class="hq-note">Picks lock: '+esc(poolCountdown(p.locks_at))+'</span>' +
+      '<span class="hq-note">posted by '+esc(p.created_by||'?')+'</span>';
+    if (p.oracle_link){
+      h += '<span class="hq-note"><a href="'+esc(p.oracle_link)+'" target="_blank" rel="noopener">official figure &#8599;</a></span>';
+    }
+    h += '</div>';
+    if (canLead){
+      h += '<div class="hq-row" style="margin-top:6px">' +
+        '<button class="hq-btn sm ghost" data-hq="pool-cancel" data-cell="'+cid+'" data-pool="'+esc(pid)+'">VOID POOL</button></div>';
+    }
+    h += '</div>';
+    return h;
+  }
+  /* Resolved pool: informational readout — the print came in at X. */
+  function poolResolvedCard(p){
+    var labels = p.labels || {};
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px;opacity:.92">';
+    h += '<div style="margin:6px 0"><b>'+esc(p.question||'')+'</b></div>';
+    h += '<div class="hq-note">The print came in: <b>'+esc(p.resolved_detail||'')+'</b></div>';
+    var sides = p.sides || [], totals = p.totals || {}, total = poolTotals(p);
+    var best = '', bestN = -1, tie = false;
+    sides.forEach(function(s){
+      var n = Number(totals[s])||0;
+      if (n > bestN){ best = s; bestN = n; tie = false; }
+      else if (n === bestN && n > 0){ tie = true; }
+    });
+    if (total > 0){
+      h += '<div class="hq-note" style="margin-top:4px">Cell consensus: <b>'+
+        esc(tie ? 'split — no consensus' : (labels[best]||best))+'</b> ('+total+' call'+(total===1?'':'s')+').</div>';
+    } else {
+      h += '<div class="hq-note" style="margin-top:4px">No calls were made on this one.</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+  /* Voided pool: approved void strings + the oracle-discipline sentence. */
+  function poolVoidCard(p){
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px;opacity:.55">';
+    h += '<div style="margin:6px 0"><b>'+esc(p.question||'')+'</b></div>';
+    h += '<div class="hq-note">'+esc(p.void_note||'Voided — no official figure available.')+'</div>';
+    h += '<div class="hq-note" style="margin-top:4px">'+esc(p.oracle_note||'We only resolve on official data — never on a guess.')+'</div>';
+    h += '</div>';
+    return h;
+  }
+  /* Founder/officer post form: kind + threshold + timing. Questions come
+     from the approved template set — the backend generates the text. */
+  function poolPostForm(cellId){
+    var cid = esc(String(cellId||''));
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';
+    h += '<div class="hq-note" style="margin-bottom:6px"><b>Post this week\u2019s pool</b> — an invitation, never an assignment. One pool per cell per week.</div>';
+    h += '<div class="hq-row">' +
+      '<select class="hq-sel" id="hqPoolKind_'+cid+'" aria-label="Pool type">' +
+      '<option value="fomc_move">Fed decision: up / steady / down</option>' +
+      '<option value="cpi_threshold">Inflation: above a threshold?</option>' +
+      '</select>' +
+      '<select class="hq-sel" id="hqPoolThr_'+cid+'" aria-label="Threshold">' +
+      '<option value="2">2%</option><option value="2.5">2.5%</option>' +
+      '<option value="3" selected>3%</option><option value="3.5">3.5%</option>' +
+      '<option value="4">4%</option></select></div>';
+    h += '<div class="hq-row" style="margin-top:4px">' +
+      '<select class="hq-sel" id="hqPoolLock_'+cid+'" aria-label="Picks lock in">' +
+      '<option value="24">Picks lock in 24h</option>' +
+      '<option value="48" selected>Picks lock in 48h</option>' +
+      '<option value="72">Picks lock in 72h</option></select>' +
+      '<select class="hq-sel" id="hqPoolRes_'+cid+'" aria-label="Resolves in">' +
+      '<option value="7" selected>Resolves in 7 days</option>' +
+      '<option value="14">Resolves in 14 days</option>' +
+      '<option value="30">Resolves in 30 days</option></select>' +
+      '<button class="hq-btn sm" data-hq="pool-post" data-cell="'+cid+'">POST POOL</button></div>';
+    h += '<div class="hq-note" style="margin-top:4px">Resolves from the official FRED figure only — never on a guess. Nothing to win, no XP; it\u2019s how the cell reads the economy together.</div>';
+    h += '</div>';
+    return h;
+  }
+  function poolBoardRow(r){
+    return '<div class="hq-mem"><span><b>#'+esc(String(r.rank||''))+'</b> '+esc(r.cell_name||'Cell')+'</span>' +
+      '<span class="hq-note">'+esc(String(r.accuracy_pct||0))+'% over '+esc(String(r.scored||0))+' pools</span></div>';
+  }
+  function poolMyStanding(m){
+    if (!m) return '';
+    if (m.meets_minimum){
+      return '<div class="hq-note" style="margin-top:6px">Your cell\u2019s standing: <b>#'+
+        esc(String(m.rank))+ '</b> — '+esc(String(m.accuracy_pct))+'% over '+esc(String(m.scored))+' pools.</div>';
+    }
+    return '<div class="hq-note" style="margin-top:6px">Your cell needs 3 resolved pools with calls to appear on the board ('+
+      esc(String(m.scored||0))+' so far).</div>';
+  }
+  /* Paint the Forecast pools card into #hqPoolBody. Fail-soft: anything
+     missing -> the card quietly stays on its loading note. */
+  function paintPools(root, cellId, canLead){
+    var slot = null;
+    try { slot = root.querySelector('#hqPoolBody'); } catch (e){}
+    if (!slot || !cellId) return;
+    /* Stash for repaintPools (post-pick/post/cancel refresh). */
+    try {
+      slot.setAttribute('data-cell', String(cellId));
+      slot.setAttribute('data-lead', canLead ? '1' : '');
+    } catch (e){}
+    var id = ident();
+    var h = '<div class="hq-card"><h3>&#128202; Forecast pools</h3>' +
+      '<div class="hq-note">Reading the economy together — one pool a week. You\u2019re invited to make a call; it\u2019s always optional.</div>' +
+      '<div id="hqPoolList">'+loading('Opening the pool book&hellip;')+'</div>' +
+      '<div id="hqPoolBoard"></div></div>';
+    slot.innerHTML = h;
+    var listEl = null, boardEl = null;
+    try {
+      listEl = slot.querySelector('#hqPoolList');
+      boardEl = slot.querySelector('#hqPoolBoard');
+    } catch (e){}
+    var me = id.callsign || '';
+    api('fcpool_list', withIdent({ cell_id: cellId }), function(j){
+      if (!listEl) return;
+      if (!j || !j.ok || !j.pools){
+        listEl.innerHTML = '<div class="hq-note">Pools aren\u2019t loading right now.</div>';
+        return;
+      }
+      var ph = '';
+      var openSeen = false;
+      (j.pools||[]).forEach(function(p){
+        if (p.status === 'open'){ openSeen = true; ph += poolOpenCard(p, me, canLead, cellId); }
+        else if (p.status === 'resolved'){ ph += poolResolvedCard(p); }
+        else if (p.status === 'voided'){ ph += poolVoidCard(p); }
+      });
+      if (!openSeen && canLead) ph += poolPostForm(cellId);
+      else if (!openSeen && !(j.pools||[]).length) ph = '<div class="hq-note">No pools yet this week.</div>' + ph;
+      listEl.innerHTML = ph;
+    });
+    api('fcpool_leaderboard', me ? { callsign: me } : {}, function(j){
+      if (!boardEl) return;
+      if (!j || !j.ok || !j.board || !j.board.length){
+        boardEl.innerHTML = '<div class="hq-note" style="margin-top:8px">The accuracy board lights up once cells have 3 resolved pools.</div>';
+        return;
+      }
+      var bh = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">' +
+        '<div class="hq-note" style="margin-bottom:6px"><b>Forecast accuracy — top 10 cells</b></div>';
+      (j.board||[]).forEach(function(r){ bh += poolBoardRow(r); });
+      var mine = null;
+      (j.my_cells||[]).forEach(function(m){ if (String(m.cell_id) === String(cellId)) mine = m; });
+      bh += poolMyStanding(mine);
+      bh += '<div class="hq-note" style="margin-top:6px">Voided pools never count. Accuracy is informational — never financial advice.</div></div>';
+      boardEl.innerHTML = bh;
+    });
+  }
+  /* Refresh the pools card after a pick/post/cancel (reads the stashed
+     cell + lead flag — no re-derivation needed). */
+  function repaintPools(cellId){
+    var slot = null;
+    try { slot = mount.querySelector('#hqPoolBody'); } catch (e){}
+    if (!slot) return;
+    var cid = cellId;
+    try { cid = cid || slot.getAttribute('data-cell'); } catch (e){}
+    if (!cid) return;
+    var lead = false;
+    try { lead = slot.getAttribute('data-lead') === '1'; } catch (e){}
+    paintPools(mount, cid, lead);
+  }
+
   /* ---------- TAB 5: TREASURY ----------
      Financial rails for cells. Honest scoping:
      - bank_status is PER-CALLSIGN (your personal war chest), not cell-scoped.
@@ -1888,6 +2124,50 @@
         }
         /* Re-pull the orders so the card + counts are fresh. */
         paintStrikeOrders(mount, cellId, true);
+      });
+    }
+    else if (a==='pool-pick'){
+      /* S-31: one call per member per pool — no re-picks, server-enforced. */
+      if(!needCs()) return; busy(true);
+      var ppid = t.getAttribute('data-pool'), pside = t.getAttribute('data-side');
+      poolMut('fcpool_pick', { pool_id: ppid, side: pside }, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Call locked in.'); }
+        else toast(friendlyErr(j));
+        var pcid = t.getAttribute('data-cell') || S.detail;
+        repaintPools(pcid);
+      });
+    }
+    else if (a==='pool-post'){
+      /* S-31: founder/officer posts this week's pool (invitation, never an
+         assignment). Backend enforces 1 pool/cell/week + template questions. */
+      if(!needCs()) return;
+      var pcKind = strIn('hqPoolKind_'+cellId), pcThr = strIn('hqPoolThr_'+cellId);
+      var pcLock = strIn('hqPoolLock_'+cellId), pcRes = strIn('hqPoolRes_'+cellId);
+      var nowMs = Date.now();
+      busy(true);
+      poolMut('fcpool_post', {
+        cell_id: cellId,
+        kind: pcKind || 'fomc_move',
+        threshold: Number(pcThr) || 3,
+        locks_at: nowMs + (Number(pcLock) || 48) * 3600000,
+        resolves_at: nowMs + (Number(pcLock) || 48) * 3600000 + (Number(pcRes) || 7) * 86400000
+      }, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Pool posted — the cell is invited to make a call.'); }
+        else toast(friendlyErr(j));
+        repaintPools(cellId);
+      });
+    }
+    else if (a==='pool-cancel'){
+      if(!needCs()) return;
+      if(!moneyConfirm('Void this pool? No outcome will be recorded.')) return;
+      busy(true);
+      poolMut('fcpool_cancel', { pool_id: t.getAttribute('data-pool') }, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Pool voided.'); }
+        else toast(friendlyErr(j));
+        repaintPools(cellId);
       });
     }
     else if (a==='strike-forge'){

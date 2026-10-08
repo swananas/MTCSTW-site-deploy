@@ -138,6 +138,72 @@
       '<div class="pf-jp-src">' + stamp(s) + '</div></div>';
   }
 
+  /* ---------- M-05: jobs-quality composite (Wave B3) ----------
+     Descriptive 0–100 index from the official FRED rail
+     (?action=fred_jobs_quality). Fixed published weights; the response
+     carries weights_signed_off:false until the Economy Desk signs them —
+     the composite renders with a PENDING-SIGN-OFF chip until then.
+     "DESCRIPTIVE INDEX — NOT A FORECAST" is printed, not implied. */
+  var JQ_CSS = [
+    '.pf-jq{margin:12px 0 4px;border:1px solid #2a2a2a;border-top:6px solid #e8b923;border-radius:8px;background:#0d0d0d;padding:12px}',
+    '.pf-jq-score{font-weight:900;font-size:44px;color:#e8b923;text-align:center;margin:4px 0}',
+    '.pf-jq-label{text-align:center;font-size:11px;letter-spacing:2px;color:#c9bfa8;margin-bottom:10px}',
+    '.pf-jq-bar{margin:8px 0}',
+    '.pf-jq-bar-head{display:flex;justify-content:space-between;font-size:12px;color:#d8d0c0;margin-bottom:3px}',
+    '.pf-jq-track{position:relative;height:12px;background:#1a1a1a;border-radius:3px;overflow:hidden}',
+    '.pf-jq-fill{position:absolute;left:0;top:0;bottom:0;background:#e8b923}',
+    '.pf-jq-chip{display:inline-block;background:#3a2a0d;color:#e8c96a;font-weight:700;font-size:10px;letter-spacing:1px;padding:2px 6px;border-radius:3px;margin-left:6px}',
+    '.pf-jq-note{font-size:11px;color:#8a8271;line-height:1.55;margin-top:8px}'
+  ].join('\n');
+
+  function jqCssOnce() {
+    try {
+      if (document.getElementById('pf-jq-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-jq-css';
+      st.textContent = JQ_CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function renderComposite(host, q) {
+    jqCssOnce();
+    var el = document.createElement('div');
+    el.setAttribute('data-jq', 'jobs-quality');
+    host.appendChild(el);
+    if (!q || !q.ok || !q.fred_live) { el.innerHTML = ''; return; }
+    if (q.stale || q.score == null) {
+      el.innerHTML = '<div class="pf-jq"><div class="pf-jq-label">JOBS-QUALITY COMPOSITE</div>' +
+        '<div class="pf-jq-note" style="text-align:center">' +
+        esc(q.stale_note || 'Jobs data still connecting — the composite appears once all three legs land. Nothing estimated.') +
+        '</div></div>';
+      return;
+    }
+    var bars = (q.components || []).map(function (c) {
+      var sc = c.score == null ? 0 : c.score;
+      return '<div class="pf-jq-bar"><div class="pf-jq-bar-head"><span>' + esc(c.label) +
+        ' <span style="color:#8a8271">(' + c.weight + '%)</span></span>' +
+        '<span><strong>' + esc(c.raw_label || '') + '</strong> · ' +
+        (c.score == null ? '—' : c.score + '/100') + '</span></div>' +
+        '<div class="pf-jq-track"><span class="pf-jq-fill" style="width:' + sc + '%"></span></div></div>';
+    }).join('');
+    var signChip = q.weights_signed_off ? '' :
+      '<span class="pf-jq-chip">WEIGHTS PENDING ECONOMY DESK SIGN-OFF</span>';
+    el.innerHTML = '<div class="pf-jq">' +
+      '<div class="pf-jq-label">JOBS-QUALITY COMPOSITE' + signChip + '</div>' +
+      '<div class="pf-jq-score">' + q.score + '<span style="font-size:18px;color:#8a8271">/100</span></div>' +
+      bars +
+      '<div class="pf-jq-label" style="margin:10px 0 0">' + esc(q.label || 'DESCRIPTIVE INDEX — NOT A FORECAST') + '</div>' +
+      '<div class="pf-jq-note">' + esc(q.methodology || '') + '</div></div>';
+  }
+
+  function mountComposite(host) {
+    api('fred_jobs_quality', {}, function (q) {
+      try { renderComposite(host, (q && q.ok) ? q : null); }
+      catch (e) {}
+    });
+  }
+
   function render(container, j) {
     cssOnce();
     var live = !!(j && j.fred_live);
@@ -153,6 +219,8 @@
       cards.map(function (s) { return card(s || {}); }).join('') +
       '</div>' +
       '<div class="pf-jp-foot">OFFICIAL FIGURES VIA FRED \u00b7 CITE THEM IN YOUR PRESSURE-CAMPAIGN CALLS</div></div>';
+    /* M-05 composite rides below the jobs cards (Wave B3). */
+    try { mountComposite(container.querySelector('.pf-jp') || container); } catch (e) {}
   }
 
   function mount(container) {

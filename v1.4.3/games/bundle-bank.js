@@ -886,6 +886,75 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       '<div class="pf-bf-foot">OFFICIAL FIGURES VIA FRED \u00b7 NEVER BLENDED WITH GAME RATES</div></div>';
   }
 
+  /* ---------- Wave B3: M-03 yield-curve spread + M-06 policy stance ----------
+     Treasury-context model cards, appended below the official rate cards.
+     Each carries a MODEL chip and its own methodology — official figures,
+     descriptive only, no predictions. KILL: ?pf_off=yield-spread |
+     ?pf_off=policy-stance (master: ?pf_off=bank-fred). */
+  function modelCard(title, modelTag, valueHTML, noteHTML, stamps) {
+    return '<div class="pf-bf-card">' +
+      '<div class="pf-bf-head"><span class="pf-bf-name">' + esc(title) + '</span>' +
+      '<span class="pf-bf-chip">' + esc(modelTag) + '</span></div>' +
+      valueHTML +
+      '<div class="pf-bf-note">' + noteHTML + '</div>' +
+      '<div class="pf-bf-src">' + stamps + '</div></div>';
+  }
+
+  function renderModels(host) {
+    function draw() {
+      try {
+        var grid = host.querySelector('.pf-bf-grid');
+        if (!grid) return;
+        var extra = document.createElement('div');
+        extra.setAttribute('data-bf-models', '1');
+        extra.className = 'pf-bf-grid';
+        extra.style.marginTop = '10px';
+        grid.parentNode.insertBefore(extra, grid.nextSibling);
+        function add(html) {
+          try { extra.insertAdjacentHTML('beforeend', html); } catch (e) {}
+        }
+        if (!PF.skip('yield-spread')) {
+          api('fred_yield_spread', { limit: 1 }, function (j) {
+            if (!j || !j.ok || !j.fred_live || !j.spread_live || j.stale || j.spread_bp == null) return;
+            var val = (j.spread_bp > 0 ? '+' : j.spread_bp < 0 ? '\u2212' : '') +
+              Math.abs(j.spread_bp) + ' bp';
+            var note = j.inverted
+              ? 'Inverted — the 10-year yield sits below the 2-year. A mechanical reading of the curve, not a forecast.'
+              : 'Normal — the 10-year yield sits above the 2-year. A mechanical reading of the curve, not a forecast.';
+            /* REGIME_DRAFT equivalent: News Desk owns final copy. */
+            add(modelCard('YIELD-CURVE SPREAD (10Y \u2212 2Y)', 'MODEL · M-03',
+              '<div class="pf-bf-value">' + esc(val) + '</div>' +
+              '<div class="pf-bf-period">' + esc(j.history && j.history[0] ? j.history[0].period_label : '') + '</div>',
+              esc(note) + ' <span class="pf-bf-chip">DRAFT COPY</span>',
+              'FRED \u00b7 DGS10 \u2212 DGS2 \u00b7 ' +
+              (j.retrieved_at ? 'RETRIEVED ' + esc(fmtRetrieved(j)) : '')));
+          });
+        }
+        if (!PF.skip('policy-stance')) {
+          api('fred_policy_stance', { limit: 1 }, function (j) {
+            if (!j || !j.ok || !j.fred_live || !j.stance_live || j.stale || j.real_rate == null) return;
+            var copy = j.regime_copy_draft || '';
+            add(modelCard('HOW RESTRICTIVE IS THE FED?', 'MODEL · M-06',
+              '<div class="pf-bf-value">' + esc(j.real_rate_label || '') + '</div>' +
+              '<div class="pf-bf-period">' + esc(String(j.regime || '').toUpperCase()) + ' \u00b7 ' +
+              esc(j.period_label || '') + '</div>',
+              esc(copy) + ' <span class="pf-bf-chip">DRAFT COPY</span>',
+              'FRED \u00b7 FEDFUNDS \u2212 PCEPI YoY \u00b7 regimes: \u2265+2% restrictive / 0–2% neutral / &lt;0% accommodative'));
+          });
+        }
+      } catch (e) {}
+    }
+    /* The rates grid renders async — retry once after mount settles. */
+    var tries = 0;
+    (function wait() {
+      tries++;
+      try {
+        if (host.querySelector('.pf-bf-grid')) { draw(); return; }
+      } catch (e) {}
+      if (tries < 10) setTimeout(wait, 500);
+    })();
+  }
+
   function mount(container, gameRatePct) {
     if (!container) return false;
     try {
@@ -895,6 +964,7 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
       try {
         if (j && j.ok) render(container, gameRatePct, j);
         else render(container, gameRatePct, null);
+        renderModels(container);
       } catch (e) { try { render(container, gameRatePct, null); } catch (e2) {} }
     });
     return true;

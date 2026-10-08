@@ -569,7 +569,8 @@ var HQ_BUNDLES = {
     'phq-hubs.js',
     'civic.js',
     /* Wave A5 S-13: official jobs panel (FRED UNRATE/PAYEMS), mounted by
-       civic.js above the pressure-campaigns pane. */
+       civic.js above the pressure-campaigns pane. Wave B3 adds the M-05
+       jobs-quality composite inside the panel. */
     'phq-jobs-panel.js',
     'civic-duty.js'
   ],

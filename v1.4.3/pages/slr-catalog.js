@@ -62,6 +62,20 @@
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+  /* Compact follower formatter: 12600 -> "12.6K", 1200000 -> "1.2M". */
+  function fmtCount(n) {
+    n = Math.max(0, Math.round(Number(n) || 0));
+    var v;
+    if (n >= 1e6) {
+      v = n / 1e6;
+      return (v >= 100 ? String(Math.round(v)) : String(Math.round(v * 10) / 10).replace(/\.0$/, '')) + 'M';
+    }
+    if (n >= 1e3) {
+      v = n / 1e3;
+      return (v >= 100 ? String(Math.round(v)) : String(Math.round(v * 10) / 10).replace(/\.0$/, '')) + 'K';
+    }
+    return String(n);
+  }
   function initials(name) {
     var w = String(name || '?').split(/\s+/).filter(Boolean);
     return ((w[0] || '?').charAt(0) + (w[1] ? w[1].charAt(0) : '')).toUpperCase();
@@ -90,7 +104,25 @@
       return '<li style="color:' + CREAM + ';margin:0 0 0.6rem;line-height:1.55;">' + esc(s) + '</li>';
     }).join('');
     var links = (m.links || []).map(function (l) {
-      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a></li>';
+      /* AUTO-UPDATE (2026-10-07): show per-platform follower counts from the
+         master DB (followers_by_platform), so "find all their platforms" is
+         visible on every catalog page without hand-edits. Handles both the
+         flat {platform: count} and nested {platform: {count}} shapes. */
+      var pc = '';
+      try {
+        var fbp = m.followers_by_platform || {};
+        var key = String(l.platform || '').toLowerCase().replace(/[^a-z]/g, '');
+        var raw = fbp[key];
+        if (raw == null) {
+          /* try common aliases: tiktok_2 -> tiktok, etc. */
+          var base = key.replace(/_\d+$/, '');
+          raw = fbp[base];
+        }
+        var n = (raw && typeof raw === 'object') ? raw.count : raw;
+        n = Math.round(Number(n) || 0);
+        if (n > 0) pc = ' <span style="color:' + MUTED + ';font-weight:400;font-size:0.85em;">· ' + esc(fmtCount(n)) + '</span>';
+      } catch (e_pc) {}
+      return '<li style="margin:0 0 0.5rem;"><a href="' + esc(l.url) + '" target="_blank" rel="noopener" style="color:' + RED + ';font-weight:700;text-decoration:none;border-bottom:2px solid ' + RED + ';">' + esc(l.platform) + '</a>' + pc + '</li>';
     }).join('');
 
     /* 3 related creators: nearest scores, deterministic-ish pick */
@@ -227,6 +259,26 @@
       var root = el || takeoverMount();
       render(root, member, members);
       PF.log('slr-catalog', 'rendered ' + slug);
+      /* AUTO-UPDATE (2026-10-07): when live master DB data arrives after the
+         snapshot render, re-render with fresh counts. Fail-soft throughout. */
+      try {
+        document.addEventListener('pf-slr-live', function onLive() {
+          try {
+            var fresh = PF.slrMember ? PF.slrMember(slug) : null;
+            if (fresh && fresh.followers_as_of !== member.followers_as_of) {
+              member = fresh;
+              var all2 = PF.slrAll ? PF.slrAll() : members;
+              render(root, member, all2);
+              PF.log('slr-catalog', 're-rendered ' + slug + ' with live data');
+              try {
+                if (window.PF && PF.creatorStats) PF.creatorStats.ready(function () {
+                  try { PF.creatorStats.paint(root); } catch (e_lp) {}
+                });
+              } catch (e_lp2) {}
+            }
+          } catch (e_lr) {}
+        });
+      } catch (e_ll) {}
       /* Unified stats (2026-10-05): paint the live follower count over the
          snapshot fallback text. Fail-soft inside the helper. */
       try {

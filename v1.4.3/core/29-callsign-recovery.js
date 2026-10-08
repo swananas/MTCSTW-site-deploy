@@ -140,6 +140,13 @@
       'autocomplete="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + 'font-family:monospace;letter-spacing:.1em;" />' +
       '<div id="pf-rec-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
       '<button id="pf-rec-btn" style="' + btnStyle(true) + '">RECOVER IT</button>' +
+      '<div style="margin:1rem 0;border-top:1px solid #3a3a3a;padding-top:1rem;">' +
+      '<div style="font-size:.85rem;font-weight:900;letter-spacing:.1em;color:#d4af37;margin-bottom:.5rem;">FORGOT YOUR CALLSIGN?</div>' +
+      '<div style="font-size:.8rem;color:#b8ab8e;margin-bottom:.5rem;">Enter the email you signed up with:</div>' +
+      '<input id="pf-rec-email" type="email" maxlength="128" placeholder="you@example.com" ' +
+      'autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" style="' + inputStyle() + '" />' +
+      '<div id="pf-rec-email-err" role="alert" style="font-size:.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:.5rem;"></div>' +
+      '<button id="pf-rec-email-btn" style="' + btnStyle(false) + '">FIND MY CALLSIGN</button></div>' +
       '<div style="font-size:.75rem;color:#8a7f68;margin-top:.8rem;line-height:1.5;">No code yet? ' +
       'On the device that has your callsign: <b>Enlistment Ranks &rarr; Get a recovery code</b>.</div>';
     var csEl = b.querySelector('#pf-rec-cs'), codeEl = b.querySelector('#pf-rec-code'),
@@ -191,6 +198,44 @@
     btn.onclick = doRecover;
     codeEl.onkeydown = function (e) { if (e.key === 'Enter') doRecover(); };
     csEl.onkeydown = function (e) { if (e.key === 'Enter') { try { codeEl.focus(); } catch (e2) {} } };
+    /* Email-based callsign lookup (CEO directive 2026-10-07): "one email in,
+       callsign out." Hits ?action=recover_callsign, fills the callsign field
+       on success so the user can continue with recovery code flow. */
+    var emailEl = b.querySelector('#pf-rec-email'), emailErrEl = b.querySelector('#pf-rec-email-err'),
+        emailBtn = b.querySelector('#pf-rec-email-btn');
+    function setEmailErr(x) { if (emailErrEl) emailErrEl.textContent = x; }
+    function setEmailBusy(x) { try { emailBtn.disabled = !!x; emailBtn.style.opacity = x ? '.6' : '1'; } catch (e) {} }
+    function doEmailLookup() {
+      var em = String(emailEl.value || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { setEmailErr('Enter a valid email address.'); return; }
+      setEmailErr('Looking up\u2026'); setEmailBusy(true);
+      var url = backend();
+      if (!url) { setEmailErr('Network error. Try again.'); setEmailBusy(false); return; }
+      fetch(url + '?action=recover_callsign&email=' + encodeURIComponent(em))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          setEmailBusy(false);
+          if (j && j.ok && j.callsign) {
+            var found = String(j.callsign);
+            setEmailErr('');
+            try { csEl.value = found; } catch (e) {}
+            setEmailErr('');
+            /* Show the found callsign prominently. */
+            emailErrEl.style.color = '#7ddf8a';
+            setEmailErr('Found: ' + found.toUpperCase() + ' \u2014 now enter your recovery code above.');
+            try { codeEl.focus(); } catch (e2) {}
+          } else if (j && j.error === 'rate_limited') {
+            emailErrEl.style.color = '#ff6b6b';
+            setEmailErr('Too many tries \u2014 wait 10 minutes.');
+          } else {
+            emailErrEl.style.color = '#ff6b6b';
+            setEmailErr('No callsign found for that email.');
+          }
+        })
+        .catch(function () { setEmailBusy(false); emailErrEl.style.color = '#ff6b6b'; setEmailErr('Network error. Try again.'); });
+    }
+    if (emailBtn) emailBtn.onclick = doEmailLookup;
+    if (emailEl) emailEl.onkeydown = function (e) { if (e.key === 'Enter') doEmailLookup(); };
     try { (csHint ? codeEl : csEl).focus(); } catch (e) {}
   };
 

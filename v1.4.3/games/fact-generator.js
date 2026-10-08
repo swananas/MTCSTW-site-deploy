@@ -186,86 +186,182 @@
     var W = 1080, H = 1350;
     var x = cv.getContext('2d');
     if (!x) return;
-    x.clearRect(0, 0, W, H);
-    /* background + borders */
-    x.fillStyle = BLACK; x.fillRect(0, 0, W, H);
-    x.strokeStyle = RED; x.lineWidth = 18; x.strokeRect(16, 16, W - 32, H - 32);
-    x.strokeStyle = CREAM; x.lineWidth = 3; x.strokeRect(52, 52, W - 104, H - 104);
-    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    var y = 150;
-    /* header */
-    x.fillStyle = CREAM; x.font = '700 34px Arial,sans-serif';
-    x.fillText('\u2605 THE PROPAGANDA FACTORY \u2605', W / 2, y); y += 70;
-    /* verified stamp */
-    x.fillStyle = RED; x.font = '900 40px "Arial Black",Arial,sans-serif';
-    x.fillText('VERIFIED FACT', W / 2, y); y += 90;
-    /* claim headline */
-    x.fillStyle = CREAM; x.font = '900 54px "Arial Black",Arial,sans-serif';
-    var claimLines = wrapText(x, (state.claim || '').toUpperCase(), W - 180).slice(0, 4);
-    /* shrink to fit if needed */
-    var fs = 54;
-    claimLines.forEach(function(l){
-      while (x.measureText(l).width > W - 180 && fs > 30) {
-        fs -= 2; x.font = '900 ' + fs + 'px "Arial Black",Arial,sans-serif';
-      }
-    });
-    claimLines.forEach(function(l){ x.fillText(l, W / 2, y); y += fs + 14; });
-    y += 40;
-    /* the big figure */
-    x.fillStyle = RED; x.font = '900 150px "Arial Black",Arial,sans-serif';
-    var fig = String(f.figure || '');
-    var fsize = 150;
-    while (x.measureText(fig).width > W - 160 && fsize > 60) {
-      fsize -= 6; x.font = '900 ' + fsize + 'px "Arial Black",Arial,sans-serif';
+
+    /* palette: ink, bone, oxblood red, muted gold */
+    var RED = '#c1121f', RED_D = '#7d0b16', CREAM = '#f2ecdc',
+        GOLD = '#c9a227', INK = '#0e0d0c', MUTED = '#a89a7d', FAINT = '#6f6350';
+
+    /* ---- layered background: ink + pinstripe + vignette ---- */
+    x.fillStyle = INK; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    var d;
+    for (d = -H; d < W + H; d += 26) {
+      x.beginPath(); x.moveTo(d, 0); x.lineTo(d + H, H); x.stroke();
     }
-    x.fillText(fig, W / 2, y); y += fsize * 0.55;
-    /* figure label */
-    x.fillStyle = CREAM; x.font = '700 44px Arial,sans-serif';
-    wrapText(x, f.label || '', W - 200).slice(0, 2).forEach(function(l){
-      x.fillText(l, W / 2, y); y += 58;
-    });
-    y += 16;
-    /* detail */
-    x.fillStyle = MUTED; x.font = '400 32px Arial,sans-serif';
-    wrapText(x, f.detail || '', W - 220).slice(0, 3).forEach(function(l){
-      x.fillText(l, W / 2, y); y += 46;
-    });
-    y += 30;
-    /* source box */
-    x.fillStyle = '#1a1a1a';
-    var srcText = 'SOURCE: ' + String(f.source || '').toUpperCase();
-    x.font = '700 30px Arial,sans-serif';
-    var sw = Math.min(x.measureText(srcText).width + 60, W - 140);
-    var sy = y;
-    x.fillRect(W / 2 - sw / 2, sy, sw, 56);
+    x.restore();
+    var vg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = vg; x.fillRect(0, 0, W, H);
+    /* masthead bar */
+    var bar = x.createLinearGradient(0, 0, 0, 14);
+    bar.addColorStop(0, RED); bar.addColorStop(1, RED_D);
+    x.fillStyle = bar; x.fillRect(0, 0, W, 10);
+    /* giant watermark star behind the figure */
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = CREAM;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('\u2605', W/2, H*0.60);
+    x.restore();
+
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    var cx = W/2, y = 100, i;
+
+    /* kicker */
+    x.fillStyle = GOLD; x.font = '700 27px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch(e){}
+    x.fillText('THE PROPAGANDA FACTORY', cx, y);
+    try { x.letterSpacing = '0px'; } catch(e){}
+    y += 36;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 70;
+
+    /* verified seal: double ring */
+    x.strokeStyle = RED; x.lineWidth = 5;
+    x.beginPath(); x.arc(cx, y, 52, 0, Math.PI*2); x.stroke();
+    x.lineWidth = 2;
+    x.beginPath(); x.arc(cx, y, 42, 0, Math.PI*2); x.stroke();
+    x.fillStyle = CREAM; x.font = '900 19px Arial,sans-serif';
+    x.fillText('VERIFIED', cx, y - 1);
+    x.fillStyle = RED; x.font = '900 14px Arial,sans-serif';
+    x.fillText('\u2605 \u2605 \u2605', cx, y + 22);
+    y += 92;
+
+    /* claim: editorial serif italic with quote flourish */
+    var claim = String(state.claim || '');
+    var cfs = 54, claimLines = [];
+    for (;;) {
+      x.font = 'italic 400 ' + cfs + 'px Georgia,"Times New Roman",serif';
+      claimLines = wrapText(x, claim, W - 220).slice(0, 3);
+      var tooWide = false;
+      for (i = 0; i < claimLines.length; i++) {
+        if (x.measureText(claimLines[i]).width > W - 220) { tooWide = true; break; }
+      }
+      if (!tooWide || cfs <= 34) break;
+      cfs -= 2;
+    }
+    x.fillStyle = RED; x.font = '900 64px Georgia,serif';
+    x.fillText('\u201C', cx, y);
+    x.fillStyle = CREAM; y += cfs + 20;
+    for (i = 0; i < claimLines.length; i++) { x.fillText(claimLines[i], cx, y); y += cfs + 14; }
+    y += 20;
+
+    /* red rule with diamond */
     x.strokeStyle = RED; x.lineWidth = 2;
-    x.strokeRect(W / 2 - sw / 2, sy, sw, 56);
+    x.beginPath(); x.moveTo(cx - 190, y); x.lineTo(cx - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 26, y); x.lineTo(cx + 190, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = RED; x.fillRect(-9, -9, 18, 18); x.restore();
+    y += 54;
+
+    /* THE FIGURE: monumental, gradient-filled, drop shadow */
+    var fig = String(f.figure || '');
+    var fsize = 176;
+    x.font = '900 ' + fsize + 'px "Arial Black",Arial,sans-serif';
+    while (x.measureText(fig).width > W - 170 && fsize > 64) {
+      fsize -= 6;
+      x.font = '900 ' + fsize + 'px "Arial Black",Arial,sans-serif';
+    }
+    x.fillStyle = 'rgba(0,0,0,0.55)';
+    x.fillText(fig, cx + 5, y + 7);
+    var fg = x.createLinearGradient(0, y - fsize, 0, y);
+    fg.addColorStop(0, '#e63946'); fg.addColorStop(1, RED_D);
+    x.fillStyle = fg;
+    x.fillText(fig, cx, y);
+    y += Math.round(fsize * 0.30);
+
+    /* label: letterspaced caps */
+    var lbl = String(f.label || '').toUpperCase();
+    var lfs = 38;
+    x.font = '700 ' + lfs + 'px Arial,sans-serif';
+    while (x.measureText(lbl).width > W - 200 && lfs > 24) {
+      lfs -= 2;
+      x.font = '700 ' + lfs + 'px Arial,sans-serif';
+    }
+    try { x.letterSpacing = '6px'; } catch(e){}
+    var lblLines = wrapText(x, lbl, W - 200).slice(0, 2);
+    for (i = 0; i < lblLines.length; i++) { x.fillText(lblLines[i], cx, y); y += lfs + 14; }
+    try { x.letterSpacing = '0px'; } catch(e){}
+    y += 8;
+
+    /* detail: quiet serif */
+    x.fillStyle = MUTED; x.font = 'italic 400 28px Georgia,serif';
+    var detLines = wrapText(x, String(f.detail || ''), W - 260).slice(0, 2);
+    for (i = 0; i < detLines.length; i++) { x.fillText(detLines[i], cx, y); y += 42; }
+    y += 28;
+
+    /* source: hairline box */
+    var srcText = 'SOURCE \u2014 ' + String(f.source || '').toUpperCase();
+    x.font = '700 26px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch(e){}
+    var sw = Math.min(x.measureText(srcText).width + 90, W - 160);
+    var sy = y;
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(cx - sw/2, sy, sw, 56);
     x.fillStyle = CREAM;
-    x.fillText(srcText, W / 2, sy + 38);
-    y = sy + 100;
-    /* citation + date */
-    x.fillStyle = '#7a6f5c'; x.font = '400 26px Arial,sans-serif';
-    wrapText(x, f.citation || '', W - 240).slice(0, 2).forEach(function(l){
-      x.fillText(l, W / 2, y); y += 36;
-    });
-    /* footer CTA (site standard) */
-    x.fillStyle = RED; x.font = '900 46px "Arial Black",Arial,sans-serif';
-    x.fillText('MTCSTW.COM', W / 2, H - 168);
-    x.fillStyle = RED; x.font = '900 44px "Arial Black",Arial,sans-serif';
-    x.fillText('JOIN THE FIGHT.', W / 2, H - 108);
-    x.fillStyle = '#7a6f5c'; x.font = '400 28px Arial,sans-serif';
+    x.fillText(srcText, cx, sy + 39);
+    try { x.letterSpacing = '0px'; } catch(e){}
+    y = sy + 90;
+    /* citation */
+    x.fillStyle = FAINT; x.font = '400 24px Georgia,serif';
+    var citLines = wrapText(x, String(f.citation || ''), W - 280).slice(0, 2);
+    for (i = 0; i < citLines.length; i++) { x.fillText(citLines[i], cx, y); y += 34; }
+
+    /* ---- footer CTA ---- */
+    var fy = H - 215;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(120, fy); x.lineTo(W - 120, fy); x.stroke();
+    fy += 58;
+    x.font = '900 44px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch(e){}
+    var cta = 'JOIN THE FIGHT';
+    var ctaW = x.measureText(cta).width;
+    x.fillStyle = CREAM;
+    x.fillText(cta, cx, fy);
+    x.fillStyle = RED;
+    x.fillText('.', cx + ctaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch(e){}
+    fy += 52;
+    x.fillStyle = RED; x.font = '900 32px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch(e){}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch(e){}
+    fy += 42;
+    x.fillStyle = FAINT; x.font = '400 24px Arial,sans-serif';
     try {
       x.fillText(new Date().toLocaleDateString('en-US',
-        { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), W / 2, H - 58);
+        { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase(), cx, fy);
     } catch(e){}
-    /* callsign stamp if present */
+    /* bottom masthead bar */
+    var bar2 = x.createLinearGradient(0, H - 10, 0, H);
+    bar2.addColorStop(0, RED_D); bar2.addColorStop(1, RED);
+    x.fillStyle = bar2; x.fillRect(0, H - 10, W, 10);
+
+    /* callsign stamp, rotated */
     try {
       var cs = '';
       var id = JSON.parse(localStorage.getItem('pf_identity_v1') || '{}');
       if (id && id.callsign) cs = String(id.callsign).toUpperCase();
       if (cs) {
-        x.fillStyle = RED; x.font = '700 28px Arial,sans-serif';
-        x.fillText('FIGHTING AS ' + cs, W / 2, H - 210);
+        x.save(); x.translate(W - 210, H - 330); x.rotate(-0.14);
+        x.strokeStyle = RED; x.lineWidth = 3;
+        var st = 'FIGHTING AS ' + cs;
+        x.font = '900 24px Arial,sans-serif';
+        var stw = x.measureText(st).width + 44;
+        x.strokeRect(-stw/2, -30, stw, 52);
+        x.fillStyle = RED;
+        x.fillText(st, 0, 6);
+        x.restore();
       }
     } catch(e){}
   }

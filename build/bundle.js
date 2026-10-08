@@ -183,6 +183,10 @@ var SECTIONS = {
        joiner induction on pf-cell-formed / pf-cell-joined. */
     'cells.js',
     'cell-first-hour.js',
+    /* Political HQ weave #5 (2026-10-05): "Your cell's fight" one-time
+       briefing — slim dup of bundle-home's copy; /cells fetches this bundle
+       INSTEAD of bundle-home, never both. */
+    'cell-briefing.js',
     /* S5 war-room ticker /cells leg (slim dup — the loader fetches this
        INSTEAD of bundle-home on /cells, never both). */
     'war-room-ticker.js',

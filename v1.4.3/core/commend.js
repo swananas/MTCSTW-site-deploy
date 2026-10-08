@@ -91,9 +91,11 @@
           ST.used = !!j.used_today;
           ST.gives = Math.min(5, +j.gives_this_week || 0);
           ST.priority = !!j.priority;
-          ST.loaded = true;
         }
       } catch (e) {}
+      /* FAIL-SOFT (2026-10-07): mark loaded even when the API fails, so the
+         chip shows the default state instead of stuck "LOADING" forever. */
+      ST.loaded = true;
       renderChip();
       if (cb) cb();
     });

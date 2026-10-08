@@ -182,6 +182,83 @@
 
   function hubSectionEl(hub) { return document.getElementById('phq-' + hub.id); }
 
+  /* 2026-10-06 (fe/political-hq-ux — Command Deck): the sticky subnav used
+     to slide UNDER the fixed season bar (position:fixed top:0 z-99990),
+     hiding the section nav on mobile. Measure the visible bar and offset
+     the sticky nav + the scroll-margin custom property accordingly. */
+  function fixNavOffset() {
+    try {
+      var host = document.getElementById('pf-political-hq');
+      var nav = document.getElementById('pf-hq-subnav');
+      if (!nav) return;
+      var sbH = 0, navH = 0;
+      try {
+        var sb = document.getElementById('pf-seasonbar');
+        if (sb && sb.style.display !== 'none' && sb.offsetParent !== null) sbH = sb.offsetHeight || 0;
+      } catch (e) {}
+      try { navH = nav.offsetHeight || 0; } catch (e2) {}
+      nav.style.top = sbH + 'px';
+      if (host) host.style.setProperty('--pf-hq-navtop', ((sbH + navH) || 70) + 'px');
+    } catch (e) {}
+  }
+
+  /* 2026-10-06 (fe/political-hq-ux — Command Deck): masthead. Title +
+     HQ STATUS strip (next-election countdown via the existing cached
+     PF.ballotCountdowns read — one read, fail-soft) + quick links.
+     Structural labels only; no marketing copy (copy is a CEO decision).
+     KILL: ?pf_off=phq-masthead */
+  function renderMasthead(host) {
+    if (PF.skip('phq-masthead')) return null;
+    if (document.getElementById('pf-hq-masthead')) return document.getElementById('pf-hq-masthead');
+    try {
+      var m = document.createElement('header');
+      m.id = 'pf-hq-masthead';
+      m.className = 'pf-hq-masthead';
+      m.innerHTML =
+        '<span class="pf-br-kicker">COMMAND</span>' +
+        '<h1 class="pf-hq-masthead-title">POLITICAL HQ</h1>' +
+        '<div class="pf-hq-status" id="pf-hq-status">' +
+          '<span class="pf-hq-status-item" id="pf-hq-status-ballot">' +
+            '<span class="pf-hq-status-dot" aria-hidden="true"></span>NEXT ELECTION: <b>CHECKING&hellip;</b></span>' +
+          '<a class="pf-hq-status-item pf-hq-status-link" href="#phq-ballot" data-hub-go="ballot">BALLOT CENTER</a>' +
+          '<a class="pf-hq-status-item pf-hq-status-link" href="#pf-util-notify-prefs" data-hub-go="__notify">ALERTS</a>' +
+        '</div>';
+      host.insertBefore(m, host.firstChild);
+      /* Countdown: existing module cache, one read, never blocks render. */
+      try {
+        var api = PF.ballotCountdowns;
+        if (api && api.fetch) {
+          var done = false;
+          var finish = function (cds) {
+            if (done) return; done = true;
+            try {
+              var el = document.getElementById('pf-hq-status-ballot');
+              if (!el) return;
+              var best = null;
+              if (cds && cds.length) {
+                for (var i = 0; i < cds.length; i++) {
+                  var d = cds[i] && cds[i].days_left;
+                  if (typeof d === 'number' && d >= 0 && (best === null || d < best)) best = d;
+                }
+              }
+              var label = (best === null) ? 'CHECK YOUR RACES'
+                : (best === 0) ? 'TODAY'
+                : (best === 1) ? '1 DAY OUT'
+                : (best + ' DAYS OUT');
+              el.innerHTML = '<span class="pf-hq-status-dot" aria-hidden="true"></span>NEXT ELECTION: <b>' + esc(label) + '</b>';
+            } catch (e) {}
+          };
+          api.fetch(finish);
+          setTimeout(function () { finish(null); }, 12000); /* fail-soft ceiling */
+        } else {
+          var el0 = document.getElementById('pf-hq-status-ballot');
+          if (el0) el0.innerHTML = '<span class="pf-hq-status-dot" aria-hidden="true"></span>NEXT ELECTION: <b>CHECK YOUR RACES</b>';
+        }
+      } catch (e) {}
+      return m;
+    } catch (e) { return null; }
+  }
+
   function renderSubnav(host) {
     if (PF.skip('phq-hubnav')) return null;
     if (document.getElementById('pf-hq-subnav')) return document.getElementById('pf-hq-subnav');
@@ -214,26 +291,57 @@
         if (document.getElementById('phq-' + hub.id)) return;
         var sec = document.createElement('section');
         sec.id = 'phq-' + hub.id;
-        sec.className = 'pf-hub';
+        /* 2026-10-06 (fe/political-hq-ux): .pf-br-sec gives the hub the
+           shared BREATHE section rhythm; .pf-hub keeps the JS hooks. */
+        sec.className = 'pf-hub pf-br-sec';
         sec.setAttribute('data-hub', hub.id);
         var next = HUBS[(idx + 1) % HUBS.length];
-        var h = '<header class="pf-hub-head">' +
-          '<span class="pf-hub-kicker">SECTION ' + hub.sec + ' — ' + esc(hub.tab) + '</span>' +
-          '<h2>' + esc(hub.title) + '</h2>' +
-          '<p class="pf-hub-mission">' + esc(hub.mission) + '</p>' +
+        var h = '<header class="pf-hub-head pf-br-head">' +
+          '<div class="pf-br-headtxt">' +
+          '<span class="pf-br-kicker">SECTION ' + hub.sec + ' — ' + esc(hub.tab) + '</span>' +
+          '<h2 class="pf-br-title">' + esc(hub.title) + '</h2>' +
+          '<p class="pf-br-sub">' + esc(hub.mission) + '</p>' +
+          '</div>' +
           (hub.alertRow
             ? '<p class="pf-hub-alertrow"><a href="#pf-util-notify-prefs" data-hub-go="__notify">Alert settings</a> — manage your vote &amp; case alerts.</p>'
             : '') +
           '</header>' +
           '<div class="pf-hub-silos"><div class="pf-hub-loading">Loading ' + esc(hub.title) + '&hellip;</div></div>' +
           '<footer class="pf-hub-exits">' +
+          /* 2026-10-06 (fe/political-hq-ux): Next Move exit slot — the
+             cohesion engine renders one contextual next action here
+             (fail-soft: empty when the engine hasn't landed). */
+          '<div class="pf-hub-nextmove" data-phq-nm="' + hub.id + '"></div>' +
+          '<div class="pf-hub-exitlinks">' +
           '<a href="#phq-' + next.id + '" data-hub-go="' + next.id + '">Next: ' + esc(next.title) + ' &rarr;</a>' +
           '<a href="#phq-action" data-hub-go="action">&larr; Back to Take Action</a>' +
+          '</div>' +
           '</footer>';
         sec.innerHTML = h;
         host.appendChild(sec);
       })(HUBS[i], i);
     }
+  }
+
+  /* 2026-10-06 (fe/political-hq-ux — Command Deck): hub exit transitions.
+     Each hub footer carries a .pf-hub-nextmove slot; the cohesion Next Move
+     engine renders ONE contextual next action there (PF.nextMove.render or
+     the pf:terminal event). Fail-soft: slots stay empty when the engine
+     hasn't landed — the next/back links remain as fallback nav. */
+  function renderHubNextMoves() {
+    try {
+      var nm = PF.nextMove;
+      if (!nm || !nm.render) return 0;
+      var slots = document.querySelectorAll('#pf-political-hq .pf-hub-nextmove');
+      var n = 0;
+      for (var i = 0; i < slots.length; i++) {
+        if (slots[i]._nmDone) continue;
+        slots[i]._nmDone = 1;
+        try { nm.render(slots[i], 'phq-hub-' + slots[i].getAttribute('data-phq-nm')); n++; }
+        catch (e) {}
+      }
+      return n;
+    } catch (e) { return 0; }
   }
 
   /* tag civic panes for the §5.2 virtual nav layer */
@@ -399,10 +507,20 @@
       if (orderPairs[i][0] !== 'civic') continue;
       var strip = document.createElement('div');
       strip.id = 'pf-phq-civicstrip';
-      /* insert directly under the sub-nav (above the TAKE ACTION hub) */
-      if (nav && nav.parentNode === host) host.insertBefore(strip, nav.nextSibling);
-      else host.insertBefore(strip, host.firstChild);
-      if (mountOneSilo('civic', orderPairs[i][1], strip)) tagHubPanes();
+      if (mountOneSilo('civic', orderPairs[i][1], strip)) {
+        /* 2026-10-06 (fe/political-hq-ux): the strip reads as a section now,
+           not a widget pile — structural label only. */
+        try {
+          var sh = document.createElement('div');
+          sh.className = 'pf-phq-striphead';
+          sh.innerHTML = '<span class="pf-br-kicker">CIVIC ACTION</span>';
+          strip.insertBefore(sh, strip.firstChild);
+        } catch (e) {}
+        /* insert directly under the sub-nav (above the TAKE ACTION hub) */
+        if (nav && nav.parentNode === host) host.insertBefore(strip, nav.nextSibling);
+        else host.insertBefore(strip, host.firstChild);
+        tagHubPanes();
+      }
       return;
     }
   }
@@ -501,10 +619,22 @@
     if (!hub) return;
     if (!mountedHubs[hubId] && window.pfPhqHubOrder) mountHub(hub, window.pfPhqHubOrder);
     collectSpyTargets();
+    fixNavOffset(); /* season bar may have rendered/dismissed since mount */
     var t = scrollTargetFor(hubId);
     if (t && t.scrollIntoView) {
       try { t.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); } catch (e) {}
     }
+    /* 2026-10-06 (fe/political-hq-ux): arrival pulse — the tab must FEEL
+       like a destination. Brief highlight ring on the landed section;
+       reduced-motion safe (no-op). */
+    try {
+      if (t && !reducedMotion()) {
+        t.classList.remove('pf-hq-arrived');
+        void t.offsetWidth;
+        t.classList.add('pf-hq-arrived');
+        setTimeout(function () { try { t.classList.remove('pf-hq-arrived'); } catch (e) {} }, 1200);
+      }
+    } catch (e) {}
     setActiveTab(hubId);
     if (pushHash !== false) {
       try { history.replaceState(null, '', '#phq-' + hubId); } catch (e) {}
@@ -550,6 +680,7 @@
       mountNotifyPrefs(orderPairs);
       refreshTabs();
       try { if (window.pfPhqHubSpyRefresh) window.pfPhqHubSpyRefresh(); } catch (e2) {}
+      renderHubNextMoves(); /* exit transitions (fail-soft) */
     } catch (e) { if (PF) PF.error('phq-hubs', 'deep ready failed :: ' + (e && e.message || e)); }
   }
   function loadDeepChunk() {
@@ -581,10 +712,19 @@
       var host = document.getElementById('pf-political-hq');
       if (!host || isEditor()) return;
       window.pfPhqHubOrder = ORDER;
+      /* 2026-10-06 (fe/political-hq-ux): cohesion gate rule — every surface
+         declares its spine phase. Political HQ is FIGHT: where members take
+         political action. Entry: 07:40 briefing push / homepage / crossnav.
+         Exit: Next Move hub cards → Daily Orders, Blitz missions, ballot. */
+      try { host.setAttribute('data-pf-spine-phase', 'fight'); } catch (e) {}
       var navKilled = PF.skip('phq-hubnav');
 
+      renderMasthead(host); /* command deck masthead + HQ status */
       var nav = navKilled ? null : renderSubnav(host);
       renderHubShells(host);
+      fixNavOffset();
+      /* the season bar renders late — recheck the sticky offset once it lands */
+      setTimeout(fixNavOffset, 2500);
       /* 2026-10-05 (fe/political-hq-optimize): kick the async deep chunk
          now — below-fold silo code must not block first paint. */
       loadDeepChunk();
@@ -617,6 +757,7 @@
         /* graceful degradation: plain stacked page, everything mounts now */
         for (var d = 0; d < HUBS.length; d++) mountHub(HUBS[d], ORDER);
         initScrollSpy();
+        renderHubNextMoves();
         return;
       }
 
@@ -678,6 +819,9 @@
       initScrollSpy();
       tagHubPanes();
       refreshTabs();
+      renderHubNextMoves(); /* hub exit transitions (fail-soft) */
+      /* the Next Move engine loads async — retry the exit slots once late */
+      setTimeout(renderHubNextMoves, 6000);
 
       /* deep-link on load */
       if (hashHub) {
@@ -694,6 +838,8 @@
   PF.phqHubTest = {
     hubs: HUBS, paneKindForHeading: paneKindForHeading,
     hubForPaneKind: hubForPaneKind, hubForSilo: hubForSilo, hubKillIds: hubKillIds,
-    deepUrl: deepUrl, phqDeepReady: phqDeepReady, hubMissing: hubMissing
+    deepUrl: deepUrl, phqDeepReady: phqDeepReady, hubMissing: hubMissing,
+    renderMasthead: renderMasthead, renderHubNextMoves: renderHubNextMoves,
+    fixNavOffset: fixNavOffset, goHub: goHub
   };
 })();

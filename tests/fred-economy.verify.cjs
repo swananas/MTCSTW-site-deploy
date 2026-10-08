@@ -72,7 +72,7 @@ has('IIFE + use strict', /\(function \(\) \{\s*'use strict';/);
 has('PF guard', /var PF = window\.PF;\s*if \(!PF\) \{ return; \}/);
 has('double-run guard', /window\.pfFredEconomyDone/);
 has('master kill economy-fred', /PF\.skip\('economy-fred'\)/);
-['fed-watch', 'housing-context', 'official-trend', 'wage-gap', 'sahm'].forEach(function (s) {
+['fed-watch', 'housing-context', 'official-trend', 'wage-gap', 'sahm', 'sahm-history'].forEach(function (s) {
   has('per-section kill ' + s, new RegExp("PF\\.skip\\('" + s + "'\\)"));
 });
 has('/economy host gate', /getElementById\('pf-economy'\)/);
@@ -86,6 +86,12 @@ has('action fred_fedwatch', /fred_fedwatch/);
 has('action fred_housing', /fred_housing/);
 has('action fred_wage_gap', /fred_wage_gap/);
 has('action fred_sahm', /fred_sahm/);
+has('action fred_economy (S-26 ext-1)', /fred_economy/);
+has('ext-1 mount function', /function mountSahmHistory/);
+has('ext-1 mounts under the gauge section', /mountSahmHistory\(root, sahmSec\)/);
+has('ext-1 fail-soft on no-key/stale (removes section)', /function remove\(\)/);
+hasNot('ext-1: no "recession followed" claim without News Desk sign-off', /recession followed/i);
+has('ext-1 renders backend framing_line', /framing_line/);
 has('action fred_series (S-14)', /fred_series/);
 has('action price_trends (S-14 community line)', /price_trends/);
 hasNot('zero XP: no xpGrant', /xpGrant/);
@@ -159,6 +165,21 @@ var FIX = {
         end_label: 'Aug 2020', peak_pp: 2.1 }
     ],
     note: ''
+  },
+  fred_economy: {
+    ok: true, fred_live: true, stale: false, panel: 'sahm_history',
+    threshold_pp: 0.5,
+    framing_line: 'The Sahm rule has triggered 2 times since Mar 2020 in the ' +
+      'official unemployment series. The rule flags what already happened ' +
+      'in the job market — it is not a prediction of what comes next.',
+    framing_review: 'pending',
+    unrate: { series_id: 'UNRATE', title: 'Unemployment', sa_nsa: 'SA',
+            source_url: 'https://fred.stlouisfed.org/series/UNRATE', retrieved_at: 1760000000000 },
+    triggers: [
+      { start: '2020-03', end: '2020-08', peak_value: 2.1, recovered: true },
+      { start: '2026-09', end: '2026-09', peak_value: 0.67, recovered: false }
+    ],
+    trigger_count: 2, data_since: '2020-03', data_through: '2026-09', note: ''
   },
   fred_series: {
     ok: true, fred_live: true, series_id: 'CPIAUCNS', title: 'CPI-U', sa_nsa: 'NSA',
@@ -369,6 +390,60 @@ var ro = runSandbox({ fix: Object.assign({}, FIX, { price_trends: { ok: true, pe
 var oAll = bodiesJoin(ro);
 if (/Official CPI-U \(BLS\)/.test(oAll) && /not enough community data/.test(oAll)) ok('official-only fallback');
 else no('official-only', 'fallback wrong');
+
+/* --- S-26 ext-1: trigger-history strip renders --- */
+hasR('ext-1 strip card', /PAST TRIGGERS — OFFICIAL SERIES/);
+hasR('ext-1 framing line (neutral)', /not a prediction of what comes next/);
+hasR('ext-1 recovered range', /Mar 2020 \u2013 Aug 2020/);
+hasR('ext-1 recovered state', /fell back below the 0\.50 trigger/);
+hasR('ext-1 live state', /still above the 0\.50 trigger/);
+hasR('ext-1 peak value', /peak 2\.10 pp/);
+hasR('ext-1 source stamp', /fred\.stlouisfed\.org\/series\/UNRATE/);
+
+/* --- ext-1: per-extension kill suppresses strip, keeps gauge --- */
+var rkh = runSandbox({ killed: ['sahm-history'] });
+var khAll = bodiesJoin(rkh);
+if (!/PAST TRIGGERS — OFFICIAL SERIES/.test(khAll) && /SAHM RULE — CURRENT READING/.test(khAll)) ok('ext-1 kill (sahm-history) suppresses strip only');
+else no('ext-1 kill', 'strip leaked or gauge missing');
+
+/* --- ext-1: master sahm kill suppresses both --- */
+var rkm = runSandbox({ killed: ['sahm'] });
+if (!/PAST TRIGGERS — OFFICIAL SERIES/.test(bodiesJoin(rkm)) && !/SAHM RULE/.test(bodiesJoin(rkm))) ok('master sahm kill suppresses gauge + strip');
+else no('master sahm kill', 'sahm surface leaked');
+
+/* --- ext-1: fail-soft — no key / stale -> strip absent, no error wall --- */
+var rnok = runSandbox({ fix: Object.assign({}, FIX, {
+  fred_economy: { ok: true, fred_live: false, note: 'key hand-step' }
+}) });
+if (!/PAST TRIGGERS — OFFICIAL SERIES/.test(bodiesJoin(rnok))) ok('ext-1 no-key -> strip absent');
+else no('ext-1 no-key', 'strip rendered without data');
+var rsth = runSandbox({ fix: Object.assign({}, FIX, {
+  fred_economy: { ok: true, fred_live: true, stale: true, panel: 'sahm_history',
+                  stale_note: 'stale', triggers: [], framing_line: '', framing_review: 'pending' }
+}) });
+if (!/PAST TRIGGERS — OFFICIAL SERIES/.test(bodiesJoin(rsth))) ok('ext-1 stale -> strip absent');
+else no('ext-1 stale', 'strip rendered from stale data');
+
+/* --- ext-1: zero triggers -> honest empty line, no marks --- */
+var rzero = runSandbox({ fix: Object.assign({}, FIX, {
+  fred_economy: Object.assign({}, FIX.fred_economy, {
+    triggers: [], trigger_count: 0,
+    framing_line: 'The Sahm rule has triggered 0 times since Oct 2024 in the ' +
+      'official unemployment series. The rule flags what already happened — it is not a prediction.'
+  })
+}) });
+if (/No past triggers in the available history window/.test(bodiesJoin(rzero))) ok('ext-1 zero triggers honest line');
+else no('ext-1 zero triggers', 'honest line missing');
+
+/* --- ext-1: esc on injected framing line --- */
+var rxe = runSandbox({ fix: Object.assign({}, FIX, {
+  fred_economy: Object.assign({}, FIX.fred_economy, {
+    framing_line: '<img src=x onerror=alert(1)>'
+  })
+}) });
+var xeAll = bodiesJoin(rxe);
+if (xeAll.indexOf('<img src=x onerror=alert(1)>') === -1 && /&lt;img/.test(xeAll)) ok('ext-1 esc on injected framing line');
+else no('ext-1 esc', 'raw injection in output');
 
 console.log('\n' + passes + ' passed, ' + fails.length + ' failed');
 if (fails.length) { console.log('FAILURES:\n' + fails.join('\n')); process.exit(1); }

@@ -469,36 +469,9 @@ function warPlanHtml(){
     +'<div data-pf-actionbar data-pf-tc-kind="briefing" data-pf-tc-title="TODAY\\u2019S WAR PLAN" data-pf-tc-figure="'+esc(wpFig)+'" data-pf-tc-link="/"></div>'
     +'</div>';
 }
-/* ---------- W5-5 CROSSFIRE CIRCUIT (2026-10-04): a live flash window turns
-   the next Route March stop into a hot zone. One auth-gated read
-   (crossfire_status); the combo claim is POST-only. The zone is picked
-   server-side — the client never sends a stop index. ---------- */
-function crossfireHtml(){
-  if(!XCROSS||!XCROSS.flash_live) return "";
-  var h='<div class="br-sec br-xf"><div class="br-sect">\u26A1 CROSSFIRE CIRCUIT</div>';
-  if(XCROSS.claimed){
-    h+='<div class="x-note">Zone cleared. +'+Number(XCROSS.payout||0)+' XP banked. The flash window is still live — hold the line.</div></div>';
-    return h;
-  }
-  var z=XCROSS.zone;
-  if(!z){
-    h+='<div class="x-note">Flash window live, but the march is fully walked. Nothing left to crossfire.</div></div>';
-    return h;
-  }
-  h+='<div class="br-xfz">CROSSFIRE ZONE: <b>'+esc(z.label||"")+'</b></div>';
-  var total=Number(XCROSS.step_xp||0)+Number(XCROSS.combo_xp||0);
-  if(XCROSS.can_claim){
-    h+='<div class="x-note">Mission verified. Claim the combo before the window closes.</div>'
-      +'<div style="margin-top:8px"><button class="c-btn br-xfbtn" data-act="crossfire">CLAIM COMBO +'+total+' XP</button></div>';
-  } else if(XCROSS.device_claimed){
-    h+='<div class="x-note">This device already fired its crossfire claim today.</div>';
-  } else {
-    h+='<div class="x-note">Run the mission, then claim the combo:</div>'
-      +'<div style="margin-top:8px"><a class="c-btn" href="'+esc(z.page||"/")+'">GO: '+esc(z.label||"")+'</a></div>';
-  }
-  h+='</div>';
-  return h;
-}
+/* SECURITY (2026-10-08): duplicate crossfireHtml() removed — the later declaration
+   shadowed the 2026-10-06 safeUrl() scheme allowlist on the GO: href. The
+   surviving hoisted copy at ~line 230 retains safeUrl(z.page). */
 function render(){
   var el=document.getElementById("xBrief"); if(!el) return;
   var id=ident(), h="";

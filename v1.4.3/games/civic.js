@@ -615,14 +615,33 @@ function fetchBallot(){
    widget. campaign_calls returns metric_live:false until the
    pressure-campaign build ships: "coming soon" placeholder, never broken.
    winner_bonus is null (CEO decision 2026-10-05) — no bonus copy anywhere. */
-var COMP={metric:"rep_contacts",cur:{},load:{},hist:null,histDone:false};
+var COMP={metric:"rep_contacts",cur:{},load:{},hist:null,histDone:false,mine:null,mineDone:false};
+/* Political tracks (weave-1): opt-in per cell, founder-set. 🏛 badge = political. */
+var POL_METRICS=["pol_rep_contacts","pol_campaign_calls","pol_predict_accuracy","pol_poll_votes"];
+var POL_LABEL={pol_rep_contacts:"Rep contacts",pol_campaign_calls:"Campaign calls",
+  pol_predict_accuracy:"Prediction accuracy",pol_poll_votes:"Poll votes"};
+var POL_UNIT={pol_rep_contacts:"rep contacts",pol_campaign_calls:"campaign calls",
+  pol_predict_accuracy:"accuracy",pol_poll_votes:"poll votes"};
+function isPol(metric){ return !!POL_UNIT[metric]; }
 function compUnit(metric){
   if(metric==="campaign_calls") return "campaign calls";
+  if(POL_UNIT[metric]) return POL_UNIT[metric];
   return "rep contacts";
 }
 function compMetricLabel(metric){
   if(metric==="campaign_calls") return "Pressure-campaign calls";
+  if(POL_LABEL[metric]) return "🏛 Pol: "+POL_LABEL[metric];
   return "Rep contacts";
+}
+function compMetricName(metric){
+  if(metric==="campaign_calls") return "Pressure-campaign calls";
+  if(POL_LABEL[metric]) return "Pol: "+POL_LABEL[metric];
+  return "Rep contacts";
+}
+/* Display score: accuracy metric stores basis points -> "75.00%". */
+function compScore(metric,cnt){
+  if(metric==="pol_predict_accuracy") return (Number(cnt||0)/100).toFixed(2)+"%";
+  return Number(cnt||0)+" "+compUnit(metric);
 }
 function compWeekDate(wk){
   var d=String(wk||"").slice(0,10);
@@ -636,31 +655,45 @@ function compWinnerHTML(cur){
   var w=cur.last_winner;
   if(!(w&&(w.cell_name||w.cell_id))) return "";
   return '<div class="cv-cmp-win"><b>&#127942; Last week&#8217;s champion:</b> '
-    +esc(w.cell_name||w.cell_id)+' &mdash; '+Number(w.cnt||0)+' '+esc(compUnit(cur.metric))
+    +esc(w.cell_name||w.cell_id)+' &mdash; '+esc(compScore(cur.metric,w.cnt))
     +'<div class="x-note">Week of '+esc(compWeekDate(w.week_start))+'</div></div>';
 }
 function compMyLine(cur){
   var mc=cur.my_cells||[];
   if(!mc.length) return "";
-  var unit=esc(compUnit(cur.metric));
   var bits=[];
   for(var i=0;i<mc.length;i++){
     var m=mc[i], nm=String(m.name||m.cell_id);
     bits.push("<b>"+esc(nm)+"</b>"+(m.rank?(" &mdash; #"+Number(m.rank)):" &mdash; not on the board yet")
-      +" ("+Number(m.cnt||0)+" "+unit+")");
+      +" ("+esc(compScore(cur.metric,m.cnt))+")");
   }
   return '<div class="x-note">Your cell'+(bits.length>1?"s":"")+": "+bits.join(" &middot; ")+"</div>";
 }
+function compComingSoon(cur){
+  var m=cur.metric;
+  if(m==="campaign_calls")
+    return 'Campaign-call tracking goes live when pressure campaigns ship. '
+      +'The rep-contact race is live now &mdash; switch the toggle.';
+  if(m==="pol_predict_accuracy")
+    return 'Prediction-accuracy tracking goes live when the prediction game ships. '
+      +'Rep-contact and poll-vote tracks are live now.';
+  if(m==="pol_poll_votes")
+    return 'Poll-vote tracking goes live when network polls ship. '
+      +'The rep-contact race is live now.';
+  return 'This track goes live soon.';
+}
 function compStandingsHTML(cur){
   var metric=cur.metric||COMP.metric;
-  var unit=compUnit(metric);
   if(!cur.metric_live){
-    return '<div class="x-note">Campaign-call tracking goes live when pressure campaigns ship. '
-      +'The rep-contact race is live now &mdash; switch the toggle.</div>';
+    return '<div class="x-note">'+compComingSoon(cur)+'</div>';
   }
   var rows=cur.standings||[];
   if(!rows.length){
-    return '<div class="x-note">No '+esc(unit)+' logged this week yet. Your cell could take the lead.</div>';
+    if(isPol(metric)&&cur.opted_in_cells===0){
+      return '<div class="x-note">No cells have opted into this political track yet. '
+        +'Founders can opt their cell in below &mdash; politics is never forced.</div>';
+    }
+    return '<div class="x-note">No '+esc(compUnit(metric))+' logged this week yet. Your cell could take the lead.</div>';
   }
   var mine={};
   var mc=cur.my_cells||[];
@@ -668,11 +701,16 @@ function compStandingsHTML(cur){
   var h="";
   for(var r=0;r<rows.length;r++){
     var row=rows[r], you=mine[String(row.cell_id)];
+    var score=esc(compScore(metric,row.cnt));
+    if(metric==="pol_predict_accuracy"&&row.acc){
+      score=esc(String(row.acc))+' <span class="x-note">('+Number(row.correct||0)+'/'+Number(row.resolved||0)+')</span>';
+    }
     h+='<div class="cv-cmp-row'+(you?" cv-cmp-you":"")+'">'
       +'<span class="cv-cmp-rank">#'+(r+1)+'</span> '
       +'<span class="cv-cmp-name">'+esc(row.name||row.cell_id)+'</span>'
+      +(isPol(metric)?'<span class="cv-cmp-pol">🏛 POL</span>':"")
       +(you?'<span class="cv-cmp-tag">YOUR CELL</span>':"")
-      +'<div class="x-note">'+Number(row.cnt||0)+' '+esc(unit)
+      +'<div class="x-note">'+score
       +' &middot; '+Number(row.members||0)+' members</div>'
       +'</div>';
   }
@@ -685,29 +723,102 @@ function compHistHTML(){
   for(var i=0;i<Math.min(wins.length,16);i++){
     var w=wins[i];
     h+='<div class="x-note">'+esc(compWeekDate(w.week_start))+" &mdash; "+esc(compMetricLabel(w.metric))
-      +': <b>'+esc(w.cell_name||w.cell_id)+"</b> ("+Number(w.cnt||0)+")</div>";
+      +': <b>'+esc(w.cell_name||w.cell_id)+"</b> ("+esc(compScore(w.metric,w.cnt))+")</div>";
   }
   return h;
+}
+/* --- political track picker (weave-1): founder-only opt-in.
+   cell_mine (authed GET) lists the caller's cells with is_founder + pol_tracks.
+   Save rides post("cell","cell_action","cell_pol_tracks") — auth-gated + founder
+   check in-module. Politics is never forced: default OFF, empty = opt out. */
+function compPickerHTML(){
+  var cells=(COMP.mine&&COMP.mine.cells)||[];
+  var mine=[];
+  for(var i=0;i<cells.length;i++){ if(cells[i].is_founder) mine.push(cells[i]); }
+  if(!mine.length) return "";
+  var h='<div class="cv-cmp-pick"><b>🏛 Political tracks — founder opt-in</b>'
+    +'<div class="x-note">Your cell, your call. Tick the tracks your cell wants to compete in. Unticked = opted out (default).</div>';
+  for(var c=0;c<mine.length;c++){
+    var cl=mine[c], on=cl.pol_tracks||[];
+    h+='<div class="x-note" style="margin-top:6px"><b>'+esc(cl.name||cl.id)+'</b></div>';
+    for(var t=0;t<POL_METRICS.length;t++){
+      var tk=POL_METRICS[t];
+      var checked=on.indexOf(tk)>=0?' checked="checked"':'';
+      h+='<label><input type="checkbox" data-pol-track="'+tk+'" data-pol-cell="'+esc(cl.id)+'"'+checked+'/>'
+        +'🏛 '+esc(POL_LABEL[tk])+'</label>';
+    }
+    h+='<button type="button" class="c-btn" data-pol-save="'+esc(cl.id)+'" style="min-height:44px;margin-top:4px">SAVE TRACKS</button>'
+      +'<div class="x-note" data-pol-msg="'+esc(cl.id)+'"></div>';
+  }
+  return h+'</div>';
+}
+function fetchMine(){
+  if(COMP.mine||COMP.mineDone) return;
+  var idc=ident(); if(!idc.callsign) return;
+  COMP.mineDone=true;
+  var pp={callsign:idc.callsign};
+  function got(j){
+    if(j&&j.ok){ COMP.mine=j; paintComp(); }
+    else { COMP.mineDone=false; } /* failed — retry on next bind */
+  }
+  try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"cell_mine",pp,got); return; } }catch(e){}
+  api("cell_mine",pp,got);
+}
+function compTogBtn(metric,label,pol){
+  return '<button type="button" class="c-btn" data-comp-metric="'+metric+'" aria-pressed="'
+    +(COMP.metric===metric?"true":"false")+'">'+(pol?"🏛 ":"")+esc(label)+'</button>';
 }
 function compCardHTML(){
   var cur=COMP.cur[COMP.metric];
   if(!(cur&&cur.ok)) return "";
   var days=Number(cur.days_remaining||0);
-  var h='<div class="x-pane"><h4>Cell competitions</h4>'
+  var pol=isPol(COMP.metric);
+  var h='<div class="x-pane"><h4>Cell competitions'+(pol?'<span class="cv-cmp-pol">🏛 POLITICAL TRACK</span>':"")+'</h4>'
     +'<div class="x-note">Which cell logs the most civic action this week? Live standings below.</div>'
     +'<div class="cv-cmp-tog" role="group" aria-label="Competition metric">'
-    +'<button type="button" class="c-btn" data-comp-metric="rep_contacts" aria-pressed="'
-    +(COMP.metric==="rep_contacts"?"true":"false")+'">REP CONTACTS</button>'
-    +'<button type="button" class="c-btn" data-comp-metric="campaign_calls" aria-pressed="'
-    +(COMP.metric==="campaign_calls"?"true":"false")+'">CAMPAIGN CALLS</button>'
+    +compTogBtn("rep_contacts","REP CONTACTS",false)
+    +compTogBtn("campaign_calls","CAMPAIGN CALLS",false)
+    +'</div>'
+    +'<div class="cv-cmp-tog2" role="group" aria-label="Political competition tracks">'
+    +compTogBtn("pol_rep_contacts","POL REP CONTACTS",true)
+    +compTogBtn("pol_campaign_calls","POL CAMPAIGN CALLS",true)
+    +compTogBtn("pol_predict_accuracy","POL PREDICT ACCURACY",true)
+    +compTogBtn("pol_poll_votes","POL POLL VOTES",true)
     +'</div>'
     +'<div class="x-note"><b>'+days+'</b> day'+(days===1?"":"s")+' left this week.</div>'
     +compWinnerHTML(cur)
     +compMyLine(cur)
     +'<div id="cvCompStand">'+compStandingsHTML(cur)+'</div>'
     +compHistHTML()
+    +compPickerHTML()
     +'</div>';
   return h;
+}
+/* --- political track save (weave-1): founder-only, POST + auth + founder check. */
+function compSaveTracks(cellId){
+  var idc=ident(); if(!idc.callsign||!cellId) return;
+  var boxes=document.querySelectorAll('input[data-pol-track][data-pol-cell="'+cellId+'"]');
+  var tracks=[];
+  for(var i=0;i<boxes.length;i++){ if(boxes[i].checked) tracks.push(boxes[i].getAttribute("data-pol-track")); }
+  var msg=document.querySelector('[data-pol-msg="'+cellId+'"]');
+  function note(t){ if(msg) msg.textContent=t; }
+  note("Saving\u2026");
+  post("cell","cell_action","cell_pol_tracks",
+    {callsign:idc.callsign,cell_id:cellId,tracks:JSON.stringify(tracks)},
+    function(j){
+      if(j&&j.ok){
+        note("Saved. Your cell is "+(tracks.length?("in: "+tracks.join(", ")):"opted out of all political tracks")+".");
+        try{
+          var cells=(COMP.mine&&COMP.mine.cells)||[];
+          for(var c=0;c<cells.length;c++){ if(String(cells[c].id)===String(cellId)) cells[c].pol_tracks=tracks.slice(); }
+        }catch(e){}
+        /* boards may change — drop cached pol boards so they refetch */
+        for(var k=0;k<POL_METRICS.length;k++){ delete COMP.cur[POL_METRICS[k]]; }
+        paintComp(); fetchComp(); toast("Political tracks saved.");
+      } else {
+        note("Save failed: "+((j&&j.err)||"network error"));
+      }
+    });
 }
 function paintComp(){
   var box=document.getElementById("cvCompBox"); if(!box) return;
@@ -1978,15 +2089,18 @@ function bind(){
   if(cbox&&!cbox.getAttribute("data-bound")){
     cbox.setAttribute("data-bound","1");
     cbox.addEventListener("click",function(e){
+      var sv=e.target&&e.target.closest?e.target.closest("[data-pol-save]"):null;
+      if(sv){ compSaveTracks(sv.getAttribute("data-pol-save")); return; }
       var b=e.target&&e.target.closest?e.target.closest("[data-comp-metric]"):null;
       if(!b) return;
       var m=b.getAttribute("data-comp-metric");
-      if(m!==COMP.metric&&(m==="rep_contacts"||m==="campaign_calls")){
+      var all=["rep_contacts","campaign_calls"].concat(POL_METRICS);
+      if(m!==COMP.metric&&all.indexOf(m)>=0){
         COMP.metric=m; paintComp(); fetchComp();
       }
     });
   }
-  fetchComp();
+  fetchComp(); fetchMine();
   fetchHist();
   /* 2026-10-05 (wave pressure-campaigns FE): pressure-card bindings. */
   pressureBind(qsa);

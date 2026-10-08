@@ -7526,8 +7526,30 @@ if(document.readyState==='loading'){
       if(document.body) document.body.insertBefore(d,document.body.firstChild);
     }catch(e2){}
   }
+
+  /* FOOTER TEXT DE-COLLIDE (2026-10-07, fix/homepage-3-bugs): the live homepage
+     footer showed Squarespace-native text ("MTCSTW Co. 2026 |", "Privacy Policy")
+     overlapping a giant "mtcstw.com" heading — three text layers colliding.
+     Both elements are editor blocks; this guard forces the footer's text blocks
+     back into normal-flow stacking with breathing room so they can't sit on top
+     of each other. Conservative: footer-scoped only, never hides content.
+     NOTE: if the overlap comes from Fluid Engine grid areas dragged on top of
+     each other in the editor, the editor remains the definitive fix. */
+  function footerDecollide(){
+    if (document.getElementById('pf-footer-decollide')) return;
+    try{
+      var css = document.createElement('style');
+      css.id = 'pf-footer-decollide';
+      css.textContent =
+        'footer .sqs-block, .Footer .sqs-block{position:relative!important;}' +
+        'footer .sqs-block-content, .Footer .sqs-block-content{position:relative!important;}' +
+        'footer .sqs-layout .sqs-row + .sqs-row, .Footer .sqs-layout .sqs-row + .sqs-row{margin-top:16px;}';
+      document.head.appendChild(css);
+    }catch(e){}
+  }
   function boot() {
     stripStaticFallback();
+    footerDecollide();
     injectLink();
     try{ storeCard(); }catch(e){}
     var tries = 0;
@@ -12204,7 +12226,9 @@ if(document.readyState==='loading'){
     chip = document.createElement('div');
     chip.id = 'pf-commend-chip';
     chip.setAttribute('style',
-      'position:fixed;right:12px;bottom:64px;z-index:9998;cursor:pointer;' +
+      'position:fixed;right:12px;bottom:132px;z-index:9998;cursor:pointer;' + /* 2026-10-07
+   fix/homepage-3-bugs: was bottom:64px, overlapping the ASK KARL button
+   (bottom:76px, ~48px tall). Stacked above it with an 8px gap. */ +
       'background:#0a0a0a;color:#fff;border:1px solid #c1121f;border-radius:10px;' +
       'padding:8px 12px;font:700 11px/1.4 system-ui,Arial,sans-serif;letter-spacing:.06em;' +
       'box-shadow:0 4px 18px rgba(0,0,0,.5);max-width:220px;text-align:left;');
@@ -12215,7 +12239,8 @@ if(document.readyState==='loading'){
     form = document.createElement('div');
     form.id = 'pf-commend-form';
     form.style.cssText =
-      'position:fixed;right:12px;bottom:112px;z-index:9999;display:none;' +
+      'position:fixed;right:12px;bottom:184px;z-index:9999;display:none;' + /* 2026-10-07
+   fix/homepage-3-bugs: was bottom:112px; moved up with the chip. */ +
       'background:#111;border:1px solid #c1121f;border-radius:12px;padding:14px;' +
       'width:240px;font:400 12px/1.5 system-ui,Arial,sans-serif;color:#fff;' +
       'box-shadow:0 8px 28px rgba(0,0,0,.6);';

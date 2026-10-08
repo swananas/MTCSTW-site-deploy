@@ -249,8 +249,30 @@
       if(document.body) document.body.insertBefore(d,document.body.firstChild);
     }catch(e2){}
   }
+
+  /* FOOTER TEXT DE-COLLIDE (2026-10-07, fix/homepage-3-bugs): the live homepage
+     footer showed Squarespace-native text ("MTCSTW Co. 2026 |", "Privacy Policy")
+     overlapping a giant "mtcstw.com" heading — three text layers colliding.
+     Both elements are editor blocks; this guard forces the footer's text blocks
+     back into normal-flow stacking with breathing room so they can't sit on top
+     of each other. Conservative: footer-scoped only, never hides content.
+     NOTE: if the overlap comes from Fluid Engine grid areas dragged on top of
+     each other in the editor, the editor remains the definitive fix. */
+  function footerDecollide(){
+    if (document.getElementById('pf-footer-decollide')) return;
+    try{
+      var css = document.createElement('style');
+      css.id = 'pf-footer-decollide';
+      css.textContent =
+        'footer .sqs-block, .Footer .sqs-block{position:relative!important;}' +
+        'footer .sqs-block-content, .Footer .sqs-block-content{position:relative!important;}' +
+        'footer .sqs-layout .sqs-row + .sqs-row, .Footer .sqs-layout .sqs-row + .sqs-row{margin-top:16px;}';
+      document.head.appendChild(css);
+    }catch(e){}
+  }
   function boot() {
     stripStaticFallback();
+    footerDecollide();
     injectLink();
     try{ storeCard(); }catch(e){}
     var tries = 0;

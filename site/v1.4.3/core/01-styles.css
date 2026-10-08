@@ -1,0 +1,492 @@
+/* ============================================================================
+   SILO: core/01-styles.css  |  PF v1.4.1
+   WHAT: Document-wide widget + theme CSS
+   PHASE: core CSS
+   EVENTS SEEN: pf-caption, pf-do-mini, pf-dometer2, pf-orders, pf-poster
+   KILL: ?pf_off=core-styles  or  localStorage pf_disabled_v1='["core-styles"]'
+   SOURCE: verbatim extract from dist/pf-footer-v1.4.1.html
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (added 2026-10-04 after a drift
+   incident: the 2026-10-03 Know Your Enemy CSS shipped in 02-design-system.css
+   but never made it into bundle-styles.css, so the live fix was half-deployed):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      It is HAND-MAINTAINED — there is no build script that regenerates it
+      from these source files. Editing a source file alone changes NOTHING live.
+   2. After ANY edit to a source CSS file, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css by hand (01-styles.css content = top of the
+      bundle; 02-design-system.css content = middle, ending at .bt-st-rejected;
+      hand-added defect/audit fix blocks live at the bottom of the bundle).
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
+   ============================================================================ */
+/* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
+.pf-flash{animation:pfFlash 1.4s ease-out}
+@keyframes pfFlash{0%,100%{box-shadow:none}25%{box-shadow:0 0 0 4px #c1121f,0 0 24px #c1121f}}
+
+#pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-caption .c-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
+#pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-bottom:16px}
+#pf-caption .c-template{background:#1a1a1a;border:2px dashed #555;min-height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden}
+#pf-caption .c-template img{max-width:100%;display:block}
+#pf-caption .c-template .c-ph{font-family:Arial,sans-serif;font-size:13px;color:#777;letter-spacing:2px;text-transform:uppercase;padding:40px 20px}
+#pf-caption .c-form{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px;margin-bottom:14px}
+#pf-caption .c-form label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-caption .c-form label:first-child{margin-top:0}
+#pf-caption .c-form input,#pf-caption .c-form textarea{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;padding:10px}
+#pf-caption .c-form textarea{min-height:70px;resize:vertical}
+#pf-caption .c-btn{display:inline-block;background:#c1121f;color:#fff;border:0;padding:13px 26px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;margin-top:12px;text-decoration:none}
+#pf-caption .c-btn:hover{background:#8f0d17}
+#pf-caption .c-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6;font-size:12px;padding:10px 20px}
+#pf-caption .c-winner{background:#f5ead6;color:#0d0d0d;padding:18px;margin:0 0 14px;text-align:left}
+#pf-caption .c-winner .c-wtag{font-size:11px;letter-spacing:3px;color:#c1121f;text-transform:uppercase}
+#pf-caption .c-winner .c-wcap{font-size:18px;margin:8px 0 4px;text-transform:uppercase;letter-spacing:1px}
+#pf-caption .c-winner .c-wauthor{font-family:Arial,sans-serif;font-size:12px;color:#555}
+#pf-caption .c-rules{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px;line-height:1.6}
+#pf-caption .c-div{border-top:2px dashed #c1121f;margin:18px 0;padding-top:16px}
+#pf-caption .c-div h3{color:#f5ead6;font-size:18px;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase}
+#pf-caption .c-div p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0 0 6px}
+
+#pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#pf-orders h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
+#pf-orders .o-meterwrap{margin-bottom:12px}
+#pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
+#pf-orders .o-seg.fill{background:#c1121f;border-color:#c1121f}
+#pf-orders .o-meter.hot .o-seg.fill{animation:oflashseg .7s infinite}
+#pf-orders .o-meter.maxed .o-seg.fill{background:#c1121f;border-color:#c1121f;animation:oflashseg .35s infinite}
+@keyframes oflashseg{0%,100%{box-shadow:0 0 4px #c1121f;transform:scale(1)}50%{box-shadow:0 0 20px #c1121f;transform:scale(1.08)}}
+#pf-orders .o-mission{background:#1a1a1a;border:2px dashed #c1121f;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-mission.done{border-style:solid;opacity:.75}
+#pf-orders .o-mtext{font-size:16px;line-height:1.5}
+#pf-orders .o-xp{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;margin-top:8px;text-transform:uppercase}
+#pf-orders .o-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:10px 28px;cursor:pointer;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-btn:hover{transform:scale(1.04)}
+#pf-orders .o-donetag{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-size:13px;letter-spacing:3px;padding:8px 22px;text-transform:uppercase}
+#pf-orders .o-platpick{display:none;margin-top:10px;border-top:1px dashed #555;padding-top:10px}
+#pf-orders .o-picklabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:8px}
+#pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
+#pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
+#pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
+#pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
+#pf-orders .o-streak b{color:#c1121f;font-size:20px}
+#pf-orders .o-next{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px;margin-bottom:6px}
+#pf-orders .o-rankline{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-loot{font-size:15px;color:#f5ead6;margin-top:10px;min-height:22px;font-style:italic;font-family:Arial,sans-serif}
+#pf-orders .o-flash{animation:oflash .6s}
+@keyframes oflash{0%{background:#c1121f;color:#fff}100%{background:#0d0d0d}}
+/* ============ DOPAMINE LAYER: HQ dispatch lynchpin (2026-10-01) ============ */
+#pf-orders .o-dispatch{min-height:36px;margin-bottom:4px}
+#pf-orders .o-stamp{display:inline-block;border:3px solid #c1121f;color:#c1121f;font-size:18px;letter-spacing:4px;padding:6px 18px;transform:rotate(-6deg);animation:ostamp .45s cubic-bezier(.2,2.4,.4,1) backwards}
+@keyframes ostamp{from{opacity:0;transform:rotate(-6deg) scale(2.4)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
+#pf-orders .o-warpath{margin:8px 0 4px}
+#pf-orders .o-wplabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-wprow{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-day{width:36px;height:48px;border:2px solid #555;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif}
+#pf-orders .o-day span{font-size:11px;color:#777;letter-spacing:1px}
+#pf-orders .o-day em{font-style:normal;font-size:14px;color:#c1121f;min-height:18px}
+#pf-orders .o-day.hit{border-color:#c1121f;background:#2a0d0d}
+#pf-orders .o-day.hit span{color:#f5ead6}
+#pf-orders .o-day.today{outline:2px solid #f5ead6;outline-offset:2px}
+#pf-orders .o-reset{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin:6px 0 10px;animation:oflashseg 2s infinite}
+#pf-orders .o-fieldop{border:3px solid #e8b923;background:#221a08;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-fieldop.done{opacity:.75}
+#pf-orders .o-fophead{font-size:13px;letter-spacing:3px;color:#e8b923;margin-bottom:8px}
+#pf-orders .o-fieldop .o-xp{color:#e8b923}
+#pf-orders .o-fieldop .o-donetag{background:#e8b923}
+#pf-orders .o-fieldop .o-btn{background:#e8b923}
+#pf-orders .o-fieldop .o-btn:hover{background:#c1121f}
+#pf-orders .o-fopsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-reveal .o-mission{animation:ofadeup .45s backwards}
+#pf-orders .o-reveal .o-mission:nth-child(2){animation-delay:.12s}
+#pf-orders .o-reveal .o-mission:nth-child(3){animation-delay:.24s}
+#pf-orders .o-reveal .o-fieldop{animation:ofadeup .45s .36s backwards}
+#pf-orders .o-boost{border:3px solid #ff5a00;background:#1d1006;padding:14px 12px;margin:12px 0}
+#pf-orders .o-bhead{font-size:13px;letter-spacing:3px;color:#ff5a00;margin-bottom:6px}
+#pf-orders .o-bsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-bottom:10px}
+#pf-orders .o-brow{margin:8px 0}
+#pf-orders .o-bsel{background:#0d0d0d;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;padding:10px;width:100%;max-width:420px}
+#pf-orders .o-tipbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;padding:8px 16px;margin:3px;cursor:pointer}
+#pf-orders .o-tipbtn.sel{background:#ff5a00;border-color:#ff5a00;color:#0d0d0d;font-weight:700}
+#pf-orders .o-boostbtn{background:#ff5a00;margin-top:6px}
+#pf-orders .o-boostbtn:hover{background:#c1121f}
+#pf-orders .o-bbal{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-bdone{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin-bottom:6px}
+#pf-orders .o-bdone b{color:#ff5a00}
+#pf-orders .o-pumpbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-pumpbtn:hover:not(:disabled){background:#ff5a00;border-color:#ff5a00;color:#0d0d0d}
+#pf-orders .o-pumpbtn.done{background:#1d5c1d;border-color:#1d5c1d;color:#f5ead6;cursor:default}
+#pf-orders .o-crown{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#e8b923;margin-top:10px}
+#pf-orders .o-patrons{margin:10px 0}
+#pf-orders .o-phead{font-size:12px;letter-spacing:3px;color:#c1121f;margin-bottom:6px}
+#pf-orders .o-prow{display:flex;flex-wrap:wrap;gap:8px}
+#pf-orders .o-patron{background:#141414;border:1px solid #c1121f;padding:8px 12px;font-family:Arial,sans-serif}
+#pf-orders .o-patron b{display:block;font-size:13px;color:#f5ead6;letter-spacing:1px}
+#pf-orders .o-patron span{font-size:11px;color:#c9bfa8}
+@keyframes ofadeup{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){#pf-orders .o-stamp,#pf-orders .o-reset,#pf-orders .o-reveal .o-mission,#pf-orders .o-reveal .o-fieldop{animation:none}}
+#pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;letter-spacing:1px;margin-top:8px;min-height:16px}
+#pf-orders .o-claim{margin-top:14px;border-top:1px solid #333;padding-top:12px}
+#pf-orders .o-claim a{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;cursor:pointer;text-decoration:underline}
+#pf-orders .o-claimbox{display:none;margin-top:10px}
+#pf-orders .o-claimbox input{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;letter-spacing:1px;padding:9px 10px;width:180px;margin:4px;text-align:center}
+#pf-orders .o-claimbox input::placeholder{color:#666}
+#pf-orders .o-claimbtn{background:#f5ead6;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;margin-top:6px}
+#pf-orders .o-shareimg{background:#c1121f;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 28px;cursor:pointer;text-transform:uppercase;margin:14px 4px 0}
+#pf-orders .o-shareimg:hover{transform:scale(1.04)}
+#pf-orders .o-shareimg:disabled{opacity:.5;cursor:wait;transform:none}
+#pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+
+#pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden;box-sizing:border-box}
+#pf-dometer2 h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:3px;text-transform:uppercase}
+#pf-dometer2 .d-sub{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:14px;line-height:1.6}
+#pf-dometer2 .d-num{font-size:64px;color:#f5ead6;letter-spacing:2px;line-height:1;margin:6px 0}
+#pf-dometer2 .d-num small{font-size:16px;color:#c1121f;letter-spacing:3px;display:block;margin-top:6px}
+#pf-dometer2 .d-you{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#b8ab8e;text-transform:uppercase;margin:2px 0 8px}
+#pf-dometer2 .d-flash{animation:dflash .5s}
+@keyframes dflash{0%{color:#c1121f;transform:scale(1.12)}100%{color:#f5ead6;transform:scale(1)}}
+#pf-dometer2 .d-keglabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin:14px 0 6px}
+#pf-dometer2 .d-keg{height:34px;background:#1a1a1a;border:3px solid #555;position:relative;overflow:hidden}
+#pf-dometer2 .d-fill{height:100%;width:0%;background:repeating-linear-gradient(-45deg,#c1121f,#c1121f 12px,#8f0d17 12px,#8f0d17 24px);transition:width .6s ease}
+#pf-dometer2 .d-keg.hot .d-fill{animation:dblazepulse .8s infinite}
+@keyframes dblazepulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#pf-dometer2 .d-goal{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:8px}
+#pf-dometer2 .d-types{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+#pf-dometer2 .d-type{font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;color:#c9bfa8;border:1px solid #444;padding:4px 10px;text-transform:uppercase}
+#pf-dometer2 .d-type b{color:#f5ead6}
+#pf-dometer2 .d-spark{display:flex;gap:8px;justify-content:center;align-items:flex-end;height:64px;margin-top:18px}
+#pf-dometer2 .d-bar{width:44px;height:64px;background:#2a2a2a;border:2px solid #555;position:relative}
+#pf-dometer2 .d-bar i{position:absolute;bottom:0;left:0;right:0;background:#c1121f;display:block}
+#pf-dometer2 .d-bar.cur i{background:#c1121f}
+#pf-dometer2 .d-bar span{position:absolute;top:-18px;left:0;right:0;font-family:Arial,sans-serif;font-size:9px;color:#c9bfa8;letter-spacing:1px}
+#pf-dometer2 .d-boom{position:absolute;inset:0;background:rgba(13,13,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:5}
+#pf-dometer2 .d-boom.show{display:flex}
+#pf-dometer2 .d-boom h3{color:#c1121f;font-size:34px;letter-spacing:3px;margin:0 0 8px;animation:dshake .5s}
+@keyframes dshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg) scale(1.05)}75%{transform:rotate(3deg) scale(1.05)}}
+#pf-dometer2 .d-boom p{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase}
+#pf-dometer2 .d-confetti{position:absolute;top:-12px;width:10px;height:14px;z-index:6;pointer-events:none;animation:dconfetti linear forwards}
+@keyframes dconfetti{to{transform:translateY(560px) rotate(720deg);opacity:0}}
+#pf-dometer2 .d-dollar{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:76px;color:#4dff4d;z-index:10;pointer-events:none;animation:ddollar 1.3s ease-out forwards;text-shadow:0 0 24px rgba(77,255,77,.6);font-family:'Arial Black',Arial,sans-serif}
+@keyframes ddollar{0%{transform:translate(-50%,-50%) scale(0);opacity:0}22%{transform:translate(-50%,-58%) scale(1.35);opacity:1}42%{transform:translate(-50%,-62%) scale(1);opacity:1}62%{transform:translate(-50%,-68%) scale(1.45);opacity:1}100%{transform:translate(-50%,-95%) scale(2.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.hot .d-fill,#pf-dometer2 .d-boom h3{animation:none}}
+
+#pf-do-mini{position:fixed;bottom:0;left:0;right:0;z-index:99998;pointer-events:none;text-align:center;font-family:Arial,sans-serif}
+#pf-do-mini .m-line{display:inline-block;margin-bottom:12px;background:#0d0d0d;border:2px solid #c1121f;color:#c9bfa8;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px}
+#pf-do-mini .m-line b{color:#c1121f}
+@media (max-width:640px){#pf-do-mini .m-line{margin-bottom:8px;font-size:9px}}
+
+#slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:6px}
+#slr-nuke h2{color:#f5ead6;font-size:26px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#slr-nuke h2 .slr-red{color:#c1121f}
+#slr-nuke .slr-nuke-sub{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;letter-spacing:1px;margin:0 0 18px}
+#slr-nuke .slr-nuke-barwrap{position:relative;background:#1a1a1a;border:2px solid #c1121f;height:52px;overflow:hidden;margin-bottom:12px}
+#slr-nuke .slr-nuke-fill{position:absolute;top:0;left:0;bottom:0;width:0%;background:linear-gradient(90deg,#8f0d17,#c1121f,#dc143c);transition:width 1.2s ease}
+#slr-nuke.armed .slr-nuke-fill{animation:slr-nuke-glow 1.2s ease-in-out infinite}
+@keyframes slr-nuke-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#slr-nuke .slr-nuke-label{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:2px;color:#f5ead6;text-shadow:0 1px 3px #000;pointer-events:none}
+#slr-nuke .slr-nuke-status{font-size:17px;letter-spacing:2px;text-transform:uppercase;margin:10px 0 4px;min-height:26px}
+#slr-nuke .slr-nuke-status .st-dormant{color:#8a8172}
+#slr-nuke .slr-nuke-status .st-charging{color:#f5ead6}
+#slr-nuke .slr-nuke-status .st-critical{color:#ff6b6b}
+#slr-nuke .slr-nuke-status .st-armed{color:#dc143c;animation:slr-nuke-blink 1s steps(2) infinite}
+@keyframes slr-nuke-blink{50%{opacity:.55}}
+#slr-nuke .slr-nuke-detail{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#8a8172;margin-bottom:6px}
+#slr-nuke .slr-nuke-you{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin-bottom:4px}
+#slr-nuke .slr-nuke-you strong{color:#c1121f}
+#slr-nuke .slr-nuke-math{margin-top:14px;text-align:left;font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;line-height:1.55}
+#slr-nuke .slr-nuke-math summary{cursor:pointer;color:#f5ead6;letter-spacing:2px;text-transform:uppercase;font-size:12px;text-align:center;outline:none}
+#slr-nuke .slr-nuke-math p{margin:8px 0}
+#slr-nuke .slr-nuke-math strong{color:#f5ead6}
+@media (prefers-reduced-motion:reduce){#slr-nuke.armed .slr-nuke-fill{animation:none}#slr-nuke .slr-nuke-status .st-armed{animation:none}}
+
+#pf-poster{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box;overflow:hidden}
+#pf-poster h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-poster .p-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:14px}
+#pf-poster canvas{max-width:100%;height:auto;border:2px solid #f5ead6;display:block;margin:0 auto 16px;background:#f5ead6}
+#pf-poster .p-ctl{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px}
+#pf-poster .p-ctl label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-poster .p-ctl label:first-child{margin-top:0}
+#pf-poster .p-ctl input{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;padding:10px}
+#pf-poster .p-styles{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-style{flex:1;min-width:100px;background:#0d0d0d;border:2px solid #555;color:#f5ead6;font-family:'Arial Black',Arial,sans-serif;font-size:11px;letter-spacing:1px;padding:10px 6px;cursor:pointer;text-transform:uppercase}
+#pf-poster .p-style.on{border-color:#c1121f;background:#c1121f;color:#fff}
+#pf-poster .p-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-btn{flex:1;min-width:140px;background:#c1121f;color:#fff;border:0;padding:13px 10px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;text-decoration:none;text-align:center}
+#pf-poster .p-btn:hover{background:#8f0d17}
+#pf-poster .p-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-poster .p-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}
+
+/* HERO FIX: prevent title sliding under fixed nav */
+body.homepage .page-section:first-child .content-wrapper,
+body.homepage #page .page-section:first-child{
+  padding-top:80px !important;
+}
+
+/* TICKER FIX: dismissible, unified total, never blocks CTAs */
+#pf-do-mini .m-line{position:relative;pointer-events:auto;padding-right:28px}
+#pf-do-mini.dismissed{display:none}
+
+
+
+/* Zero orange: propaganda red/cream site-wide (2026-09-29) */
+a.sqs-block-button-element.sqs-button-element--primary{background-color:#c1121f !important;border-color:#c1121f !important;color:#f5f0e1 !important;}
+.header-nav-list .header-nav-item a{color:#f5ead6 !important;}
+.header-nav-list .header-nav-item a:hover{color:#c1121f !important;}
+footer a{color:#f5ead6 !important;}
+footer a:hover{color:#c1121f !important;}
+
+
+/* Round 2: folder buttons, cart link, footer headings (2026-09-29) */
+header a, header button{color:#f5ead6 !important;}
+header a:hover, header button:hover{color:#c1121f !important;}
+footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
+
+
+/* CELLS (2026-10-01): callsign squads. Black/red/cream propaganda register. */
+#pf-cells .c-tag{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:6px 0 12px}
+#pf-cells .c-load{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:10px 0}
+#pf-cells .c-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;margin-top:8px}
+#pf-cells .c-empty{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:6px 0}
+#pf-cells .c-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-cells .c-gate{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin:8px 0}
+#pf-cells .c-lobby{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0}
+#pf-cells .c-pane{flex:1;min-width:220px;border:2px solid #c1121f;padding:12px;background:#141414}
+#pf-cells .c-pane h4{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 8px;font-size:14px}
+#pf-cells input{background:#0d0d0d;border:1px solid #c9bfa8;color:#f5ead6;font-family:monospace;font-size:16px;padding:8px;margin:4px 4px 4px 0;width:200px;max-width:100%}
+#pf-cells .c-btn{background:#c1121f;color:#f5ead6;border:2px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;margin-top:8px}
+#pf-cells .c-btn:hover{background:#a00e1a}
+#pf-cells .c-btn.c-big{display:block;width:100%;margin-top:12px;font-size:16px}
+#pf-cells .c-btn.c-cover{background:#0d0d0d;border-color:#c1121f;color:#f5ead6;display:block;width:100%;margin-top:8px}
+#pf-cells .c-card{border:3px solid #c1121f;background:#141414;padding:14px;margin:8px 0}
+#pf-cells .c-chead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#pf-cells .c-cname{font-family:"Arial Black",Arial,sans-serif;font-size:20px;color:#f5ead6}
+#pf-cells .c-code{font-family:monospace;font-size:16px;font-weight:bold;color:#0d0d0d;background:#f5ead6;padding:6px 12px;cursor:pointer;letter-spacing:2px}
+#pf-cells .c-cstats{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8}
+#pf-cells .c-flame{color:#f5ead6;font-weight:bold}
+#pf-cells .c-mult{color:#c1121f;font-weight:bold}
+#pf-cells .c-members{margin:8px 0}
+#pf-cells .c-mrow{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:monospace;font-size:14px}
+#pf-cells .c-dot{width:10px;height:10px;border-radius:50%;background:#444;display:inline-block}
+#pf-cells .c-dot.c-on{background:#c1121f;box-shadow:0 0 6px #c1121f}
+#pf-cells .c-mname{color:#f5ead6;flex:1}
+#pf-cells .c-mok{color:#c1121f;font-weight:bold;font-size:12px}
+#pf-cells .c-mno{color:#666;font-size:12px}
+#pf-cells .c-done{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-top:10px;font-style:italic}
+#pf-cells .c-leave{margin-top:10px}
+#pf-cells .c-leave a{font-family:Arial,sans-serif;font-size:12px;color:#777;cursor:pointer;text-decoration:underline}
+#pf-cells .c-boardwrap{margin-top:16px}
+#pf-cells .c-boardwrap h3{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:15px;margin:0 0 8px}
+#pf-cells .c-brow{display:flex;align-items:center;gap:10px;padding:6px 4px;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;border-bottom:1px solid #2a2a2a}
+#pf-cells .c-brow.c-btop{color:#f5ead6}
+#pf-cells .c-vfy{display:inline-block;background:#c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-state{display:inline-block;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-stag{display:inline-block;background:#c1121f;color:#fff;font-family:Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-sel{background:#0d0d0d;color:#f5ead6;border:2px solid #444;font-family:Arial,sans-serif;font-size:16px;padding:10px 12px;min-height:44px;max-width:100%;margin:4px 4px 4px 0;display:block;width:100%}
+#pf-cells .c-unv{display:inline-block;border:1px solid #777;color:#777;font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-rename{margin:10px 0 2px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#pf-cells .c-rename input{margin:0}
+#pf-cells .c-rename .c-btn{margin-top:0}
+#pf-cells .c-rename .c-sel{width:auto;flex:1 1 200px;margin:0}
+#pf-cells .c-neterr{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0;line-height:1.7}
+#pf-cells .c-pitch{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0 10px;line-height:1.65}
+#pf-cells .c-pitch b{color:#c1121f}
+#pf-cells .c-steps{margin:0 0 10px}
+#pf-cells .c-step{display:flex;align-items:center;gap:10px;font-family:Arial,sans-serif;font-size:13px;color:#444;padding:4px 0}
+#pf-cells .c-snum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#c1121f;color:#fff;font-family:"Arial Black",Arial,sans-serif;font-size:12px;flex:none}
+#pf-cells .c-bounty{font-family:Arial,sans-serif;font-size:12px;color:#555;margin-top:10px}
+#pf-cells .c-bounty b{color:#c1121f}
+#pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#c1121f;min-width:22px}
+#pf-cells .c-bname{flex:1;font-weight:bold}
+#pf-cells .c-bstat{font-size:12px;color:#777}
+/* CREATOR WAR CARD (2026-10-01): recruit-with-a-share builder. */
+#pf-war-card .c-warwrap{margin-top:18px;border:2px solid #c1121f;background:#101012;padding:14px}
+#pf-war-card .c-warwrap h2{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:18px;margin:0}
+#pf-war-card .c-wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+#pf-war-card .c-wgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 10px}
+#pf-war-card .c-warwrap label{display:block;font-family:monospace;font-size:11px;font-weight:bold;color:#c9bfa8;letter-spacing:1px}
+#pf-war-card .c-warwrap select,#pf-war-card .c-warwrap input{width:100%;box-sizing:border-box;margin-top:6px;background:#0b0b0c;border:1px solid #c1121f;color:#f5ead6;font-family:monospace;font-size:16px;padding:10px}
+#pf-war-card .c-wmeta{display:flex;gap:18px;flex-wrap:wrap;font-family:monospace;font-size:12px;font-weight:bold;color:#f5ead6;margin:4px 0}
+#pf-war-card .c-wmeta #wCode{color:#c1121f}
+#pf-war-card .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
+#pf-war-card .c-wbtns .c-big{flex:2;min-width:200px}
+@media (max-width:560px){#pf-war-card .c-wgrid,#pf-war-card .c-wgrid3{grid-template-columns:1fr}}
+#pf-cells .c-prb{display:inline-block;color:#ffb703;font-weight:900;font-size:12px;margin-left:6px;vertical-align:middle}
+#pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
+#pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
+#pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
+
+/* ============================================================================
+   GAP AUDIT 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)
+   H9  : box-sizing:border-box added to the four legacy widget card roots above
+         (#pf-caption, #pf-orders, #pf-dometer2, #slr-nuke) — mirrors #pf-poster
+   H10 : #pf-nuke-stick (z 9000) vs #pf-do-mini (z 99998) no longer collide;
+         body gets bottom padding so fixed chrome can't cover footer links/CTAs
+   M35 : iOS safe-area insets (env(safe-area-inset-bottom)) on fixed chrome
+   M33 : do-meter spark chart scrolls horizontally instead of silently clipping
+   M34 : daily-orders warpath row goes fluid on narrow phones
+   M32 : feed tabs get a visible active-tab indicator (.fd-on, incl. BOOST/VAULT)
+   ============================================================================ */
+/* M35: fixed chrome clears the iPhone home indicator (progressive — ignored
+   by browsers without env(), where the earlier bottom:0 rule stands) */
+#pf-do-mini{bottom:env(safe-area-inset-bottom,0px)}
+/* M35: nuke strip's own rule is injected at runtime by 17-nuke-strip.js, so
+   this needs the body- prefix to outrank it regardless of stylesheet order */
+body #pf-nuke-stick{padding-bottom:env(safe-area-inset-bottom,0px)}
+/* H10: when the nuke strip is live, the do-mini ticker rides above it
+   (strip runs ~48px tall: 6px meter + ~42px action row) instead of covering it */
+body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+/* H10: compensating body padding so fixed chrome never covers footer links/CTAs on phones */
+@media (max-width:640px){body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}}
+/* M33 (audit M31): spark history scrolls instead of clipping after ~5-6 weeks.
+   `safe center` keeps short histories centered but aligns to start when the
+   row overflows, so the first weeks stay reachable while scrolling. */
+#pf-dometer2 .d-spark{justify-content:safe center;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#pf-dometer2 .d-bar{flex:0 0 auto}
+/* M34 (audit M32): warpath row was 288px in a ~252px content area at 320px
+   widths — days now flex down instead of forcing horizontal overflow */
+#pf-orders .o-wprow{max-width:100%}
+#pf-orders .o-day{flex:1 1 0;min-width:0;max-width:36px;width:auto}
+@media (max-width:360px){#pf-orders .o-wprow{gap:4px}}
+/* M32 (audit M30): feed tab bar + active-tab indicator.
+   .fd-on is stamped by games/feed.js on the selected tab (incl. BOOST/VAULT). */
+#xFeed .fd-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+#xFeed .fd-tab{background:#1a1a1a;border:2px solid #555;color:#c9bfa8;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 14px;cursor:pointer;text-transform:uppercase}
+#xFeed .fd-tab:hover{border-color:#c1121f;color:#f5ead6}
+#xFeed .fd-tab.fd-on{background:#c1121f;border-color:#c1121f;color:#fff;box-shadow:0 0 12px rgba(193,18,31,.65)}
+
+/* ============================================================================
+   DEFECT 3 (2026-10-03; root cause corrected 2026-10-04) — /economy renders
+   in a ~240px left column.
+   TRUE root cause (verified against live /economy HTML): Squarespace emits a
+   static <style> tag per Fluid Engine section with per-block grid placement,
+   e.g. .fe-block-yui_..._431{grid-area:1/2/7/6} on desktop — 4 of 24 grid
+   columns. There are NO inline layout styles and FE JS does not rewrite
+   geometry at runtime. The 2026-10-03 fix failed because width:100%!important
+   cannot override grid placement: a grid item's size/position comes from
+   grid-area/grid-column, not width. The fix is grid-column:1/-1!important,
+   which spans the block across the full grid and beats the static grid-area
+   rule. The editor is off-limits, so pages/page-mount.js stamps .pf-fe-full
+   on the block's .fe-block wrapper ancestor; this rule forces it to full
+   content width. Generalized 2026-10-04: stamped on EVERY v2 page's PF mount
+   divs (FE_MOUNT_IDS registry in pages/page-mount.js) — any current or
+   future page with a narrow Code block. KILL: ?pf_off=fe-widen.
+   ============================================================================ */
+.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;}
+
+/* ============================================================================
+   DEFECT 4 (2026-10-03) — /request-access (Creator HQ) layout broken.
+   (a) The page's Squarespace Code blocks are sized ~240px wide in the Fluid
+   Engine editor (same root cause as defect 3's /economy incident and the
+   earlier Home / /political-hq narrow-column incidents). The editor is
+   off-limits, so games/war-card.js (and games/academy.js for academy-only
+   pages) stamps .pf-fe-hq on the .fe-block wrapper ancestor of each HQ
+   mount div (#pf-war-card, #pf-academy-hq, #pf-cell-hq, #pf-dash-hq); this
+   rule forces full content width. !important outranks Squarespace's static
+   per-block grid-area rules (emitted in a <style> tag per FE section —
+   there are no inline layout styles; FE JS does not rewrite geometry).
+   (b) The black Creator war card panel was overflowing its narrow/short FE
+   block and painting over the native request form's Name/Handle inputs
+   (the panel itself carries no position/z-index — pure block-geometry
+   overlap). TRUE geometry (verified against live /request-access HTML):
+   desktop grid-areas are form=1/2/52/11 vs war-card=1/2/7/6 — the war card
+   sits INSIDE the form's rows 1-7 (z-index 4 over the form's 3). Column
+   widening alone cannot fix a ROW overlap, which is why 664e99c's fix did
+   not take effect. games/war-card.js additionally stamps .pf-fe-wc on the
+   war-card block (/request-access only); the DEFECT 4b rule below clears
+   its explicit row placement on desktop so grid auto-placement (with
+   grid-column:1/-1 from .pf-fe-hq) parks the block below the form.
+   Mobile geometry already stacks (form rows 1-17, war card rows 17-23),
+   so the row override is desktop-only.
+   grid-column:1/-1 covers grid-placed FE sections; width/left covers
+   absolute-placed ones. Scoped: the class is only ever stamped on HQ
+   mounts — no other page's layout is touched.
+   ============================================================================ */
+.pf-fe-hq{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;height:auto!important;}
+
+/* ============================================================================
+   DEFECT 4b (2026-10-04) — /request-access desktop: the war-card FE block's
+   editor grid-area (rows 1-7) overlaps the request form's grid-area
+   (rows 1-52). Clears the explicit row placement on desktop; combined with
+   .pf-fe-hq's grid-column:1/-1, grid auto-placement drops the block into
+   the first fully-free row band — below the form — regardless of how tall
+   the form's editor row span is. Desktop-only: mobile geometry stacks
+   correctly without intervention.
+   ============================================================================ */
+@media (min-width:768px){
+  .pf-fe-wc{grid-row:auto!important;}
+}
+
+/* ============================================================================
+   GAP AUDIT v2 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)
+   M1  : box-sizing:border-box on the four remaining widget card roots
+         (#pf-armory, #pf-billionaire, #pf-interrogation, #pf-ranks) — same
+         treatment H9 gave #pf-caption/#pf-orders/#pf-dometer2/#slr-nuke
+   M2  : iOS Safari auto-zooms on focus for text fields under 16px. The five
+         legacy 14px input rules above are bumped to 16px; this sweep rule
+         catches every other text field on PF surfaces (widget templates use
+         inline styles, which this outranks). Scoped to pf- ids so
+         Squarespace's own chrome is untouched.
+   ============================================================================ */
+#pf-armory,#pf-billionaire,#pf-interrogation,#pf-ranks{box-sizing:border-box}
+[id^="pf-"] input,[id^="pf-"] textarea,[id^="pf-"] select{font-size:16px!important}
+
+/* ============================================================================
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Legacy widget families (caption / daily-orders / do-meter / nuke / poster /
+   cells / war-card) get the same butter: button micro-interactions, press
+   states, gold focus rings, input focus glow. Every rule below is NEW — no
+   existing rule in this file was modified, so the bundle sync is a pure
+   append.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+/* ---- button micro-interactions: alive but restrained ---- */
+#pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+#pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+#pf-orders .o-pumpbtn,#pf-cells .vd-del,#pf-cells .vd-up,#pf-cells .vd-down{
+  transition:background .18s ease,transform .12s ease,box-shadow .18s ease,
+    color .18s ease,border-color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-caption .c-btn:hover,#pf-poster .p-btn:hover,#pf-cells .c-btn:hover,
+#pf-orders .o-shareimg:hover{
+  box-shadow:0 8px 24px rgba(193,18,31,.3);
+}
+#pf-caption .c-btn:active,#pf-orders .o-btn:active,#pf-orders .o-shareimg:active,
+#pf-poster .p-btn:active,#pf-poster .p-style:active,#pf-cells .c-btn:active,
+#pf-orders .o-platbtn:active,#pf-orders .o-tipbtn:active,#pf-orders .o-pumpbtn:active{
+  transform:translateY(1px);
+}
+/* ---- focus: every legacy CTA gets the gold ring ---- */
+#pf-caption .c-btn:focus-visible,#pf-orders .o-btn:focus-visible,
+#pf-orders .o-shareimg:focus-visible,#pf-poster .p-btn:focus-visible,
+#pf-poster .p-style:focus-visible,#pf-cells .c-btn:focus-visible,
+#pf-orders .o-platbtn:focus-visible,#pf-orders .o-tipbtn:focus-visible,
+#pf-orders .o-pumpbtn:focus-visible,#xFeed .fd-tab:focus-visible,
+#slr-nuke .slr-nuke-math summary:focus-visible{
+  outline:2px solid #e8b923; outline-offset:2px;
+}
+/* ---- input focus glow for the legacy forms ---- */
+#pf-caption .c-form input:focus,#pf-caption .c-form textarea:focus,
+#pf-poster .p-ctl input:focus,#pf-cells input:focus,#pf-cells .c-sel:focus,
+#pf-war-card .c-warwrap select:focus,#pf-war-card .c-warwrap input:focus,
+#pf-orders .o-claimbox input:focus,#pf-orders .o-bsel:focus{
+  outline:none; border-color:#dc143c; box-shadow:0 0 0 2px rgba(193,18,31,.35);
+}
+#pf-caption .c-form input::placeholder,#pf-poster .p-ctl input::placeholder{color:#5a5348;}
+/* ---- soft depth for the legacy silo roots ---- */
+#pf-caption,#pf-orders,#pf-dometer2,#slr-nuke,#pf-poster{
+  box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f,0 14px 40px rgba(0,0,0,.55);
+}
+/* ---- reduced motion: butter off where asked ---- */
+@media (prefers-reduced-motion:reduce){
+  #pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+  #pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+  #pf-orders .o-pumpbtn{transition:none;}
+}

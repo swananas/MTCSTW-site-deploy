@@ -1,0 +1,1598 @@
+/* ============================================================================
+   SILO: core/01-styles.css  |  PF v1.4.1
+   WHAT: Document-wide widget + theme CSS
+   PHASE: core CSS
+   EVENTS SEEN: pf-caption, pf-do-mini, pf-dometer2, pf-orders, pf-poster
+   KILL: ?pf_off=core-styles  or  localStorage pf_disabled_v1='["core-styles"]'
+   SOURCE: verbatim extract from dist/pf-footer-v1.4.1.html
+   ============================================================================ */
+/* PF-WIDGET-STYLES: document-wide, outside templates for reliability */
+.pf-flash{animation:pfFlash 1.4s ease-out}
+@keyframes pfFlash{0%,100%{box-shadow:none}25%{box-shadow:0 0 0 4px #c1121f,0 0 24px #c1121f}}
+
+#pf-caption{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#pf-caption h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-caption .c-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:6px}
+#pf-caption .c-week{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-bottom:16px}
+#pf-caption .c-template{background:#1a1a1a;border:2px dashed #555;min-height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden}
+#pf-caption .c-template img{max-width:100%;display:block}
+#pf-caption .c-template .c-ph{font-family:Arial,sans-serif;font-size:13px;color:#777;letter-spacing:2px;text-transform:uppercase;padding:40px 20px}
+#pf-caption .c-form{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px;margin-bottom:14px}
+#pf-caption .c-form label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-caption .c-form label:first-child{margin-top:0}
+#pf-caption .c-form input,#pf-caption .c-form textarea{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;padding:10px}
+#pf-caption .c-form textarea{min-height:70px;resize:vertical}
+#pf-caption .c-btn{display:inline-block;background:#c1121f;color:#fff;border:0;padding:13px 26px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;margin-top:12px;text-decoration:none}
+#pf-caption .c-btn:hover{background:#8f0d17}
+#pf-caption .c-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6;font-size:12px;padding:10px 20px}
+#pf-caption .c-winner{background:#f5ead6;color:#0d0d0d;padding:18px;margin:0 0 14px;text-align:left}
+#pf-caption .c-winner .c-wtag{font-size:11px;letter-spacing:3px;color:#c1121f;text-transform:uppercase}
+#pf-caption .c-winner .c-wcap{font-size:18px;margin:8px 0 4px;text-transform:uppercase;letter-spacing:1px}
+#pf-caption .c-winner .c-wauthor{font-family:Arial,sans-serif;font-size:12px;color:#555}
+#pf-caption .c-rules{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:12px;line-height:1.6}
+#pf-caption .c-div{border-top:2px dashed #c1121f;margin:18px 0;padding-top:16px}
+#pf-caption .c-div h3{color:#f5ead6;font-size:18px;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase}
+#pf-caption .c-div p{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:0 0 6px}
+
+#pf-orders{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#pf-orders h2{color:#c1121f;font-size:28px;margin:0 0 4px;letter-spacing:2px;text-transform:uppercase}
+#pf-orders .o-date{font-family:Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-combo{font-size:16px;letter-spacing:3px;color:#c1121f;text-transform:uppercase;margin-bottom:12px;min-height:20px}
+#pf-orders .o-meterwrap{margin-bottom:12px}
+#pf-orders .o-meter{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-seg{flex:1;max-width:110px;height:18px;background:#2a2a2a;border:2px solid #555;transition:all .3s}
+#pf-orders .o-seg.fill{background:#c1121f;border-color:#c1121f}
+#pf-orders .o-meter.hot .o-seg.fill{animation:oflashseg .7s infinite}
+#pf-orders .o-meter.maxed .o-seg.fill{background:#c1121f;border-color:#c1121f;animation:oflashseg .35s infinite}
+@keyframes oflashseg{0%,100%{box-shadow:0 0 4px #c1121f;transform:scale(1)}50%{box-shadow:0 0 20px #c1121f;transform:scale(1.08)}}
+#pf-orders .o-mission{background:#1a1a1a;border:2px dashed #c1121f;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-mission.done{border-style:solid;opacity:.75}
+#pf-orders .o-mtext{font-size:16px;line-height:1.5}
+#pf-orders .o-xp{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;margin-top:8px;text-transform:uppercase}
+#pf-orders .o-btn{background:#c1121f;color:#fff;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:10px 28px;cursor:pointer;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-btn:hover{transform:scale(1.04)}
+#pf-orders .o-donetag{display:inline-block;margin-top:10px;background:#c1121f;color:#fff;font-size:13px;letter-spacing:3px;padding:8px 22px;text-transform:uppercase}
+#pf-orders .o-platpick{display:none;margin-top:10px;border-top:1px dashed #555;padding-top:10px}
+#pf-orders .o-picklabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:8px}
+#pf-orders .o-platbtn{background:#1a1a1a;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-platbtn:hover{background:#c1121f;border-color:#c1121f;color:#fff}
+#pf-orders .o-ptag{display:inline-block;margin-top:8px;background:#0d0d0d;border:2px solid #c1121f;color:#c1121f;font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;padding:6px 14px;text-transform:uppercase}
+#pf-orders .o-prog{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin:10px 0 4px}
+#pf-orders .o-streak{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;margin:6px 0 4px;text-transform:uppercase}
+#pf-orders .o-streak b{color:#c1121f;font-size:20px}
+#pf-orders .o-next{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;letter-spacing:1px;margin-bottom:6px}
+#pf-orders .o-rankline{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+#pf-orders .o-loot{font-size:15px;color:#f5ead6;margin-top:10px;min-height:22px;font-style:italic;font-family:Arial,sans-serif}
+#pf-orders .o-flash{animation:oflash .6s}
+@keyframes oflash{0%{background:#c1121f;color:#fff}100%{background:#0d0d0d}}
+/* ============ DOPAMINE LAYER: HQ dispatch lynchpin (2026-10-01) ============ */
+#pf-orders .o-dispatch{min-height:36px;margin-bottom:4px}
+#pf-orders .o-stamp{display:inline-block;border:3px solid #c1121f;color:#c1121f;font-size:18px;letter-spacing:4px;padding:6px 18px;transform:rotate(-6deg);animation:ostamp .45s cubic-bezier(.2,2.4,.4,1) backwards}
+@keyframes ostamp{from{opacity:0;transform:rotate(-6deg) scale(2.4)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
+#pf-orders .o-warpath{margin:8px 0 4px}
+#pf-orders .o-wplabel{font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#c9bfa8;text-transform:uppercase;margin-bottom:6px}
+#pf-orders .o-wprow{display:flex;gap:6px;justify-content:center}
+#pf-orders .o-day{width:36px;height:48px;border:2px solid #555;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Arial,sans-serif}
+#pf-orders .o-day span{font-size:11px;color:#777;letter-spacing:1px}
+#pf-orders .o-day em{font-style:normal;font-size:14px;color:#c1121f;min-height:18px}
+#pf-orders .o-day.hit{border-color:#c1121f;background:#2a0d0d}
+#pf-orders .o-day.hit span{color:#f5ead6}
+#pf-orders .o-day.today{outline:2px solid #f5ead6;outline-offset:2px}
+#pf-orders .o-reset{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin:6px 0 10px;animation:oflashseg 2s infinite}
+#pf-orders .o-fieldop{border:3px solid #e8b923;background:#221a08;padding:14px 12px;margin-bottom:10px}
+#pf-orders .o-fieldop.done{opacity:.75}
+#pf-orders .o-fophead{font-size:13px;letter-spacing:3px;color:#e8b923;margin-bottom:8px}
+#pf-orders .o-fieldop .o-xp{color:#e8b923}
+#pf-orders .o-fieldop .o-donetag{background:#e8b923}
+#pf-orders .o-fieldop .o-btn{background:#e8b923}
+#pf-orders .o-fieldop .o-btn:hover{background:#c1121f}
+#pf-orders .o-fopsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-reveal .o-mission{animation:ofadeup .45s backwards}
+#pf-orders .o-reveal .o-mission:nth-child(2){animation-delay:.12s}
+#pf-orders .o-reveal .o-mission:nth-child(3){animation-delay:.24s}
+#pf-orders .o-reveal .o-fieldop{animation:ofadeup .45s .36s backwards}
+#pf-orders .o-boost{border:3px solid #ff5a00;background:#1d1006;padding:14px 12px;margin:12px 0}
+#pf-orders .o-bhead{font-size:13px;letter-spacing:3px;color:#ff5a00;margin-bottom:6px}
+#pf-orders .o-bsub{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-bottom:10px}
+#pf-orders .o-brow{margin:8px 0}
+#pf-orders .o-bsel{background:#0d0d0d;border:2px solid #ff5a00;color:#f5ead6;font-family:Arial,sans-serif;font-size:14px;padding:10px;width:100%;max-width:420px}
+#pf-orders .o-tipbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;padding:8px 16px;margin:3px;cursor:pointer}
+#pf-orders .o-tipbtn.sel{background:#ff5a00;border-color:#ff5a00;color:#0d0d0d;font-weight:700}
+#pf-orders .o-boostbtn{background:#ff5a00;margin-top:6px}
+#pf-orders .o-boostbtn:hover{background:#c1121f}
+#pf-orders .o-bbal{font-family:Arial,sans-serif;font-size:11px;color:#c9bfa8;margin-top:8px}
+#pf-orders .o-bdone{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin-bottom:6px}
+#pf-orders .o-bdone b{color:#ff5a00}
+#pf-orders .o-pumpbtn{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;padding:8px 12px;margin:3px;cursor:pointer;text-transform:uppercase}
+#pf-orders .o-pumpbtn:hover:not(:disabled){background:#ff5a00;border-color:#ff5a00;color:#0d0d0d}
+#pf-orders .o-pumpbtn.done{background:#1d5c1d;border-color:#1d5c1d;color:#f5ead6;cursor:default}
+#pf-orders .o-crown{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#e8b923;margin-top:10px}
+#pf-orders .o-patrons{margin:10px 0}
+#pf-orders .o-phead{font-size:12px;letter-spacing:3px;color:#c1121f;margin-bottom:6px}
+#pf-orders .o-prow{display:flex;flex-wrap:wrap;gap:8px}
+#pf-orders .o-patron{background:#141414;border:1px solid #c1121f;padding:8px 12px;font-family:Arial,sans-serif}
+#pf-orders .o-patron b{display:block;font-size:13px;color:#f5ead6;letter-spacing:1px}
+#pf-orders .o-patron span{font-size:11px;color:#c9bfa8}
+@keyframes ofadeup{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){#pf-orders .o-stamp,#pf-orders .o-reset,#pf-orders .o-reveal .o-mission,#pf-orders .o-reveal .o-fieldop{animation:none}}
+#pf-orders .o-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-orders .o-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;letter-spacing:1px;margin-top:8px;min-height:16px}
+#pf-orders .o-claim{margin-top:14px;border-top:1px solid #333;padding-top:12px}
+#pf-orders .o-claim a{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;cursor:pointer;text-decoration:underline}
+#pf-orders .o-claimbox{display:none;margin-top:10px}
+#pf-orders .o-claimbox input{background:#0d0d0d;border:2px solid #f5ead6;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;letter-spacing:1px;padding:9px 10px;width:180px;margin:4px;text-align:center}
+#pf-orders .o-claimbox input::placeholder{color:#666}
+#pf-orders .o-claimbtn{background:#f5ead6;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;margin-top:6px}
+#pf-orders .o-shareimg{background:#c1121f;color:#0d0d0d;border:none;font-family:'Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;padding:12px 28px;cursor:pointer;text-transform:uppercase;margin:14px 4px 0}
+#pf-orders .o-shareimg:hover{transform:scale(1.04)}
+#pf-orders .o-shareimg:disabled{opacity:.5;cursor:wait;transform:none}
+#pf-orders .o-who{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:10px}
+
+#pf-dometer2{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;position:relative;overflow:hidden;box-sizing:border-box}
+#pf-dometer2 h2{color:#c1121f;font-size:30px;margin:0 0 6px;letter-spacing:3px;text-transform:uppercase}
+#pf-dometer2 .d-sub{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;margin-bottom:14px;line-height:1.6}
+#pf-dometer2 .d-num{font-size:64px;color:#f5ead6;letter-spacing:2px;line-height:1;margin:6px 0}
+#pf-dometer2 .d-num small{font-size:16px;color:#c1121f;letter-spacing:3px;display:block;margin-top:6px}
+#pf-dometer2 .d-you{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#b8ab8e;text-transform:uppercase;margin:2px 0 8px}
+#pf-dometer2 .d-flash{animation:dflash .5s}
+@keyframes dflash{0%{color:#c1121f;transform:scale(1.12)}100%{color:#f5ead6;transform:scale(1)}}
+#pf-dometer2 .d-keglabel{font-family:Arial,sans-serif;font-size:11px;letter-spacing:5px;color:#c9bfa8;text-transform:uppercase;margin:14px 0 6px}
+#pf-dometer2 .d-keg{height:34px;background:#1a1a1a;border:3px solid #555;position:relative;overflow:hidden}
+#pf-dometer2 .d-fill{height:100%;width:0%;background:repeating-linear-gradient(-45deg,#c1121f,#c1121f 12px,#8f0d17 12px,#8f0d17 24px);transition:width .6s ease}
+#pf-dometer2 .d-keg.hot .d-fill{animation:dblazepulse .8s infinite}
+@keyframes dblazepulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#pf-dometer2 .d-goal{font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#c1121f;text-transform:uppercase;margin-top:8px}
+#pf-dometer2 .d-types{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}
+#pf-dometer2 .d-type{font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;color:#c9bfa8;border:1px solid #444;padding:4px 10px;text-transform:uppercase}
+#pf-dometer2 .d-type b{color:#f5ead6}
+#pf-dometer2 .d-spark{display:flex;gap:8px;justify-content:center;align-items:flex-end;height:64px;margin-top:18px}
+#pf-dometer2 .d-bar{width:44px;height:64px;background:#2a2a2a;border:2px solid #555;position:relative}
+#pf-dometer2 .d-bar i{position:absolute;bottom:0;left:0;right:0;background:#c1121f;display:block}
+#pf-dometer2 .d-bar.cur i{background:#c1121f}
+#pf-dometer2 .d-bar span{position:absolute;top:-18px;left:0;right:0;font-family:Arial,sans-serif;font-size:9px;color:#c9bfa8;letter-spacing:1px}
+#pf-dometer2 .d-boom{position:absolute;inset:0;background:rgba(13,13,13,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:5}
+#pf-dometer2 .d-boom.show{display:flex}
+#pf-dometer2 .d-boom h3{color:#c1121f;font-size:34px;letter-spacing:3px;margin:0 0 8px;animation:dshake .5s}
+@keyframes dshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3deg) scale(1.05)}75%{transform:rotate(3deg) scale(1.05)}}
+#pf-dometer2 .d-boom p{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2px;color:#f5ead6;text-transform:uppercase}
+#pf-dometer2 .d-confetti{position:absolute;top:-12px;width:10px;height:14px;z-index:6;pointer-events:none;animation:dconfetti linear forwards}
+@keyframes dconfetti{to{transform:translateY(560px) rotate(720deg);opacity:0}}
+#pf-dometer2 .d-dollar{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:76px;color:#4dff4d;z-index:10;pointer-events:none;animation:ddollar 1.3s ease-out forwards;text-shadow:0 0 24px rgba(77,255,77,.6);font-family:'Arial Black',Arial,sans-serif}
+@keyframes ddollar{0%{transform:translate(-50%,-50%) scale(0);opacity:0}22%{transform:translate(-50%,-58%) scale(1.35);opacity:1}42%{transform:translate(-50%,-62%) scale(1);opacity:1}62%{transform:translate(-50%,-68%) scale(1.45);opacity:1}100%{transform:translate(-50%,-95%) scale(2.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){#pf-dometer2 .d-keg.hot .d-fill,#pf-dometer2 .d-boom h3{animation:none}}
+
+#pf-do-mini{position:fixed;bottom:0;left:0;right:0;z-index:99998;pointer-events:none;text-align:center;font-family:Arial,sans-serif}
+#pf-do-mini .m-line{display:inline-block;margin-bottom:12px;background:#0d0d0d;border:2px solid #c1121f;color:#c9bfa8;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:5px 14px}
+#pf-do-mini .m-line b{color:#c1121f}
+@media (max-width:640px){#pf-do-mini .m-line{margin-bottom:8px;font-size:9px}}
+
+#slr-nuke{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:26px 22px;max-width:900px;margin:0 auto 24px;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box}
+#slr-nuke .slr-nuke-kicker{font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#c1121f;text-transform:uppercase;margin-bottom:6px}
+#slr-nuke h2{color:#f5ead6;font-size:26px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#slr-nuke h2 .slr-red{color:#c1121f}
+#slr-nuke .slr-nuke-sub{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;letter-spacing:1px;margin:0 0 18px}
+#slr-nuke .slr-nuke-barwrap{position:relative;background:#1a1a1a;border:2px solid #c1121f;height:52px;overflow:hidden;margin-bottom:12px}
+#slr-nuke .slr-nuke-fill{position:absolute;top:0;left:0;bottom:0;width:0%;background:linear-gradient(90deg,#8f0d17,#c1121f,#dc143c);transition:width 1.2s ease}
+#slr-nuke.armed .slr-nuke-fill{animation:slr-nuke-glow 1.2s ease-in-out infinite}
+@keyframes slr-nuke-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+#slr-nuke .slr-nuke-label{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:15px;letter-spacing:2px;color:#f5ead6;text-shadow:0 1px 3px #000;pointer-events:none}
+#slr-nuke .slr-nuke-status{font-size:17px;letter-spacing:2px;text-transform:uppercase;margin:10px 0 4px;min-height:26px}
+#slr-nuke .slr-nuke-status .st-dormant{color:#8a8172}
+#slr-nuke .slr-nuke-status .st-charging{color:#f5ead6}
+#slr-nuke .slr-nuke-status .st-critical{color:#ff6b6b}
+#slr-nuke .slr-nuke-status .st-armed{color:#dc143c;animation:slr-nuke-blink 1s steps(2) infinite}
+@keyframes slr-nuke-blink{50%{opacity:.55}}
+#slr-nuke .slr-nuke-detail{font-family:Arial,sans-serif;font-size:12px;letter-spacing:1px;color:#8a8172;margin-bottom:6px}
+#slr-nuke .slr-nuke-you{font-family:Arial,sans-serif;font-size:13px;letter-spacing:1px;color:#c9bfa8;margin-bottom:4px}
+#slr-nuke .slr-nuke-you strong{color:#c1121f}
+#slr-nuke .slr-nuke-math{margin-top:14px;text-align:left;font-family:Arial,sans-serif;font-size:12.5px;color:#c9bfa8;line-height:1.55}
+#slr-nuke .slr-nuke-math summary{cursor:pointer;color:#f5ead6;letter-spacing:2px;text-transform:uppercase;font-size:12px;text-align:center;outline:none}
+#slr-nuke .slr-nuke-math p{margin:8px 0}
+#slr-nuke .slr-nuke-math strong{color:#f5ead6}
+@media (prefers-reduced-motion:reduce){#slr-nuke.armed .slr-nuke-fill{animation:none}#slr-nuke .slr-nuke-status .st-armed{animation:none}}
+
+#pf-poster{font-family:'Arial Black',Arial,sans-serif;background:#0d0d0d;color:#f5ead6;border:4px solid #c1121f;padding:28px 22px;max-width:640px;margin:0 auto;text-align:center;box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f;box-sizing:border-box;overflow:hidden}
+#pf-poster h2{color:#c1121f;font-size:28px;margin:0 0 6px;letter-spacing:2px;text-transform:uppercase}
+#pf-poster .p-sub{font-family:Arial,sans-serif;font-size:14px;color:#c9bfa8;margin-bottom:14px}
+#pf-poster canvas{max-width:100%;height:auto;border:2px solid #f5ead6;display:block;margin:0 auto 16px;background:#f5ead6}
+#pf-poster .p-ctl{text-align:left;background:#1a1a1a;border:2px solid #333;padding:16px}
+#pf-poster .p-ctl label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:2px;color:#c9bfa8;text-transform:uppercase;display:block;margin:10px 0 4px}
+#pf-poster .p-ctl label:first-child{margin-top:0}
+#pf-poster .p-ctl input{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid #555;color:#f5ead6;font-family:Arial,sans-serif;font-size:16px;padding:10px}
+#pf-poster .p-styles{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-style{flex:1;min-width:100px;background:#0d0d0d;border:2px solid #555;color:#f5ead6;font-family:'Arial Black',Arial,sans-serif;font-size:11px;letter-spacing:1px;padding:10px 6px;cursor:pointer;text-transform:uppercase}
+#pf-poster .p-style.on{border-color:#c1121f;background:#c1121f;color:#fff}
+#pf-poster .p-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#pf-poster .p-btn{flex:1;min-width:140px;background:#c1121f;color:#fff;border:0;padding:13px 10px;font-family:'Arial Black',Arial,sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;text-decoration:none;text-align:center}
+#pf-poster .p-btn:hover{background:#8f0d17}
+#pf-poster .p-btn.ghost{background:none;border:2px solid #f5ead6;color:#f5ead6}
+#pf-poster .p-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:10px}
+
+/* HERO FIX: prevent title sliding under fixed nav */
+body.homepage .page-section:first-child .content-wrapper,
+body.homepage #page .page-section:first-child{
+  padding-top:80px !important;
+}
+
+/* TICKER FIX: dismissible, unified total, never blocks CTAs */
+#pf-do-mini .m-line{position:relative;pointer-events:auto;padding-right:28px}
+#pf-do-mini.dismissed{display:none}
+
+
+
+/* Zero orange: propaganda red/cream site-wide (2026-09-29) */
+a.sqs-block-button-element.sqs-button-element--primary{background-color:#c1121f !important;border-color:#c1121f !important;color:#f5f0e1 !important;}
+.header-nav-list .header-nav-item a{color:#f5ead6 !important;}
+.header-nav-list .header-nav-item a:hover{color:#c1121f !important;}
+footer a{color:#f5ead6 !important;}
+footer a:hover{color:#c1121f !important;}
+
+
+/* Round 2: folder buttons, cart link, footer headings (2026-09-29) */
+header a, header button{color:#f5ead6 !important;}
+header a:hover, header button:hover{color:#c1121f !important;}
+footer h1, footer h2, footer h3, footer h4{color:#f5ead6 !important;}
+
+
+/* CELLS (2026-10-01): callsign squads. Black/red/cream propaganda register. */
+#pf-cells .c-tag{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:6px 0 12px}
+#pf-cells .c-load{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:10px 0}
+#pf-cells .c-err{font-family:Arial,sans-serif;font-size:12px;color:#c1121f;margin-top:8px}
+#pf-cells .c-empty{font-family:Arial,sans-serif;font-size:13px;color:#777;padding:6px 0}
+#pf-cells .c-note{font-family:Arial,sans-serif;font-size:11px;color:#777;margin-top:14px}
+#pf-cells .c-gate{font-family:Arial,sans-serif;font-size:14px;color:#f5ead6;margin:8px 0}
+#pf-cells .c-lobby{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0}
+#pf-cells .c-pane{flex:1;min-width:220px;border:2px solid #c1121f;padding:12px;background:#141414}
+#pf-cells .c-pane h4{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;margin:0 0 8px;font-size:14px}
+#pf-cells input{background:#0d0d0d;border:1px solid #c9bfa8;color:#f5ead6;font-family:monospace;font-size:16px;padding:8px;margin:4px 4px 4px 0;width:200px;max-width:100%}
+#pf-cells .c-btn{background:#c1121f;color:#f5ead6;border:2px solid #f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:14px;font-weight:900;padding:10px 18px;cursor:pointer;margin-top:8px}
+#pf-cells .c-btn:hover{background:#a00e1a}
+#pf-cells .c-btn.c-big{display:block;width:100%;margin-top:12px;font-size:16px}
+#pf-cells .c-btn.c-cover{background:#0d0d0d;border-color:#c1121f;color:#f5ead6;display:block;width:100%;margin-top:8px}
+#pf-cells .c-card{border:3px solid #c1121f;background:#141414;padding:14px;margin:8px 0}
+#pf-cells .c-chead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+#pf-cells .c-cname{font-family:"Arial Black",Arial,sans-serif;font-size:20px;color:#f5ead6}
+#pf-cells .c-code{font-family:monospace;font-size:16px;font-weight:bold;color:#0d0d0d;background:#f5ead6;padding:6px 12px;cursor:pointer;letter-spacing:2px}
+#pf-cells .c-cstats{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8}
+#pf-cells .c-flame{color:#f5ead6;font-weight:bold}
+#pf-cells .c-mult{color:#c1121f;font-weight:bold}
+#pf-cells .c-members{margin:8px 0}
+#pf-cells .c-mrow{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:monospace;font-size:14px}
+#pf-cells .c-dot{width:10px;height:10px;border-radius:50%;background:#444;display:inline-block}
+#pf-cells .c-dot.c-on{background:#c1121f;box-shadow:0 0 6px #c1121f}
+#pf-cells .c-mname{color:#f5ead6;flex:1}
+#pf-cells .c-mok{color:#c1121f;font-weight:bold;font-size:12px}
+#pf-cells .c-mno{color:#666;font-size:12px}
+#pf-cells .c-done{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin-top:10px;font-style:italic}
+#pf-cells .c-leave{margin-top:10px}
+#pf-cells .c-leave a{font-family:Arial,sans-serif;font-size:12px;color:#777;cursor:pointer;text-decoration:underline}
+#pf-cells .c-boardwrap{margin-top:16px}
+#pf-cells .c-boardwrap h3{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:15px;margin:0 0 8px}
+#pf-cells .c-brow{display:flex;align-items:center;gap:10px;padding:6px 4px;font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;border-bottom:1px solid #2a2a2a}
+#pf-cells .c-brow.c-btop{color:#f5ead6}
+#pf-cells .c-vfy{display:inline-block;background:#c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-state{display:inline-block;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;font-family:"Arial Black",Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-stag{display:inline-block;background:#c1121f;color:#fff;font-family:Arial,sans-serif;font-size:10px;font-weight:900;letter-spacing:1px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-sel{background:#0d0d0d;color:#f5ead6;border:2px solid #444;font-family:Arial,sans-serif;font-size:16px;padding:10px 12px;min-height:44px;max-width:100%;margin:4px 4px 4px 0;display:block;width:100%}
+#pf-cells .c-rename .c-sel{width:auto;flex:1 1 200px;margin:0}
+#pf-cells .c-unv{display:inline-block;border:1px solid #777;color:#777;font-family:Arial,sans-serif;font-size:10px;letter-spacing:1px;padding:3px 8px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+#pf-cells .c-rename{margin:10px 0 2px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#pf-cells .c-rename input{margin:0}
+#pf-cells .c-rename .c-btn{margin-top:0}
+#pf-cells .c-neterr{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0;line-height:1.7}
+#pf-cells .c-pitch{font-family:Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:8px 0 10px;line-height:1.65}
+#pf-cells .c-pitch b{color:#c1121f}
+#pf-cells .c-steps{margin:0 0 10px}
+#pf-cells .c-step{display:flex;align-items:center;gap:10px;font-family:Arial,sans-serif;font-size:13px;color:#444;padding:4px 0}
+#pf-cells .c-snum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#c1121f;color:#fff;font-family:"Arial Black",Arial,sans-serif;font-size:12px;flex:none}
+#pf-cells .c-bounty{font-family:Arial,sans-serif;font-size:12px;color:#555;margin-top:10px}
+#pf-cells .c-bounty b{color:#c1121f}
+#pf-cells .c-brank{font-family:"Arial Black",Arial,sans-serif;color:#c1121f;min-width:22px}
+#pf-cells .c-bname{flex:1;font-weight:bold}
+#pf-cells .c-bstat{font-size:12px;color:#777}
+/* CREATOR WAR CARD (2026-10-01): recruit-with-a-share builder. */
+#pf-war-card .c-warwrap{margin-top:18px;border:2px solid #c1121f;background:#101012;padding:14px}
+#pf-war-card .c-warwrap h2{font-family:"Arial Black",Arial,sans-serif;color:#f5ead6;font-size:18px;margin:0}
+#pf-war-card .c-wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+#pf-war-card .c-wgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 10px}
+#pf-war-card .c-warwrap label{display:block;font-family:monospace;font-size:11px;font-weight:bold;color:#c9bfa8;letter-spacing:1px}
+#pf-war-card .c-warwrap select,#pf-war-card .c-warwrap input{width:100%;box-sizing:border-box;margin-top:6px;background:#0b0b0c;border:1px solid #c1121f;color:#f5ead6;font-family:monospace;font-size:16px;padding:10px}
+#pf-war-card .c-wmeta{display:flex;gap:18px;flex-wrap:wrap;font-family:monospace;font-size:12px;font-weight:bold;color:#f5ead6;margin:4px 0}
+#pf-war-card .c-wmeta #wCode{color:#c1121f}
+#pf-war-card .c-wbtns{display:flex;gap:10px;flex-wrap:wrap}
+#pf-war-card .c-wbtns .c-big{flex:2;min-width:200px}
+@media (max-width:560px){#pf-war-card .c-wgrid,#pf-war-card .c-wgrid3{grid-template-columns:1fr}}
+#pf-cells .c-prb{display:inline-block;color:#ffb703;font-weight:900;font-size:12px;margin-left:6px;vertical-align:middle}
+#pf-cells .c-prestige .c-prben{font-family:Arial,sans-serif;font-size:13px;color:#c9bfa8;margin:3px 0}
+#pf-cells .c-prestige .c-prprog{height:10px;background:#2a2a2a;border:1px solid #555;margin:10px auto 4px;max-width:320px}
+#pf-cells .c-prestige .c-prfill{display:block;height:100%;background:linear-gradient(90deg,#c1121f,#ffb703)}
+
+/* ============================================================================
+   GAP AUDIT 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)
+   H9  : box-sizing:border-box added to the four legacy widget card roots above
+         (#pf-caption, #pf-orders, #pf-dometer2, #slr-nuke) — mirrors #pf-poster
+   H10 : #pf-nuke-stick (z 9000) vs #pf-do-mini (z 99998) no longer collide;
+         body gets bottom padding so fixed chrome can't cover footer links/CTAs
+   M35 : iOS safe-area insets (env(safe-area-inset-bottom)) on fixed chrome
+   M33 : do-meter spark chart scrolls horizontally instead of silently clipping
+   M34 : daily-orders warpath row goes fluid on narrow phones
+   M32 : feed tabs get a visible active-tab indicator (.fd-on, incl. BOOST/VAULT)
+   ============================================================================ */
+/* M35: fixed chrome clears the iPhone home indicator (progressive — ignored
+   by browsers without env(), where the earlier bottom:0 rule stands) */
+#pf-do-mini{bottom:env(safe-area-inset-bottom,0px)}
+/* M35: nuke strip's own rule is injected at runtime by 17-nuke-strip.js, so
+   this needs the body- prefix to outrank it regardless of stylesheet order */
+body #pf-nuke-stick{padding-bottom:env(safe-area-inset-bottom,0px)}
+/* H10: when the nuke strip is live, the do-mini ticker rides above it
+   (strip runs ~48px tall: 6px meter + ~42px action row) instead of covering it */
+body:has(#pf-nuke-stick:not([hidden])) #pf-do-mini{bottom:calc(56px + env(safe-area-inset-bottom,0px))}
+/* H10: compensating body padding so fixed chrome never covers footer links/CTAs on phones */
+@media (max-width:640px){body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))}}
+/* M33 (audit M31): spark history scrolls instead of clipping after ~5-6 weeks.
+   `safe center` keeps short histories centered but aligns to start when the
+   row overflows, so the first weeks stay reachable while scrolling. */
+#pf-dometer2 .d-spark{justify-content:safe center;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#pf-dometer2 .d-bar{flex:0 0 auto}
+/* M34 (audit M32): warpath row was 288px in a ~252px content area at 320px
+   widths — days now flex down instead of forcing horizontal overflow */
+#pf-orders .o-wprow{max-width:100%}
+#pf-orders .o-day{flex:1 1 0;min-width:0;max-width:36px;width:auto}
+@media (max-width:360px){#pf-orders .o-wprow{gap:4px}}
+/* M32 (audit M30): feed tab bar + active-tab indicator.
+   .fd-on is stamped by games/feed.js on the selected tab (incl. BOOST/VAULT). */
+#xFeed .fd-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+#xFeed .fd-tab{background:#1a1a1a;border:2px solid #555;color:#c9bfa8;font-family:'Arial Black',Arial,sans-serif;font-size:12px;letter-spacing:2px;padding:10px 14px;cursor:pointer;text-transform:uppercase}
+#xFeed .fd-tab:hover{border-color:#c1121f;color:#f5ead6}
+#xFeed .fd-tab.fd-on{background:#c1121f;border-color:#c1121f;color:#fff;box-shadow:0 0 12px rgba(193,18,31,.65)}
+
+/* ============================================================================
+   PF DESIGN SYSTEM  |  v1.4.3
+   WHAT: Shared design tokens + component classes for all v1.4.3 silos.
+   WHY: Every new silo invented its own inline styles. This is the single
+   source of truth for spacing, color, buttons, cards, forms, and gates.
+   ============================================================================ */
+
+/* ---------- 1. DESIGN TOKENS ---------- */
+:root{
+  --pf-red:#c1121f; --pf-red-dark:#8f0d17; --pf-red-bright:#dc143c;
+  --pf-dark:#0d0d0d; --pf-dark-2:#1a1a1a; --pf-dark-3:#141414;
+  --pf-cream:#f5ead6; --pf-muted:#c9bfa8; --pf-dim:#777;
+  --pf-border:#333; --pf-border-light:#555;
+  --pf-gold:#e8b923; --pf-green:#2e7d32; --pf-blue:#1565c0;
+  --pf-purple:#7b1fa2; --pf-orange:#ff5a00;
+  --pf-space-xs:4px; --pf-space-sm:8px; --pf-space-md:12px;
+  --pf-space-lg:16px; --pf-space-xl:24px; --pf-space-2xl:32px;
+  --pf-font-display:'Arial Black',Arial,sans-serif;
+  --pf-font-body:Arial,Helvetica,sans-serif;
+  --pf-font-mono:monospace;
+}
+
+/* ---------- 2. SILO CONTAINER ---------- */
+.pf-silo{
+  font-family:var(--pf-font-display);
+  background:var(--pf-dark); color:var(--pf-cream);
+  border:4px solid var(--pf-red);
+  padding:28px 22px; max-width:640px; margin:0 auto 24px;
+  text-align:center;
+  box-shadow:0 0 0 4px var(--pf-dark),0 0 0 8px var(--pf-red);
+  box-sizing:border-box; overflow:hidden;
+}
+.pf-silo h2{
+  color:var(--pf-red-bright); font-size:28px; margin:0 0 6px;
+  letter-spacing:2px; text-transform:uppercase;
+  font-family:var(--pf-font-display);
+}
+/* Accessibility: visible focus for keyboard users */
+.pf-silo :focus-visible{outline:2px solid var(--pf-gold);outline-offset:2px;}
+.pf-btn:focus-visible{outline:2px solid var(--pf-gold);outline-offset:3px;}
+
+/* ---------- 3. CARDS & PANES ---------- */
+.x-pane,.pb-pane,.pb-card,.pb-acct,.cs-frame,
+.vl-list,.gv-prop,.gv-hist,.dp-frame,.dp-rel,
+.vd-frame,.vd-stage,.dp-pane,.br-sec,.br-cell{
+  background:var(--pf-dark-2); border:2px solid var(--pf-border);
+  padding:14px 12px; margin:0 0 10px; text-align:left;
+  box-sizing:border-box;
+}
+.x-pane h4,.pb-bankhead,.gv-ptitle,
+.dp-rtitle,.vd-fhead,.br-sect{
+  color:var(--pf-cream); font-size:16px; letter-spacing:2px;
+  margin:0 0 8px; text-transform:uppercase;
+  font-family:var(--pf-font-display);
+}
+
+/* ---------- 4. BUTTONS ---------- */
+.pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-yes,
+.dp-acc,.dp-dec,.dp-end,.vd-open,.vd-upload,.br-ubtn,.cp-mbtn{
+  display:inline-block; background:var(--pf-red); color:#fff; border:0;
+  padding:12px 24px; font-family:var(--pf-font-display); font-size:13px;
+  letter-spacing:2px; cursor:pointer; text-transform:uppercase;
+  margin:6px 4px 0; text-decoration:none; text-align:center;
+  box-sizing:border-box;
+}
+.pf-btn:hover,.c-btn:hover,.cs-betbtn:hover{background:var(--pf-red-dark);}
+.pf-btn:disabled,.c-btn:disabled{opacity:.5;cursor:wait;}
+.c-btn.ghost{
+  background:transparent; border:2px solid var(--pf-cream); color:var(--pf-cream);
+}
+.c-btn.ghost:hover{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
+.c-btn-dim{opacity:.55;}
+.pf-btn-sm{padding:8px 14px;font-size:11px;}
+
+/* ---------- 4b. GLOBAL ACCESSIBILITY GUARDS (audit v3, M4+M5, 2026-10-04)
+   M4: tap-target floor — every interactive element inside PF chrome is at
+   least 44px tall (WCAG 2.2 AA). Scoped to [id^="pf-"] mounts + .pf-silo
+   components so Squarespace native chrome/editor is untouched. Inline text
+   links (display:inline) ignore min-height, so prose links are unaffected.
+   !important is intentional: widget templates use inline styles, which this
+   must outrank (same precedent as the M2 font-size sweep).
+   M5: overflow-x guard — a rogue wide element can never cause horizontal
+   page scroll on phones. `clip` (not `hidden`) keeps position:sticky working;
+   @supports fallback for older browsers. Applied to html/body only — safe,
+   since Squarespace never relies on page-level horizontal scroll. The img
+   rule is scoped to PF surfaces so Squarespace galleries are untouched. */
+[id^="pf-"] button,[id^="pf-"] a,[id^="pf-"] input[type="submit"],
+[id^="pf-"] input[type="button"],.pf-silo button,.pf-silo a{
+  min-height:44px!important; box-sizing:border-box;
+}
+html,body{overflow-x:clip;}
+@supports not (overflow-x:clip){html,body{overflow-x:hidden;}}
+[id^="pf-"] img,.pf-silo img{max-width:100%;height:auto;}
+
+/* ---------- 5. FORMS ---------- */
+.vl-lab,.vd-flabel{
+  font-family:var(--pf-font-body); font-size:11px; letter-spacing:2px;
+  color:var(--pf-muted); text-transform:uppercase;
+  display:block; margin:10px 0 4px; text-align:left;
+}
+.c-input,.c-in,.vl-form input,.vl-form select,
+.vd-frame input,.vd-frame select,
+.dp-frame input,.dp-frame select{
+  width:100%; box-sizing:border-box; background:var(--pf-dark);
+  border:1px solid var(--pf-border-light); color:var(--pf-cream);
+  font-family:var(--pf-font-body); font-size:16px; padding:10px; /* 16px prevents iOS auto-zoom */
+}
+.c-input:focus{border-color:var(--pf-red);outline:none;}
+#pCanvas{max-width:100%;height:auto;display:block;margin:0 auto;}
+.pf-input-sm{max-width:140px;}
+.pf-input-md{max-width:220px;}
+.pf-input-lg{max-width:320px;}
+
+/* ---------- 6. TEXT UTILITIES ---------- */
+.x-note,.c-tag{
+  font-family:var(--pf-font-body); font-size:12px;
+  color:var(--pf-muted); margin:6px 0; line-height:1.6;
+}
+.c-tag{font-size:14px;margin-bottom:14px;}
+.c-err{
+  font-family:var(--pf-font-body); font-size:12px;
+  color:var(--pf-red-bright); margin:8px 0; letter-spacing:1px;
+}
+.pf-load,.c-load{
+  font-family:var(--pf-font-body); font-size:13px;
+  color:var(--pf-dim); padding:16px 0;
+}
+
+/* ---------- 7. PROGRESS BARS ---------- */
+.cp-barwrap,.dp-barwrap,.sb-bar,.br-tierwrap{
+  height:20px; background:var(--pf-dark-2);
+  border:2px solid var(--pf-border-light);
+  position:relative; overflow:hidden; margin:8px 0;
+}
+.cp-bar,.dp-bar,.sb-fill,.br-tierfill{
+  height:100%; width:0%;
+  background:repeating-linear-gradient(-45deg,var(--pf-red),var(--pf-red) 12px,var(--pf-red-dark) 12px,var(--pf-red-dark) 24px);
+  transition:width .6s ease;
+}
+
+/* ---------- 8. STAT ROWS & BADGES ---------- */
+.pb-balrow,.pb-row,.vl-row,.vl-stat,.br-stat{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 0; border-bottom:1px solid #2a2a2a;
+  font-family:var(--pf-font-body); font-size:13px; color:var(--pf-muted);
+}
+.pb-bval,.pb-cval,.pb-nwval,.vl-num,.br-v{
+  color:var(--pf-cream); font-family:var(--pf-font-mono); font-size:15px;
+}
+
+/* ---------- 9. GATES & EMPTY STATES ---------- */
+.c-gate,.br-gate{
+  font-family:var(--pf-font-body); font-size:14px; color:var(--pf-cream);
+  margin:12px 0; padding:24px 16px; text-align:center;
+  border:2px dashed var(--pf-border-light); background:var(--pf-dark-3);
+}
+
+/* ---------- 10. URGENT / ALERT CARDS ---------- */
+.br-urg{
+  border:3px solid var(--pf-red); background:#1d0a0a;
+  padding:14px 12px; margin:0 0 10px; text-align:left;
+}
+
+/* ---------- 11. SECTIONS ---------- */
+
+/* ---------- 12. LAYOUT UTILITIES ---------- */
+.pf-mt{margin-top:12px;}
+
+/* ---------- 13. SILO-SPECIFIC MAPPINGS (standardized) ---------- */
+/* Mission cards */
+.cp-mission,.dp-rec{
+  background:var(--pf-dark-2); border:2px dashed var(--pf-red);
+  padding:14px 12px; margin-bottom:10px; text-align:left;
+}
+.cp-mission.done,.cp-mdone{border-style:solid;opacity:.75;}
+.cp-mtext{font-size:15px;line-height:1.5;color:var(--pf-cream);}
+.cp-mxp{font-family:var(--pf-font-body);font-size:12px;letter-spacing:2px;color:var(--pf-red-bright);margin-top:8px;text-transform:uppercase;}
+/* Leaderboards */
+.cp-lead{margin:10px 0;}
+.cp-lname{color:var(--pf-cream);font-weight:bold;flex:1;}
+.cp-lrank{font-family:var(--pf-font-display);color:var(--pf-red-bright);min-width:28px;}
+.cp-lxp{font-family:var(--pf-font-mono);color:var(--pf-muted);font-size:13px;}
+/* Campaign: 32-Day Offensive (2026-10-05, audit #10) — the 13 cp-* classes
+   had zero CSS rules; countdown, pledge wall, and Battlegrounds cards
+   rendered as unstyled plain text. Locked to the site's red/black/cream
+   campaign voice. */
+.cp-count{font-family:var(--pf-font-display);font-size:34px;font-weight:900;letter-spacing:2px;color:var(--pf-cream);margin:6px 0;text-transform:uppercase;}
+.cp-frame{font-family:var(--pf-font-display);font-size:18px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);margin:8px 0;}
+.cp-sub{font-size:14px;color:var(--pf-muted);line-height:1.55;margin:6px 0 14px;}
+.cp-wall{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.cp-wname{display:inline-block;background:var(--pf-dark-3);border:1px solid var(--pf-border);color:var(--pf-cream);font-size:12px;letter-spacing:1px;padding:5px 10px;text-transform:uppercase;}
+.cp-race{background:var(--pf-dark-2);border:2px solid var(--pf-red);padding:16px 14px;margin:12px 0;text-align:left;}
+.cp-rtitle{font-family:var(--pf-font-display);font-size:19px;font-weight:900;letter-spacing:1px;color:var(--pf-cream);text-transform:uppercase;}
+.cp-rrating{display:inline-block;margin:6px 0 4px;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--pf-red-bright);}
+.cp-cand{margin:10px 0;padding-top:10px;border-top:1px solid var(--pf-border);}
+.cp-cand b{color:var(--pf-cream);font-size:15px;}
+.cp-cfund{font-size:13px;color:var(--pf-gold);margin-top:4px;}
+.cp-ctake{font-size:13px;color:var(--pf-cream);line-height:1.5;margin-top:2px;}
+.cp-stakes{font-size:14px;color:var(--pf-cream);font-weight:700;line-height:1.5;margin:10px 0;border-left:3px solid var(--pf-red);padding-left:10px;}
+.cp-upd{font-size:12px;color:var(--pf-muted);letter-spacing:1px;margin-left:6px;}
+.cp-deploy{margin:12px 0 2px;}
+.cp-pledged{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);background:var(--pf-dark-3);border:1px solid var(--pf-gold);padding:10px 12px;margin:10px 0;}
+.cp-status-top{color:var(--pf-gold);font-weight:700;letter-spacing:1px;}
+.cp-youmsg{color:var(--pf-red-bright);font-weight:700;}
+.cp-wtime{color:var(--pf-muted);font-size:10px;letter-spacing:1px;margin-left:6px;}
+/* Casino */
+.cs-wager{background:var(--pf-dark-2);border:2px solid var(--pf-border);padding:12px;margin-bottom:10px;text-align:left;}
+.cs-wdesc{font-size:15px;color:var(--pf-cream);margin-bottom:6px;}
+.cs-wres{color:var(--pf-gold);font-size:13px;letter-spacing:1px;}
+.cs-side{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2a2a2a;}
+.cs-sname{color:var(--pf-cream);flex:1;font-size:14px;}
+.cs-odds{font-family:var(--pf-font-mono);font-size:12px;color:var(--pf-muted);}
+.cs-betrow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+.cs-btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.cs-pot{font-size:32px;color:var(--pf-gold);letter-spacing:2px;margin:8px 0;font-family:var(--pf-font-display);}
+.cs-flip{font-size:48px;margin:12px 0;}
+.cs-crashmsg{font-family:var(--pf-font-mono);font-size:13px;color:var(--pf-muted);margin:8px 0;}
+.cs-rounum{font-family:var(--pf-font-mono);font-size:28px;color:var(--pf-cream);}
+.cs-roures{font-size:16px;color:var(--pf-gold);margin:8px 0;}
+/* Bank / economy stat cards */
+.pb-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
+@media (max-width:560px){.pb-cards{grid-template-columns:1fr;}}
+.pb-clabel,.pb-blabel,.pb-nwlabel{font-family:var(--pf-font-body);font-size:11px;letter-spacing:2px;color:var(--pf-muted);text-transform:uppercase;}
+.pb-networth{border:3px solid var(--pf-gold);background:#1a1408;padding:16px;margin-bottom:12px;}
+.pb-neg{color:var(--pf-red-bright);}
+.pb-hist{margin-top:12px;}
+.pb-filters{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;}
+.pb-sub{font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);margin:8px 0;}
+/* Vault admin */
+.vl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
+@media (max-width:560px){.vl-grid{grid-template-columns:1fr;}}
+.vl-form{background:var(--pf-dark-2);border:2px solid var(--pf-border);padding:14px;margin-bottom:10px;text-align:left;}
+/* Governance */
+.gv-dur{font-family:var(--pf-font-body);font-size:11px;color:var(--pf-dim);letter-spacing:1px;}
+.gv-pass{color:var(--pf-green);} .gv-fail{color:var(--pf-red-bright);} .gv-tie{color:var(--pf-gold);}
+/* Video forge */
+.vd-ctlrow,.vd-addrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;}
+.vd-frow{display:flex;gap:8px;align-items:center;padding:10px;border:2px solid var(--pf-border);margin-bottom:8px;background:var(--pf-dark-3);}
+.vd-ftext{flex:1;font-size:13px;color:var(--pf-cream);}
+.vd-fdur{font-family:var(--pf-font-mono);font-size:12px;color:var(--pf-muted);}
+.vd-stage canvas{max-width:100%;height:auto;display:block;margin:0 auto;}
+.vd-tpls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.vd-librow{display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #2a2a2a;}
+.vd-del,.vd-up,.vd-down{background:var(--pf-dark-3);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:6px 10px;cursor:pointer;font-size:12px;}
+.vd-del:hover{border-color:var(--pf-red);color:var(--pf-red);}
+/* Dopamine */
+.dp-cratewrap{text-align:center;padding:20px 0;}
+.dp-crate{font-size:64px;cursor:pointer;}
+.dp-flame{font-size:48px;}
+.dp-streakn{font-size:42px;color:var(--pf-orange);font-family:var(--pf-font-display);}
+.dp-risk{color:var(--pf-red-bright);font-weight:bold;animation:dpPulse 1s infinite;}
+@keyframes dpPulse{50%{opacity:.6;}}
+.dp-combo{font-size:24px;color:var(--pf-gold);}
+.dp-mult{font-family:var(--pf-font-mono);color:var(--pf-gold);}
+.dp-reward{font-size:28px;color:var(--pf-gold);font-family:var(--pf-font-display);}
+.dp-trophy{font-size:32px;}
+.dp-count{font-family:var(--pf-font-mono);font-size:13px;color:var(--pf-muted);}
+.dp-gap{font-size:13px;color:var(--pf-muted);}
+.dp-flash{border:2px solid var(--pf-gold);background:#1a1408;padding:12px;margin-bottom:10px;}
+.dp-lvlup{position:fixed;inset:0;background:rgba(13,13,13,.95);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.dp-rankbig{font-size:56px;color:var(--pf-red);letter-spacing:4px;}
+.dp-rankname{font-size:20px;color:var(--pf-cream);letter-spacing:2px;}
+/* Briefing */
+.br-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.br-rank{font-size:14px;color:var(--pf-gold);letter-spacing:2px;}
+.br-id{font-family:var(--pf-font-mono);font-size:12px;color:var(--pf-dim);}
+.br-order{border-left:3px solid var(--pf-red);padding:8px 12px;margin-bottom:8px;background:var(--pf-dark-3);text-align:left;}
+.br-oxp{font-family:var(--pf-font-mono);color:var(--pf-red);font-size:12px;}
+.br-tick{font-family:var(--pf-font-mono);color:var(--pf-gold);}
+.br-seasonline{font-size:13px;color:var(--pf-muted);margin:8px 0;}
+.br-war{color:var(--pf-red);font-weight:bold;}
+.sb-name{font-size:12px;letter-spacing:2px;color:var(--pf-cream);}
+.sb-days{font-family:var(--pf-font-mono);font-size:11px;color:var(--pf-muted);}
+/* Diplomacy */
+.dp-acc,.dp-dec{margin:4px;}
+/* Reduced motion */
+@media (prefers-reduced-motion:reduce){.dp-risk{animation:none;}}
+
+/* === HOMEPAGE BREATHING ROOM (2026-10-02) === */
+/* Each mounted widget gets its own space. The section wrapper is the
+   <section class="pf-v2-game"> that home-v2.js creates per silo. */
+#pf-v2 .pf-v2-game{
+  margin:0 auto var(--pf-space-2xl);  /* 32px below every widget */
+  max-width:680px;                     /* consistent column, slightly wider than 640px cards */
+  padding:0 var(--pf-space-md);        /* 12px gutters on mobile */
+}
+#pf-v2 .pf-v2-game:last-child{margin-bottom:0;}
+/* First widget after a section header gets extra top room */
+#pf-v2 .pf-section-head + .pf-v2-game{margin-top:var(--pf-space-lg);}
+
+/* Section headers — rendered between funnel sections */
+#pf-v2 .pf-section-head{
+  max-width:680px; margin:var(--pf-space-2xl) auto var(--pf-space-lg);
+  padding:0 var(--pf-space-md); text-align:center;
+}
+#pf-v2 .pf-section-head:first-child{margin-top:0;}
+.pf-section-head .pf-sh-kicker{
+  font-family:var(--pf-font-body); font-size:11px; letter-spacing:5px;
+  color:var(--pf-muted); text-transform:uppercase; margin-bottom:6px;
+}
+.pf-section-head .pf-sh-title{
+  font-family:var(--pf-font-display); font-size:26px; letter-spacing:3px;
+  color:var(--pf-cream); text-transform:uppercase; margin:0 0 8px;
+}
+.pf-section-head .pf-sh-title .pf-sh-ico{margin-right:8px;}
+.pf-section-head .pf-sh-rule{
+  height:3px; background:linear-gradient(90deg,transparent,var(--pf-red),transparent);
+  margin:0 auto; max-width:320px;
+}
+.pf-section-head .pf-sh-sub{
+  font-family:var(--pf-font-body); font-size:13px; color:var(--pf-muted);
+  margin:8px 0 0; line-height:1.5;
+}
+/* Section anchor — first widget after each header gets a gold top border
+   to signal "you are entering a new zone" */
+#pf-v2 .pf-section-head + .pf-v2-game > *:first-child{
+  border-top:4px solid var(--pf-gold);
+}
+
+/* Companion links — "Next up" footer inside every widget */
+.pf-next{
+  margin-top:var(--pf-space-lg); padding-top:var(--pf-space-md);
+  border-top:1px dashed var(--pf-border-light); text-align:center;
+}
+.pf-next-label{
+  font-family:var(--pf-font-body); font-size:10px; letter-spacing:4px;
+  color:var(--pf-dim); text-transform:uppercase; margin-bottom:8px;
+}
+.pf-next-link{
+  display:inline-block; margin:4px 6px; padding:12px 16px; min-height:44px;
+  border:2px solid var(--pf-red); color:var(--pf-cream);
+  font-family:var(--pf-font-body); font-size:13px; letter-spacing:1px;
+  text-decoration:none; text-transform:uppercase; cursor:pointer;
+  background:transparent; box-sizing:border-box;
+}
+.pf-next-link:hover{background:var(--pf-red); color:#fff;}
+
+/* ---------- AMPLIFY ---------- */
+#pf-amplify .am-tabs{display:flex;gap:8px;margin-bottom:12px;}
+#pf-amplify .am-tab{flex:1;padding:10px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-family:var(--pf-font-body);font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;}
+#pf-amplify .am-tab.on{border-color:var(--pf-red);background:rgba(200,30,30,.15);}
+#pf-amplify .am-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);cursor:pointer;}
+#pf-amplify .am-row:hover{border-color:var(--pf-red);}
+#pf-amplify .am-row.sel{border-color:var(--pf-red);background:rgba(200,30,30,.12);}
+#pf-amplify .am-rowmain{flex:1;min-width:0;}
+#pf-amplify .am-rowt{font-weight:700;color:var(--pf-cream);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#pf-amplify .am-rowsub{font-size:12px;color:var(--pf-dim);}
+#pf-amplify .am-badge{display:inline-block;padding:4px 10px;background:var(--pf-red);color:#fff;
+  font-size:11px;letter-spacing:1px;font-weight:700;white-space:nowrap;}
+#pf-amplify .am-xp{font-weight:700;color:var(--pf-gold);font-size:13px;white-space:nowrap;}
+#pf-amplify .am-rank{font-weight:700;color:var(--pf-dim);font-size:14px;min-width:32px;}
+#pf-amplify .am-brow{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;
+  border:1px solid var(--pf-border-light);}
+#pf-amplify .am-amtrow{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap;}
+#pf-amplify .am-label{font-size:12px;letter-spacing:2px;color:var(--pf-dim);text-transform:uppercase;}
+#pf-amplify .am-chip{padding:8px 14px;background:transparent;border:2px solid var(--pf-border-light);
+  color:var(--pf-cream);font-weight:700;cursor:pointer;}
+#pf-amplify .am-chip.on{border-color:var(--pf-gold);color:var(--pf-gold);}
+#pf-amplify .am-custom{width:90px;padding:8px;background:#111;border:2px solid var(--pf-border-light);color:var(--pf-cream);}
+#pf-amplify .am-go{display:block;width:100%;padding:14px;margin:6px 0 18px;background:var(--pf-red);
+  color:#fff;border:none;font-family:var(--pf-font-body);font-size:15px;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;font-weight:700;}
+#pf-amplify .am-go:disabled{background:#333;color:#888;cursor:default;}
+#pf-amplify .am-h3{font-size:13px;letter-spacing:3px;color:var(--pf-dim);text-transform:uppercase;
+  margin:18px 0 10px;border-bottom:1px solid var(--pf-border-light);padding-bottom:6px;}
+
+/* Status badges — battle proposals, intel submissions */
+.bt-st{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;border:1px solid var(--pf-border-light);}
+.bt-st-pending{color:#fc0;border-color:#fc0;}
+.bt-st-approved{color:#0c6;border-color:#0c6;}
+.bt-st-rejected{color:#c33;border-color:#c33;}
+/* ---------- PHQ SECTION HUBS (2026-10-05, fe/phq-hub-nav) ----------
+   Sticky sub-nav + hub shells for /political-hq. Copy in hub missions is
+   provisional — Psych veto pending. */
+#pf-hq-subnav{position:sticky;top:0;z-index:50;background:var(--pf-dark);border-top:2px solid var(--pf-red);border-bottom:2px solid var(--pf-red);}
+.pf-hq-tabs{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;scroll-snap-type:x mandatory;padding:8px 12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
+.pf-hq-tab{scroll-snap-align:start;flex:0 0 auto;background:transparent;border:1px solid var(--pf-border-light);color:var(--pf-cream);font-family:var(--pf-font-body);font-weight:700;font-size:12px;letter-spacing:1px;padding:14px 16px;cursor:pointer;}
+.pf-hq-tab:hover{border-color:var(--pf-red-bright);color:#fff;}
+.pf-hq-tab[aria-current="true"]{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
+.pf-hub{margin:28px 0;padding:0 4px;}
+.pf-hub-head{border-left:4px solid var(--pf-red);padding:4px 0 4px 14px;margin-bottom:14px;}
+.pf-hub-kicker{color:var(--pf-red-bright);font-family:var(--pf-font-body);font-weight:700;font-size:11px;letter-spacing:2px;}
+.pf-hub-head h2{color:var(--pf-cream);font-family:var(--pf-font-display);font-size:24px;margin:6px 0;}
+.pf-hub-mission{color:var(--pf-muted);font-family:var(--pf-font-body);font-size:14px;margin:0;}
+.pf-hub-alertrow{margin:10px 0 0;font-family:var(--pf-font-body);font-size:13px;color:var(--pf-muted);}
+.pf-hub-alertrow a{color:var(--pf-gold);font-weight:700;}
+.pf-hub-silos .pf-hub-loading{color:var(--pf-dim);font-family:var(--pf-font-body);font-size:13px;padding:18px;border:1px dashed var(--pf-border);}
+.pf-hub-exits{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;padding-top:12px;border-top:1px solid var(--pf-border);font-family:var(--pf-font-body);font-size:13px;}
+.pf-hub-exits a{color:var(--pf-gold);font-weight:700;text-decoration:none;}
+.pf-hub-exits a:hover{text-decoration:underline;}
+.pf-hub-util{margin:24px 0;}
+#pf-phq-civicstrip{margin:8px 0 4px;}
+@media (prefers-reduced-motion:reduce){.pf-hq-tabs{scroll-snap-type:none;}}
+
+
+/* === Ventures + IRL empty states readability (2026-10-04) === */
+#pf-ventures .x-pane,#pf-irl .x-pane{color:var(--pf-cream);}
+#pf-ventures .x-empty{color:var(--pf-cream);padding:8px 0;}
+#pf-ventures .x-venture{border-top:1px solid var(--pf-border);padding:10px 0;}
+#pf-ventures .x-chead{color:var(--pf-cream);font-weight:700;font-size:15px;margin-bottom:4px;}
+#pf-ventures .x-kind{color:var(--pf-red-bright);font-size:11px;letter-spacing:1px;}
+#pf-ventures .x-eb{color:var(--pf-gold);font-size:11px;font-weight:700;}
+#pf-ventures .x-csub,#pf-ventures .x-pool,#pf-ventures .x-myrow{color:var(--pf-cream);font-size:13px;line-height:1.5;}
+#pf-ventures .x-poolnum{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-sides{color:var(--pf-cream);font-size:13px;margin-top:4px;}
+#pf-ventures .x-sideA{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-sideB{color:var(--pf-gold);font-weight:700;}
+#pf-ventures .x-risk{color:var(--pf-red-bright);font-weight:700;}
+#pf-ventures .x-warn{color:var(--pf-gold);font-weight:700;margin:6px 0;}
+#pf-ventures input,#pf-ventures select{background:var(--pf-dark);border:1px solid var(--pf-border-light);color:var(--pf-cream);padding:8px;}
+#pf-irl .irl-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-irl .irl-type{color:var(--pf-cream);font-weight:700;letter-spacing:1px;}
+#pf-irl .irl-when,#pf-irl .irl-where{color:var(--pf-cream);font-size:13px;}
+#pf-irl .irl-rsvps{color:var(--pf-gold);font-weight:700;margin-top:6px;}
+/* R10 (2026-10-04): YOUR CELL strip + roll-with-cell checkbox. */
+#pf-irl .irl-cell{color:var(--pf-red-bright);font-weight:700;margin-top:6px;letter-spacing:1px;font-size:13px;}
+#pf-irl .irl-sq{display:block;color:var(--pf-cream);font-size:13px;font-weight:700;letter-spacing:1px;margin:8px 0 4px;cursor:pointer;}
+#pf-irl .irl-sq input{margin-right:6px;accent-color:var(--pf-red-bright);}
+
+/* === KNOW YOUR ENEMY intel readability (2026-10-03) ===
+   #pf-intel was the only HQ silo whose template lacked .pf-silo, so its
+   dark .x-pane cards inherited Squarespace's dark body text (dark-on-dark
+   body copy) and its .c-tag subtitle sat in muted tan on the page's light
+   section background (washed out). The template now carries .pf-silo like
+   its siblings (dark bg + cream text); the rules below lock the in-item
+   hierarchy explicitly instead of relying on inheritance. Red/black
+   propaganda aesthetic kept — this is legibility, not a redesign.
+   SYNCED 2026-10-04 from v1.4.3/core/02-design-system.css (commit 1b8213f). */
+#pf-intel .x-pane{color:var(--pf-cream);}
+#pf-intel .in-frame{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;margin-bottom:10px;}
+#pf-intel .in-target{color:var(--pf-cream);font-weight:700;font-size:16px;letter-spacing:1px;margin-bottom:6px;}
+#pf-intel .in-activity{color:var(--pf-cream);line-height:1.55;}
+#pf-intel .in-amount{color:var(--pf-gold);font-weight:700;letter-spacing:1px;margin-top:8px;}
+#pf-intel .in-meta{color:var(--pf-muted);font-size:12px;margin-top:6px;}
+#pf-intel .in-meta a{color:var(--pf-red-bright);font-weight:700;}
+#pf-intel .in-sub{color:var(--pf-cream);}
+
+/* === KNOW YOUR ENEMY live wire feed (2026-10-05) ===
+   SYNCED 2026-10-05 from v1.4.3/core/02-design-system.css. */
+#pf-intel .inl-live{border:1px solid var(--pf-red-bright);}
+#pf-intel .inl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+#pf-intel .inl-badge{display:inline-flex;align-items:center;gap:6px;background:var(--pf-red);color:#fff;
+  font-size:11px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:2px;}
+#pf-intel .inl-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:inlPulse 1.4s ease-in-out infinite;}
+@keyframes inlPulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+#pf-intel .inl-title{color:var(--pf-red-bright);font-weight:700;letter-spacing:2px;font-size:13px;}
+#pf-intel .inl-item{border-top:1px solid var(--pf-border);padding:8px 0;}
+#pf-intel .inl-headline{color:var(--pf-cream);font-weight:700;font-size:14px;line-height:1.4;text-decoration:none;}
+#pf-intel a.inl-headline:hover{text-decoration:underline;}
+#pf-intel .inl-meta{color:var(--pf-muted);font-size:12px;margin-top:2px;}
+#pf-intel .inl-stale{margin:2px 0 6px;}
+#pf-intel .in-kind{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--pf-muted);
+  border:1px solid var(--pf-border-light);padding:1px 6px;vertical-align:2px;margin-left:4px;}
+
+/* ============================================================================
+   DEFECT 3 (2026-10-03) — /economy renders in a ~240px left column.
+   Root cause: the page's Squarespace Code block is sized ~240px wide in the
+   Fluid Engine editor (same root cause as the earlier Home / /political-hq
+   narrow-column incidents). The editor is off-limits, so pages/page-mount.js
+   stamps .pf-fe-full on the block's .fe-block wrapper ancestor; this rule
+   forces it to full content width. !important outranks Squarespace's inline
+   layout styles, which FE JS rewrites on resize. Scoped: the class is only
+   ever stamped on /economy's mount — no other page's layout is touched.
+   ============================================================================ */
+.pf-fe-full{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;}
+
+/* ============================================================================
+   DEFECT 4 (2026-10-03) — /request-access (Creator HQ) layout broken.
+   (a) The page's Squarespace Code blocks are sized ~240px wide in the Fluid
+   Engine editor (same root cause as defect 3's /economy incident and the
+   earlier Home / /political-hq narrow-column incidents). The editor is
+   off-limits, so games/war-card.js (and games/academy.js for academy-only
+   pages) stamps .pf-fe-hq on the .fe-block wrapper ancestor of each HQ
+   mount div (#pf-war-card, #pf-academy-hq, #pf-cell-hq, #pf-dash-hq); this
+   rule forces full content width. !important outranks Squarespace's inline
+   layout styles, which FE JS rewrites on resize.
+   (b) The black Creator war card panel was overflowing its narrow/short FE
+   block and painting over the native request form's Name/Handle inputs
+   (the panel itself carries no position/z-index — pure block-geometry
+   overflow). Widening the block to full width plus height:auto (block box
+   fits its content instead of clipping/overflowing it) removes the
+   overlap so the form inputs are fully visible and clickable.
+   grid-column:1/-1 covers grid-placed FE sections; width/left covers
+   absolute-placed ones. Scoped: the class is only ever stamped on HQ
+   mounts — no other page's layout is touched.
+   ============================================================================ */
+.pf-fe-hq{width:100%!important;max-width:none!important;left:0!important;grid-column:1/-1!important;height:auto!important;}
+
+/* ============================================================================
+   DEFECT 4b (2026-10-04) — /request-access desktop: the war-card FE block's
+   editor grid-area (rows 1-7) overlaps the request form's grid-area
+   (rows 1-52). Clears the explicit row placement on desktop; combined with
+   .pf-fe-hq's grid-column:1/-1, grid auto-placement drops the block into
+   the first fully-free row band — below the form — regardless of how tall
+   the form's editor row span is. Desktop-only: mobile geometry stacks
+   correctly without intervention.
+   ============================================================================ */
+@media (min-width:768px){
+  .pf-fe-wc{grid-row:auto!important;}
+}
+
+/* ============================================================================
+   GAP AUDIT v2 2026-10-03 — mobile CSS fixes (CSS only; no JS touched)
+   M1  : box-sizing:border-box on the four remaining widget card roots
+         (#pf-armory, #pf-billionaire, #pf-interrogation, #pf-ranks) — same
+         treatment H9 gave #pf-caption/#pf-orders/#pf-dometer2/#slr-nuke
+   M2  : iOS Safari auto-zooms on focus for text fields under 16px. The five
+         legacy 14px input rules above are bumped to 16px; this sweep rule
+         catches every other text field on PF surfaces (widget templates use
+         inline styles, which this outranks). Scoped to pf- ids so
+         Squarespace's own chrome is untouched.
+   ============================================================================ */
+#pf-armory,#pf-billionaire,#pf-interrogation,#pf-ranks{box-sizing:border-box}
+[id^="pf-"] input,[id^="pf-"] textarea,[id^="pf-"] select{font-size:16px!important}
+
+/* ============================================================================
+   33-PATTERNS (WS-0, 2026-10-06): the unified brand pattern library — the 8
+   shared patterns every section redesign is built from. Hand-copied from
+   v1.4.3/core/33-patterns.css (sync-checked). KILL: ?pf_off=patterns.
+   ============================================================================ */
+/* ---- shared pattern foundation ---------------------------------------- */
+.pf-pat{font-family:Arial,Helvetica,sans-serif;background:#0a0a0a;color:#fff;
+  box-sizing:border-box;-webkit-text-size-adjust:100%}
+.pf-pat *{box-sizing:border-box}
+.pf-pat a{color:#fff}
+.pf-pat .pat-gray{color:#8a8a8a}
+
+/* P1 — BRIEFING HERO: red caps kicker -> one-line mission -> single primary red button.
+   No carousels, no sliders, no video backgrounds. A movement briefs, it doesn't browse. */
+.pf-pat-hero{padding:28px 16px 32px;text-align:center;border-bottom:1px solid #222}
+.pf-pat-hero-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:3px;
+  font-weight:bold;font-size:12px;margin:0 0 10px}
+.pf-pat-hero-mission{font-size:22px;line-height:1.25;font-weight:bold;margin:0 0 18px}
+.pf-pat-hero-sub{color:#8a8a8a;font-size:13px;margin:-10px 0 18px;line-height:1.4}
+
+/* P2 — INTEL CARD: black card, red top-rule, white Arial-bold headline,
+   one data line, one action. The brand's unit of thought. */
+.pf-pat-intel{background:#0a0a0a;border:1px solid #2a2a2a;border-top:3px solid #c1121f;
+  padding:16px;margin:12px 0}
+.pf-pat-intel-kicker{color:#c1121f;text-transform:uppercase;letter-spacing:2px;
+  font-size:11px;font-weight:bold;margin:0 0 6px}
+.pf-pat-intel h3,.pf-pat-intel-head{font-family:Arial,Helvetica,sans-serif;
+  font-weight:bold;font-size:17px;color:#fff;margin:0 0 8px;line-height:1.3}
+.pf-pat-intel-data{font-size:14px;color:#fff;margin:0 0 12px;line-height:1.45}
+.pf-pat-intel-data .pat-gray{color:#8a8a8a}
+.pf-pat-intel-actions{margin:0}
+.pf-pat-intel-actions .pf-pat-deploy:first-child{margin-left:0}
+
+/* P3 — CTA FAMILY (one voice, three volumes).
+   JOIN THE FIGHT. = the ONLY red button; enlistment only, never reused.
+   DEPLOY ->      = the action verb; every card's primary action.
+   REPORT BACK -> = close-the-loop: check-ins, confirmations, votes. */
+.pf-pat-join{display:inline-block;background:#c1121f;color:#fff;border:0;
+  padding:14px 28px;font-family:'Arial Black',Arial,sans-serif;font-size:15px;
+  letter-spacing:2px;text-transform:uppercase;text-decoration:none;cursor:pointer;
+  text-align:center}
+.pf-pat-join:hover,.pf-pat-join:active{background:#8f0d17;color:#fff}
+.pf-pat-deploy{display:inline-block;color:#c1121f;font-weight:bold;font-size:14px;
+  letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;
+  padding:8px 0}
+.pf-pat-deploy:hover{text-decoration:underline;color:#fff}
+.pf-pat-deploy-red{display:inline-block;background:#c1121f;color:#fff;border:0;
+  padding:12px 24px;font-family:'Arial Black',Arial,sans-serif;font-size:14px;
+  letter-spacing:2px;text-transform:uppercase;text-decoration:none;cursor:pointer;
+  text-align:center}
+.pf-pat-deploy-red:hover,.pf-pat-deploy-red:active{background:#8f0d17;color:#fff}
+.pf-pat-report{display:inline-block;color:#fff;font-weight:bold;font-size:13px;
+  letter-spacing:1px;text-transform:uppercase;text-decoration:underline;
+  text-decoration-color:#8a8a8a;text-underline-offset:4px;cursor:pointer;
+  padding:8px 0}
+.pf-pat-report:hover{color:#c1121f;text-decoration-color:#c1121f}
+/* Ghost/second-order link for non-primary actions. Never red. */
+.pf-pat-textlink{color:#fff;font-size:13px;text-decoration:underline;
+  text-decoration-color:#8a8a8a;text-underline-offset:3px}
+.pf-pat-textlink:hover{color:#8a8a8a}
+
+/* P4 — DATA STRIP: big white figure, small red label beneath, thin red divider,
+   source line in small gray, recency stamp. FAIL-CLOSED: the JS helper renders
+   nothing unless figure + label + source + recency are ALL present. */
+.pf-pat-data{text-align:center;padding:18px 12px;margin:12px 0}
+.pf-pat-data-fig{font-size:44px;font-weight:bold;color:#fff;line-height:1.1;margin:0}
+.pf-pat-data-label{color:#c1121f;text-transform:uppercase;letter-spacing:2px;
+  font-size:11px;font-weight:bold;margin:8px 0 0}
+.pf-pat-data-rule{width:56px;height:2px;background:#c1121f;margin:12px auto}
+.pf-pat-data-src{color:#8a8a8a;font-size:11px;line-height:1.5;margin:0}
+.pf-pat-data-time{color:#8a8a8a;font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;margin:4px 0 0}
+
+/* P5 — PROGRESSION RING: XP ring + streak flame + rank name. One shared visual,
+   renderable anywhere (HUD, Academy, Cells). Rendered by PF.patterns.ring as
+   inline SVG; this CSS lays it out and keeps the color discipline. */
+.pf-pat-ring{display:flex;align-items:center;gap:12px;padding:10px 0}
+.pf-pat-ring svg{flex:0 0 auto}
+.pf-pat-ring-track{stroke:#333}
+.pf-pat-ring-fill{stroke:#c1121f;fill:none;stroke-linecap:round}
+.pf-pat-ring-pct{fill:#fff;font-family:Arial,Helvetica,sans-serif;font-weight:bold}
+.pf-pat-ring-meta{min-width:0}
+.pf-pat-ring-rank{font-weight:bold;font-size:14px;letter-spacing:1px;
+  text-transform:uppercase;margin:0 0 4px}
+.pf-pat-ring-streak{font-size:13px;color:#fff;margin:0;display:flex;
+  align-items:center;gap:6px}
+.pf-pat-ring-streak svg{flex:0 0 auto}
+.pf-pat-ring-flame{fill:#c1121f}
+
+/* P6 — ACTION BAR: SHARE THIS INTEL / TAKE THIS TO YOUR CELL / REPORT BACK.
+   Same order, same styling, closes every surface. Nothing ends with the individual. */
+.pf-pat-actions{display:flex;border-top:1px solid #2a2a2a;border-bottom:1px solid #2a2a2a;
+  margin:18px 0 0;padding:0}
+.pf-pat-actions a,.pf-pat-actions span{flex:1;text-align:center;font-size:11px;
+  font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#fff;
+  text-decoration:none;padding:14px 6px;border-right:1px solid #2a2a2a;
+  line-height:1.4;display:flex;align-items:center;justify-content:center}
+.pf-pat-actions a:last-child,.pf-pat-actions span:last-child{border-right:0}
+.pf-pat-actions a:hover{color:#c1121f}
+.pf-pat-actions span.pat-disabled{color:#8a8a8a;cursor:default}
+
+/* P7 — LEDGER LINE: left = what, right = figure, red when it matters
+   (money, XP, votes lists). The movement shows its books the same way everywhere. */
+.pf-pat-ledger{display:flex;justify-content:space-between;align-items:baseline;
+  gap:12px;padding:9px 0;border-bottom:1px solid #222;font-size:14px}
+.pf-pat-ledger-what{color:#fff;min-width:0}
+.pf-pat-ledger-fig{font-weight:bold;color:#fff;white-space:nowrap}
+.pf-pat-ledger.hot .pf-pat-ledger-fig,.pf-pat-ledger-fig.hot{color:#c1121f}
+.pf-pat-ledger-sub{display:block;font-size:11px;color:#8a8a8a;margin-top:2px}
+
+/* P8 — SOCIAL-PROOF LINE: REAL figures or the line is suppressed, NEVER inflated.
+   The JS helper returns '' without a verified positive count — a surface with no
+   social proof simply doesn't get the line. Placement: under the figure, before
+   the action. Voice: flat, factual, no hype. */
+.pf-pat-proof{font-size:12px;color:#8a8a8a;margin:6px 0 0;line-height:1.5}
+.pf-pat-proof b{color:#fff}
+
+/* ===== v3 homepage mobile-first (2026-10-07, core/41-mobile-first.css — hand-mirrored; see SYNC CHECKLIST) ===== */
+/* ============================================================================
+   SILO: core/41-mobile-first.css  |  PF v1.4.3
+   WHAT: Mobile-first stylesheet for the homepage redesign v3 ("Unclunk").
+   WHY: The homepage is the first surface on a phone — every widget needs
+   thumb-friendly targets, fluid columns, and a hero that reads on a 360px
+   screen. All rules are scoped under #pf-v2 (homepage only) so dedicated
+   pages keep their own layouts untouched.
+   SCOPE: #pf-v2 only. IDs targeted: #pf-hero (home-v2.js hero template),
+   #pf-closer + #pf-closer-grid (home-v2.js closer template), plus the
+   .pf-v2-game widget wrappers and .pf-section-head headers.
+   ----------------------------------------------------------------------------
+   ★ SYNC CHECKLIST — READ BEFORE EDITING (see 01/02-design-system.css):
+   1. bundle-styles.css is the SERVED file (loader pulls it via jsDelivr).
+      It is HAND-MAINTAINED — there is no build script that regenerates it
+      from the source files. Editing this source file alone changes NOTHING live.
+   2. After ANY edit here, copy the new/changed rules into
+      v1.4.3/core/bundle-styles.css by hand (append at the bottom with the
+      other defect/audit fix blocks), and register this file in the SOURCES
+      list of build/check-styles-sync.js.
+   3. Run `node build/check-styles-sync.js` — it FAILS if any source rule is
+      missing from the bundle. Fix the bundle, then hand off for re-pin.
+   KILL: ?pf_off=home-v2 kills the homepage mount; CSS is inert without it.
+   ============================================================================ */
+
+/* ---------- 1. TOUCH TARGETS (WCAG 2.2 AA) ----------
+   Every button and link inside the homepage mount is at least 44x44.
+   !important outranks widget inline styles (same precedent as the M4
+   guard in 02-design-system.css). Inline prose links (display:inline)
+   ignore min-height/min-width, so copy links are unaffected. */
+#pf-v2 a,
+#pf-v2 button,
+#pf-v2 input[type="submit"],
+#pf-v2 input[type="button"]{
+  min-height:44px!important; min-width:44px!important;
+  box-sizing:border-box;
+}
+/* Button-style anchors (CTA, closer cards, companion links) carry their own
+   display + centering in the widget templates and 02-design-system.css;
+   prose links (display:inline) are untouched. */
+
+/* ---------- 2. FLUID WIDTHS ----------
+   Fixed max-widths (640/520/420px) become fluid so widgets never overflow
+   a phone viewport. Gutters come from the .pf-v2-game padding, not margins. */
+#pf-v2 .pf-v2-game,
+#pf-v2 .pf-section-head,
+#pf-v2 .pf-silo{
+  max-width:min(680px,92vw)!important;
+}
+
+/* ---------- 3. HERO (mobile-first) ----------
+   Vertical stack: kicker -> H1 -> subhead -> CTA -> secondary link.
+   H1 scales fluidly per the v3 spec. CTA stays a full-width tap zone. */
+#pf-v2 #pf-hero{
+  display:flex; flex-direction:column; align-items:center;
+  padding:40px 20px 32px;
+}
+#pf-v2 #pf-hero h1{
+  font-size:clamp(2rem,8vw,4rem)!important;
+  line-height:1.1;
+}
+#pf-v2 #pf-hero-cta{
+  width:100%; max-width:min(420px,92vw);
+  margin:0 auto; padding:12px 24px;
+}
+#pf-v2 #pf-hero-how{
+  display:inline-flex; min-height:44px;
+}
+
+/* ---------- 4. CLOSER GRID ----------
+   Link-card grid to dedicated pages. Desktop 3 columns (inline style),
+   tablet 2, phone 1. !important outranks the inline repeat(3,1fr). */
+#pf-v2 #pf-closer{
+  max-width:min(680px,92vw);
+}
+@media (max-width:768px){
+  #pf-v2 #pf-closer-grid{
+    grid-template-columns:repeat(2,1fr)!important;
+  }
+}
+@media (max-width:480px){
+  #pf-v2 #pf-closer-grid{
+    grid-template-columns:1fr!important;
+  }
+  #pf-v2 #pf-closer-grid a{
+    min-height:44px!important; padding:20px 16px;
+  }
+  #pf-v2 #pf-hero{padding:28px 16px 24px;}
+}
+
+/* ---------- 5. SECTION HEADERS (clean, no clutter) ----------
+   v3 flow groups: no "Section N of 7" kickers, no divider rules —
+   just the title + optional sub. Also drop the gold "zone border" on the
+   widget that follows a header (02-design-system.css anchor rule). */
+#pf-v2 .pf-section-head .pf-sh-kicker,
+#pf-v2 .pf-section-head .pf-sh-rule{
+  display:none!important;
+}
+#pf-v2 .pf-section-head{
+  margin:24px auto 12px;
+}
+#pf-v2 .pf-section-head .pf-sh-title{
+  font-size:22px;
+}
+#pf-v2 .pf-section-head + .pf-v2-game > *:first-child{
+  border-top:0!important;
+}
+
+/* ---------- 6. REDUCED MOTION ----------
+   Homepage-wide: no animations, no transitions, no smooth-scroll when the
+   user prefers reduced motion. (Design-system's .dp-risk rule still holds
+   elsewhere; this is the homepage-scoped equivalent.) */
+@media (prefers-reduced-motion:reduce){
+  #pf-v2 *,
+  #pf-v2 *::before,
+  #pf-v2 *::after{
+    animation:none!important;
+    transition:none!important;
+    scroll-behavior:auto!important;
+  }
+}
+
+/* ===== v3 mobile nav trim (2026-10-07, core/42-mobile-nav-trim.css — hand-mirrored; see SYNC CHECKLIST) ===== */
+/* MOBILE NAV TRIM (no-JS fallback) — Squarespace 7.1 + legacy templates.
+   First 5 top-level items stay; everything from the 6th on is hidden.
+   Mobile viewports only; desktop nav untouched. CEO directive 2026-10-07 ~11:33 CDT. */
+@media (max-width:767px){
+  .header-menu-nav-list > .header-menu-nav-item:nth-child(n+6),
+  #mobileNav > .MobileNav-item:nth-child(n+6),
+  #mobileNav > li:nth-child(n+6),
+  .MobileNav > .MobileNav-item:nth-child(n+6),
+  [data-nc-group="mobile"] > *:nth-child(n+6){
+    display:none!important;
+  }
+}
+
+/* ================================================================
+   BUTTER PASS 2026-10-07 — synced from source CSS files.
+   Appended by parent agent per build/check-styles-sync.js requirement.
+   ================================================================ */
+
+/* --- synced from v1.4.3/core/01-styles.css (butter block) --- */
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Legacy widget families (caption / daily-orders / do-meter / nuke / poster /
+   cells / war-card) get the same butter: button micro-interactions, press
+   states, gold focus rings, input focus glow. Every rule below is NEW — no
+   existing rule in this file was modified, so the bundle sync is a pure
+   append.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+/* ---- button micro-interactions: alive but restrained ---- */
+#pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+#pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+#pf-orders .o-pumpbtn,#pf-cells .vd-del,#pf-cells .vd-up,#pf-cells .vd-down{
+  transition:background .18s ease,transform .12s ease,box-shadow .18s ease,
+    color .18s ease,border-color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#pf-caption .c-btn:hover,#pf-poster .p-btn:hover,#pf-cells .c-btn:hover,
+#pf-orders .o-shareimg:hover{
+  box-shadow:0 8px 24px rgba(193,18,31,.3);
+}
+#pf-caption .c-btn:active,#pf-orders .o-btn:active,#pf-orders .o-shareimg:active,
+#pf-poster .p-btn:active,#pf-poster .p-style:active,#pf-cells .c-btn:active,
+#pf-orders .o-platbtn:active,#pf-orders .o-tipbtn:active,#pf-orders .o-pumpbtn:active{
+  transform:translateY(1px);
+}
+/* ---- focus: every legacy CTA gets the gold ring ---- */
+#pf-caption .c-btn:focus-visible,#pf-orders .o-btn:focus-visible,
+#pf-orders .o-shareimg:focus-visible,#pf-poster .p-btn:focus-visible,
+#pf-poster .p-style:focus-visible,#pf-cells .c-btn:focus-visible,
+#pf-orders .o-platbtn:focus-visible,#pf-orders .o-tipbtn:focus-visible,
+#pf-orders .o-pumpbtn:focus-visible,#xFeed .fd-tab:focus-visible,
+#slr-nuke .slr-nuke-math summary:focus-visible{
+  outline:2px solid #e8b923; outline-offset:2px;
+}
+/* ---- input focus glow for the legacy forms ---- */
+#pf-caption .c-form input:focus,#pf-caption .c-form textarea:focus,
+#pf-poster .p-ctl input:focus,#pf-cells input:focus,#pf-cells .c-sel:focus,
+#pf-war-card .c-warwrap select:focus,#pf-war-card .c-warwrap input:focus,
+#pf-orders .o-claimbox input:focus,#pf-orders .o-bsel:focus{
+  outline:none; border-color:#dc143c; box-shadow:0 0 0 2px rgba(193,18,31,.35);
+}
+#pf-caption .c-form input::placeholder,#pf-poster .p-ctl input::placeholder{color:#5a5348;}
+/* ---- soft depth for the legacy silo roots ---- */
+#pf-caption,#pf-orders,#pf-dometer2,#slr-nuke,#pf-poster{
+  box-shadow:0 0 0 4px #0d0d0d,0 0 0 8px #c1121f,0 14px 40px rgba(0,0,0,.55);
+}
+/* ---- reduced motion: butter off where asked ---- */
+@media (prefers-reduced-motion:reduce){
+  #pf-caption .c-btn,#pf-orders .o-btn,#pf-orders .o-shareimg,#pf-poster .p-btn,
+  #pf-poster .p-style,#pf-cells .c-btn,#pf-orders .o-platbtn,#pf-orders .o-tipbtn,
+  #pf-orders .o-pumpbtn{transition:none;}
+}
+
+/* --- synced from v1.4.3/core/02-design-system.css (butter block) --- */
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4: CORE WIDGETS, FLOWS &
+   DESIGN SYSTEM) — ADDITIVE ONLY.
+   ----------------------------------------------------------------------------
+   Design-system half of the butter pass: butter tokens, the refined type
+   hierarchy, button/input/state primitives (chips, toasts, spinners,
+   skeletons, success + error states), the shared modal shell, the focus
+   system, and the class libraries the converted claim-CTA / recovery /
+   one-prompt templates now use (their inline styles moved here, logic
+   untouched). Every rule below is NEW — no existing rule in this file was
+   modified, so the bundle sync is a pure append.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+
+/* ---- BUTTER TOKENS (additive; existing tokens untouched) ---- */
+:root{
+  --pf-shadow-sm:0 2px 8px rgba(0,0,0,.45);
+  --pf-shadow-md:0 6px 24px rgba(0,0,0,.5);
+  --pf-glow-red:0 0 0 1px rgba(193,18,31,.55),0 10px 30px rgba(193,18,31,.25);
+  --pf-ease:cubic-bezier(.22,.7,.25,1);
+  /* recovery accent — the established gold from 29-callsign-recovery.js (#d4af37),
+     kept verbatim here as the system's recovery token */
+  --pf-rec-gold:#d4af37; --pf-rec-gold-dim:#8a7f68;
+  /* refined fluid type scale — display serif register is Arial Black (brand);
+     sizes fluid so headlines breathe on phones without media queries */
+  --pf-type-display:clamp(2.25rem,7vw,3.5rem);
+  --pf-type-h1:clamp(1.75rem,5.5vw,2.5rem);
+  --pf-type-h2:clamp(1.375rem,4.5vw,1.875rem);
+  --pf-type-h3:clamp(1.125rem,3.5vw,1.375rem);
+  --pf-type-body:1rem; --pf-type-sm:.875rem; --pf-type-label:.72rem;
+}
+
+/* ---- REFINED TYPE HIERARCHY ----
+   Typography is 90% of the design. Display = Arial Black, all-caps,
+   letterspaced (brand); body = Arial with roomy line-height; labels =
+   small, letterspaced, muted. Use these instead of one-off inline sizes. */
+.pf-display,.pf-h1,.pf-h2,.pf-h3{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pf-display{font-family:var(--pf-font-display);font-size:var(--pf-type-display);line-height:1.05;letter-spacing:.04em;color:var(--pf-cream);text-transform:uppercase;font-weight:900;margin:0 0 .5em;}
+.pf-h1{font-family:var(--pf-font-display);font-size:var(--pf-type-h1);line-height:1.1;letter-spacing:.03em;color:var(--pf-cream);text-transform:uppercase;font-weight:900;margin:0 0 .5em;}
+.pf-h2{font-family:var(--pf-font-display);font-size:var(--pf-type-h2);line-height:1.15;letter-spacing:.03em;color:var(--pf-cream);text-transform:uppercase;font-weight:900;margin:0 0 .5em;}
+.pf-h3{font-family:var(--pf-font-display);font-size:var(--pf-type-h3);line-height:1.25;letter-spacing:.02em;color:var(--pf-cream);text-transform:uppercase;font-weight:900;margin:0 0 .5em;}
+.pf-body{font-family:var(--pf-font-body);font-size:var(--pf-type-body);line-height:1.6;color:var(--pf-cream);}
+.pf-lede{font-family:var(--pf-font-body);font-size:1.125rem;line-height:1.6;color:var(--pf-muted);}
+.pf-label{font-family:var(--pf-font-body);font-size:var(--pf-type-label);letter-spacing:.18em;text-transform:uppercase;color:var(--pf-muted);font-weight:700;}
+.pf-kicker{font-family:var(--pf-font-body);font-size:var(--pf-type-label);letter-spacing:.24em;text-transform:uppercase;color:var(--pf-red-bright);font-weight:900;}
+
+/* ---- BUTTONS: micro-interactions (merges with §4 rules above) ----
+   Buttons feel alive but restrained: 1px lift + soft red glow on hover,
+   a 1px press on :active, and the same easing everywhere. */
+.pf-btn,.c-btn,.cs-betbtn,.cs-takebtn,.gv-yes,.dp-acc,.dp-dec,.dp-end,.vd-open,.vd-upload,.br-ubtn,.cp-mbtn{
+  transition:background .18s var(--pf-ease),transform .12s ease,box-shadow .18s var(--pf-ease),color .18s var(--pf-ease),border-color .18s var(--pf-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-btn:hover,.c-btn:hover,.cs-betbtn:hover,.cs-takebtn:hover{
+  transform:translateY(-1px); box-shadow:var(--pf-glow-red);
+}
+.pf-btn:active,.c-btn:active,.cs-betbtn:active,.cs-takebtn:active,
+.gv-yes:active,.dp-acc:active,.dp-dec:active,.dp-end:active,
+.vd-open:active,.vd-upload:active,.br-ubtn:active,.cp-mbtn:active{
+  transform:translateY(1px); box-shadow:none;
+}
+.pf-btn:disabled,.c-btn:disabled{filter:saturate(.4);}
+/* utility shapes for the button family */
+.pf-btn-block{display:block;width:100%;margin-left:0;margin-right:0;}
+.pf-btn-lg{padding:15px 28px;font-size:15px;}
+.pf-btn-loading{pointer-events:none;filter:saturate(.4);}
+
+/* ---- CHIPS ----
+   Small selectable/status tokens (filters, tags, status pills). Never red
+   by default — red stays reserved for CTAs. */
+.pf-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border:1px solid var(--pf-border-light);background:var(--pf-dark-3);
+  color:var(--pf-cream);font-family:var(--pf-font-body);font-size:12px;
+  letter-spacing:1px;text-transform:uppercase;cursor:default;box-sizing:border-box;}
+button.pf-chip,a.pf-chip{cursor:pointer;min-height:44px;text-decoration:none;
+  transition:border-color .18s var(--pf-ease),color .18s var(--pf-ease),background .18s var(--pf-ease);}
+button.pf-chip:hover,a.pf-chip:hover{border-color:var(--pf-red);color:#fff;}
+.pf-chip.on{border-color:var(--pf-red);background:rgba(193,18,31,.15);color:#fff;}
+.pf-chip-gold{border-color:var(--pf-gold);color:var(--pf-gold);}
+
+/* ---- INPUTS: butter focus + state classes (merges with §5 rules) ---- */
+.c-input,.c-in,.vl-form input,.vl-form select,.vd-frame input,.vd-frame select,.dp-frame input,.dp-frame select{
+  transition:border-color .18s var(--pf-ease),box-shadow .18s var(--pf-ease);
+}
+.c-input:focus,.c-in:focus,.vl-form input:focus,.vl-form select:focus,
+.vd-frame input:focus,.vd-frame select:focus,.dp-frame input:focus,.dp-frame select:focus{
+  border-color:var(--pf-red-bright); outline:none;
+  box-shadow:0 0 0 2px rgba(193,18,31,.35);
+}
+.c-input::placeholder,.c-in::placeholder{color:#5a5348;}
+.pf-input-err{border-color:var(--pf-red-bright)!important;box-shadow:0 0 0 2px rgba(193,18,31,.35);}
+.pf-input-ok{border-color:var(--pf-green)!important;}
+.pf-help{font-family:var(--pf-font-body);font-size:12px;color:var(--pf-dim);margin:4px 0;line-height:1.5;}
+.pf-err{font-family:var(--pf-font-body);font-size:12px;color:#ff8a8a;letter-spacing:.06em;margin:6px 0;line-height:1.5;}
+.pf-ok{font-family:var(--pf-font-body);font-size:12px;color:#7ddf8a;letter-spacing:.06em;margin:6px 0;line-height:1.5;}
+
+/* ---- SUCCESS STATE (companion to .c-err) ---- */
+.c-ok{font-family:var(--pf-font-body);font-size:12px;color:#7ddf8a;margin:8px 0;letter-spacing:1px;}
+
+/* ---- SHARED MODAL SHELL ----
+   One modal voice for the whole site. JS builds the shell + these classes
+   (recovery and one-prompt templates now use them); behavior unchanged. */
+.pf-modal-veil{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;
+  background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;
+  padding:1rem;box-sizing:border-box;overflow-y:auto;animation:pfVeilIn .22s var(--pf-ease);}
+.pf-modal-card{background:#0a0a0a;border:3px solid var(--pf-red);color:var(--pf-cream);
+  font-family:var(--pf-font-body);padding:1.75rem 1.5rem;max-width:440px;width:100%;
+  box-sizing:border-box;text-align:center;position:relative;box-shadow:var(--pf-shadow-md);
+  animation:pfCardIn .3s var(--pf-ease);}
+.pf-modal-x{position:absolute;top:.4rem;right:.7rem;cursor:pointer;font-size:1.4rem;
+  color:var(--pf-muted);line-height:1;min-width:44px;min-height:44px;display:flex;
+  align-items:center;justify-content:center;background:none;border:0;padding:0;
+  transition:color .18s var(--pf-ease);}
+.pf-modal-x:hover{color:#fff;}
+.pf-modal-kicker{font-size:var(--pf-type-label);font-weight:900;letter-spacing:.24em;
+  color:var(--pf-red-bright);margin-bottom:.9rem;text-transform:uppercase;}
+.pf-modal-title{font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:var(--pf-cream);
+  margin-bottom:.6rem;text-transform:uppercase;}
+.pf-modal-sub{font-size:.9rem;color:var(--pf-muted);line-height:1.55;margin-bottom:1rem;}
+.pf-modal-label{display:block;font-size:var(--pf-type-label);letter-spacing:.14em;
+  color:var(--pf-muted);margin-bottom:.3rem;text-transform:uppercase;font-weight:700;}
+.pf-modal-input{width:100%;background:var(--pf-dark);color:var(--pf-cream);
+  border:2px solid var(--pf-border-light);padding:.8rem;font-size:1rem;font-family:inherit;
+  box-sizing:border-box;margin-bottom:.5rem;text-align:center;min-height:48px;
+  transition:border-color .18s var(--pf-ease),box-shadow .18s var(--pf-ease);}
+.pf-modal-input:focus{border-color:var(--pf-red-bright);outline:none;box-shadow:0 0 0 2px rgba(193,18,31,.35);}
+.pf-modal-input-mono{font-family:var(--pf-font-mono);letter-spacing:.1em;}
+.pf-modal-btn{display:inline-block;background:var(--pf-red);color:#fff;font-weight:900;
+  letter-spacing:.12em;border:0;padding:.85rem 2rem;font-size:.95rem;cursor:pointer;
+  font-family:inherit;min-height:48px;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),transform .12s ease,box-shadow .18s var(--pf-ease);}
+.pf-modal-btn:hover{background:var(--pf-red-dark);transform:translateY(-1px);box-shadow:var(--pf-glow-red);}
+.pf-modal-btn:active{transform:translateY(1px);box-shadow:none;}
+.pf-modal-btn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none;}
+.pf-modal-btn-ghost{display:inline-block;background:transparent;color:var(--pf-cream);
+  font-weight:900;letter-spacing:.12em;border:2px solid var(--pf-cream);padding:.85rem 2rem;
+  font-size:.95rem;cursor:pointer;font-family:inherit;min-height:48px;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),border-color .18s var(--pf-ease),color .18s var(--pf-ease);}
+.pf-modal-btn-ghost:hover{background:var(--pf-red);border-color:var(--pf-red);color:#fff;}
+.pf-modal-err{font-size:.8rem;color:#ff8a8a;min-height:1.3em;margin-bottom:.5rem;}
+.pf-modal-ok{font-size:.8rem;color:#7ddf8a;min-height:1.3em;margin-bottom:.5rem;}
+.pf-modal-div{margin:1rem 0;border-top:1px solid var(--pf-border);padding-top:1rem;}
+@keyframes pfVeilIn{from{opacity:0;}}
+@keyframes pfCardIn{from{opacity:0;transform:translateY(14px) scale(.98);}}
+@keyframes pfFadeUp{from{opacity:0;transform:translateY(10px);}}
+
+/* ---- TOASTS (PF.toast in 00-bus.js is owned by another worker; this CSS
+   only adds entrance + depth to the live region it already builds) ---- */
+#pf-toast-live>div{animation:pfToastIn .28s var(--pf-ease);box-shadow:var(--pf-shadow-md);}
+@keyframes pfToastIn{from{opacity:0;transform:translateY(10px);}}
+
+/* ---- SPINNERS & SKELETONS ---- */
+.pf-spinner{display:inline-block;width:22px;height:22px;border:3px solid var(--pf-border-light);
+  border-top-color:var(--pf-red);border-radius:50%;animation:pfSpin .8s linear infinite;vertical-align:-4px;}
+.pf-spinner-lg{width:34px;height:34px;border-width:4px;}
+@keyframes pfSpin{to{transform:rotate(360deg);}}
+.pf-skeleton{background:linear-gradient(90deg,var(--pf-dark-3) 25%,#262626 50%,var(--pf-dark-3) 75%);
+  background-size:200% 100%;animation:pfShimmer 1.4s linear infinite;color:transparent!important;}
+@keyframes pfShimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.pf-load-center{text-align:center;padding:24px 0;}
+
+/* ---- FOCUS SYSTEM (extends the §2 :focus-visible guards) ----
+   Keyboard users get a visible gold ring on every interactive inside PF
+   chrome, uniformly. Merges with the existing .pf-silo/.pf-btn rules. */
+[id^="pf-"] button:focus-visible,[id^="pf-"] a:focus-visible,
+[id^="pf-"] input:focus-visible,[id^="pf-"] select:focus-visible,
+[id^="pf-"] textarea:focus-visible,[id^="pf-"] [tabindex]:focus-visible{
+  outline:2px solid var(--pf-gold); outline-offset:2px;
+}
+
+/* ============================================================================
+   BUTTER PASS — CLAIM CTA  (class library for core/25-claim-cta.js)
+   The highest-value conversion on the site. Invitational, momentous:
+   animated red/gold top-rule, pulsing stars, sheen-swept claim button,
+   gentle rise on mount. All copy + flow + wiring unchanged.
+   ============================================================================ */
+.pf-claim-cta{max-width:560px;margin:1rem auto;background:#0d0d0d;border:2px solid var(--pf-red);
+  color:var(--pf-cream);padding:1.1rem 1.25rem 1.25rem;text-align:center;
+  font-family:Arial,sans-serif;box-sizing:border-box;position:relative;overflow:hidden;
+  animation:pfFadeUp .5s var(--pf-ease);}
+.pf-claim-cta::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--pf-red-dark),var(--pf-red),var(--pf-gold),var(--pf-red),var(--pf-red-dark));
+  background-size:200% 100%;animation:pfBorderSweep 4s linear infinite;}
+@keyframes pfBorderSweep{to{background-position:200% 0;}}
+.pf-claim-cta-copy{font-size:.95rem;font-weight:900;letter-spacing:.12em;
+  color:var(--pf-red-bright);text-transform:uppercase;}
+.pf-claim-cta-star{animation:pfStarPulse 2.2s ease-in-out infinite;display:inline-block;}
+@keyframes pfStarPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.65;transform:scale(1.15);}}
+.pf-claim-cta-sub{font-size:.78rem;color:var(--pf-muted);margin:.4rem 0 .8rem;}
+.pf-claim-cta-ctx{font-size:.72rem;color:var(--pf-muted);margin-top:.3rem;letter-spacing:.06em;}
+.pf-claim-cta-btn{background:var(--pf-red);color:#fff;border:none;font-family:inherit;
+  font-weight:900;letter-spacing:.12em;font-size:.85rem;padding:.7rem 1.8rem;cursor:pointer;
+  min-height:44px;position:relative;overflow:hidden;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),transform .12s ease,box-shadow .18s var(--pf-ease);}
+.pf-claim-cta-btn:hover{background:var(--pf-red-dark);transform:translateY(-1px);box-shadow:var(--pf-glow-red);}
+.pf-claim-cta-btn:active{transform:translateY(1px);box-shadow:none;}
+.pf-claim-cta-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);transition:left .5s var(--pf-ease);}
+.pf-claim-cta-btn:hover::after{left:130%;}
+
+/* ============================================================================
+   BUTTER PASS — ONE PROMPT  (class library for core/37-one-prompt.js)
+   The most beautiful thing a first-time visitor sees: deep-black card with
+   a soft red aura, sweeping entrance, glowing claim button, refined
+   checklist with animated check-dots. Copy + flow + kill switches unchanged.
+   ============================================================================ */
+.pf-op-veil{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99998;
+  background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;
+  padding:1rem;box-sizing:border-box;animation:pfVeilIn .25s var(--pf-ease);}
+.pf-op-card{background:#0a0a0a;border:3px solid var(--pf-red);color:var(--pf-cream);
+  font-family:'Helvetica Neue',Arial,sans-serif;padding:2rem 1.5rem;max-width:440px;width:100%;
+  max-height:92vh;overflow-y:auto;box-sizing:border-box;text-align:center;position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 60px rgba(193,18,31,.18);
+  animation:pfOpIn .45s var(--pf-ease);}
+.pf-op-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--pf-red),transparent);}
+@keyframes pfOpIn{from{opacity:0;transform:translateY(18px) scale(.97);}60%{opacity:1;}}
+.pf-op-kicker{font-size:.78rem;font-weight:900;letter-spacing:.24em;color:var(--pf-red-bright);margin-bottom:.9rem;}
+.pf-op-head{font-size:1.5rem;font-weight:900;line-height:1.25;margin:0 0 .6rem;letter-spacing:.02em;color:var(--pf-cream);}
+.pf-op-sub{font-size:.85rem;color:var(--pf-muted);line-height:1.6;margin:0 0 1.4rem;}
+.pf-op-claim{background:var(--pf-red);color:#fff;border:none;font-family:inherit;font-weight:900;
+  letter-spacing:.12em;font-size:.95rem;padding:.9rem 2rem;cursor:pointer;min-height:48px;
+  width:100%;box-sizing:border-box;position:relative;overflow:hidden;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),transform .12s ease,box-shadow .18s var(--pf-ease);}
+.pf-op-claim:hover{background:var(--pf-red-dark);box-shadow:var(--pf-glow-red);}
+.pf-op-claim:active{transform:translateY(1px);}
+.pf-op-claim::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:skewX(-20deg);transition:left .5s var(--pf-ease);}
+.pf-op-claim:hover::after{left:130%;}
+.pf-op-no{background:none;border:0;color:#8a7f68;cursor:pointer;font-size:.78rem;
+  text-decoration:underline;padding:.6rem;min-height:44px;font-family:inherit;
+  transition:color .18s var(--pf-ease);}
+.pf-op-no:hover{color:var(--pf-cream);}
+.pf-op-no-wrap{margin-top:.8rem;}
+.pf-op-checklist{background:#0b0b0c;border:3px solid var(--pf-red);max-width:680px;
+  width:calc(100% - 2rem);margin:1rem auto;padding:1.1rem 1.25rem;box-sizing:border-box;
+  font-family:'Helvetica Neue',Arial,sans-serif;animation:pfFadeUp .4s var(--pf-ease);}
+.pf-op-cl-headrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
+.pf-op-cl-head{color:var(--pf-red-bright);font-weight:900;letter-spacing:.22em;font-size:.72rem;}
+.pf-op-cl-x{background:none;border:0;color:#8a7f68;cursor:pointer;font-size:1.2rem;
+  line-height:1;padding:.4rem;min-width:40px;min-height:40px;transition:color .18s var(--pf-ease);}
+.pf-op-cl-x:hover{color:#fff;}
+.pf-op-step{display:flex;align-items:center;gap:.8rem;padding:.7rem 0;
+  border-bottom:1px solid #2a2a2a;text-align:left;transition:opacity .25s var(--pf-ease);}
+.pf-op-step-dot{flex:none;width:26px;height:26px;border:2px solid #4a4033;color:#4a4033;
+  font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  box-sizing:border-box;transition:border-color .25s var(--pf-ease),color .25s var(--pf-ease),background .25s var(--pf-ease);}
+.pf-op-step.is-done .pf-op-step-dot{border-color:var(--pf-red);color:#fff;background:var(--pf-red);}
+.pf-op-step-main{flex:1;min-width:0;}
+.pf-op-step-title{font-weight:900;font-size:.85rem;letter-spacing:.08em;color:var(--pf-cream);}
+.pf-op-step.is-done .pf-op-step-title{color:#8a7f68;text-decoration:line-through;}
+.pf-op-step-sub{font-size:.72rem;color:#8a7f68;}
+.pf-op-step-btn{flex:none;background:var(--pf-red);color:#fff;border:none;font-family:inherit;
+  font-weight:900;font-size:.72rem;letter-spacing:.1em;padding:.55rem .9rem;cursor:pointer;
+  min-height:40px;white-space:nowrap;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),transform .12s ease;}
+.pf-op-step-btn:hover{background:var(--pf-red-dark);}
+.pf-op-step-btn:active{transform:translateY(1px);}
+
+/* ============================================================================
+   BUTTER PASS — CALLSIGN RECOVERY  (class library for core/29-callsign-recovery.js)
+   Clean, trustworthy, premium. The gold accent is the established recovery
+   identity (kept verbatim as --pf-rec-gold). Modal entrance, focus glow on
+   inputs, refined code panel. Copy + copy rules + flow + kill switch unchanged.
+   ============================================================================ */
+.pf-rec-veil{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;
+  background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;
+  padding:1rem;box-sizing:border-box;overflow-y:auto;animation:pfVeilIn .22s var(--pf-ease);}
+.pf-rec-card{background:#0a0a0a;border:3px solid var(--pf-rec-gold);color:#f5ead6;
+  font-family:'Helvetica Neue',Arial,sans-serif;padding:1.75rem;max-width:440px;width:100%;
+  box-sizing:border-box;text-align:center;position:relative;box-shadow:var(--pf-shadow-md);
+  animation:pfCardIn .3s var(--pf-ease);}
+.pf-rec-x{position:absolute;top:.4rem;right:.7rem;cursor:pointer;font-size:1.4rem;
+  color:#b8ab8e;line-height:1;background:none;border:0;min-width:44px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;padding:0;
+  transition:color .18s var(--pf-ease);}
+.pf-rec-x:hover{color:#fff;}
+.pf-rec-title{font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:var(--pf-rec-gold);
+  margin-bottom:.6rem;text-transform:uppercase;}
+.pf-rec-title.pf-rec-sect{font-size:.85rem;letter-spacing:.1em;}
+.pf-rec-sect-cream{color:#f5ead6;}
+.pf-rec-sub{font-size:.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;}
+.pf-rec-sub-bright{color:#f5ead6;font-size:.95rem;}
+.pf-rec-label{display:block;font-size:.72rem;letter-spacing:.14em;color:var(--pf-rec-gold);
+  margin-bottom:.3rem;text-transform:uppercase;font-weight:700;}
+.pf-rec-input{width:100%;background:#141414;color:#f5ead6;border:2px solid var(--pf-rec-gold);
+  padding:.8rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:.5rem;
+  text-align:center;min-height:48px;
+  transition:border-color .18s var(--pf-ease),box-shadow .18s var(--pf-ease);}
+.pf-rec-input:focus{outline:none;box-shadow:0 0 0 2px rgba(212,175,55,.35);}
+.pf-rec-input-mono{font-family:var(--pf-font-mono);letter-spacing:.1em;}
+.pf-rec-btn{display:inline-block;background:var(--pf-rec-gold);color:#0a0a0a;font-weight:900;
+  letter-spacing:.12em;border:0;padding:.85rem 2rem;font-size:.95rem;cursor:pointer;
+  font-family:inherit;min-height:48px;text-transform:uppercase;
+  transition:filter .18s var(--pf-ease),transform .12s ease,box-shadow .18s var(--pf-ease);}
+.pf-rec-btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,175,55,.25);}
+.pf-rec-btn:active{transform:translateY(1px);box-shadow:none;}
+.pf-rec-btn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none;}
+.pf-rec-btn-ghost{background:transparent;color:var(--pf-rec-gold);border:2px solid var(--pf-rec-gold);}
+.pf-rec-btn-ghost:hover{background:var(--pf-rec-gold);color:#0a0a0a;filter:none;box-shadow:none;}
+.pf-rec-err{font-size:.8rem;color:#ff8a8a;min-height:1.3em;margin-bottom:.5rem;}
+.pf-rec-ok{font-size:.8rem;color:#7ddf8a;min-height:1.3em;margin-bottom:.5rem;}
+.pf-rec-div{margin:1rem 0;border-top:1px solid #3a3a3a;padding-top:1rem;}
+.pf-rec-code{font-family:var(--pf-font-mono);font-size:1.5rem;font-weight:900;
+  letter-spacing:.28em;color:var(--pf-rec-gold);background:#141414;
+  border:2px dashed var(--pf-rec-gold);padding:1rem .6rem 1rem 1rem;margin:.4rem 0 .8rem;
+  word-break:keep-all;}
+.pf-rec-warn{font-size:.8rem;color:#ff8a8a;line-height:1.6;margin-top:.8rem;
+  border:2px solid var(--pf-red);padding:.7rem;text-align:left;}
+.pf-rec-note{font-size:.75rem;color:var(--pf-rec-gold-dim);margin-top:.8rem;line-height:1.5;}
+.pf-rec-b{color:#f5ead6;}
+.pf-rec-copy-ok{font-size:.78rem;color:#7ddf8a;min-height:1.3em;margin-top:.4rem;}
+.pf-rec-copybtn{font-size:.8rem;padding:.7rem 1.4rem;}
+.pf-recover-row{margin-top:.7rem;}
+.pf-recover-link{background:none;border:none;color:var(--pf-rec-gold);font-size:.78rem;
+  letter-spacing:.08em;text-decoration:underline;cursor:pointer;font-family:inherit;
+  padding:.5rem;min-height:44px;transition:color .18s var(--pf-ease);}
+.pf-recover-link:hover{color:#fff;}
+.pf-recovery-entry{margin-top:.4rem;}
+.pf-rec-entrybtn{background:none;border:1px solid var(--pf-rec-gold);color:var(--pf-rec-gold);
+  font-size:.7rem;letter-spacing:.12em;padding:.45rem .9rem;cursor:pointer;font-family:inherit;
+  min-height:44px;text-transform:uppercase;
+  transition:background .18s var(--pf-ease),color .18s var(--pf-ease);}
+.pf-rec-entrybtn:hover{background:var(--pf-rec-gold);color:#0a0a0a;}
+.pf-rec-entrysub{font-size:.68rem;color:var(--pf-rec-gold-dim);margin-top:.3rem;letter-spacing:.06em;}
+.pf-rec-success{font-size:1.2rem;font-weight:900;letter-spacing:.14em;color:#7ddf8a;
+  margin-bottom:.6rem;text-transform:uppercase;}
+
+/* ---- REDUCED MOTION: kill the butter where the user asked for none ---- */
+@media (prefers-reduced-motion:reduce){
+  .pf-claim-cta,.pf-op-veil,.pf-op-card,.pf-op-checklist,
+  .pf-modal-veil,.pf-modal-card,.pf-rec-veil,.pf-rec-card,
+  #pf-toast-live>div{animation:none;}
+  .pf-claim-cta::before,.pf-claim-cta::after,.pf-op-card::before,
+  .pf-claim-cta-star,.pf-op-claim::after,.pf-claim-cta-btn::after,
+  .pf-spinner,.pf-skeleton{animation:none;}
+  .pf-btn,.c-btn,.pf-chip,.pf-modal-btn,.pf-modal-btn-ghost,
+  .pf-rec-btn,.pf-rec-entrybtn,.pf-recover-link,.pf-op-no,.pf-op-step-btn,
+  .c-input,.c-in,.pf-modal-input,.pf-rec-input{transition:none;}
+}
+
+/* --- synced from v1.4.3/core/33-patterns.css (butter block) --- */
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Brand pattern butter: CTA-family micro-interactions (the two red buttons
+   get the 1px-lift + glow treatment), intel-card hover depth, fluid display
+   figures, and gold focus rings across P3/P6. CTA discipline, rogue-verb
+   map, and red-button rules above are untouched — every rule below is NEW.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js.
+   ============================================================================ */
+/* ---- P1: fluid mission line, balanced measure ---- */
+.pf-pat-hero-mission{font-size:clamp(1.25rem,4.5vw,1.75rem);text-wrap:balance;}
+/* ---- P2: intel card — subtle depth on hover, never loud ---- */
+.pf-pat-intel{transition:border-color .18s ease,box-shadow .18s ease;}
+.pf-pat-intel:hover{border-color:#c1121f;box-shadow:0 4px 18px rgba(0,0,0,.5);}
+/* ---- P3: CTA family — alive but restrained ---- */
+.pf-pat-join,.pf-pat-deploy-red{
+  transition:background .18s ease,transform .12s ease,box-shadow .18s ease,color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.pf-pat-join:hover,.pf-pat-deploy-red:hover{
+  transform:translateY(-1px); box-shadow:0 8px 24px rgba(193,18,31,.35);
+}
+.pf-pat-join:active,.pf-pat-deploy-red:active{
+  transform:translateY(1px); box-shadow:none;
+}
+.pf-pat-deploy{transition:color .18s ease;}
+.pf-pat-report{transition:color .18s ease,text-decoration-color .18s ease;}
+/* ---- P4: fluid data figure ---- */
+.pf-pat-data-fig{font-size:clamp(2.25rem,9vw,2.75rem);}
+/* ---- P6: action bar — smooth taps + gold focus ---- */
+.pf-pat-actions a{transition:color .18s ease,background .18s ease;-webkit-tap-highlight-color:transparent;}
+.pf-pat-actions a:active{background:rgba(193,18,31,.12);}
+.pf-pat-actions a:focus-visible,.pf-pat-join:focus-visible,.pf-pat-deploy-red:focus-visible,
+.pf-pat-report:focus-visible,.pf-pat-textlink:focus-visible{
+  outline:2px solid #e8b923; outline-offset:2px;
+}
+/* ---- P5: ring rows stay crisp ---- */
+.pf-pat-ring{-webkit-tap-highlight-color:transparent;}
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion:reduce){
+  .pf-pat-join,.pf-pat-deploy-red,.pf-pat-intel,.pf-pat-actions a{transition:none;}
+}
+
+/* --- synced from v1.4.3/core/41-mobile-first.css (butter block) --- */
+   BUTTER PASS 2026-10-07 (fe/butter-pass, WORKSTREAM 4) — ADDITIVE ONLY.
+   Mobile-first butter: no tap flash, press feedback (touch has no hover),
+   fluid section titles, balanced hero measure, roomier silo padding.
+   Every rule below is NEW — nothing above was modified.
+   ★ SYNC: copy every rule block below into v1.4.3/core/bundle-styles.css
+   (append at the bottom with the other hand-added blocks), then run
+   node build/check-styles-sync.js. Also register nothing new — this file is
+   already in the SOURCES list of build/check-styles-sync.js.
+   ============================================================================ */
+/* No gray tap flash on any homepage interactive */
+#pf-v2 a,#pf-v2 button{-webkit-tap-highlight-color:transparent;}
+/* Press feedback — touch users get the :active that hover users get from lift */
+#pf-v2 #pf-hero-cta{transition:transform .12s ease,box-shadow .18s ease;}
+#pf-v2 #pf-hero-cta:active{transform:scale(.98);}
+#pf-v2 #pf-closer-grid a{transition:transform .12s ease,border-color .18s ease;}
+#pf-v2 #pf-closer-grid a:active{transform:scale(.98);}
+/* Fluid, balanced section titles */
+#pf-v2 .pf-section-head .pf-sh-title{
+  font-size:clamp(1.25rem,5.5vw,1.625rem); line-height:1.2; text-wrap:balance;
+}
+#pf-v2 #pf-hero h1{text-wrap:balance;letter-spacing:.01em;}
+/* Roomier silo padding on the homepage column */
+#pf-v2 .pf-silo{padding:32px 20px;}
+/* Reduced-motion: butter off where asked */
+@media (prefers-reduced-motion:reduce){
+  #pf-v2 #pf-hero-cta,#pf-v2 #pf-closer-grid a{transition:none;}
+}

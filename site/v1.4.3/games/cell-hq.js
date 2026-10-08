@@ -1,0 +1,2341 @@
+/* games/cell-hq.js  |  PF v1.4.3 | CELL HQ — unified cell command dashboard.
+   One tabbed interface wiring EVERY cell backend action:
+     cell_mine, cell_create, cell_join, cell_checkin, cell_cover,
+     cell_leave, cell_rename, cell_promote, cell_bounty_claim,
+     cell_prestige, cell_health, cell_search, cell_leaderboard,
+     cell_links, cellwar_standings, cellwar_history
+   NOTE: cell_members and cell_activity are not backend actions. Member
+   rosters come from cell_mine (primary cell) + cell_prestige (any cell).
+   The "pulse" panel derives recent activity from cell_health.
+   Mounts into <div id="pf-cell-hq"></div>; falls back to inserting after
+   #pf-war-card when on Creator HQ without the dedicated mount.
+   Needs: core/00-bus.js (PF, PF.toast), core/03-global.js (PF_BACKEND_URL).
+   KILL: ?pf_off=cellhq  or  localStorage pf_disabled_v1='["cellhq"]' */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF || PF.skip("cellhq")) { return; }
+  try { /* never mount inside the Squarespace editor */
+    var href = window.location.href || '';
+    if (href.indexOf('/config/') !== -1) return;
+    var bd = document.body;
+    if (bd && (bd.classList.contains('sqs-edit-mode') || bd.classList.contains('sqs-editing'))) return;
+  } catch (e) {}
+
+  var mount = document.getElementById('pf-cell-hq');
+  if (!mount) {
+    var warCard = document.getElementById('pf-war-card');
+    if (!warCard || !warCard.parentNode) { return; }
+    mount = document.createElement('div');
+    mount.id = 'pf-cell-hq';
+    warCard.parentNode.insertBefore(mount, warCard.nextSibling);
+  }
+
+  /* PLAY 10 — WINS THAT ECHO (2026-10-06): inject the wins strip at the top
+     of the cell feed. Fail-open — absent PF.wins leaves the dashboard
+     exactly as before. Idempotent (bus guards on #pf-wins-cellfeed). */
+  try {
+    if (window.PF && PF.wins && typeof PF.wins.injectCellFeed === 'function') {
+      PF.wins.injectCellFeed(mount);
+    }
+  } catch (e) {}
+
+  var BACKEND = window.PF_BACKEND_URL;
+  var LS_HQ = 'pf_cellhq_v1';
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  /* CELLS STATE AFFILIATION (2026-10-05): 50 states + DC, copied verbatim
+     from civic.js STATES (bundle-cells ships cell-hq.js WITHOUT civic.js,
+     so the constant is duplicated here by design — keep both lists in sync;
+     see tests/cell-state-consistency.md). Fail-soft: every state read is
+     guarded, so cells from an old backend (no state field) render exactly
+     as before. */
+  var HQ_STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["DC","District of Columbia"]];
+  function hqStateName(code){ code=String(code||"").toUpperCase();
+    for(var i=0;i<HQ_STATES.length;i++) if(HQ_STATES[i][0]===code) return HQ_STATES[i][1];
+    return ""; }
+  function hqStateOpts(sel,noLabel){
+    var h='<option value="">'+esc(noLabel||"No state affiliation")+'</option>';
+    for(var i=0;i<HQ_STATES.length;i++){
+      h+='<option value="'+HQ_STATES[i][0]+'"'+(sel===HQ_STATES[i][0]?' selected':'')+'>'+esc(HQ_STATES[i][1])+'</option>';
+    }
+    return h; }
+  function hqStateBadge(c){ /* "OPERATING IN TEXAS" on the cell header. */
+    var n=c&&hqStateName(c.state);
+    return n?'<span class="hq-state" title="State affiliation">OPERATING IN '+esc(n.toUpperCase())+'</span>':""; }
+  function hqStateTag(it){ /* compact "TEXAS" tag for task/bounty/listing rows. */
+    var n=it&&hqStateName(it.state);
+    return n?'<span class="hq-stag" title="State-scoped">'+esc(n.toUpperCase())+'</span>':""; }
+  function toast(m){ try{ PF.toast(m); }catch(e){} }
+  function ident(){ var cs="",dev=""; try{ cs=window.PFCallsign?window.PFCallsign():""; }catch(e){} try{ dev=window.PFDeviceId?window.PFDeviceId():""; }catch(e){} return {callsign:cs,device:dev}; }
+  function load(k,fb){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(fb)); }catch(e){ return fb; } }
+  function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+  /* JSONP GET — read-only cell actions. 12s timeout, same as every silo. */
+  var READ = { cell_mine:1, cell_prestige:1, cell_health:1, cell_search:1,
+    cell_leaderboard:1, cell_links:1, cellwar_standings:1, cellwar_history:1,
+    warchest_status:1, treasury_balance:1, propbounty_list:1, recruit_funnel:1 };
+  /* Mutations go through POST (CSRF-able via GET otherwise). */
+  var WRITE = { cell_create:1, cell_join:1, cell_checkin:1, cell_cover:1,
+    cell_leave:1, cell_rename:1, cell_update:1, cell_promote:1, cell_bounty_claim:1,
+    cell_contribute:1, propbounty_post:1, propbounty_submit:1,
+    propbounty_vote:1, propbounty_settle:1, propbounty_cancel:1 };
+
+  function api(action, params, cb){
+    if (WRITE[action]) { postMut(action, params, cb); return; }
+    if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for the
+       auth-gated cell_mine, propbounty_list, and the member-gated
+       recruit_funnel (CELLS 2.0) — same PF.getAuthSecret() pattern as briefing.js. */
+    if(action==="cell_mine"||action==="propbounty_list"||action==="recruit_funnel"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfHqCb"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    for(var k in params){ if(params[k]!=null&&params[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(params[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  function postMut(action, params, cb){
+    var body = Object.assign({ type:'cell', cell_action:action }, params||{});
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('cell','cell_action',action,params,cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  function withIdent(params){
+    var id = ident();
+    var p = Object.assign({}, params||{});
+    if (id.callsign) p.callsign = id.callsign;
+    if (id.device) p.device = id.device;
+    return p;
+  }
+
+  /* Finance mutations: {type:'finance', f_action}. Campaign: {type:'campaign', c_action}. */
+  function postFin(fAction, params, cb){
+    var body = Object.assign({ type:'finance', f_action:fAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('finance','f_action',fAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Prize mutations: {type:'prize', p_action}. 2026-10-03 conn fix: these were
+     posted via postFin as {type:'finance',f_action:'prize_*'} — dead
+     "unknown finance action" (backend routes prizes under type:'prize'). */
+  function postPrize(pAction, params, cb, opts){
+    var admin = opts && opts.admin;
+    var body = Object.assign({ type:'prize', p_action:pAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction && !admin) { PF.postAction('prize','p_action',pAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      var headers = { "Content-Type":"application/json" };
+      /* prize_award is backend ADMIN-class: needs the vault's session secret
+         or the router 403s. Fail closed without it. */
+      if (admin){ var _s = adminSecret(); if(_s) headers["X-Admin-Secret"]=_s; }
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:headers,body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Admin gate for prize_award: the vault prompts for the admin secret once
+     per session and keeps it in sessionStorage ("pf_admin_secret"). No
+     secret in this session = no admin path from this page, so the Award
+     control stays hidden and the click fails closed. */
+  function adminSecret(){ try{ return sessionStorage.getItem("pf_admin_secret")||""; }catch(e){ return ""; } }
+  function postCamp(cAction, params, cb){
+    var body = Object.assign({ type:'campaign', c_action:cAction }, withIdent(params));
+    function done(j){ try{ cb(j||{ok:false,err:"Network error."}); }catch(e){} }
+    if (window.PF && PF.postAction) { PF.postAction('campaign','c_action',cAction,withIdent(params),cb); return; }
+    if(!BACKEND){ done(null); return; }
+    try{
+      /* L2 (2026-10-03): 15s abort on the no-authPost fallback (was: hung POST spins forever). */
+      var _po=(function(){ var o={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},c=null,t=null;
+        try{ if(window.AbortController){ c=new AbortController(); o.signal=c.signal;
+          t=setTimeout(function(){ try{ c.abort(); }catch(e){} },15000); } }catch(e){}
+        o._pfClear=function(){ if(t){ try{ clearTimeout(t); }catch(e){} } }; return o; })();
+      fetch(BACKEND,_po)
+        .then(function(r){ return r.json(); })
+        .then(function(j){ _po._pfClear(); done(j); })
+        .catch(function(){ _po._pfClear(); done(null); });
+    }catch(e){ done(null); }
+  }
+  /* Finance reads available over JSONP GET. */
+  var FIN_READ = { bond_list:1, loan_list:1, prize_list:1, prize_contrib_list:1, bank_status:1, campaign_status:1 };
+  function finGet(action, params, cb){
+    if(!BACKEND){ cb(null); return; }
+    /* Private reads require auth_secret (IDOR fix). Auto-attach for gated actions. */
+    if(action==="bank_status"){
+      try{
+        var _sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():"";
+        if(_sec&&params&&!params.auth_secret) params.auth_secret=_sec;
+      }catch(e){}
+    }
+    var fn="pfHqFin"+Math.floor(Math.random()*1e9);
+    var s=document.createElement("script"), done=false;
+    function finish(j){ if(done)return; done=true; try{delete window[fn];}catch(e){}
+      if(s.parentNode)s.parentNode.removeChild(s); cb(j); }
+    window[fn]=function(j){ finish(j); };
+    s.onerror=function(){ finish(null); };
+    var q="?action="+encodeURIComponent(action);
+    var pp = withIdent(params);
+    for(var k in pp){ if(pp[k]!=null&&pp[k]!=="") q+="&"+encodeURIComponent(k)+"="+encodeURIComponent(pp[k]); }
+    q+="&callback="+fn; s.src=BACKEND+q; document.head.appendChild(s);
+    setTimeout(function(){ finish(null); },12000);
+  }
+  /* Native confirm for money actions — no accidental taps. */
+  function moneyConfirm(msg){ try{ return window.confirm(msg); }catch(e){ return false; } }
+  function numIn(id, fb){
+    var el = document.getElementById(id);
+    var v = el ? Math.round(Number(el.value)||0) : 0;
+    return v > 0 ? v : (fb||0);
+  }
+  function strIn(id){
+    var el = document.getElementById(id);
+    return el ? String(el.value||'').trim() : '';
+  }
+  /* Dividend split preview: equal floor split across every member (matches
+     the backend dividend_pay — no weighted/by-contribution mode exists). */
+  function divSplit(amt){
+    var n = ((S.mine && S.mine.members) || []).length;
+    if (!n || !amt || amt < 1) return null;
+    var per = Math.floor(amt / n);
+    if (per < 1) return null;
+    var total = per * n;
+    return { n: n, per: per, total: total, leftover: amt - total };
+  }
+  function divPreviewHtml(amt){
+    var sp = divSplit(amt);
+    if (!sp) return 'Enter an amount to preview the split.';
+    var s = sp.per.toLocaleString()+' XP &times; '+sp.n+' members = <b>'+sp.total.toLocaleString()+' XP</b> distributed';
+    if (sp.leftover > 0) s += ' ('+sp.leftover.toLocaleString()+' XP stays in the treasury)';
+    return s;
+  }
+
+  /* ---------- shell ---------- */
+  var CSS = '<style>' +
+    '#pf-cell-hq{max-width:860px;margin:0 auto;padding:8px 4px;font-family:inherit}' +
+    '.hq-head{border:3px solid #c1121f;background:#0a0a0a;color:#f5f0e6;padding:14px 16px;margin-bottom:10px}' +
+    '.hq-head h2{margin:0 0 4px;font-size:22px;letter-spacing:1px}' +
+    '.hq-tag{font-size:13px;opacity:.85}' +
+    '.hq-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}' +
+    '.hq-tab{flex:0 0 auto;background:#141414;color:#f5f0e6;border:2px solid #3a3a3a;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}' +
+    '.hq-tab.on{background:#c1121f;border-color:#c1121f}' +
+    '.hq-pane{background:#0a0a0a;border:2px solid #2a2a2a;color:#f5f0e6;padding:14px;min-height:200px}' +
+    '.hq-card{background:#141414;border:2px solid #2e2e2e;margin:0 0 12px;padding:12px}' +
+    '.hq-card h3{margin:0 0 6px;font-size:17px}' +
+    '.hq-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
+    '.hq-stat{font-size:13px;background:#1c1c1c;border:1px solid #333;padding:5px 10px;margin:3px 6px 3px 0;display:inline-block}' +
+    '.hq-btn{background:#c1121f;color:#fff;border:0;font-weight:700;padding:9px 14px;font-size:14px;cursor:pointer;margin:4px 4px 4px 0}' +
+    '.hq-btn.ghost{background:#1c1c1c;border:2px solid #c1121f}' +
+    '.hq-btn.sm{padding:6px 10px;font-size:12px}' +
+    '.hq-btn:disabled{opacity:.45;cursor:default}' +
+    '.hq-in{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%}' +
+    '.hq-load{padding:22px;text-align:center;opacity:.75;font-style:italic}' +
+    '.hq-err{border:2px solid #c1121f;background:#1a0505;padding:12px;margin:8px 0}' +
+    '.hq-err .hq-btn{margin-top:8px}' +
+    '.hq-mem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #222;font-size:14px}' +
+    '.hq-mem:last-child{border-bottom:0}' +
+    '.hq-badge{font-size:11px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap}' +
+    '.hq-badge.dim{background:#333}' +
+    '.hq-state{font-size:11px;background:#0d0d0d;border:2px solid #c1121f;color:#f5ead6;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-stag{font-size:10px;background:#c1121f;color:#fff;padding:2px 8px;font-weight:700;margin-left:6px;white-space:nowrap;letter-spacing:1px}' +
+    '.hq-sel{background:#0a0a0a;color:#f5f0e6;border:2px solid #444;padding:9px 10px;font-size:16px;margin:4px 4px 4px 0;max-width:100%;min-height:44px}' +
+    '.hq-bar{height:10px;background:#222;margin:4px 0 10px;position:relative}' +
+    '.hq-bar>div{height:10px;background:#c1121f}' +
+    '.hq-winner{border-color:#c1121f;background:#180a0a}' +
+    '.hq-strike-pol{border-color:#c1121f;background:#1a0505}' +
+    '.hq-badge.gold{background:#8a6d1f;color:#fff;border:1px solid #d4af37}' +
+    '.hq-badge.plain{margin-left:0;margin-right:6px}' +
+    '.hq-btn.hq-btn44{min-height:44px;display:inline-flex;align-items:center;padding:4px 18px;line-height:1.3}' +
+    '.hq-strike-sum{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px}' +
+    '.hq-order-t{margin:8px 0 4px;font-size:16px}' +
+    '.hq-order-d{font-size:13.5px;line-height:1.5;opacity:.9;margin-bottom:8px}' +
+    '.hq-note{font-size:12.5px;opacity:.8;line-height:1.5}' +
+    /* PLAY 7 (2026-10-06): rally-call cards. Kill: ?pf_off=cell-rally. */
+    '.hq-rally{border-color:#c1121f}' +
+    '.hq-rallyitem{border:2px solid #2e2e2e;background:#0d0d0d;padding:10px;margin:8px 0}' +
+    '.hq-rallytitle{font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}' +
+    /* CELLS 2.0 — Recruit panel. */
+    '.hq-joiner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #222;font-size:13.5px}' +
+    '.hq-in.linklike{flex:1;min-width:0;font-size:12px;font-family:monospace,monospace}' +
+    '@media(max-width:560px){.hq-pane{padding:10px}.hq-head h2{font-size:19px}}' +
+    '</style>';
+
+  mount.innerHTML = CSS +
+    '<div class="hq-head"><h2>&#9876; CELL HQ</h2>' +
+    '<div class="hq-tag">Command center for your cells — streaks, prestige, Cell War, and the whole network.</div>' +
+    '<div class="hq-tag" style="margin-top:4px;">&#128467; <a href="/events#pf-mastercal" style="font-weight:800;color:#c1121f;">WAR CALENDAR</a> — mobilizations, draws, and deadlines.</div></div>' +
+    '<div class="hq-tabs" id="hqTabs">' +
+    '<button class="hq-tab on" data-tab="mine">MY CELLS</button>' +
+    '<button class="hq-tab" data-tab="war">CELL WAR</button>' +
+    '<button class="hq-tab" data-tab="browse">BROWSE</button>' +
+    '<button class="hq-tab" data-tab="treasury">TREASURY</button>' +
+    '</div>' +
+    '<div class="hq-pane" id="hqPane"><div class="hq-load">Raising the cell network&hellip;</div></div>';
+
+  var S = {
+    tab: 'mine',
+    mine: null,          /* cell_mine response */
+    detail: null,        /* selected cell_id */
+    detailPrestige: null,
+    detailHealth: null,
+    war: null,
+    history: null,
+    board: null,
+    links: null,
+    searchQ: '',
+    searchState: '',
+    searchRes: null,
+    loading: {}
+  };
+  /* CELLS 2.0 (2026-10-05): recruit funnel cache — keyed by cell so a slow
+     recruit_funnel read can never corrupt or delay the main detail paint. */
+  var RF = { cid: '', j: null };
+
+  function tabEl(n){ return mount.querySelector('.hq-tab[data-tab="'+n+'"]'); }
+  function pane(){ return document.getElementById('hqPane'); }
+
+  mount.querySelectorAll('.hq-tab').forEach(function(b){
+    b.addEventListener('click', function(){
+      mount.querySelectorAll('.hq-tab').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      S.tab = b.getAttribute('data-tab');
+      render();
+    });
+  });
+
+  function loading(msg){
+    return '<div class="hq-load">'+esc(msg||'Loading&hellip;')+'</div>';
+  }
+  function netErr(retry){
+    return '<div class="hq-err"><b>Couldn\'t reach HQ.</b><div class="hq-note">The network dropped the call. Nothing was lost.</div>' +
+      '<button class="hq-btn sm" data-hq-retry="'+esc(retry||'')+'">RETRY</button></div>';
+  }
+  function friendlyErr(j){
+    if (!j) return "Couldn't reach HQ. Check your connection.";
+    return j.err || j.error || 'Something broke on our end.';
+  }
+
+  /* ---------- data loaders ---------- */
+  function loadMine(cb){
+    if (S.mine && S.mine._t && Date.now()-S.mine._t < 30000) { cb(S.mine); return; }
+    S.loading.mine = true;
+    api('cell_mine', withIdent({}), function(j){
+      S.loading.mine = false;
+      if (j) { j._t = Date.now(); S.mine = j; }
+      cb(j);
+    });
+  }
+  function loadPrestige(cellId, cb){
+    var key = 'p_'+cellId;
+    if (S.detailPrestige && S.detailPrestige.cell_id === cellId) { cb(S.detailPrestige); return; }
+    S.loading[key] = true;
+    api('cell_prestige', withIdent({cell_id: cellId}), function(j){
+      S.loading[key] = false;
+      if (j && j.ok) S.detailPrestige = j;
+      cb(j);
+    });
+  }
+  function loadHealth(cellId, cb){
+    var key = 'h_'+cellId;
+    if (S.detailHealth && S.detailHealth.health && S.detailHealth.health.cell_id === cellId) { cb(S.detailHealth); return; }
+    S.loading[key] = true;
+    api('cell_health', withIdent({cell_id: cellId}), function(j){
+      S.loading[key] = false;
+      if (j && j.ok) S.detailHealth = j;
+      cb(j);
+    });
+  }
+  function loadWar(cb){
+    if (S.war && Date.now()-S.war._t < 60000) { cb(S.war); return; }
+    S.loading.war = true;
+    api('cellwar_standings', {}, function(j){
+      S.loading.war = false;
+      if (j && j.ok) { j._t = Date.now(); S.war = j; }
+      cb(j);
+    });
+  }
+  function loadHistory(cb){
+    if (S.history) { cb(S.history); return; }
+    S.loading.hist = true;
+    api('cellwar_history', {}, function(j){
+      S.loading.hist = false;
+      if (j && j.ok) S.history = j;
+      cb(j);
+    });
+  }
+  /* G6 (2026-10-04): War Room cell-war odds. Read-only — zero XP for
+     viewing; stakes go through the layer's wager_place escrow. */
+  function loadMarket(cb){
+    if (S.market && Date.now()-S.market._t < 60000) { cb(S.market); return; }
+    S.loading.market = true;
+    api('cellwar_market', {}, function(j){
+      S.loading.market = false;
+      if (j && j.ok) { j._t = Date.now(); S.market = j; }
+      cb(j);
+    });
+  }
+  function loadBoard(cb){
+    if (S.board && Date.now()-S.board._t < 60000) { cb(S.board); return; }
+    S.loading.board = true;
+    api('cell_leaderboard', {}, function(j){
+      S.loading.board = false;
+      if (j) { j._t = Date.now(); S.board = j; }
+      cb(j);
+    });
+  }
+  function loadLinks(cb){
+    if (S.links && Date.now()-S.links._t < 120000) { cb(S.links); return; }
+    S.loading.links = true;
+    api('cell_links', {}, function(j){
+      S.loading.links = false;
+      if (j) { j._t = Date.now(); S.links = j; }
+      cb(j);
+    });
+  }
+  function doSearch(cb){
+    S.loading.search = true;
+    /* api() drops "" — unfiltered discovery behaves exactly as before.
+       CELL IDENTITY (2026-10-05): quality filters pass through to the
+       cell_search filters (cause/vibe/specialty/entry/activity).
+       QC FIX (2026-10-05, Finding 3): sort passes through too ("" -> the
+       backend's default activity ordering). */
+    api('cell_search', { q: S.searchQ, state: S.searchState,
+      cause: S.idfCause, vibe: S.idfVibe, specialty: S.idfSpec,
+      entry: S.idfEntry, activity: S.idfAct, sort: S.idfSort }, function(j){
+      S.loading.search = false;
+      S.searchRes = j;
+      cb(j);
+    });
+  }
+  function invalidateMine(){ if (S.mine) S.mine._t = 0; }
+
+  /* ---------- render dispatch ---------- */
+  function render(){
+    var p = pane();
+    if (S.tab === 'mine') renderMine(p);
+    else if (S.tab === 'detail') renderDetail(p);
+    else if (S.tab === 'war') renderWar(p);
+    else if (S.tab === 'browse') renderBrowse(p);
+    else if (S.tab === 'treasury') renderTreasury(p);
+    wireRetries(p);
+  }
+  function wireRetries(root){
+    root.querySelectorAll('[data-hq-retry]').forEach(function(b){
+      b.addEventListener('click', function(){ render(); });
+    });
+  }
+
+  /* ---------- TAB 1: MY CELLS ---------- */
+  function cellCard(c, mine){
+    var isF = c.is_founder;
+    var vBadge = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+    var fBadge = isF ? '<span class="hq-badge">FOUNDER</span>' : '';
+    var chk = c.checked_today ? '<span class="hq-badge dim">CHECKED IN</span>'
+      : '<button class="hq-btn sm" data-hq="checkin" data-cell="'+esc(c.id)+'">CHECK IN</button>';
+    return '<div class="hq-card"><h3>'+esc(c.name)+vBadge+fBadge+hqStateBadge(c)+'</h3>' +
+      '<div><span class="hq-stat">'+esc(String(c.streak||0))+'-day streak</span>' +
+      '<span class="hq-stat">'+esc(String(c.members||0))+'/5 members</span>' +
+      '<span class="hq-stat">'+esc(String(c.active_week||0))+' active this week</span>' +
+      (c.prestige_tier ? '<span class="hq-stat">'+esc(c.prestige_flame||'')+' '+esc(c.prestige_tier)+'</span>' : '') +
+      (c.invite_code ? '<span class="hq-stat">Code: '+esc(c.invite_code)+'</span>' : '') + '</div>' +
+      '<div class="hq-row" style="margin-top:8px">'+chk +
+      '<button class="hq-btn sm ghost" data-hq="detail" data-cell="'+esc(c.id)+'">OPEN HQ</button></div></div>';
+  }
+
+  function renderMine(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3>' +
+        '<div class="hq-note">Cells run on callsigns. Claim yours in Daily Orders, then come back — your HQ will be waiting.</div>' +
+        /* 2026-10-06 CEO directive: every claim prompt needs the recovery path. */
+        (function(){ try{ return (window.PF && PF.recoverLinkHTML) ? PF.recoverLinkHTML() : ''; }catch(e){ return ''; } })() +
+        '</div>';
+      return;
+    }
+    if (S.loading.mine){ p.innerHTML = loading('Raising the cell network&hellip;'); return; }
+    loadMine(function(j){
+      if (!j){ p.innerHTML = netErr(); wireRetries(p); return; }
+      /* C3 (2026-10-03): no/invalid auth_secret means the callsign session
+         isn't authenticated — show the logged-out state, not a raw
+         "missing credentials" error (a wrong state). */
+      if (j && (j.err==="missing credentials"||j.err==="unauthorized")){
+        p.innerHTML = '<div class="hq-card"><h3>Session check needed</h3>' +
+          '<div class="hq-note">Your callsign session needs a refresh. Re-enlist in Daily Orders, then come back &mdash; your HQ will be waiting.</div></div>';
+        return;
+      }
+      if (j.err || j.ok === false){ p.innerHTML = '<div class="hq-err"><b>'+esc(friendlyErr(j))+'</b></div>'; return; }
+      var h = '';
+      if (!j.in_cell){
+        h += '<div class="hq-card"><h3>You\'re not in a cell yet</h3>' +
+          '<div class="hq-note">Five callsigns. One streak. Nobody gets left behind. ' +
+          'Found your own cell or join one with an invite code.</div></div>';
+      } else {
+        var prim = j.cell || {};
+        h += '<div class="hq-note" style="margin-bottom:10px">PRIMARY CELL</div>' + cellCard({
+          id: prim.id, name: prim.name, streak: prim.streak, members: (j.members||[]).length,
+          active_week: prim.active_week, verified: prim.verified, is_founder: j.is_founder,
+          checked_today: j.checked_today, invite_code: prim.invite_code,
+          prestige_tier: prim.prestige_tier, prestige_flame: prim.prestige_flame,
+          state: prim.state
+        });
+        if (j.cover_for){
+          h += '<div class="hq-card"><h3>Cover available</h3>' +
+            '<div class="hq-note">'+esc(j.cover_for)+' missed yesterday. You can cover their streak — once per week.</div>' +
+            '<button class="hq-btn sm" data-hq="cover" data-cell="'+esc(prim.id)+'">COVER '+esc(j.cover_for)+'</button></div>';
+        }
+        if (j.bounties_pending && j.bounties_pending.length){
+          var bx = j.bounty_xp || 25;
+          h += '<div class="hq-card"><h3>Recruit bounties ready</h3><div class="hq-note">' +
+            j.bounties_pending.map(function(b){ return esc(b.from)+hqStateTag(b); }).join(', ') +
+            ' checked in. Claim +'+bx+' XP each.</div>' +
+            '<button class="hq-btn sm" data-hq="bounties">CLAIM BOUNTIES</button></div>';
+        }
+      }
+      var cells = j.cells || [];
+      if (cells.length > 1){
+        h += '<div class="hq-note" style="margin:10px 0 6px">ALL YOUR CELLS ('+cells.length+'/3 chainlink)</div>';
+        cells.forEach(function(c){
+          if (j.cell && c.id === j.cell.id) return; /* primary already shown */
+          h += cellCard(c);
+        });
+      }
+      /* CELL IDENTITY (2026-10-05): guided founding wizard replaces the blank
+         form — a cell with no identity can't complete founding. Kill-switch
+         (?pf_off=cell-identity) falls back to the original blank form. */
+      var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+      h += identOn
+        ? '<div class="hq-card"><h3>Found a cell</h3><div id="hqIdentWizard"></div></div>'
+        : '<div class="hq-card"><h3>Found a cell</h3>' +
+        '<div class="hq-note">3&ndash;24 characters. You become founder. Max 3 cells per callsign.</div>' +
+        '<div class="hq-row"><input class="hq-in" id="hqNewName" maxlength="24" placeholder="Cell name">' +
+        '<select class="hq-sel" id="hqNewState" aria-label="STATE AFFILIATION">'+hqStateOpts("","No state affiliation")+'</select>' +
+        '<button class="hq-btn" data-hq="create">FOUND CELL</button></div>' +
+        '<div class="hq-note">State affiliation unlocks location tasks and policymaker bounties.</div></div>';
+      h += '<div class="hq-card"><h3>Join with invite code</h3>' +
+        '<div class="hq-row"><input class="hq-in" id="hqJoinCode" maxlength="12" placeholder="INVITE CODE" style="text-transform:uppercase">' +
+        '<button class="hq-btn" data-hq="join">JOIN CELL</button></div></div>';
+      p.innerHTML = h;
+      if (identOn){
+        var wzel = document.getElementById('hqIdentWizard');
+        if (wzel) window.PFCellIdentity.mountWizard(wzel, {
+          stateOptsHTML: hqStateOpts("","No state affiliation"),
+          onDone: function(){ refreshMineThen('mine'); }});
+      }
+    });
+  }
+
+  /* ---------- TAB 2: CELL DETAIL ---------- */
+  function renderDetail(p){
+    var id = ident();
+    if (!id.callsign){ p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3></div>'; return; }
+    var cid = S.detail;
+    if (!cid){ S.tab='mine'; tabEl('mine').classList.add('on'); tabEl('detail'); renderMine(p); return; }
+    var mine = S.mine, cell = null, isFounder = false, isPrimary = false;
+    if (mine && mine.cells){
+      cell = mine.cells.filter(function(c){ return c.id===cid; })[0] || null;
+      isPrimary = !!(mine.cell && mine.cell.id===cid);
+      isFounder = !!(cell && cell.is_founder);
+    }
+    var cname = cell ? cell.name : 'Cell';
+    var h = '<button class="hq-btn sm ghost" data-hq="back">&larr; MY CELLS</button>' +
+      '<div class="hq-head" style="margin-top:8px"><h2>'+esc(cname)+hqStateBadge(cell)+'</h2>' +
+      '<div class="hq-tag">Cell command detail</div></div>';
+    h += '<div id="hqDetBody">'+loading('Pulling cell intel&hellip;')+'</div>';
+    p.innerHTML = h;
+    /* 2026-10-06 share-everywhere. */
+    try{ if(window.PFShareEverywhere) PFShareEverywhere.bar(p,'cell-hq',{link:'/cells'}); }catch(e){}
+    var body = document.getElementById('hqDetBody');
+    /* Parallel: prestige + health. */
+    var gotP = false, gotH = false, jP = null, jH = null;
+    function maybePaint(){
+      if (!gotP || !gotH) return;
+      paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine);
+    }
+    loadPrestige(cid, function(j){ gotP=true; jP=j; maybePaint(); });
+    loadHealth(cid, function(j){ gotH=true; jH=j; maybePaint(); });
+    /* CELLS 2.0 — Recruit funnel rides alongside, NEVER in the paint gate:
+       a missing/slow recruit_funnel on an old backend must not delay HQ. */
+    RF.cid = cid; RF.j = null;
+    loadFunnel(cid, function(j){
+      RF.cid = cid; RF.j = j;
+      var b2 = document.getElementById('hqDetBody');
+      if (b2 && S.tab==='detail' && S.detail===cid) paintRecruitInto(b2, cell, j);
+    });
+  }
+
+  function paintDetail(body, cell, isFounder, isPrimary, jP, jH, mine){
+    if ((!jP || !jP.ok) && (!jH || !jH.ok)){
+      body.innerHTML = netErr(); wireRetries(body); return;
+    }
+    var h = '';
+    /* CELL IDENTITY (2026-10-05): identity + kit block first — what this
+       cell is, before the prestige numbers. Filled by paintIdentityBlock
+       after the main paint; honest incomplete state when undefined. */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+      h += '<div class="hq-card" id="hqIdentDetail"><h3>CELL IDENTITY</h3>' +
+        '<div class="hq-note">Reading cell identity&hellip;</div></div>';
+    }
+    /* Prestige block. */
+    if (jP && jP.ok){
+      var pr = jP.prestige || {};
+      h += '<div class="hq-card"><h3>'+esc(pr.flame||'')+' '+esc(pr.tier_name||'UNRANKED')+' <span class="hq-note">power '+esc(String(pr.power||0))+'</span></h3>';
+      if (pr.benefits && pr.benefits.length){
+        h += pr.benefits.map(function(b){ return '<div class="hq-note">&bull; '+esc(b)+'</div>'; }).join('');
+      } else {
+        h += '<div class="hq-note">No tier yet — members earn prestige levels to raise cell power.</div>';
+      }
+      if (pr.next_tier){
+        var pct = pr.next_tier.min ? Math.min(100, Math.round((pr.power||0)/pr.next_tier.min*100)) : 0;
+        h += '<div class="hq-note" style="margin-top:8px">Next: '+esc(pr.next_tier.name)+' — '+esc(String(pr.next_tier.need))+' power to go</div>' +
+          '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>';
+      }
+      h += '</div>';
+      /* Members (roster from prestige, check-in state from cell_mine when primary). */
+      var mems = pr.members || [];
+      var chkBy = {};
+      if (isPrimary && mine && mine.members){
+        mine.members.forEach(function(m){ chkBy[m.callsign]=m; });
+      }
+      h += '<div class="hq-card"><h3>Roster ('+mems.length+'/5)</h3>';
+      if (!mems.length){ h += '<div class="hq-note">No members on record.</div>'; }
+      mems.forEach(function(m){
+        var st = chkBy[m.callsign];
+        var badges = '';
+        if (m.badge) badges += '<span class="hq-badge dim">'+esc(m.badge)+'</span>';
+        if (st && st.checked_today) badges += '<span class="hq-badge">IN TODAY</span>';
+        /* G11 (2026-10-04): role badges — titles are status, show them.
+           Role rides cell_mine members (st.role); founder from cell.founder. */
+        var mrole = st && st.role ? String(st.role) : '';
+        if (cell && cell.founder === m.callsign) badges += '<span class="hq-badge">FOUNDER</span>';
+        else if (mrole === 'officer') badges += '<span class="hq-badge">OFFICER</span>';
+        else if (mrole === 'treasurer') badges += '<span class="hq-badge">TREASURER</span>';
+        else if (mrole === 'warcaller') badges += '<span class="hq-badge">WARCALLER</span>';
+        var promBtn = (isFounder && !(cell && cell.founder===m.callsign))
+          ? ' <button class="hq-btn sm ghost" data-hq="promote" data-cell="'+esc(S.detail)+'" data-target="'+esc(m.callsign)+'">ROLE</button>' : '';
+        h += '<div class="hq-mem"><span><b>'+esc(m.callsign)+'</b>'+badges+'</span><span>'+promBtn+'</span></div>';
+      });
+      h += '</div>';
+    }
+    /* CELLS 2.0 — Recruit panel placeholder. paintRecruitInto fills it when
+       recruit_funnel resolves (or immediately from the RF cache on repaint). */
+    h += '<div class="hq-card" id="hqRecruit"><h3>RECRUIT</h3>'+loading('Building your invite link&hellip;')+'</div>';
+    /* Health + pulse block. */
+    if (jH && jH.ok){
+      var hh = jH.health || {};
+      var score = hh.score || 0;
+      h += '<div class="hq-card"><h3>Cell health — '+score+'/100</h3>' +
+        '<div class="hq-bar"><div style="width:'+Math.min(100,score)+'%"></div></div>' +
+        '<div><span class="hq-stat">'+esc(String(hh.member_count||0))+' members</span>' +
+        '<span class="hq-stat">'+esc(String(hh.checkins_last_7d||0))+' check-ins (7d)</span>' +
+        '<span class="hq-stat">'+esc(String(hh.recruits_last_30d||0))+' recruits (30d)</span></div>' +
+        '<div class="hq-note" style="margin-top:8px"><b>Recent pulse:</b> ' + pulseLine(hh) + '</div></div>';
+    }
+    /* Founder controls. */
+    if (isFounder){
+      h += '<div class="hq-card"><h3>Founder controls</h3><div class="hq-row">' +
+        '<button class="hq-btn sm" data-hq="rename" data-cell="'+esc(S.detail)+'">RENAME</button>' +
+        '<select class="hq-sel" id="hqSetState" aria-label="STATE AFFILIATION">'+hqStateOpts(String(cell&&cell.state||""),"No state affiliation")+'</select>' +
+        '<button class="hq-btn sm" data-hq="set-state" data-cell="'+esc(S.detail)+'">SET STATE</button>' +
+        '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">DISBAND / LEAVE</button>' +
+        '</div><div class="hq-note">Rename: 3&ndash;24 chars. State affiliation unlocks location tasks and policymaker bounties. Leaving as founder passes the torch or disbands the cell.</div></div>';
+    } else if (cell) {
+      h += '<div class="hq-card"><div class="hq-row">' +
+        '<button class="hq-btn sm ghost" data-hq="leave" data-cell="'+esc(S.detail)+'">LEAVE CELL</button></div></div>';
+    }
+    /* G12 (2026-10-05): strike orders — rotating cell missions with a
+       standing political slot. Renders into a placeholder; the payload is
+       async and fail-soft (coming-soon cards) so it never blocks HQ. */
+    if (!strikeOff() && cell && cell.id){
+      h += '<div id="hqStrikeBody">'+loading('Issuing strike orders&hellip;')+'</div>';
+    }
+    /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+       Placeholder; paintRallyCalls fills it async and fail-soft. */
+    if (!rallyOff() && cell && cell.id){
+      h += '<div id="hqRallyBody">'+loading('Scanning rally calls&hellip;')+'</div>';
+    }
+    body.innerHTML = h;
+    if (!strikeOff() && cell && cell.id){ paintStrikeOrders(body, cell.id, isFounder); }
+    if (!rallyOff() && cell && cell.id){ paintRallyCalls(body); }
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && cell && cell.id){
+      paintIdentityBlock(body, cell, isFounder);
+    }
+    /* CELLS 2.0 — fill the Recruit panel from cache when the funnel beat
+       the paint (otherwise the loadFunnel callback paints it on arrival). */
+    if (RF.cid === S.detail && RF.j){ paintRecruitInto(body, cell, RF.j); }
+  }
+
+  /* CELLS 2.0 (2026-10-05): recruitment funnel (member-gated). Contract:
+     GET recruit_funnel -> {ok, my_link, clicks, joins, joiners:[{callsign, joined_day}]}.
+     Fail-soft: a falsy/failed read leaves the panel in an honest offline
+     state; it never blocks or breaks the rest of HQ. */
+  function loadFunnel(cid, cb){
+    var id = ident();
+    if (!id.callsign || !cid){ cb(null); return; }
+    api("recruit_funnel", withIdent({cell_id: cid}), function(j){ cb(j); });
+  }
+  function inviteLinkFor(cell, j, callsign){
+    var link = (j && j.my_link) ? String(j.my_link) : "";
+    if (!link){
+      var code = cell && cell.invite_code ? String(cell.invite_code) : "";
+      if (code && callsign){
+        link = "https://www.mtcstw.com/cells?invite="+encodeURIComponent(code)+
+               "&by="+encodeURIComponent(callsign);
+      }
+    }
+    return link;
+  }
+  function paintRecruitInto(body, cell, j){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRecruit') : document.getElementById('hqRecruit'); }catch(e){}
+    if (!box) return;
+    var id = ident();
+    var link = inviteLinkFor(cell, j, id.callsign);
+    if (!j || !j.ok || !link){
+      box.innerHTML = '<h3>RECRUIT</h3><div class="hq-note">Recruit intel is offline right now. Your personal invite link will appear here when HQ reconnects.</div>';
+      return;
+    }
+    var clicks = Math.max(0, Number(j.clicks)||0), joins = Math.max(0, Number(j.joins)||0);
+    var h = '<h3>RECRUIT</h3>' +
+      '<div class="hq-note">Your personal invite link &mdash; share it anywhere. Taps and joins count toward your cell&rsquo;s momentum.</div>' +
+      '<div class="hq-row" style="margin-top:8px"><input class="hq-in linklike" id="hqRecruitLink" readonly value="'+esc(link)+'" aria-label="Personal invite link" />' +
+      '<button class="hq-btn sm" data-hq="recruit-copy">COPY</button></div>' +
+      '<div><span class="hq-stat">'+clicks+' taps</span><span class="hq-stat">'+joins+' joined</span>' +
+      (clicks>0 ? '<span class="hq-stat">'+Math.round(joins/clicks*100)+'% tap &rarr; join</span>' : '') + '</div>';
+    var joiners = (j.joiners && j.joiners.length) ? j.joiners : [];
+    if (joiners.length){
+      h += '<div class="hq-note" style="margin:10px 0 2px"><b>Fresh recruits</b></div>';
+      for (var i=0;i<joiners.length && i<10;i++){
+        var jr = joiners[i]||{};
+        h += '<div class="hq-joiner"><span><b>'+esc(jr.callsign||'Unknown')+'</b></span><span class="hq-note">'+esc(String(jr.joined_day||''))+'</span></div>';
+      }
+      if (joiners.length>10) h += '<div class="hq-note">+'+(joiners.length-10)+' more</div>';
+    } else {
+      h += '<div class="hq-note" style="margin-top:8px">No joins through your link yet &mdash; the first one starts the chain.</div>';
+    }
+    box.innerHTML = h;
+  }
+
+  /* CELL IDENTITY (2026-10-05): detail-view identity block — full profile
+     (tags, why-line, cadence/entry/region/size, charter, trophies), the
+     downloadable banner kit, and the founder's DEFINE IT / EDIT IDENTITY
+     backfill entry. 0 XP on every surface here. */
+  function paintIdentityBlock(body, cell, isFounder){
+    var box = body.querySelector('#hqIdentDetail');
+    if (!box) return;
+    window.PFCellIdentity.loadIdentity(cell.id, function(ident2){
+      if (!ident2){ box.innerHTML = '<h3>CELL IDENTITY</h3><div class="hq-note">Identity unavailable — try again later.</div>'; return; }
+      var cellLike = { id: cell.id, name: cell.name || 'Cell', state: cell.state || '',
+        motto: ident2.motto || '', palette: ident2.palette,
+        causes: ident2.causes || [], activity: ident2.activity || '' };
+      box.innerHTML = '<h3>CELL IDENTITY</h3>' +
+        window.PFCellIdentity.detailIdentityHTML(cellLike, ident2, isFounder);
+      var kh = box.querySelector('#idKitHost');
+      if (kh) window.PFCellIdentity.mountKit(kh, cellLike);
+      var bb = box.querySelector('[data-idbackfill]');
+      if (bb) bb.addEventListener('click', function(){
+        window.PFCellIdentity.mountWizard(box, { mode: 'edit', cellId: cell.id,
+          stateOptsHTML: hqStateOpts(String(cell.state||''), "No state affiliation"),
+          initial: hqIdentityToInitial(ident2, cell),
+          onDone: function(){ render(); }});
+      });
+      /* QC FIX (2026-10-05, Finding 2 — HIGH): the apply flow dead-ended at
+         "Application sent" — the founder had no review surface. Founder-only
+         pending-applications panel: the count rides the identity payload
+         (pending_applications); the list + approve/deny mount below. Gated
+         on the existing isFounder check; the server re-verifies founder on
+         every call (cell_applications_list + cell_application_review). */
+      if (isFounder && (ident2.entry_style === 'application' || (ident2.pending_applications || 0) > 0)){
+        var apN = ident2.pending_applications || 0;
+        var apBox = document.createElement('div');
+        apBox.id = 'hqAppReview';
+        apBox.innerHTML = '<h3>Pending applications' +
+          (apN ? ' <span class="hq-badge">'+esc(String(apN))+'</span>' : '') + '</h3>' +
+          '<div class="hq-note">Approve to wire them in, or deny to clear the request. 0 XP on every decision.</div>' +
+          '<div id="hqAppReviewList"></div>';
+        box.appendChild(apBox);
+        window.PFCellIdentity.mountApplicationReview(
+          apBox.querySelector('#hqAppReviewList'), cell.id,
+          { onChange: function(){ paintIdentityBlock(body, cell, isFounder); } });
+      }
+    });
+  }
+  function hqIdentityToInitial(ident2, cell){
+    if (!ident2) return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'' };
+    var vibes = [], custom = '';
+    (ident2.vibes||[]).forEach(function(v){
+      var k = v.key || v;
+      if (String(k).indexOf('custom:') === 0) custom = String(k).slice(7);
+      else vibes.push(k);
+    });
+    return { name: (cell&&cell.name)||'', state: (cell&&cell.state)||'',
+      causes: (ident2.causes||[]).map(function(x){ return x.key || x; }),
+      vibes: vibes, customVibe: custom,
+      specialties: (ident2.specialties||[]).map(function(x){ return x.key || x; }),
+      cadence: ident2.meeting_cadence || '', entry: ident2.entry_style || '',
+      charter: ident2.charter || '', motto: ident2.motto || '', region: ident2.region || '',
+      palette: (ident2.palette == null ? -1 : Number(ident2.palette)) };
+  }
+
+  function pulseLine(hh){
+    var parts = [];
+    var ci = hh.checkins_last_7d||0, rc = hh.recruits_last_30d||0, mc = hh.member_count||0;
+    if (ci >= mc*5) parts.push('firing on all cylinders');
+    else if (ci >= mc*2) parts.push('warming up');
+    else if (ci > 0) parts.push('quiet — nudge your cellmates');
+    else parts.push('silent this week');
+    if (rc > 0) parts.push(rc+' new recruit'+(rc===1?'':'s')+' in 30 days');
+    return parts.join('. ') + '.';
+  }
+
+  /* ---------- STRIKE ORDERS (2026-10-05) ---------- */
+  /* Rotating cell-level missions: 2 operational + 1 standing political.
+     Contract: GET ?action=strike_orders_get&cell_id=&callsign= ->
+     {ok, week_start, orders:[{slot,title,detail,deep_link,task_type,task_ref}],
+      members:[{callsign,ops_done,political_done}], aggregate:{ops:"x/y",political:"x/y"}}
+     POST {type:'cell',cell_action:'strike_reroll',cell_id,callsign} (founder).
+     Optional ?fight_areas=a,b (weave #6, 2026-10-05): the member's local
+     pick-your-fight areas (PF.pickFight(), localStorage pf_pick_fight_v1 —
+     may not be loaded yet -> param omitted -> canonical plan). Backend uses
+     it ONLY to reorder the political rotation as a read-time view; slot
+     count, XP (zero), reroll, and rotation guarantees are untouched.
+     Fail-soft: anything missing -> coming-soon placeholders. Never a stuck
+     spinner. KILL: ?pf_off=strike. No new XP copy — only backend-supplied
+     reward labels are shown. */
+  function strikeOff(){ try { return PF.skip('strike'); } catch (e){ return false; } }
+
+  function strikeFightAreas(){
+    /* Pick-your-fight preference, defensive: the fe/pick-your-fight module
+       may not be deployed/loaded yet — then no param is sent and the
+       backend serves the canonical plan. [] / never-chosen = no filter. */
+    try {
+      if (window.PF && typeof PF.pickFight === 'function') {
+        var f = PF.pickFight();
+        if (f && f.length) return f.join(',');
+      }
+    } catch (e){}
+    return '';
+  }
+
+  function strikeXY(s){
+    var m = /^(\d+)\s*\/\s*(\d+)$/.exec(String(s==null?'':s));
+    if (!m) return {x:0,y:0};
+    var x = parseInt(m[1],10), y = parseInt(m[2],10);
+    if (isNaN(x)) x = 0; if (isNaN(y)) y = 0;
+    return {x:x, y:y};
+  }
+  function strikeSafeLink(u){
+    var s = String(u==null?'':u);
+    /* Relative site paths only; second char may not be '/' (no //host). */
+    if (/^\/[a-zA-Z0-9\-_#?&=%.][a-zA-Z0-9\/\-_#?&=%.]*$/.test(s)) return s;
+    return '/political-hq';
+  }
+  function strikeStateScope(tr){
+    /* Stateless wording: only scope the order when the API gave a state. */
+    if (!tr || !tr.state) return '';
+    var st = String(tr.state).toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);
+    if (!st) return '';
+    return '<div class="hq-note" style="margin-bottom:6px"><b>'+esc(st)+' targets</b></div>';
+  }
+  function strikeMemberRows(mems, doneFor){
+    if (!mems || !mems.length) return '<div class="hq-note">No members on record.</div>';
+    return mems.map(function(m){
+      var cs = String(m && m.callsign ? m.callsign : '—');
+      var done = !!doneFor(m);
+      return '<div class="hq-mem"><span><b>'+esc(cs)+'</b></span>' +
+        '<span class="hq-note" style="font-size:16px">'+(done?'&#10003;':'&#9675;')+'</span></div>';
+    }).join('');
+  }
+  function strikeProgress(mems, aggStr, doneFor){
+    var a = strikeXY(aggStr);
+    var pct = a.y > 0 ? Math.min(100, Math.round(a.x / a.y * 100)) : 0;
+    var mems = Array.isArray(mems) ? mems : [];
+    return '<div class="hq-note"><b>'+a.x+'/'+a.y+' members completed</b></div>' +
+      '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
+      '<details><summary class="hq-strike-sum">Who is done? ('+a.x+'/'+a.y+')</summary>' +
+      strikeMemberRows(mems, doneFor) + '</details>';
+  }
+  function strikeOpsCard(o, mems, agg){
+    var title = o && o.title ? String(o.title) : 'Operations order';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s briefing.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var h = '<div class="hq-card"><div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">TAKE ACTION &rarr;</a></div>' +
+      strikeProgress(mems, agg, function(m){ return Number(m && m.ops_done || 0) > 0; }) +
+      '</div>';
+    return h;
+  }
+  /* ---------- CREATION TASK (2026-10-05, fe/strike-orders-creative) ----------
+     The political slot sometimes becomes a creation task: forge one poster
+     about a live bound entity. Entity selection: task_ref.entities (bound
+     server-side, state-scoped first); when pick-your-fight data exists, the
+     fight-relevant entity wins, otherwise entities[0]. FORGE THIS deep-links
+     into the Poster Forge via the pf-forge-launch handoff (localStorage for
+     cross-page + CustomEvent same-page); the forge shows the "Forging ammo
+     for X" confirmation state and tags the poster leg so completion is
+     entity-bound. Zero XP from the order itself — the forge's normal
+     poster/share legs pay out. */
+  function strikeForgeEntity(o){
+    var tr = (o && o.task_ref) || {};
+    var ents = tr.entities;
+    if (!Array.isArray(ents) || !ents.length) return null;
+    var fights = [];
+    try {
+      if (window.PF && typeof PF.pickFight === 'function' && !PF.skip('pick-fight')){
+        var f = PF.pickFight();
+        if (Array.isArray(f)) fights = f;
+      }
+    } catch (e) {}
+    if (fights.length){
+      for (var i = 0; i < ents.length; i++){
+        var areas = (ents[i] && ents[i].areas) || [];
+        for (var k = 0; k < fights.length; k++){
+          if (areas.indexOf(fights[k]) >= 0) return ents[i];
+        }
+      }
+    }
+    return ents[0];
+  }
+  function strikeForgeLaunch(cellId, weekStart, ent, deepLink){
+    var payload = { v: 1, tab: 'political', ts: Date.now(),
+      entity: ent ? { kind: String(ent.kind || ''), id: String(ent.id || ''),
+        title: String(ent.title || ''), url: String(ent.url || '') } : null,
+      strike: { cell_id: String(cellId || ''), week_start: String(weekStart || '').slice(0, 10) } };
+    try { localStorage.setItem('pf_forge_launch_v1', JSON.stringify(payload)); } catch (e) {}
+    try { document.dispatchEvent(new CustomEvent('pf-forge-launch', { detail: payload })); } catch (e2) {}
+    var dest = strikeSafeLink(deepLink);
+    if (dest === '/political-hq') dest = '/create#pf-poster';
+    try { window.location.href = dest; } catch (e3) {}
+  }
+  function strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    var tr = (o && o.task_ref) || {};
+    var ent = strikeForgeEntity(o);
+    var detail = o && o.detail ? String(o.detail) : 'Forge one propaganda poster about this week\u2019s fight target.';
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<span class="hq-badge plain">CREATION</span></div>' +
+      '<div class="hq-order-t"><b>FORGE A STRIKE POSTER</b></div>' +
+      strikeStateScope(tr) +
+      (ent ? '<div class="hq-note" style="margin-bottom:6px"><b>TARGET: ' + esc(String(ent.title || '')) + '</b></div>' : '') +
+      (tr.why_now ? '<div class="hq-note" style="margin-bottom:6px"><b>WHY NOW:</b> ' + esc(String(tr.why_now)) + '</div>' : '') +
+      '<div class="hq-order-d">' + esc(detail) + '</div>';
+    /* Bounty cross-link: entity-matched bounty when the backend found one;
+       otherwise the generic bounty board. Never invents a bounty. */
+    if (tr.bounty && tr.bounty.title){
+      h += '<div class="hq-note" style="margin-bottom:8px">This also counts toward the <b>' + esc(String(tr.bounty.title)) + '</b> bounty — ' +
+        '<a href="/create?tab=bounties">open the bounty board &rarr;</a></div>';
+    } else {
+      h += '<div class="hq-note" style="margin-bottom:8px">Bounty hunters: <a href="/create?tab=bounties">check the bounty board</a> for poster bounties on this fight.</div>';
+    }
+    if (ent){
+      h += '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-forge" data-cell="' + esc(cellId) + '"' +
+        ' data-week="' + esc(weekStart || '') + '"' +
+        ' data-ekind="' + esc(String(ent.kind || '')) + '" data-eid="' + esc(String(ent.id || '')) + '"' +
+        ' data-etitle="' + esc(String(ent.title || '')) + '" data-eurl="' + esc(String(ent.url || '')) + '">FORGE THIS &rarr;</button></div>';
+    } else {
+      /* Fail-soft: bound set missing client-side -> plain forge deep-link, never a dead card. */
+      h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="/create#pf-poster">OPEN THE FORGE &rarr;</a></div>';
+    }
+    h += '<div class="hq-note" style="margin-bottom:8px">The order itself grants zero XP — the forge\u2019s normal poster/share legs pay out when you create.</div>';
+    if (isFounder){
+      h += rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="' + esc(cellId) + '">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    h += strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) + '</div>';
+    return h;
+  }
+  function strikePolCard(o, mems, agg, isFounder, cellId, weekStart, rerolled){
+    if (o && o.task_type === 'creation')
+      return strikeCreationCard(o, mems, agg, isFounder, cellId, weekStart, rerolled);
+    var title = o && o.title ? String(o.title) : 'Political strike';
+    var detail = o && o.detail ? String(o.detail) : 'Awaiting the week\u2019s political strike order.';
+    var link = strikeSafeLink(o && o.deep_link);
+    var reroll = '';
+    if (isFounder){
+      reroll = rerolled
+        ? '<div style="margin:8px 0"><button class="hq-btn hq-btn44 ghost" disabled>RE-ROLLED THIS WEEK</button></div>'
+        : '<div style="margin:8px 0"><button class="hq-btn hq-btn44" data-hq="strike-reroll" data-cell="'+esc(cellId)+'">RE-ROLL POLITICAL ORDER</button></div>';
+    }
+    var h = '<div class="hq-card hq-strike-pol"><div class="hq-row">' +
+      '<span class="hq-badge gold plain">POLITICAL STRIKE</span></div>' +
+      '<div class="hq-order-t"><b>'+esc(title)+'</b></div>' +
+      strikeStateScope(o && o.task_ref) +
+      '<div class="hq-order-d">'+esc(detail)+'</div>';
+    if (o && o.reward && String(o.reward).trim()){
+      h += '<div class="hq-note" style="margin-bottom:8px">'+esc(String(o.reward))+'</div>';
+    }
+    h += '<div style="margin:8px 0"><a class="hq-btn hq-btn44" href="'+esc(link)+'">OPEN POLITICAL HQ &rarr;</a></div>' +
+      reroll +
+      strikeProgress(mems, agg, function(m){ return !!(m && m.political_done); }) +
+      '</div>';
+    return h;
+  }
+  function strikeSoonHtml(){
+    /* Fail-soft placeholders — panel always renders, never breaks HQ. */
+    return '<div class="hq-card"><h3>&#9876; Strike orders</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">The week\u2019s cell missions deploy here.</div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card dim"><div class="hq-order-t"><b>Operations order</b></div>' +
+      '<div class="hq-note">Coming soon.</div></div>' +
+      '<div class="hq-card hq-strike-pol"><span class="hq-badge gold plain">POLITICAL STRIKE</span>' +
+      '<div class="hq-order-t"><b>Coming soon</b></div>' +
+      '<div class="hq-note">The standing political strike order deploys here.</div></div></div>';
+  }
+  function strikeHtml(j, isFounder, cellId){
+    var orders = j.orders || [];
+    var bySlot = {};
+    orders.forEach(function(o){ if (o && o.slot && !bySlot[o.slot]) bySlot[o.slot] = o; });
+    var ops1 = bySlot.ops1 || bySlot.ops || null;
+    var ops2 = bySlot.ops2 || null;
+    var pol = bySlot.political || null;
+    var mems = j.members || [];
+    var agg = j.aggregate || {};
+    var wk = j.week_start ? ' <span class="hq-note">week of '+esc(String(j.week_start))+'</span>' : '';
+    var h = '<div class="hq-card"><h3>&#9876; Strike orders'+wk+'</h3>' +
+      '<div class="hq-note" style="margin-bottom:10px">Complete them as a cell. Progress counts for the whole crew.</div>' +
+      strikeOpsCard(ops1, mems, agg.ops) +
+      strikeOpsCard(ops2, mems, agg.ops) +
+      strikePolCard(pol, mems, agg.political, isFounder, cellId, j.week_start, !!(j.rerolled_used || j.already_rerolled)) +
+      '</div>';
+    return h;
+  }
+  function paintStrikeOrders(root, cellId, isFounder){
+    var slot = null;
+    try { slot = root.querySelector('#hqStrikeBody'); } catch (e){}
+    if (!slot) return;
+    var sq = withIdent({cell_id: cellId});
+    var sfa = strikeFightAreas();
+    if (sfa) sq.fight_areas = sfa;
+    api('strike_orders_get', sq, function(j){
+      if (!j || !j.ok || !Array.isArray(j.orders)){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e){}
+        return;
+      }
+      try { slot.innerHTML = strikeHtml(j, isFounder, cellId); } catch (e){
+        try { slot.innerHTML = strikeSoonHtml(); } catch (e2){}
+      }
+    });
+  }
+
+  /* ---------- TAB 3: CELL WAR ---------- */
+  function renderWar(p){
+    var h = '<div class="hq-card"><h3>&#9876; How Cell War works</h3>' +
+      '<div class="hq-note">Every Monday a new war week begins. Cells earn XP all week — ' +
+      'the top cell is crowned champion and every member takes a <b>+10% XP bonus</b>. ' +
+      'Bout fire feeds the war score too — one war, one leaderboard. ' +
+      'Past weeks finalize automatically. <b>Weekly champions claim territory.</b> ' +
+      'Fight as your callsign.</div></div>';
+    h += '<div id="hqWarBody">'+loading('Reading the war board&hellip;')+'</div>';
+    p.innerHTML = h;
+    var body = document.getElementById('hqWarBody');
+    var gotS=false, gotH=false, gotM=false, jS=null, jHh=null, jM=null;
+    function paint(){
+      if(!gotS||!gotH||!gotM) return;
+      var out = '';
+      if (jS && jS.ok){
+        if (jS.last_winner){
+          out += '<div class="hq-card hq-winner"><h3>&#128081; Reigning champion — '+esc(jS.last_winner.cell_name||'')+'</h3>' +
+            '<div class="hq-note">'+esc(String(jS.last_winner.xp_earned||0))+' XP last week. Dethrone them.</div></div>';
+        }
+        out += '<div class="hq-card"><h3>Week '+esc(String(jS.week_no||''))+' standings</h3>';
+        var st = jS.standings||[];
+        if (!st.length) out += '<div class="hq-note">No cells on the board yet this week. Be the first to score.</div>';
+        st.forEach(function(r, i){
+          var mine = r.mine ? '<span class="hq-badge">YOUR CELL</span>' : '';
+          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(r.prestige_flame||'')+' '+esc(r.name)+mine+'</span>' +
+            '<span class="hq-note">'+esc(String(r.xp_earned||0))+' XP &middot; '+esc(String(r.members_active||0))+'/'+esc(String(r.members||0))+'</span></div>';
+        });
+        out += '</div>';
+      } else {
+        out += netErr();
+      }
+      /* G6: War Room odds strip — implied championship chance from the
+         war board + the market's own escrow pools. Viewing is free; the
+         staking itself lives in the War Room on /arcade. */
+      if (jM && jM.ok && (jM.odds||[]).length){
+        out += '<div class="hq-card"><h3>&#127963; War Room — championship odds</h3>' +
+          '<div class="hq-note">'+esc(jM.description||'CELL WAR')+' &middot; '+esc(String(jM.pool_total||0))+' XP in the pot. ' +
+          'Odds move with the board. Viewing is free — stakes go down in the War Room.</div>';
+        jM.odds.slice(0,5).forEach(function(o, i){
+          var pays = o.pays > 0 ? ' &middot; pays '+esc(String(o.pays))+'x ('+esc(String(o.pool||0))+' XP in)' : ' &middot; no bets yet';
+          out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(o.name||'')+'</span>' +
+            '<span class="hq-note">'+esc(String(o.implied||0))+'% implied'+pays+'</span></div>';
+        });
+        out += '<div style="margin-top:10px"><a class="hq-btn" href="/arcade#pf-forecasts">STAKE IN THE WAR ROOM &rarr;</a></div></div>';
+      }
+      if (jHh && jHh.ok && (jHh.winners||[]).length){
+        out += '<div class="hq-card"><h3>Hall of fame</h3>';
+        jHh.winners.forEach(function(w){
+          var d = '';
+          try{ d = new Date(w.week_start).toLocaleDateString(); }catch(e){ d = String(w.week_start||''); }
+          out += '<div class="hq-mem"><span>&#128081; '+esc(w.cell_name||'')+'</span>' +
+            '<span class="hq-note">'+esc(d)+' &middot; '+esc(String(w.xp_earned||0))+' XP</span></div>';
+        });
+        out += '</div>';
+      }
+      body.innerHTML = out;
+      wireRetries(body);
+    }
+    loadWar(function(j){ gotS=true; jS=j; paint(); });
+    loadHistory(function(j){ gotH=true; jHh=j; paint(); });
+    loadMarket(function(j){ gotM=true; jM=j; paint(); });
+  }
+
+  /* PLAY 7 (2026-10-06): RALLY CALLS — creator-milestone rally suggestions.
+     Suggestion ONLY: "RALLY AROUND THIS →" copies a rally message to the
+     clipboard (take-to-cell handoff — the leader pastes it wherever the
+     cell organizes). Nothing auto-posts to any cell. "MARK TAKEN" lets a
+     cell claim the call so others see it was picked up.
+     KILL: ?pf_off=cell-rally. Fail-soft: a failed read leaves no section —
+     it never blocks or breaks HQ. */
+  var rallyCache = {};
+  function rallyOff(){ try { return PF.skip('cell-rally'); } catch (e){ return false; } }
+  function rallyCopyText(s){
+    var msg = '🎯 RALLY CALL: ' + String(s.title||'') + '\n' + String(s.body||'') +
+      '\nTake it to your cell → https://www.mtcstw.com' + String(s.link||'/sick-left-radicals');
+    function done(){ toast('Rally copied — take it to your cell.'); }
+    function fallback(){
+      try{
+        var ta=document.createElement('textarea'); ta.value=msg;
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }catch(e){}
+    }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(msg).then(done, fallback);
+      } else fallback();
+    }catch(e){ fallback(); }
+  }
+  function rallyActPost(rid, op, cb){
+    var id = ident();
+    if(!id.callsign){ toast('Claim a callsign first.'); cb(false); return; }
+    var sec='';
+    try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():''; }catch(e){}
+    var body={type:'creatorfeed', cf_action:'rally_act', callsign:id.callsign, auth_secret:sec, id:rid, op:op};
+    function done(j){ try{ cb(j&&j.ok); }catch(e){ cb(false); } }
+    if(!BACKEND){ done(null); return; }
+    try{
+      fetch(BACKEND,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)})
+        .then(function(r){ return r.json(); }).then(done, function(){ done(null); });
+    }catch(e){ done(null); }
+  }
+  function paintRallyCalls(body){
+    var box = null;
+    try{ box = body.querySelector ? body.querySelector('#hqRallyBody') : document.getElementById('hqRallyBody'); }catch(e){}
+    if(!box) return;
+    api('rally_suggestions', {}, function(j){
+      /* Fail-soft: no suggestions (or a failed read) = no section at all. */
+      if(!j || !j.ok || !(j.suggestions||[]).length){ try{ box.parentNode.removeChild(box); }catch(e){} return; }
+      var h='<div class="hq-card hq-rally"><h3>&#127919; Rally calls</h3>'+
+        '<div class="hq-note" style="margin-bottom:8px">Creator milestones worth rallying around. '+
+        'Suggestion only — your cell, your call. Nothing posts itself.</div>';
+      (j.suggestions||[]).forEach(function(s){
+        h+='<div class="hq-rallyitem"><div class="hq-rallytitle">'+esc(String(s.title||''))+'</div>'+
+          '<div class="hq-note">'+esc(String(s.body||''))+'</div>'+
+          '<div class="hq-row"><button class="hq-btn sm" data-rally="copy" data-rid="'+esc(String(s.id))+'">RALLY AROUND THIS &rarr;</button>'+
+          '<button class="hq-btn sm ghost" data-rally="taken" data-rid="'+esc(String(s.id))+'">MARK TAKEN</button></div></div>';
+      });
+      h+='</div>';
+      box.innerHTML=h;
+      try{ (j.suggestions||[]).forEach(function(s){ rallyCache[String(s.id)]=s; }); }catch(e){}
+    });
+  }
+
+  /* ---------- TAB 4: BROWSE ---------- */
+  function renderBrowse(p){
+    /* CELL IDENTITY (2026-10-05): discovery on qualities — quality filters
+       layer under the name/state search. Kill-switch falls back to the
+       original search row only. */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+    var h = '<div class="hq-card"><h3>Find a cell</h3>' +
+      '<div class="hq-row"><input class="hq-in" id="hqSearch" maxlength="32" placeholder="Search by name" value="'+esc(S.searchQ)+'">' +
+      '<select class="hq-sel" id="hqSearchState" aria-label="FILTER BY STATE">'+hqStateOpts(S.searchState,"All states")+'</select>' +
+      '<button class="hq-btn" data-hq="search">SEARCH</button></div>';
+    if (identOn){
+      var SETS = window.PFCellIdentity.SETS;
+      h += '<div class="hq-row" style="margin-top:6px" id="hqIdfRow">' +
+        idfSel('hqIdfCause','All causes',SETS.CAUSES,S.idfCause) +
+        idfSel('hqIdfVibe','All vibes',SETS.VIBES,S.idfVibe) +
+        idfSel('hqIdfSpec','All specialties',SETS.SPECIALTIES,S.idfSpec) +
+        idfSel('hqIdfEntry','Any entry',[["open","Open"],["invite","Invite only"],["application","Application"]],S.idfEntry) +
+        idfSel('hqIdfAct','Any activity',SETS.ACTIVITIES,S.idfAct) +
+        /* QC FIX (2026-10-05, Finding 3): the backend accepted sort= but no
+           host ever sent it — the sort control lives in the filter row. */
+        sortSelHtml('hqIdfSort', S.idfSort) +
+        '<div class="hq-note" style="margin:4px 0 0">Filter by what a cell fights for, how it feels, and how it runs. Activity is computed from real signals — never self-reported.</div></div>';
+    }
+    h += '<div id="hqSearchRes" style="margin-top:8px">';
+    if (S.loading.search) h += loading('Searching&hellip;');
+    else if (S.searchRes) h += searchHtml(S.searchRes);
+    h += '</div></div>';
+    h += '<div id="hqBoardWrap">'+loading('Loading leaderboard&hellip;')+'</div>';
+    h += '<div id="hqLinksWrap">'+loading('Mapping the network&hellip;')+'</div>';
+    p.innerHTML = h;
+    var bw = document.getElementById('hqBoardWrap'), lw = document.getElementById('hqLinksWrap');
+    loadBoard(function(j){
+      if (!j || !j.cells){ bw.innerHTML = netErr(); wireRetries(bw); return; }
+      var out = '<div class="hq-card"><h3>Top cells — week of '+esc(String(j.week||''))+'</h3>';
+      (j.cells||[]).slice(0,10).forEach(function(c, i){
+        var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+        out += '<div class="hq-mem"><span><b>#'+(i+1)+'</b> '+esc(c.prestige_flame||'')+' '+esc(c.name)+v+hqStateTag(c)+'</span>' +
+          '<span class="hq-note">'+esc(String(c.streak||0))+'d streak &middot; '+esc(String(c.members||0))+' members</span></div>';
+      });
+      out += '</div>';
+      bw.innerHTML = out;
+    });
+    loadLinks(function(j){
+      if (!j){ lw.innerHTML = netErr(); wireRetries(lw); return; }
+      lw.innerHTML = '<div class="hq-card"><h3>Chainlink network</h3>' +
+        '<div><span class="hq-stat">'+esc(String(j.cells||0))+' cells</span>' +
+        '<span class="hq-stat">'+esc(String(j.chainlinkers||0))+' chainlinkers</span>' +
+        '<span class="hq-stat">'+esc(String(j.main_pct||0))+'% in the main chain</span></div>' +
+        '<div class="hq-note" style="margin-top:8px">Chainlinkers belong to 2+ cells and stitch the network together. ' +
+        'Join a second cell to become one — +10 XP weekly bridge bonus.</div></div>';
+    });
+  }
+
+  /* CELL IDENTITY (2026-10-05): one quality-filter select for discovery. */
+  function idfSel(id, label, list, cur){
+    var o = '<option value="">'+esc(label)+'</option>';
+    (list||[]).forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return '<select class="hq-sel" id="'+id+'" aria-label="'+esc(label)+'">'+o+'</select>';
+  }
+  /* QC FIX (2026-10-05, Finding 3): sort select for the browse filter row.
+     The curated SORTS list carries its own labels; "" means the backend's
+     default (activity) ordering, so no blank option is needed. */
+  function sortSelHtml(id, cur){
+    var list = (window.PFCellIdentity && window.PFCellIdentity.SETS && window.PFCellIdentity.SETS.SORTS) || [];
+    var o = '<select class="hq-sel" id="'+id+'" aria-label="Sort results">';
+    list.forEach(function(it){
+      o += '<option value="'+esc(it[0])+'"'+(String(cur||"activity")===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+    });
+    return o + '</select>';
+  }
+  function searchHtml(j){
+    if (!j) return netErr();
+    var cells = j.cells || [];
+    if (!cells.length) return '<div class="hq-note">No cells match. Try a shorter search — or found your own.</div>';
+    /* CELL IDENTITY (2026-10-05): identity cards — the "why this cell" line,
+       quality tags, activity band. Incomplete profiles get the honest
+       state, never invented qualities. Join affordance follows entry style;
+       joining pays 0 XP (Engagement review verdict). */
+    var identOn = window.PFCellIdentity && window.PFCellIdentity.enabled();
+    var out = '';
+    cells.forEach(function(c){
+      var v = c.verified ? '<span class="hq-badge">VERIFIED</span>' : '';
+      var full = (c.member_count||0) >= 5;
+      var idBlock = identOn ? window.PFCellIdentity.cardIdentityHTML(c) : '';
+      var joinHtml;
+      if (full) joinHtml = '<span class="hq-badge dim">FULL</span>';
+      else if (identOn && c.entry_style === 'application')
+        joinHtml = '<button class="id-btn sm" data-idapply="'+esc(c.id)+'">APPLY</button>';
+      else if (identOn && c.invite_code)
+        joinHtml = '<button class="id-btn sm" data-idjoin="'+esc(c.invite_code)+'">JOIN</button>';
+      else if (identOn)
+        joinHtml = '<span class="hq-note">invite only</span>';
+      else
+        joinHtml = '<button class="hq-btn sm" data-hq="join-id" data-cell="'+esc(c.id)+'">JOIN</button>';
+      out += '<div class="hq-mem"><span><b>'+esc(c.name)+'</b>'+v+hqStateTag(c) +
+        '<div class="hq-note">'+esc(String(c.member_count||0))+'/5 members &middot; '+esc(String(c.streak||0))+'d streak</div>'+idBlock+'</span>' +
+        joinHtml + '</div>';
+    });
+    return out;
+  }
+
+  /* ---------- TAB 5: TREASURY ----------
+     Financial rails for cells. Honest scoping:
+     - bank_status is PER-CALLSIGN (your personal war chest), not cell-scoped.
+     - escrow / prize / loan / microloan are XP-denominated between callsigns.
+       Founders use them FOR the cell (bounties, competitions, member aid).
+     - War Bonds are the USD rail — link out, zero friction, no gating.
+     ALL money actions use native confirm(). XP everywhere except bonds (USD).
+     Language rule: pledge / contribute / back / fund — never the d-word. */
+  /* ---------- PROPAGANDA BOUNTIES (helpers — pure, extracted by tests/propbounty.verify.cjs) ----------
+     Best-poster contests: founder/officer posts a brief, members forge in the
+     Poster Forge and submit a link, the cell votes, the winner takes the XP.
+     KILL: ?pf_off=propbounty (PF.skip("propbounty")) disables the card. */
+  function pbCountdown(ts){
+    var ms = Number(ts)||0;
+    if (!ms) return 'no deadline';
+    var d = ms - Date.now();
+    if (d <= 0) return 'expired';
+    var h = Math.floor(d/3600000), dd = Math.floor(h/24);
+    if (dd > 0) return dd+'d '+(h%24)+'h left';
+    if (h > 0) return h+'h left';
+    return Math.max(1, Math.floor(d/60000))+'m left';
+  }
+  function pbEntityChip(t, ref){
+    t = String(t||'').toLowerCase(); ref = String(ref||'').trim();
+    if (t === 'none' || !t || !ref) return '';
+    return '<span class="hq-stat"><b>'+esc(t.toUpperCase())+' &middot; '+esc(ref)+'</b></span>';
+  }
+  function pbThumb(url){
+    url = String(url||'');
+    if (!/^https?:\/\//i.test(url)) return '';
+    var isImg = /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(url);
+    var link = '<a class="hq-btn sm ghost" style="text-decoration:none;display:inline-block" href="'+esc(url)+'" target="_blank" rel="noopener">VIEW &#8599;</a>';
+    if (isImg) return '<a href="'+esc(url)+'" target="_blank" rel="noopener"><img src="'+esc(url)+'" alt="submission" loading="lazy" style="max-width:120px;max-height:120px;border:2px solid #333;display:block;margin-bottom:6px"></a>'+link;
+    return link;
+  }
+  /* One submission row. me = my callsign; votedId = submission id I voted for
+     (or truthy non-id); hasVoted = whether I already voted this bounty. */
+  function pbSubRow(s, me, votedId, hasVoted){
+    var sid = String(s.id||'');
+    var own = String(s.callsign||'').toLowerCase() === String(me||'').toLowerCase();
+    var thisVoted = String(votedId||'') === sid;
+    var dis = hasVoted || own;
+    var btn = dis
+      ? '<button class="hq-btn sm" disabled>'+(thisVoted?'VOTED':'VOTE')+'</button>'
+      : '<button class="hq-btn sm" data-hq="pb-vote" data-bounty="'+esc(String(s._bounty||''))+'" data-sub="'+esc(sid)+'">VOTE</button>';
+    return '<div class="hq-mem"><span><b>'+esc(s.title||'Untitled')+'</b> <span class="hq-note">by '+esc(s.callsign||'?')+(own?' (you)':'')+
+      ' &mdash; '+esc(String(s.votes||0))+' vote'+(Number(s.votes||0)===1?'':'s')+'</span></span>' +
+      '<span>'+pbThumb(s.asset_url)+' '+btn+'</span></div>';
+  }
+  /* One bounty block. me = my callsign; canMod = founder/officer. */
+  function pbBountyCard(b, me, canMod){
+    var bid = String(b.id||'');
+    var st = String(b.status||'open');
+    var h = '<div style="margin-top:12px;border-top:1px solid #2e2e2e;padding-top:10px">';
+    h += '<div class="hq-row" style="justify-content:space-between"><span class="pb-badge">PROPAGANDA</span>' +
+      '<span class="hq-note">'+esc(pbCountdown(b.deadline))+'</span></div>';
+    h += '<div style="margin:6px 0"><b>'+esc(b.prompt||'')+'</b></div>';
+    h += '<div class="hq-row">'+pbEntityChip(b.entity_type, b.entity_ref) +
+      '<span class="hq-stat"><b>'+esc(String(b.prize_xp||0))+' XP</b> prize</span>' +
+      '<span class="hq-note">by '+esc(b.created_by||'?')+'</span></div>';
+    if (st === 'settled'){
+      h += '<div class="hq-note" style="margin-top:8px;font-size:15px"><b>&#127942; @'+esc(b.winner||'?')+
+        ' takes '+esc(String(b.prize_xp||0))+' XP</b></div>';
+    }
+    if (st === 'cancelled'){
+      h = '<div style="margin-top:12px;opacity:.45">'+h;
+    }
+    var subs = (b.submissions||[]).slice().sort(function(x,y){ return (Number(y.votes)||0)-(Number(x.votes)||0); });
+    var hasVoted = !!b.my_vote;
+    subs.forEach(function(s){ s._bounty = bid; h += pbSubRow(s, me, b.my_vote, hasVoted); });
+    if (st === 'open'){
+      if (b.my_submission){
+        h += '<div class="hq-note" style="margin-top:8px">You submitted: <b>'+esc(b.my_submission.title||b.my_submission)+'</b> — one submission per member.</div>';
+      } else {
+        h += '<div class="hq-note" style="margin-top:8px">Forge it in the Poster Forge, post it anywhere, paste the link.</div>' +
+          '<div class="hq-row" style="margin-top:4px">' +
+          '<input class="hq-in" id="hqPbUrl_'+esc(bid)+'" placeholder="https://… link to your poster" style="flex:1;min-width:180px">' +
+          '<input class="hq-in" id="hqPbTitle_'+esc(bid)+'" maxlength="80" placeholder="Title" style="width:150px">' +
+          '<button class="hq-btn sm" data-hq="pb-submit" data-bounty="'+esc(bid)+'">SUBMIT</button></div>';
+      }
+      if (canMod){
+        h += '<div class="hq-row" style="margin-top:6px">' +
+          '<button class="hq-btn sm" data-hq="pb-settle" data-bounty="'+esc(bid)+'">SETTLE EARLY</button>' +
+          '<button class="hq-btn sm ghost" data-hq="pb-cancel" data-bounty="'+esc(bid)+'">CANCEL</button></div>';
+      }
+    }
+    if (st === 'cancelled') h += '</div>';
+    return h;
+  }
+
+  function renderTreasury(p){
+    var id = ident();
+    if (!id.callsign){
+      p.innerHTML = '<div class="hq-card"><h3>Claim a callsign first</h3>' +
+        '<div class="hq-note">Treasury tools move real XP. Claim your callsign in Daily Orders first.</div></div>';
+      return;
+    }
+    var isFounder = !!(S.mine && S.mine.is_founder);
+    var h = '<div class="hq-note" style="margin-bottom:10px">Cell treasury rails — <b>all amounts in XP</b> unless marked USD. ' +
+      'Every money move asks you to confirm first.</div>';
+    h += '<div id="hqTreasBody">'+loading('Opening the vault&hellip;')+'</div>';
+    p.innerHTML = h;
+    var body = document.getElementById('hqTreasBody');
+    /* Parallel reads: bank, loans, prizes, bonds, campaign, warchest, causes,
+       propaganda bounties. */
+    var R = {};
+    var need = ['bank','loans','prizes','bonds','camp','wchest','treasury','causes','pbounty'];
+    var done = 0;
+    function each(){ done++; if (done >= need.length) paintTreasury(body, R, isFounder); }
+    finGet('bank_status', {}, function(j){ R.bank=j; each(); });
+    finGet('loan_list', {}, function(j){ R.loans=j; each(); });
+    finGet('prize_list', {}, function(j){ R.prizes=j; each(); });
+    finGet('bond_list', {}, function(j){ R.bonds=j; each(); });
+    finGet('campaign_status', {}, function(j){ R.camp=j; each(); });
+    /* R9 (2026-10-04): cause pools + sponsor board for the SPONSOR panel. */
+    finGet('cause_list', {}, function(j){ R.causes=j; each(); });
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    if (wcid) api('warchest_status', {cell_id: wcid}, function(j){ R.wchest=j; each(); });
+    else { R.wchest = null; each(); }
+    if (wcid) api('treasury_balance', {cell_id: wcid}, function(j){ R.treasury=j; each(); });
+    else { R.treasury = null; each(); }
+    /* Propaganda bounties are private to the cell — auth_secret rides the
+       same auto-attach path as cell_mine. Backend may not exist yet (BE
+       branch merges separately) — degrade to a placeholder card. */
+    if (wcid) api('propbounty_list', withIdent({cell_id: wcid}), function(j){ R.pbounty=j; each(); });
+    else { R.pbounty = null; each(); }
+  }
+
+  function paintTreasury(body, R, isFounder){
+    var h = '';
+    /* --- G7 (2026-10-04): standalone treasury panel container. games/treasury.js
+       mounts the fund + spend + balance-trajectory panel here via
+       window.PFTreasury.mount (called after body.innerHTML below). --- */
+    h += '<div id="hqTreasuryPanel"></div>';
+    /* --- 0. CELL WAR CHEST (pooled XP contributions) --- */
+    var w = R.wchest;
+    var wcid = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var wcname = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    if (w && w.ok){
+      var pct = Math.min(100, Math.round((w.total / w.goal) * 100));
+      h += '<div class="hq-card" style="border-color:#c9a227"><h3>&#9876;&#65039; Cell War Chest <span class="hq-note">'+esc(wcname)+'</span></h3>';
+      if (w.boost_active){
+        h += '<div class="hq-note" style="color:#c9a227;font-weight:bold">&#9889; BOOST ACTIVE — +5 XP on every member checkin until boost expires.</div>';
+      }
+      h += '<div style="margin:8px 0"><div style="background:#222;border-radius:6px;height:14px;overflow:hidden">' +
+        '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#c9a227,#f5d76e)"></div></div>' +
+        '<div class="hq-note" style="margin-top:4px"><b>'+esc(String(w.total))+' / '+esc(String(w.goal))+' XP</b> ('+pct+'%)' +
+        (w.goal_hit ? ' — <b style="color:#c9a227">GOAL HIT</b>' : ' — hit '+esc(String(w.goal))+' XP to unlock +5 XP checkin boost for 24h') + '</div></div>';
+      h += '<div class="hq-row" style="margin:8px 0;flex-wrap:wrap;gap:6px">' +
+        [25,50,100,250].map(function(a){ return '<button class="hq-btn sm" data-hq="warchest" data-amt="'+a+'">+'+a+' XP</button>'; }).join('') +
+        '<input class="hq-in sm" id="hqWarchestCustom" type="number" min="10" max="10000" placeholder="Custom" style="width:90px">' +
+        '<button class="hq-btn sm" data-hq="warchest-custom">Give</button></div>';
+      var lb = w.leaderboard || [];
+      if (lb.length){
+        h += '<div class="hq-note"><b>Top contributors:</b> ' +
+          lb.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.callsign)+' ('+esc(String(x.xp))+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+      var hist = w.history || [];
+      if (hist.length){
+        h += '<div class="hq-note" style="margin-top:6px"><b>Recent:</b> ' +
+          hist.slice(0,5).map(function(x){ return esc(x.callsign)+' +'+esc(String(x.xp)); }).join(' &middot; ') + '</div>';
+      }
+      h += '</div>';
+    } else if (wcid){
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3>'+netErr()+'</div>';
+    } else {
+      h += '<div class="hq-card"><h3>&#9876;&#65039; Cell War Chest</h3><div class="hq-note">Join a cell to contribute XP to its war chest.</div></div>';
+    }
+    /* --- DIVIDEND PAYOUTS (treasury -> members, equal split) --- */
+    var tr = R.treasury;
+    var divN = ((S.mine && S.mine.members) || []).length;
+    h += '<div class="hq-card" style="border-color:#7CFC00"><h3>&#128176; Dividend payouts <span class="hq-note">treasury &#8594; members</span></h3>';
+    var canDiv = !!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer));
+    if (tr && tr.ok){
+      h += '<div><span class="hq-stat"><b>'+Number(tr.balance||0).toLocaleString()+' XP</b> treasury balance</span></div>';
+      h += '<div class="hq-note">Pay the cell treasury out to members. <b>Equal split only</b> — every member gets the same XP; any leftover stays in the treasury. One payout per amount per day.</div>';
+      if (canDiv && divN > 0){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<input class="hq-in" id="hqDivAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="dividend-pay">PAY DIVIDEND</button></div>' +
+          '<div id="hqDivPreview" class="hq-note" style="margin-top:6px">Enter an amount to preview the split.</div>' +
+          '<div id="hqDivMsg"></div>';
+      } else if (!canDiv){
+        h += '<div class="hq-note">Only the founder, officers, and the treasurer can trigger dividend payouts.</div>';
+      } else {
+        h += '<div class="hq-note">No members to pay yet.</div>';
+      }
+      var dhist = (tr.recent || []).filter(function(x){ return String(x.kind || '') === 'dividend'; });
+      if (dhist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Payout history:</b> ' +
+          dhist.slice(0,5).map(function(x){
+            var dp = '';
+            try { dp = new Date(Number(x.ts)||0).toLocaleDateString(); } catch(e){}
+            return esc(dp)+' — '+Math.abs(Number(x.amount||0)).toLocaleString()+' XP split, ordered by '+esc(x.callsign||'?');
+          }).join(' &middot; ') + '</div>';
+      }
+    } else if (wcid){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see its treasury.</div>';
+    }
+    h += '</div>';
+    /* --- R9 (2026-10-04): SPONSOR — cell treasury -> cause pool.
+       Officer-gated server-side (cause_sponsor); degrade gracefully for
+       non-officers (board visible, no form). Zero XP to the officer —
+       the treasury pays, never personal XP. */
+    var ca = R.causes;
+    var canSpon = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+    var spCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+    var spName = (S.mine && S.mine.cell && S.mine.cell.name) || 'your cell';
+    h += '<div class="hq-card" style="border-color:#c1121f"><h3>&#9733; Sponsor a cause <span class="hq-note">treasury &#8594; cause pool</span></h3>';
+    if (ca && ca.ok){
+      var pools = ca.pools || [];
+      h += '<div class="hq-note">Put the cell treasury behind a cause — strike funds, bail funds, mutual aid. ' +
+        'Sponsorships are attributed to <b>'+esc(spName)+'</b> on the cause board.</div>';
+      if (canSpon && spCell && pools.length){
+        h += '<div class="hq-row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<select class="hq-in" id="hqSpPool" aria-label="Cause pool" style="max-width:230px">' +
+          pools.map(function(p2){ return '<option value="'+esc(p2.id)+'">'+esc(p2.name)+' ('+Number(p2.balance||0).toLocaleString()+' XP)</option>'; }).join('') +
+          '</select>' +
+          '<input class="hq-in" id="hqSpAmt" type="number" min="1" inputmode="numeric" placeholder="XP amount" style="width:140px">' +
+          '<button class="hq-btn" data-hq="sponsor">SPONSOR A CAUSE &rarr;</button></div>' +
+          '<div id="hqSpMsg"></div>';
+      } else if (!spCell){
+        h += '<div class="hq-note">Join a cell to sponsor causes from its treasury.</div>';
+      } else if (!canSpon){
+        h += '<div class="hq-note">Only the founder and officers can move treasury funds. Earn a role, then sponsor.</div>';
+      } else {
+        h += '<div class="hq-note">No cause pools yet.</div>';
+      }
+      var spBoard = ca.sponsor_board || [];
+      if (spBoard.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Top sponsoring cells:</b> ' +
+          spBoard.slice(0,5).map(function(x,i){ return (i+1)+'. '+esc(x.cell_name)+' ('+Number(x.total||0).toLocaleString()+' XP)'; }).join(' &middot; ') + '</div>';
+      }
+    } else if (spCell){
+      h += netErr();
+    } else {
+      h += '<div class="hq-note">Join a cell to see cause sponsorships.</div>';
+    }
+    h += '</div>';
+    /* --- 1. WAR CHEST (personal bank) --- */
+    var b = R.bank;
+    if (b && b.ok){
+      h += '<div class="hq-card"><h3>&#127974; Your war chest <span class="hq-note">(personal, not cell funds)</span></h3>' +
+        '<div><span class="hq-stat"><b>'+esc(String(b.balance||0))+' XP</b> balance</span>' +
+        '<span class="hq-stat">'+esc(String(b.rate_pct||0))+'% interest</span>' +
+        '<span class="hq-stat">Deposits '+esc(String(b.deposit_week_used||0))+'/'+esc(String(b.deposit_week_cap||0))+' XP this week</span></div>';
+      var hist = b.history || [];
+      if (hist.length){
+        h += '<div class="hq-note" style="margin-top:8px"><b>Recent:</b> ' +
+          hist.slice(0,5).map(function(x){
+            var amt = (x.amount!=null?x.amount:(x.xp!=null?x.xp:''));
+            return esc(String(x.kind||x.type||'move'))+' '+esc(String(amt))+' XP';
+          }).join(' &middot; ') + '</div>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="hq-card"><h3>&#127974; Your war chest</h3>'+netErr()+'</div>';
+    }
+
+    /* --- 2. BOUNTY ESCROW (founder locks XP for a member bounty) --- */
+    h += '<div class="hq-card"><h3>&#128179; Bounty escrow</h3>' +
+      '<div class="hq-note">Lock XP in escrow for a cell bounty — released to the member on completion, ' +
+      'refunded to you if it falls through. <b>Founder-only to create.</b> ' +
+      'Save the escrow ID after creating — you need it to release or refund.</div>';
+    if (isFounder){
+      var memOpts = escrowMemberOptions();
+      h += '<div class="hq-row" style="margin-top:8px">' +
+        '<select class="hq-in" id="hqEscTo">'+memOpts+'</select>' +
+        '<input class="hq-in" id="hqEscAmt" type="number" min="1" placeholder="XP amount" style="width:120px">' +
+        '</div><div class="hq-row">' +
+        '<input class="hq-in" id="hqEscWhy" maxlength="120" placeholder="Bounty reason (e.g. 10K-view post)">' +
+        '<button class="hq-btn" data-hq="escrow-create">LOCK ESCROW</button></div>';
+    } else {
+      h += '<div class="hq-note">Only the founder can lock new escrows.</div>';
+    }
+    h += '<div class="hq-row" style="margin-top:8px">' +
+      '<input class="hq-in" id="hqEscId" placeholder="ESCROW ID">' +
+      '<button class="hq-btn sm" data-hq="escrow-release">RELEASE</button>' +
+      '<button class="hq-btn sm ghost" data-hq="escrow-refund">REFUND</button></div>' +
+      '<div id="hqEscMsg"></div></div>';
+
+    /* --- 3. PRIZE POOLS (cell competitions) --- */
+    var pools = (R.prizes && R.prizes.ok && R.prizes.pools) || [];
+    h += '<div class="hq-card"><h3>&#127942; Prize pools</h3>' +
+      '<div class="hq-note">Fund competitions — best post of the week, top recruiter, streak champions. ' +
+      'Members contribute XP; the pool creator awards the winner.</div>';
+    if (isFounder){
+      h += '<div class="hq-row" style="margin-top:8px">' +
+        '<input class="hq-in" id="hqPrizeTitle" maxlength="60" placeholder="Pool title (e.g. Best post this week)">' +
+        '<input class="hq-in" id="hqPrizeTarget" type="number" min="1" placeholder="Target XP" style="width:120px">' +
+        '<button class="hq-btn sm" data-hq="prize-create">CREATE POOL</button></div>';
+    }
+    if (!pools.length){
+      h += '<div class="hq-note" style="margin-top:8px">No prize pools yet.</div>';
+    } else {
+      pools.slice(0,6).forEach(function(pl){
+        var pct = pl.target ? Math.min(100, Math.round((pl.raised||0)/pl.target*100)) : 0;
+        /* 2026-10-03: Award is admin-only (backend ADMIN-gated; the vault
+           holds the secret). Hide the control for non-admins — it 403s anyway. */
+        var awardCtl = adminSecret()
+          ? '<input class="hq-in" id="hqPa_'+esc(pl.id)+'" placeholder="winner callsign" style="width:140px">' +
+            '<button class="hq-btn sm ghost" data-hq="prize-award" data-pool="'+esc(pl.id)+'">AWARD</button>'
+          : '';
+        h += '<div style="margin-top:10px"><b>'+esc(pl.title)+'</b>'+hqStateTag(pl)+' <span class="hq-note">by '+esc(pl.created_by||'?')+'</span>' +
+          '<div class="hq-note">'+esc(String(pl.raised||0))+' / '+esc(String(pl.target||0))+' XP</div>' +
+          '<div class="hq-bar"><div style="width:'+pct+'%"></div></div>' +
+          '<div class="hq-row"><input class="hq-in" id="hqPc_'+esc(pl.id)+'" type="number" min="1" placeholder="XP" style="width:90px">' +
+          '<button class="hq-btn sm" data-hq="prize-contribute" data-pool="'+esc(pl.id)+'">CONTRIBUTE</button>' +
+          awardCtl + '</div></div>';
+      });
+    }
+    h += '<div id="hqPrizeMsg"></div></div>';
+
+    /* --- 3b. PROPAGANDA BOUNTIES (best-poster contests) --- */
+    var pbOff = false;
+    try { pbOff = !!(window.PF && PF.skip && PF.skip('propbounty')); } catch(e){}
+    if (!pbOff){
+      h += '<div class="hq-card" style="border-color:#c9a227"><style>.pb-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid #c9a227;color:#c9a227;letter-spacing:1px;white-space:nowrap}</style>' +
+        '<h3>&#127919; Propaganda bounties <span class="hq-note">best poster wins — the cell votes</span></h3>';
+      var pb = R.pbounty;
+      var me2 = (ident()||{}).callsign || '';
+      var canPbMod = !!(S.mine && (S.mine.is_founder || S.mine.is_officer));
+      if (pb && pb.ok){
+        var blist = pb.bounties || [];
+        h += '<div class="hq-note">The founder or an officer posts a brief. Members forge the poster, drop a link, ' +
+          'and the cell votes — top poster takes the bounty.</div>';
+        if (canPbMod && wcid){
+          h += '<div style="margin-top:8px;border-top:1px solid #2e2e2e;padding-top:10px"><b>Post a bounty</b>' +
+            '<div class="hq-row" style="margin-top:6px"><textarea class="hq-in" id="hqPbPrompt" maxlength="280" rows="2" ' +
+            'placeholder="Brief (280 max) — e.g. Best poster about H.R. 14 wins." style="flex:1;min-width:200px;resize:vertical"></textarea></div>' +
+            '<div class="hq-row">' +
+            '<select class="hq-in" id="hqPbType" aria-label="Entity type">' +
+            ['none','bill','rep','race','poll','nonprofit','campaign','prediction'].map(function(t2){
+              return '<option value="'+t2+'">'+t2.charAt(0).toUpperCase()+t2.slice(1)+'</option>';
+            }).join('') + '</select>' +
+            '<input class="hq-in" id="hqPbRef" maxlength="40" placeholder="Entity ref (e.g. H.R. 14)" style="width:170px">' +
+            '<select class="hq-in" id="hqPbPrize" aria-label="Prize tier">' +
+            '<option value="25">25 XP</option><option value="50" selected>50 XP</option><option value="100">100 XP</option></select>' +
+            '<select class="hq-in" id="hqPbDl" aria-label="Deadline">' +
+            '<option value="24">24h</option><option value="48" selected>48h</option><option value="72">72h</option><option value="168">7d</option></select>' +
+            '<button class="hq-btn sm" data-hq="pb-post">POST BOUNTY</button></div></div>';
+        } else if (!canPbMod){
+          h += '<div class="hq-note">Only the founder and officers can post bounties.</div>';
+        }
+        if (!blist.length){
+          h += '<div class="hq-note" style="margin-top:8px">No propaganda bounties yet — the founder can post the first.</div>';
+        } else {
+          blist.forEach(function(b){ try { h += pbBountyCard(b, me2, canPbMod); } catch(x){} });
+        }
+      } else if (wcid){
+        /* Graceful degradation: backend action doesn't exist yet — card
+           stays, placeholder note, never throws. */
+        h += '<div class="hq-note">Propaganda bounties aren\'t live on the backend yet — ' +
+          'this board lights up the moment the action ships. Nothing to do.</div>';
+      } else {
+        h += '<div class="hq-note">Join a cell to post and vote on propaganda bounties.</div>';
+      }
+      h += '<div id="hqPbMsg"></div></div>';
+    }
+
+    /* --- 4. CELL LOANS (member aid in XP) --- */
+    var loans = (R.loans && R.loans.ok) ? R.loans : { as_lender:[], as_borrower:[] };
+    h += '<div class="hq-card"><h3>&#129309; Cell loans</h3>' +
+      '<div class="hq-note">XP loans between members. Lender sets principal, interest (max 50%), and duration. ' +
+      'New recruits (under 7 days) can get microloans up to 100 XP.</div>';
+    h += '<div class="hq-row" style="margin-top:8px">' +
+      '<input class="hq-in" id="hqLoanTo" placeholder="borrower callsign" style="width:150px">' +
+      '<input class="hq-in" id="hqLoanAmt" type="number" min="1" placeholder="XP" style="width:90px">' +
+      '<input class="hq-in" id="hqLoanInt" type="number" min="0" max="50" placeholder="% int" style="width:80px">' +
+      '<input class="hq-in" id="hqLoanDur" type="number" min="1" max="365" placeholder="days" style="width:80px">' +
+      '<button class="hq-btn sm" data-hq="loan-offer">OFFER LOAN</button></div>';
+    h += '<div class="hq-row"><input class="hq-in" id="hqMicroTo" placeholder="new recruit callsign" style="width:150px">' +
+      '<input class="hq-in" id="hqMicroAmt" type="number" min="1" max="100" placeholder="XP (max 100)" style="width:120px">' +
+      '<button class="hq-btn sm ghost" data-hq="microloan">SEND MICROLOAN</button></div>';
+    var al = loans.as_lender||[], ab = loans.as_borrower||[];
+    if (al.length || ab.length){
+      h += '<div class="hq-note" style="margin-top:8px"><b>Your loans</b></div>';
+      al.forEach(function(l){
+        if (l.repaid) return;
+        h += '<div class="hq-mem"><span>Lent <b>'+esc(String(l.principal))+' XP</b> to '+esc(l.borrower)+' (+'+esc(String(l.interest_pct))+'%)</span>' +
+          '<span class="hq-note">'+dueIn(l.due_at)+'</span></div>';
+      });
+      ab.forEach(function(l){
+        if (l.repaid) return;
+        var total = l.principal + Math.round(l.principal*(l.interest_pct||0)/100);
+        h += '<div class="hq-mem"><span>Borrowed <b>'+esc(String(l.principal))+' XP</b> from '+esc(l.lender)+' — repay '+esc(String(total))+' XP</span>' +
+          '<span><button class="hq-btn sm" data-hq="loan-accept" data-loan="'+esc(l.id)+'">ACCEPT</button> ' +
+          '<button class="hq-btn sm ghost" data-hq="loan-repay" data-loan="'+esc(l.id)+'">REPAY</button></span></div>';
+      });
+    } else {
+      h += '<div class="hq-note" style="margin-top:8px">No active loans.</div>';
+    }
+    h += '<div id="hqLoanMsg"></div></div>';
+
+    /* --- 5. WAR BONDS (USD rail — link only, zero friction) --- */
+    var bonds = (R.bonds && R.bonds.ok && R.bonds.bonds) || [];
+    var bTot = bonds.filter(function(x){ return !x.redeemed; }).reduce(function(a,x){ return a+(x.amount||0); },0);
+    h += '<div class="hq-card"><h3>&#128178; War Bonds <span class="hq-note">(USD rail)</span></h3>' +
+      '<div class="hq-note">Real-money bonds that fund the network. Buying happens in the store — ' +
+      'no callsign needed, no friction. Your held bonds: <b>'+bonds.filter(function(x){return !x.redeemed;}).length+'</b> ' +
+      (bTot ? '('+esc(String(bTot))+' XP value unredeemed)' : '') + '</div>' +
+      '<div class="hq-row" style="margin-top:8px">' +
+      '<a href="/store" class="hq-btn" style="text-decoration:none;display:inline-block">BACK THE FIGHT — BUY WAR BONDS</a></div></div>';
+
+    /* --- 6. CAMPAIGN PLEDGE --- */
+    var cs = R.camp;
+    h += '<div class="hq-card"><h3>&#128681; Campaign pledge</h3>';
+    if (cs && (cs.ok===undefined || cs.ok)){
+      var pledged = cs.pledged;
+      h += '<div><span class="hq-stat">'+esc(String(cs.pledges||cs.pl||0))+' pledged</span>' +
+        '<span class="hq-stat">'+esc(String(cs.actions||cs.acts||0))+' actions logged</span></div>';
+      if (pledged){
+        h += '<div class="hq-note" style="margin-top:8px">You\'re pledged. +25 XP earned. The wall holds because of you.</div>';
+      } else {
+        h += '<div class="hq-row" style="margin-top:8px"><input class="hq-in" id="hqPledgeNote" maxlength="140" placeholder="Why you fight (optional)">' +
+          '<button class="hq-btn sm" data-hq="pledge">PLEDGE +25 XP</button></div>';
+      }
+    } else {
+      h += netErr();
+    }
+    h += '<div id="hqPledgeMsg"></div></div>';
+
+    body.innerHTML = h;
+    wireRetries(body);
+    /* G7 (2026-10-04): mount the standalone treasury panel (games/treasury.js)
+       into its container at the top of the TREASURY tab. Guarded — the tab
+       renders fine if treasury.js isn't in the bundle yet. */
+    try {
+      var _tp = body.querySelector('#hqTreasuryPanel');
+      if (_tp && window.PFTreasury && window.PFTreasury.mount)
+        window.PFTreasury.mount(_tp, { cell_id: wcid, cell_name: wcname,
+          is_officer: !!(S.mine && (S.mine.is_founder || S.mine.is_officer)) });
+    } catch (e) {}
+  }
+
+  function escrowMemberOptions(){
+    var mems = [];
+    if (S.mine && S.mine.members) mems = S.mine.members.map(function(m){ return m.callsign; });
+    if (!mems.length) return '<option value="">(no members loaded)</option>';
+    return mems.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+  }
+  function dueIn(ts){
+    if (!ts) return '';
+    var d = Math.ceil((ts - Date.now())/86400000);
+    if (d < 0) return 'OVERDUE';
+    if (d === 0) return 'due today';
+    return 'due in '+d+'d';
+  }
+  function treasMsg(id, ok, msg){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="hq-note" style="margin-top:6px;color:'+(ok?'#7CFC00':'#ff6b6b')+'">'+esc(msg)+'</div>';
+  }
+
+  /* ---------- event delegation ---------- */
+  function refreshMineThen(tab){
+    invalidateMine(); S.detailPrestige=null; S.detailHealth=null;
+    S.tab = tab || 'mine';
+    mount.querySelectorAll('.hq-tab').forEach(function(x){
+      x.classList.toggle('on', x.getAttribute('data-tab')===S.tab);
+    });
+    render();
+  }
+
+  mount.addEventListener('click', function(ev){
+    var t = ev.target;
+    /* CELL IDENTITY (2026-10-05): discovery actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       Join and apply both pay 0 XP (Engagement review verdict). */
+    if (window.PFCellIdentity && window.PFCellIdentity.enabled() && t.closest){
+      var ia = t.closest('[data-idjoin],[data-idapply]');
+      if (ia && mount.contains(ia)){
+        var jc = ia.getAttribute('data-idjoin'), ac = ia.getAttribute('data-idapply');
+        if (jc){
+          var idj = ident();
+          if (!idj.callsign){ toast('Claim a callsign first.'); return; }
+          try{ ia.disabled = true; }catch(e){}
+          api('cell_join', withIdent({code:String(jc).toUpperCase().trim()}), function(j){
+            try{ ia.disabled = false; }catch(e){}
+            if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+            else toast(friendlyErr(j));
+          });
+        } else if (ac){
+          window.PFCellIdentity.applyToCell(ac, function(j){
+            if (j && j.ok) toast('Application sent. The founder reviews every request.');
+            else toast(friendlyErr(j));
+          });
+        }
+        return;
+      }
+    }
+    /* PLAY 7 (2026-10-06): rally-call actions — intercept BEFORE the
+       data-hq walk so clicks aren't misattributed to an ancestor button.
+       "RALLY AROUND THIS →" copies the rally message (take-to-cell
+       handoff — nothing auto-posts). "MARK TAKEN" claims the call. */
+    if (t.closest){
+      var ra = t.closest('[data-rally]');
+      if (ra && mount.contains(ra)){
+        var rid = ra.getAttribute('data-rid'), rop = ra.getAttribute('data-rally');
+        if (rop === 'copy'){
+          var rs = rallyCache[String(rid)];
+          if (rs) rallyCopyText(rs);
+          return;
+        }
+        if (rop === 'taken'){
+          try{ ra.disabled = true; }catch(e){}
+          rallyActPost(rid, 'taken', function(wasOk){
+            try{ ra.disabled = false; }catch(e2){}
+            if (wasOk){
+              toast('Rally claimed — your cell is on it.');
+              var card = ra.closest('.hq-rallyitem');
+              if (card && card.parentNode) card.parentNode.removeChild(card);
+            } else toast('The wire fought back. Nothing changed — retry.');
+          });
+          return;
+        }
+      }
+    }
+    while (t && t !== mount && !t.getAttribute('data-hq')) t = t.parentNode;
+    if (!t || t === mount) return;
+    var a = t.getAttribute('data-hq');
+    var cellId = t.getAttribute('data-cell');
+    var id = ident();
+
+    function needCs(){
+      if (!id.callsign){ toast('Claim a callsign first.'); return false; }
+      return true;
+    }
+    function busy(dis){ try{ t.disabled = !!dis; }catch(e){} }
+
+    /* CELLS 2.0 (2026-10-05): copy the personal invite link from the
+       Recruit panel. Clipboard with a select+execCommand fallback; never
+       throws, never blocks. */
+    if (a==='recruit-copy'){
+      var rInp=document.getElementById('hqRecruitLink');
+      var rVal=rInp?String(rInp.value||""):"";
+      if(!rVal){ toast('No invite link yet.'); return; }
+      var rDone=function(){ toast('Invite link copied. Go recruit.'); };
+      var rFallback=function(){
+        try{ rInp.focus(); rInp.select();
+          if(document.execCommand('copy')){ rDone(); return; }
+        }catch(e2){}
+        toast('Copy this link: '+rVal);
+      };
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){
+          navigator.clipboard.writeText(rVal).then(rDone,rFallback);
+        } else rFallback();
+      }catch(e3){ rFallback(); }
+    }
+    else if (a==='back'){ refreshMineThen('mine'); }
+    else if (a==='detail'){ S.detail=cellId; S.detailPrestige=null; S.detailHealth=null; S.tab='detail'; render(); }
+    else if (a==='checkin'){
+      if(!needCs()) return; busy(true);
+      api('cell_checkin', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Checked in. Streak holds.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='cover'){
+      if(!needCs()) return;
+      if(!moneyConfirm('Cover this cellmate\'s missed check-in? Uses your one weekly cover.')) return;
+      busy(true);
+      api('cell_cover', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Covered. Nobody gets left behind.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='strike-reroll'){
+      /* G12 (2026-10-05): founder-only re-roll of the political strike order. */
+      if(!needCs()) return; busy(true);
+      postMut('strike_reroll', withIdent({cell_id: cellId}), function(j){
+        busy(false);
+        if (j && j.ok){
+          toast('New political strike order issued.');
+        } else {
+          toast(friendlyErr(j));
+          if (j && (j.already_rerolled || j.rerolled_used || /already|r[eé]-roll/i.test(String(j.err||j.error||j.message||'')))){
+            t.disabled = true; t.textContent = 'RE-ROLLED THIS WEEK';
+            return;
+          }
+        }
+        /* Re-pull the orders so the card + counts are fresh. */
+        paintStrikeOrders(mount, cellId, true);
+      });
+    }
+    else if (a==='strike-forge'){
+      /* fe/strike-orders-creative: FORGE THIS — deep-link into the Poster
+         Forge with the bound entity pre-loaded (pf-forge-launch handoff). */
+      if(!needCs()) return;
+      var fEnt = {
+        kind: t.getAttribute('data-ekind') || '',
+        id: t.getAttribute('data-eid') || '',
+        title: t.getAttribute('data-etitle') || '',
+        url: t.getAttribute('data-eurl') || ''
+      };
+      if (!fEnt.id) fEnt = null;
+      strikeForgeLaunch(cellId, t.getAttribute('data-week') || '', fEnt, '/create#pf-poster');
+    }
+    else if (a==='bounties'){
+      if(!needCs()) return; busy(true);
+      api('cell_bounty_claim', withIdent({}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounties claimed: +'+(j.xp||0)+' XP.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='warchest' || a==='warchest-custom'){
+      if(!needCs()) return;
+      var wcid2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!wcid2){ toast('Join a cell first.'); return; }
+      var wamt = a==='warchest' ? Number(t.getAttribute('data-amt')) : Number(strIn('hqWarchestCustom'));
+      if (!wamt || wamt < 10 || wamt > 10000){ toast('Amount must be 10–10000 XP.'); return; }
+      if (!confirm('Contribute '+wamt+' XP to the cell war chest? This is spent, not a loan.')) return;
+      busy(true);
+      api('cell_contribute', withIdent({cell_id: wcid2, xp: wamt}), function(j){
+        busy(false);
+        if (j && j.ok){
+          /* Backend already debited via xpGrant in cell_contribute.
+             Mirror the spend on the local ledger for instant UX
+             (no pf-xp dispatch — that would mirror to backend and
+             double-debit). */
+          try{ if(window.PF&&PF.debitLocal) PF.debitLocal(null,wamt); }catch(e){}
+          var msg = 'War chest +'+wamt+' XP. Total: '+(j.total||0)+'/'+(j.goal||1000)+'.';
+          if (j.milestone_unlocked) msg += ' GOAL HIT — +5 XP checkin boost active 24h!';
+          toast(msg);
+          S.tab='treasury'; render();
+        }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='dividend-pay'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer || S.mine.is_treasurer))){
+        toast('Only the founder, officers, and the treasurer can pay dividends.'); return;
+      }
+      var dcell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!dcell2){ toast('Join a cell first.'); return; }
+      var damt = numIn('hqDivAmt', 0);
+      if (!damt || damt < 1){ toast('Enter an XP amount first.'); return; }
+      var dsp = divSplit(damt);
+      if (!dsp){ toast('Amount too small to split across all members.'); return; }
+      var dmsg = 'Pay dividend: '+dsp.per.toLocaleString()+' XP to each of '+dsp.n+' members ('+
+        dsp.total.toLocaleString()+' XP total';
+      if (dsp.leftover > 0) dmsg += ', '+dsp.leftover.toLocaleString()+' XP stays in the treasury';
+      dmsg += '). Confirm?';
+      if (!moneyConfirm(dmsg)) return;
+      busy(true);
+      postFin('dividend_pay', {cell_id: dcell2, amount: damt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          treasMsg('hqDivMsg', true, 'Paid '+Number(j.distributed||0).toLocaleString()+' XP — '+
+            Number(j.per_member||0).toLocaleString()+' XP to every member.');
+          toast('Dividend paid. '+Number(j.distributed||0).toLocaleString()+' XP out.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqDivMsg', false, friendlyErr(j));
+      });
+    }
+    /* R9 (2026-10-04): SPONSOR — treasury -> cause pool. Officer-gated
+       server-side; the backend debits the treasury, never the officer. */
+    else if (a==='sponsor'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        toast('Only the founder and officers can sponsor from the treasury.'); return;
+      }
+      var scell2 = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!scell2){ toast('Join a cell first.'); return; }
+      var spid = strIn('hqSpPool');
+      var samt = numIn('hqSpAmt', 0);
+      if (!spid){ toast('Pick a cause pool.'); return; }
+      if (!samt || samt < 1){ toast('Enter an XP amount first.'); return; }
+      var spcname = (S.mine.cell && S.mine.cell.name) || 'your cell';
+      if (!moneyConfirm('Sponsor '+samt.toLocaleString()+' XP from the '+spcname+' treasury to this cause? Officer move — spends real cell XP.')) return;
+      busy(true);
+      postFin('cause_sponsor', {cell_id: scell2, pool_id: spid, amount: samt}, function(j){
+        busy(false);
+        if (j && j.ok){
+          var smsg = j.dup ? 'Already counted — double-tap ignored.' :
+            'Sponsored '+Number(j.amount||samt).toLocaleString()+' XP to '+(j.pool||'the cause')+' as '+(j.cell_name||spcname)+'.';
+          treasMsg('hqSpMsg', true, smsg);
+          toast('Cause sponsored. The treasury backs the fight.');
+          S.tab='treasury'; render();
+        }
+        else treasMsg('hqSpMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='create'){
+      if(!needCs()) return;
+      var nm = strIn('hqNewName');
+      if (nm.length < 3){ toast('Cell name needs 3-24 characters.'); return; }
+      busy(true);
+      /* strIn drops nothing: "" state means unaffiliated (backend nullable). */
+      api('cell_create', withIdent({name:nm, state:strIn('hqNewState')}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Cell founded. Invite code: '+(j.cell&&j.cell.invite_code?j.cell.invite_code:'')); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='join'){
+      if(!needCs()) return;
+      var code = strIn('hqJoinCode').toUpperCase();
+      if (!code){ toast('Enter an invite code.'); return; }
+      busy(true);
+      api('cell_join', withIdent({code:code}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='join-id'){
+      if(!needCs()) return;
+      /* Browse join: need invite code — search results don't carry it.
+         Ask for the code directly. */
+      var c2 = window.prompt('Enter the invite code for this cell:');
+      if (!c2) return;
+      busy(true);
+      api('cell_join', withIdent({code:String(c2).toUpperCase().trim()}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Welcome to '+(j.cell&&j.cell.name?j.cell.name:'the cell')+'.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='rename'){
+      if(!needCs()) return;
+      var nn = window.prompt('New cell name (3-24 characters):');
+      if (!nn || nn.trim().length < 3) return;
+      busy(true);
+      api('cell_rename', withIdent({cell_id:cellId, name:nn.trim()}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Cell renamed.'); refreshMineThen('detail'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='set-state'){
+      /* Founder: change the cell's state affiliation. cell_update is a WRITE
+         action -> postMut POST, so an empty string transmits (clears the
+         affiliation); fail-soft on old backends (no such action): the error
+         shows and the affiliation rendering is untouched. */
+      if(!needCs()) return;
+      var sv = strIn('hqSetState');
+      busy(true);
+      api('cell_update', withIdent({cell_id:cellId, state:sv}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('State affiliation updated.'); refreshMineThen('detail'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='promote'){
+      if(!needCs()) return;
+      var tgt = t.getAttribute('data-target');
+      /* G11 (2026-10-04): founder-only role assignment — one role per member. */
+      var role = window.prompt('Set role for '+tgt+' — type "officer", "member", "treasurer", or "warcaller":','officer');
+      if (!role) return;
+      role = role.trim().toLowerCase();
+      if (role!=='officer' && role!=='member' && role!=='treasurer' && role!=='warcaller'){ toast('Role must be officer, member, treasurer, or warcaller.'); return; }
+      if(!moneyConfirm('Set '+tgt+' as '+role+'?')) return;
+      busy(true);
+      api('cell_promote', withIdent({cell_id:cellId, target:tgt, role:role}), function(j){
+        busy(false);
+        if (j && j.ok){ toast(tgt+' is now '+role+'.'); S.detailPrestige=null; render(); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='leave'){
+      if(!needCs()) return;
+      if(!moneyConfirm('Leave this cell? Your streak with this cell ends here.')) return;
+      busy(true);
+      api('cell_leave', withIdent({cell_id:cellId}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('You left the cell.'); refreshMineThen('mine'); }
+        else toast(friendlyErr(j));
+      });
+    }
+    else if (a==='search'){
+      S.searchQ = strIn('hqSearch');
+      S.searchState = strIn('hqSearchState');
+      /* CELL IDENTITY (2026-10-05): persist quality filters in S so a
+         re-render keeps them. */
+      if (window.PFCellIdentity && window.PFCellIdentity.enabled()){
+        S.idfCause = strIn('hqIdfCause'); S.idfVibe = strIn('hqIdfVibe');
+        S.idfSpec = strIn('hqIdfSpec'); S.idfEntry = strIn('hqIdfEntry');
+        S.idfAct = strIn('hqIdfAct');
+        /* QC FIX (2026-10-05, Finding 3): persist the sort choice so a
+           re-render keeps it. */
+        S.idfSort = strIn('hqIdfSort');
+      }
+      var res = document.getElementById('hqSearchRes');
+      if (res) res.innerHTML = loading('Searching&hellip;');
+      doSearch(function(j){
+        var r2 = document.getElementById('hqSearchRes');
+        if (r2) r2.innerHTML = searchHtml(j);
+      });
+    }
+    /* ----- treasury actions ----- */
+    else if (a==='escrow-create'){
+      if(!needCs()) return;
+      var to = strIn('hqEscTo'), amt = numIn('hqEscAmt'), why = strIn('hqEscWhy')||'cell bounty';
+      if (!to){ treasMsg('hqEscMsg', false, 'Pick a member.'); return; }
+      if (!amt){ treasMsg('hqEscMsg', false, 'Enter an XP amount.'); return; }
+      if(!moneyConfirm('Lock '+amt+' XP in escrow for '+to+'?\n"'+why+'"')) return;
+      busy(true);
+      postFin('escrow_create', {from_cs:id.callsign, to_cs:to, amount:amt, purpose:why}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow locked. ID: '+j.id+' — SAVE THIS ID to release or refund.'); toast('Escrow locked.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='escrow-release'){
+      if(!needCs()) return;
+      var eid = strIn('hqEscId');
+      if (!eid){ treasMsg('hqEscMsg', false, 'Enter the escrow ID.'); return; }
+      if(!moneyConfirm('RELEASE escrow '+eid+' to the recipient? This cannot be undone.')) return;
+      busy(true);
+      postFin('escrow_release', {escrow_id:eid}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow released.'); toast('Escrow settled.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='escrow-refund'){
+      if(!needCs()) return;
+      var eid2 = strIn('hqEscId');
+      if (!eid2){ treasMsg('hqEscMsg', false, 'Enter the escrow ID.'); return; }
+      if(!moneyConfirm('REFUND escrow '+eid2+' back to the locker? This cannot be undone.')) return;
+      busy(true);
+      postFin('escrow_refund', {escrow_id:eid2}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqEscMsg', true, 'Escrow refunded.'); toast('Escrow refunded.'); }
+        else treasMsg('hqEscMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-create'){
+      if(!needCs()) return;
+      var title = strIn('hqPrizeTitle'), target = numIn('hqPrizeTarget');
+      if (title.length < 3){ treasMsg('hqPrizeMsg', false, 'Give the pool a title.'); return; }
+      if (!target){ treasMsg('hqPrizeMsg', false, 'Set a target XP amount.'); return; }
+      if(!moneyConfirm('Create prize pool "'+title+'" with a '+target+' XP target?')) return;
+      busy(true);
+      postPrize('prize_create', {title:title, target:target}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Pool created.'); toast('Prize pool live.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-contribute'){
+      if(!needCs()) return;
+      var pool = t.getAttribute('data-pool');
+      var camt = numIn('hqPc_'+pool);
+      if (!camt){ treasMsg('hqPrizeMsg', false, 'Enter an XP amount to contribute.'); return; }
+      if(!moneyConfirm('Contribute '+camt+' XP to this prize pool?')) return;
+      busy(true);
+      postPrize('prize_contribute', {pool_id:pool, amount:camt}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Contributed. Pool now at '+j.raised+' XP.'); toast('Contribution locked in.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='prize-award'){
+      if(!needCs()) return;
+      /* Admin-only: prize_award is backend ADMIN-gated. Without the vault's
+         session secret the router 403s, so fail closed here too. */
+      if(!adminSecret()){ treasMsg('hqPrizeMsg', false, 'Awarding is admin-only — open the Vault to award prize pools.'); return; }
+      var pool2 = t.getAttribute('data-pool');
+      var winner = strIn('hqPa_'+pool2).toLowerCase();
+      if (!winner){ treasMsg('hqPrizeMsg', false, 'Enter the winner\'s callsign.'); return; }
+      if(!moneyConfirm('Award this pool to '+winner+'? The full pool pays out. This cannot be undone.')) return;
+      busy(true);
+      postPrize('prize_award', {pool_id:pool2, winner:winner}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqPrizeMsg', true, 'Awarded to '+winner+'.'); toast('Prize awarded.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPrizeMsg', false, friendlyErr(j));
+      }, {admin:true});
+    }
+    else if (a==='loan-offer'){
+      if(!needCs()) return;
+      var bor = strIn('hqLoanTo').toLowerCase(), princ = numIn('hqLoanAmt');
+      var intr = numIn('hqLoanInt'), dur = numIn('hqLoanDur', 30);
+      if (!bor){ treasMsg('hqLoanMsg', false, 'Enter the borrower\'s callsign.'); return; }
+      if (!princ){ treasMsg('hqLoanMsg', false, 'Enter a principal XP amount.'); return; }
+      if (intr > 50){ treasMsg('hqLoanMsg', false, 'Interest capped at 50%.'); return; }
+      if(!moneyConfirm('Offer '+princ+' XP loan to '+bor+' at '+intr+'% for '+dur+' days?\nThe XP leaves your balance until repaid.')) return;
+      busy(true);
+      postFin('loan_offer', {lender:id.callsign, borrower:bor, principal:princ, interest_pct:intr, duration_days:dur}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqLoanMsg', true, 'Loan offered.'); toast('Loan offer sent.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='loan-accept'){
+      if(!needCs()) return;
+      var lid = t.getAttribute('data-loan');
+      if(!moneyConfirm('Accept this loan? The XP lands in your balance now; you repay principal + interest.')) return;
+      busy(true);
+      postFin('loan_accept', {loan_id:lid}, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Loan accepted.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='loan-repay'){
+      if(!needCs()) return;
+      var lid2 = t.getAttribute('data-loan');
+      if(!moneyConfirm('Repay this loan in full (principal + interest)?')) return;
+      busy(true);
+      postFin('loan_repay', {loan_id:lid2}, function(j){
+        busy(false);
+        if (j && j.ok){ toast('Loan repaid. Clean slate.'); S.tab='treasury'; render(); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='microloan'){
+      if(!needCs()) return;
+      var rec = strIn('hqMicroTo').toLowerCase(), mamt = numIn('hqMicroAmt');
+      if (!rec){ treasMsg('hqLoanMsg', false, 'Enter the recruit\'s callsign.'); return; }
+      if (!mamt || mamt > 100){ treasMsg('hqLoanMsg', false, 'Microloans are 1-100 XP.'); return; }
+      if(!moneyConfirm('Send '+mamt+' XP microloan to '+rec+'? (Recruit must be under 7 days old.)')) return;
+      busy(true);
+      postFin('microloan_give', {sponsor:id.callsign, recruit:rec, amount:mamt}, function(j){
+        busy(false);
+        if (j && j.ok){ treasMsg('hqLoanMsg', true, 'Microloan sent.'); toast('Microloan sent.'); }
+        else treasMsg('hqLoanMsg', false, friendlyErr(j));
+      });
+    }
+    /* ----- propaganda bounty actions ----- */
+    else if (a==='pb-post'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){
+        treasMsg('hqPbMsg', false, 'Only the founder and officers can post bounties.'); return;
+      }
+      var pbCell = (S.mine && S.mine.cell && S.mine.cell.id) || '';
+      if (!pbCell){ treasMsg('hqPbMsg', false, 'Join a cell first.'); return; }
+      var prompt = strIn('hqPbPrompt');
+      if (prompt.length < 3){ treasMsg('hqPbMsg', false, 'Write a brief — at least 3 characters.'); return; }
+      prompt = prompt.slice(0, 280);
+      var etype = strIn('hqPbType').toLowerCase();
+      var validTypes = {none:1,bill:1,rep:1,race:1,poll:1,nonprofit:1,campaign:1,prediction:1};
+      if (!validTypes[etype]) etype = 'none';
+      var eref = strIn('hqPbRef').slice(0, 40);
+      if (etype === 'none') eref = '';
+      var pTier = numIn('hqPbPrize', 50);
+      if (pTier !== 25 && pTier !== 50 && pTier !== 100) pTier = 50;
+      var pDl = numIn('hqPbDl', 48);
+      if (pDl !== 24 && pDl !== 48 && pDl !== 72 && pDl !== 168) pDl = 48;
+      if(!moneyConfirm('Post propaganda bounty for '+pTier+' XP? "'+prompt+'"')) return;
+      busy(true);
+      api('propbounty_post', withIdent({cell_id: pbCell, prompt: prompt, entity_type: etype,
+        entity_ref: eref, prize_xp: pTier, deadline_hours: pDl}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty posted. Forge away.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-submit'){
+      if(!needCs()) return;
+      var sbid = t.getAttribute('data-bounty');
+      var aurl = strIn('hqPbUrl_'+sbid), atitle = strIn('hqPbTitle_'+sbid).slice(0, 80);
+      if (!/^https?:\/\//i.test(aurl)){ treasMsg('hqPbMsg', false, 'Paste a valid link to your poster (http/https).'); return; }
+      if (atitle.length < 2){ treasMsg('hqPbMsg', false, 'Give your submission a title.'); return; }
+      busy(true);
+      api('propbounty_submit', withIdent({bounty_id: sbid, asset_url: aurl, title: atitle}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Submitted. May the best poster win.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-vote'){
+      if(!needCs()) return;
+      var vbid = t.getAttribute('data-bounty'), vsub = t.getAttribute('data-sub');
+      busy(true);
+      api('propbounty_vote', withIdent({bounty_id: vbid, submission_id: vsub}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Vote counted.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-settle'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var stbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Settle this bounty early? Top-voted submission wins the XP. This cannot be undone.')) return;
+      busy(true);
+      api('propbounty_settle', withIdent({bounty_id: stbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty settled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pb-cancel'){
+      if(!needCs()) return;
+      if (!(S.mine && (S.mine.is_founder || S.mine.is_officer))){ toast('Officers only.'); return; }
+      var cbid = t.getAttribute('data-bounty');
+      if(!moneyConfirm('Cancel this bounty? Submissions are discarded and no XP pays out.')) return;
+      busy(true);
+      api('propbounty_cancel', withIdent({bounty_id: cbid}), function(j){
+        busy(false);
+        if (j && j.ok){ toast('Bounty cancelled.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPbMsg', false, friendlyErr(j));
+      });
+    }
+    else if (a==='pledge'){
+      if(!needCs()) return;
+      var note = strIn('hqPledgeNote');
+      if(!moneyConfirm('Pledge to the campaign? One-time, earns +25 XP.')) return;
+      busy(true);
+      postCamp('campaign_pledge', {note:note}, function(j){
+        busy(false);
+        if (j && (j.ok || j.pledged)){ treasMsg('hqPledgeMsg', true, 'Pledged. +25 XP. The wall holds.'); toast('Pledged.'); S.tab='treasury'; render(); }
+        else treasMsg('hqPledgeMsg', false, friendlyErr(j));
+      });
+    }
+  });
+
+  /* dividend amount — live split preview */
+  mount.addEventListener('input', function(ev){
+    if (ev.target && ev.target.id === 'hqDivAmt'){
+      var pv = document.getElementById('hqDivPreview');
+      if (pv) pv.innerHTML = divPreviewHtml(numIn('hqDivAmt', 0));
+    }
+  });
+
+  /* search on Enter */
+  mount.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter' && ev.target && ev.target.id === 'hqSearch'){
+      ev.preventDefault();
+      S.searchQ = strIn('hqSearch');
+      var res = document.getElementById('hqSearchRes');
+      if (res) res.innerHTML = loading('Searching&hellip;');
+      doSearch(function(j){
+        var r2 = document.getElementById('hqSearchRes');
+        if (r2) r2.innerHTML = searchHtml(j);
+      });
+    }
+  });
+
+  /* ---------- boot ---------- */
+  /* TERMINAL STATE (2026-10-04): the pane must never sit on its loading
+     text if boot throws — render the explicit HQ error panel instead. */
+  try { render(); }
+  catch (be) {
+    try {
+      var bp = pane();
+      if (bp) bp.innerHTML = netErr();
+      if (window.PF) PF.error('cell-hq', 'boot failed :: ' + (be && be.message || be));
+    } catch (be2) {}
+  }
+})();

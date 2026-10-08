@@ -226,5 +226,22 @@ function jsLazy(){
   }else{fireAll();return;}
   setTimeout(function(){fireAll();},15000);
 }
-CSS.forEach(css);jsSeq();
+/* ENLISTMENT GATE (2026-10-05, fe/enlistment-gate): hook-first first-visit
+   funnel for the homepage. Injected ONLY on #pf-v2 for unseen visitors —
+   ~zero added weight for everyone else (returning visitors skip this
+   entirely). Kill: ?pf_off=gate. The gate bundle (games/enlistment-gate.js)
+   is loader-injected standalone, never concatenated (build/bundle.js
+   STANDALONE list); it pins to this footer's V3 on jsDelivr. */
+function gateBoot(){
+  try{
+    if(!isHome) return;
+    if(/(^|[?&])pf_off=gate($|&)/.test(location.search)) return;
+    try{ if(localStorage.getItem('pf_gate_seen')) return; }catch(e){}
+    var s=document.createElement('script'); s.async=true;
+    s.src=BASE+'games/enlistment-gate.js';
+    s.onerror=function(){siloFail('games/enlistment-gate.js');};
+    document.head.appendChild(s);
+  }catch(e){}
+}
+CSS.forEach(css);jsSeq();gateBoot();
 })();</script>

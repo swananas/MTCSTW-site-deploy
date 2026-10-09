@@ -39,12 +39,12 @@
   .pf-skip-link:focus{left:0;}
   /* Merged header + pillars: butter-smooth, PWA-native */
   .pf-topbar{
-    position:sticky;top:0;z-index:10000;
-    padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px 18px;
-    background:linear-gradient(180deg,#0d0d0d 0%,#0a0a0a 100%);
-    border-bottom:1px solid #1e1e1e;
-    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    position:fixed;top:0;left:0;right:0;z-index:10000;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;
+    background:#0a0a0a;
+    border-bottom:1px solid #c1121f;
   }
+  body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
   .pf-topbar-inner{
     max-width:960px;margin:0 auto;
     display:flex;align-items:center;gap:16px;

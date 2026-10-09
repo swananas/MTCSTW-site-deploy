@@ -44,6 +44,11 @@
     background:#0a0a0a;
     border-bottom:1px solid #c1121f;
   }
+  /* PWA standalone: extra top space for status bar */
+  @media (display-mode: standalone){
+    .pf-topbar{padding-top:calc(env(safe-area-inset-top, 20px) + 28px);}
+    body{padding-top:calc(env(safe-area-inset-top, 20px) + 138px);}
+  }
   body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
   .pf-topbar-inner{
     max-width:960px;margin:0 auto;

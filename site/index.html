@@ -189,16 +189,20 @@
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',butterPillars);
   }else{butterPillars();}
-  // Load sequence: PARALLEL (not sequential) -> karl lazy
+  // Load sequence: PARALLEL download, ORDERED execution -> karl lazy
+  // (async=false on dynamic scripts = parallel download, in-order execution)
   (async function(){
-    // Fire all critical scripts in parallel
-    var critical=[
-      load(BASE+'core/'+CORE,true),
-      load(BASE+PWA,true),
+    // Critical scripts: download in parallel, execute in order (core first)
+    await load(BASE+'core/'+CORE,false);
+    // PWA is independent - fire async
+    load(BASE+PWA,true);
+    // Games and pages depend on core - ordered but non-blocking each other
+    var rest=[
+      load(BASE+GAMES[0],false),
+      load(BASE+GAMES[1],false),
+      load(BASE+PAGES,false),
     ];
-    GAMES.forEach(function(g){critical.push(load(BASE+g,true));});
-    critical.push(load(BASE+PAGES,true));
-    await Promise.all(critical);
+    await Promise.all(rest);
     // Karl companion: lazy after idle
     function goKarl(){
       if(pfSkip('karl-companion'))return;

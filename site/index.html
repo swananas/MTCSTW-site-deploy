@@ -37,6 +37,18 @@
   #pf-topbar-panel[hidden]{display:none;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
+  /* 4-pillar hero: static, mobile-first, zero-JS */
+  #pf-pillars{background:#0a0a0a;padding:28px 16px 40px;border-bottom:2px solid #c1121f;}
+  .pf-pillars-inner{max-width:960px;margin:0 auto;}
+  .pf-pillars-h1{margin:0 0 4px;font-size:clamp(28px,7vw,48px);font-weight:900;letter-spacing:.04em;color:#fff;}
+  .pf-pillars-sub{margin:0 0 20px;color:#b8b8b8;font-size:15px;}
+  .pf-pillars-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+  .pf-pillar{display:block;text-decoration:none;background:#141414;border:1px solid #2a2a2a;border-left:6px solid #c1121f;border-radius:10px;padding:18px 16px;color:#fff;transition:border-color .15s,transform .15s;}
+  .pf-pillar:hover,.pf-pillar:active{border-color:#c1121f;border-left-color:#e5383b;}
+  .pf-pillar-kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.2em;color:#c1121f;margin-bottom:6px;}
+  .pf-pillar-title{display:block;font-size:24px;font-weight:900;letter-spacing:.06em;margin-bottom:6px;}
+  .pf-pillar-desc{display:block;font-size:14px;line-height:1.45;color:#cfcfcf;}
+  @media (min-width:640px){.pf-pillars-grid{grid-template-columns:1fr 1fr;}}
 </style>
 <script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
 <script>(function(){
@@ -80,6 +92,34 @@
   <div id="pf-topbar-panel" hidden></div>
 </header>
 <main id="main">
+  <section id="pf-pillars" aria-label="The four pillars">
+    <div class="pf-pillars-inner">
+      <h1 class="pf-pillars-h1">JOIN THE FIGHT.</h1>
+      <p class="pf-pillars-sub">Four ways in. Pick yours.</p>
+      <nav class="pf-pillars-grid" aria-label="Mission pillars">
+        <a class="pf-pillar" href="/create">
+          <span class="pf-pillar-kicker">01</span>
+          <span class="pf-pillar-title">CREATE</span>
+          <span class="pf-pillar-desc">Make propaganda. Memes, art, content that hits back.</span>
+        </a>
+        <a class="pf-pillar" href="/sick-left-radicals">
+          <span class="pf-pillar-kicker">02</span>
+          <span class="pf-pillar-title">CONNECT</span>
+          <span class="pf-pillar-desc">Join the 62 Sick Left Radicals. Nobody fights alone.</span>
+        </a>
+        <a class="pf-pillar" href="/cells">
+          <span class="pf-pillar-kicker">03</span>
+          <span class="pf-pillar-title">COORDINATE</span>
+          <span class="pf-pillar-desc">Turn content into coordinated real-world action.</span>
+        </a>
+        <a class="pf-pillar" href="/money">
+          <span class="pf-pillar-kicker">04</span>
+          <span class="pf-pillar-title">CAPITAL</span>
+          <span class="pf-pillar-desc">Fund the fight. Keep it alive without selling out.</span>
+        </a>
+      </nav>
+    </div>
+  </section>
   <div id="pf-v2"></div>
   <div id="pf-dashboard"></div>
   <div id="xBrief"></div>

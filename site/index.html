@@ -37,18 +37,16 @@
   #pf-topbar-panel[hidden]{display:none;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
-  /* 4-pillar hero: static, mobile-first, zero-JS */
-  #pf-pillars{background:#0a0a0a;padding:28px 16px 40px;border-bottom:2px solid #c1121f;}
+  /* 4-pillar nav: tiny buttons at top */
+  #pf-pillars{background:#0a0a0a;padding:12px 12px;border-bottom:2px solid #c1121f;}
   .pf-pillars-inner{max-width:960px;margin:0 auto;}
-  .pf-pillars-h1{margin:0 0 4px;font-size:clamp(28px,7vw,48px);font-weight:900;letter-spacing:.04em;color:#fff;}
-  .pf-pillars-sub{margin:0 0 20px;color:#b8b8b8;font-size:15px;}
-  .pf-pillars-grid{display:grid;grid-template-columns:1fr;gap:12px;}
-  .pf-pillar{display:block;text-decoration:none;background:#141414;border:1px solid #2a2a2a;border-left:6px solid #c1121f;border-radius:10px;padding:18px 16px;color:#fff;transition:border-color .15s,transform .15s;}
-  .pf-pillar:hover,.pf-pillar:active{border-color:#c1121f;border-left-color:#e5383b;}
-  .pf-pillar-kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.2em;color:#c1121f;margin-bottom:6px;}
-  .pf-pillar-title{display:block;font-size:24px;font-weight:900;letter-spacing:.06em;margin-bottom:6px;}
-  .pf-pillar-desc{display:block;font-size:14px;line-height:1.45;color:#cfcfcf;}
-  @media (min-width:640px){.pf-pillars-grid{grid-template-columns:1fr 1fr;}}
+  .pf-pillars-h1{margin:0 0 8px;font-size:clamp(20px,5vw,28px);font-weight:900;letter-spacing:.04em;color:#fff;}
+  .pf-pillars-sub{display:none;}
+  .pf-pillars-grid{display:flex;gap:8px;flex-wrap:wrap;}
+  .pf-pillar{display:inline-block;text-decoration:none;background:#141414;border:1px solid #2a2a2a;border-radius:20px;padding:8px 16px;color:#fff;font-size:13px;font-weight:800;letter-spacing:.08em;}
+  .pf-pillar:active{background:#c1121f;border-color:#c1121f;}
+  .pf-pillar-kicker,.pf-pillar-desc{display:none;}
+  .pf-pillar-title{display:inline;font-size:13px;}
 </style>
 <script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
 <script>(function(){

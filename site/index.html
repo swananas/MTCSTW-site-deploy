@@ -40,37 +40,33 @@
   body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
   .pf-topbar-inner{
     max-width:960px;margin:0 auto;
-    display:flex;align-items:center;gap:16px;
+    display:flex;align-items:center;gap:10px;
   }
   .pf-topbar-brand{
-    color:#c1121f;font-weight:900;font-size:20px;letter-spacing:.12em;
+    color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;
     text-decoration:none;flex:0 0 auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:rgba(193,18,31,.3);
-    cursor:pointer;padding:8px 4px;
+    cursor:pointer;padding:8px 2px;
   }
+  .pf-topbar-brand span{color:#c1121f;}
   .pf-pillars-nav{
-    display:flex;gap:8px;flex:1 1 auto;
-    overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+    display:flex;gap:6px;flex:1 1 auto;
   }
   .pf-pillars-nav::-webkit-scrollbar{display:none;}
   .pf-pillar{
-    flex:1 0 auto;text-align:center;text-decoration:none;
-    background:#161616;border:1px solid #262626;border-radius:24px;
-    padding:10px 14px;color:#e8e8e8;
-    font-size:12px;font-weight:800;letter-spacing:.1em;
-    transition:background .15s,border-color .15s;
+    flex:1 1 0;text-align:center;text-decoration:none;
+    background:transparent;border:none;border-radius:8px;
+    padding:10px 4px;color:#b0b0b0;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
     white-space:nowrap;
     touch-action:manipulation;
     -webkit-tap-highlight-color:rgba(193,18,31,.3);
     cursor:pointer;
     position:relative;z-index:1;
   }
-  .pf-pillar:active{background:#c1121f;border-color:#c1121f;color:#fff;}
-  .pf-tagline{
-    max-width:960px;margin:12px auto 0;
-    color:#888;font-size:13px;font-weight:600;letter-spacing:.02em;
-  }
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  .pf-tagline{display:none;}
   #main{min-height:60vh;}
 </style>
 <script>window.__PF_BUILD="20261008-1825-6da6efc";</script>
@@ -101,7 +97,7 @@
 <div id="pf-boot">
 <header class="pf-topbar">
   <div class="pf-topbar-inner">
-    <a href="/" class="pf-topbar-brand">MTCSTW</a>
+    <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
     <nav class="pf-pillars-nav" aria-label="Mission pillars">
       <a class="pf-pillar" href="/create">CREATE</a>
       <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>

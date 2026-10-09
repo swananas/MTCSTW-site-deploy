@@ -1,0 +1,290 @@
+{
+  "_comment": "fedarch route manifest \u2014 Frontend Pod owned (signed frontend-route-map.md 2026-10-08). build.mjs reads routes.<name>.entry/order/silos; the footer dispatcher reads detect/timing/pages. Budget: route chunk <=102400 raw bytes (CEO-set).",
+  "routes": {
+    "pf-kernel": {
+      "entry": "build/fedarch/entries/pf-kernel.entry.js",
+      "order": [
+        "pf-kernel"
+      ],
+      "silos": [
+        "bus",
+        "03-global",
+        "auth",
+        "04-ledger",
+        "05-tally",
+        "dopamine",
+        "11-xpledger",
+        "12-notify",
+        "15-seo",
+        "site-config",
+        "credit",
+        "creator-stats",
+        "42-mobile-nav-trim",
+        "patterns"
+      ],
+      "timing": "blocking",
+      "pages": "all-v2"
+    },
+    "slr": {
+      "entry": "build/fedarch/entries/slr.entry.js",
+      "order": [
+        "pf-kernel",
+        "slr"
+      ],
+      "silos": [
+        "slr-db",
+        "vote-standings"
+      ],
+      "timing": "blocking-on-need",
+      "detect": {
+        "needSlr": true
+      }
+    },
+    "home": {
+      "entry": "build/fedarch/entries/home.entry.js",
+      "order": [
+        "pf-kernel",
+        "slr",
+        "home"
+      ],
+      "silos": [
+        "hubhome",
+        "first-minute"
+      ],
+      "timing": "blocking-on-home",
+      "detect": {
+        "dom": [
+          "pf-v2"
+        ]
+      }
+    },
+    "chrome-a": {
+      "entry": "build/fedarch/entries/chrome-a.entry.js",
+      "order": [
+        "pf-kernel",
+        "chrome-a"
+      ],
+      "silos": [
+        "16-footer",
+        "17-nuke-strip",
+        "19-crossnav",
+        "hud"
+      ],
+      "timing": "idle",
+      "pages": "all-v2"
+    },
+    "chrome-b": {
+      "entry": "build/fedarch/entries/chrome-b.entry.js",
+      "order": [
+        "pf-kernel",
+        "chrome-b"
+      ],
+      "silos": [
+        "pillars",
+        "search",
+        "nextop",
+        "13-flow",
+        "allfronts",
+        "one-prompt",
+        "claim-cta",
+        "10-convert",
+        "freshness"
+      ],
+      "timing": "idle",
+      "pages": "all-v2"
+    },
+    "engagement": {
+      "entry": "build/fedarch/entries/engagement.entry.js",
+      "order": [
+        "pf-kernel",
+        "engagement"
+      ],
+      "silos": [
+        "09-referral",
+        "23-inventory",
+        "routemarch",
+        "squadjoin",
+        "rites",
+        "wins",
+        "dead-drop"
+      ],
+      "timing": "idle",
+      "pages": "all-v2"
+    },
+    "news": {
+      "entry": "build/fedarch/entries/news.entry.js",
+      "order": [
+        "pf-kernel",
+        "news"
+      ],
+      "silos": [
+        "news-top",
+        "fred-editorial",
+        "newsstats",
+        "campaign-data",
+        "read-xp",
+        "courts"
+      ],
+      "timing": "idle",
+      "detect": {
+        "dom": [
+          "pf-v2",
+          "pf-political-hq"
+        ]
+      }
+    },
+    "ugc": {
+      "entry": "build/fedarch/entries/ugc.entry.js",
+      "order": [
+        "pf-kernel",
+        "ugc"
+      ],
+      "silos": [
+        "ugcdop",
+        "ugccartlens",
+        "sharein",
+        "wildfinds",
+        "crowd-credit"
+      ],
+      "timing": "lazy",
+      "detect": {
+        "dom": [
+          "pf-data-bounties"
+        ],
+        "query": "sharein"
+      }
+    },
+    "fred": {
+      "entry": "build/fedarch/entries/fred.entry.js",
+      "order": [
+        "pf-kernel",
+        "fred"
+      ],
+      "silos": [
+        "fred"
+      ],
+      "timing": "lazy",
+      "detect": {
+        "dom": [
+          "pf-money",
+          "pf-economy",
+          "pf-political-hq",
+          "pf-academy-hq"
+        ],
+        "ids": [
+          "xWarReport",
+          "xBrief"
+        ]
+      }
+    },
+    "moneyview": {
+      "entry": "build/fedarch/entries/moneyview.entry.js",
+      "order": [
+        "pf-kernel",
+        "moneyview"
+      ],
+      "silos": [
+        "warchest"
+      ],
+      "timing": "lazy",
+      "detect": {
+        "dom": [
+          "pf-warchest",
+          "pf-ventures",
+          "pf-money"
+        ]
+      }
+    },
+    "identity": {
+      "entry": "build/fedarch/entries/identity.entry.js",
+      "order": [
+        "pf-kernel",
+        "identity"
+      ],
+      "silos": [
+        "28-bsky-link",
+        "callsign-recovery"
+      ],
+      "timing": "idle",
+      "pages": "all-v2"
+    },
+    "mission": {
+      "entry": "build/fedarch/entries/mission.entry.js",
+      "order": [
+        "pf-kernel",
+        "mission"
+      ],
+      "silos": [
+        "triggers",
+        "oparc",
+        "commend"
+      ],
+      "timing": "idle",
+      "detect": {
+        "dom": [
+          "pf-v2",
+          "pf-political-hq",
+          "pf-warroom",
+          "pf-live"
+        ]
+      }
+    },
+    "pwa": {
+      "entry": "build/fedarch/entries/pwa.entry.js",
+      "order": [
+        "pf-kernel",
+        "pwa"
+      ],
+      "silos": [
+        "pwa"
+      ],
+      "timing": "idle",
+      "pages": "all-v2"
+    }
+  },
+  "dispatch": {
+    "_comment": "Dispatcher rule set (DOM-first route detection; URL path as fallback). slr-data (07-slr-db-data snapshot) is NOT an esbuild route: it is data, not code \u2014 it needs a data-chunk budget in the sibling's gate (follow-up filed for Toolchain; legacy core/bundle-slr-data.js keeps serving until then).",
+    "blocking": [
+      "pf-kernel",
+      {
+        "route": "slr",
+        "when": "needSlr"
+      },
+      {
+        "route": "home",
+        "when": "isHome"
+      }
+    ],
+    "idle": [
+      "chrome-a",
+      "chrome-b",
+      "engagement",
+      "identity",
+      "pwa",
+      {
+        "route": "news",
+        "when": "isHome||isHQ"
+      },
+      {
+        "route": "mission",
+        "when": "isHome||isHQ||isWarRoom"
+      }
+    ],
+    "lazy": [
+      {
+        "route": "ugc",
+        "when": "hasDataBounties||hasShareinParam"
+      },
+      {
+        "route": "fred",
+        "when": "isMoney||isEconomy||isWarReport||isHome||hasAcademyHq"
+      },
+      {
+        "route": "moneyview",
+        "when": "isWarchest||isVentures||isMoney"
+      }
+    ],
+    "needSlr": "isHome||isArcade||isCreate||isWarCard||isSlrPage||isLiquidation",
+    "flags": "isHome=#pf-v2; isHQ=#pf-political-hq; isWarCard=#pf-war-card; isSlrPage=#pf-slr-roster||#pf-catalog||slr-slug-path; isArcade..isWarRoom per existing loader mount-div flags"
+  }
+}

@@ -1,0 +1,35 @@
+# build/fedarch/fedarch-ci.yml — wire into .github/workflows/ at integration.
+# Runs the fedarch build on every push/PR touching v1.4.3/** or build/fedarch/**.
+# The budget gate FAILS THE BUILD on over-budget chunks; report.json is the
+# per-build analyzer artifact (route -> chunks, raw+gzip sizes, provenance).
+name: fedarch-build
+
+on:
+  push:
+    paths:
+      - 'v1.4.3/**'
+      - 'build/fedarch/**'
+      - 'package.json'
+  pull_request:
+    paths:
+      - 'v1.4.3/**'
+      - 'build/fedarch/**'
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run fedarch:build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fedarch-bundle-report
+          path: v1.4.3/dist/fedarch/report.json
+          retention-days: 90

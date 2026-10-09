@@ -117,5 +117,15 @@
   <div id="xBrief"></div>
 </main>
 </div>
+<script>
+// Minimal SW registration (homepage is zero-JS otherwise)
+// Forces PWA to update to latest SW on each visit
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(function(r){
+    // Check for updates
+    r.update();
+  }).catch(function(){});
+}
+</script>
 </body>
 </html>

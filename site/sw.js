@@ -7,7 +7,7 @@
    site. This file must be served from https://www.mtcstw.com/sw.js to take
    effect. See pwa/README.md for the hosting options. */
 
-var CACHE = 'mtcstw-pwa-20261008-1720-06c0c4b';
+var CACHE = 'mtcstw-pwa-20261009-0045-audit';
 var API_HOST = 'pf-api.mtcstw.workers.dev';
 var CDN_HOST = 'cdn.jsdelivr.net';
 

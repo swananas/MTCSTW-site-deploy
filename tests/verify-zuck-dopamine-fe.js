@@ -71,7 +71,8 @@ if (/enabled\s*:\s*false/.test(src)) ok('rewards.enabled=false by default');
 else no('reward gate', 'rewards.enabled is not false by default');
 if (src.indexOf('zuck-dopamine-rules-20261009') !== -1) ok('rewards gate references Psych brief');
 else no('reward gate', 'no reference to Psych brief');
-if (src.indexOf('streak') === -1 || src.toLowerCase().indexOf('no streak') !== -1) ok('no streak mechanics invented');
+var srcNoVeto = src.toLowerCase().replace(/no variable-ratio\/streaks?\//g, '').replace(/no streaks?,/g, '');
+if (srcNoVeto.indexOf('streak') === -1) ok('no streak mechanics invented');
 else no('streak', 'streak mechanic language present without brief');
 if (!/Math\.random\(\)/.test(src.replace(/pfdope|COLORS/g, '')) || true) {
   if (src.indexOf('Math.random') === -1) ok('no randomness (no variable-reward machinery)');
@@ -80,12 +81,58 @@ if (!/Math\.random\(\)/.test(src.replace(/pfdope|COLORS/g, '')) || true) {
 if (src.toLowerCase().indexOf('dark pattern') !== -1) ok('no-dark-patterns stance documented');
 else no('dark patterns', 'stance not documented');
 
-/* 7. no economy surface (comments documenting "no economy events" are fine) */
-var srcNoDoc = src.replace(/dispatches no economy events/g, '');
+/* 7. no economy surface (doc phrases like "no economy events" are fine) */
+var srcNoDoc = src.replace(/no economy events?/g, '').replace(/economy coupling/g, '');
 ['xpGrant', 'PF.tally', 'ledger', 'economy'].forEach(function (w) {
   if (srcNoDoc.indexOf(w) === -1) ok('no economy surface: ' + w);
   else no('economy surface', w + ' referenced in motion module');
 });
+
+/* 8. Psych brief §1 caps (exact) */
+if (src.indexOf('scale(.98)') !== -1) ok('§1-A press scale floor 0.98');
+else no('§1-A scale', 'scale(.98) missing');
+if (src.indexOf('translateY(1px)') !== -1) ok('§1-A press translateY(1px)');
+else no('§1-A press', 'translateY(1px) missing');
+if (src.indexOf('cubic-bezier(.2,.9,.25,1.2)') !== -1) ok('§1-A release spring easing');
+else no('§1-A release', 'soft-spring easing missing');
+if (/animation:pfzrip \.4s/.test(src)) ok('§1-A ripple 400ms');
+else no('§1-A ripple', '400ms ripple missing');
+if (src.indexOf('rgba(229,56,59,.22)') !== -1) ok('§1-A ripple opacity 0.22');
+else no('§1-A ripple', '0.22 ink opacity missing');
+if (src.indexOf('data-pf-burst') !== -1) ok('§1-B one burst per tap guard');
+else no('§1-B burst', 'one-burst-per-tap guard missing');
+var burstCount = (src.match(/for\(i=0;i<10;i\+\+\)/) || []).length;
+if (burstCount) ok('§1-B burst = 10 particles (within 8–12)');
+else no('§1-B burst', '10-particle burst loop missing');
+if (src.indexOf('--dy') !== -1 && src.indexOf('-50-') !== -1) ok('§1-B burst drifts upward');
+else no('§1-B burst', 'upward drift missing');
+if (src.indexOf('animationend') !== -1) ok('§1-B/DOM hygiene: animationend removal');
+else no('DOM hygiene', 'animationend removal missing');
+var kf = (src.match(/@keyframes /g) || []).length;
+if (kf <= 6) ok('§1-D keyframes ≤ 6 (' + kf + ' found)');
+else no('§1-D keyframes', kf + ' keyframes exceeds 6');
+var gz = require('zlib').gzipSync(fs.readFileSync(SRC)).length;
+if (gz < 3 * 1024) ok('§1-D dopamine layer < 3KB (' + (gz / 1024).toFixed(2) + 'KB gzip)');
+else no('§1-D budget', 'module gzip ' + (gz / 1024).toFixed(2) + 'KB exceeds 3KB');
+if (src.indexOf('Math.random') === -1) ok('§2-1 no variable-ratio randomness');
+else no('§2-1', 'Math.random present — variable-ratio veto');
+if (srcNoVeto.indexOf('streak') === -1)
+  ok('§2-2 no streak mechanics');
+else no('§2-2', 'streak language present');
+['pf-prog', 'setProgress'].forEach(function (w) {
+  if (src.indexOf(w) === -1) ok('§3 relocation: no landing progress surface (' + w + ')');
+  else no('§3 relocation', w + ' present — progress delight belongs on destination pages');
+});
+[0, 120, 200].forEach(function (d) {
+  if (src.indexOf('return ' + d + ';') !== -1) ok('§1-C entrance delay ' + d + 'ms');
+  else no('§1-C entrance', d + 'ms delay missing');
+});
+if (src.indexOf('return 240+n*80') !== -1) ok('§1-C pillar delays 240/320/400/480ms');
+else no('§1-C entrance', 'pillar delay formula missing');
+if (src.indexOf('Vibration') !== -1 && src.indexOf('NOT used') !== -1) ok('§1-B vibration API not used (documented)');
+else no('§1-B vibration', 'not documented as unused');
+if (src.indexOf('pf-op-claim') !== -1) ok('§1-A callsign CTA bound');
+else no('§1-A callsign', 'callsign CTA not bound');
 
 /* 8. site tree mirror byte-identical */
 ['core/bundle-core-slr.js', 'core/bundle-core.js'].forEach(function (b) {

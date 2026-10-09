@@ -4462,24 +4462,16 @@ document.addEventListener("pf-tally-settle",function(e){
 ;
 
 /* ===== core/45-zuck-dopamine.js ===== */
-/* ZUCK DOPAMINE — homepage motion polish (CEO directive "ZUCK IT UP", 2026-10-09).
- * Neutral motion layer ONLY: staggered entrances, pillar tap micro-interactions,
- * haptic-like visual pulse, progress-indicator polish. Pure presentation —
- * awards NOTHING, dispatches no economy events, never touches the tally,
- * contains NO variable-reward schedules, NO streak mechanics, NO luck/odds.
- *
- * REWARD GATING (HARD): reward mechanics (variable rewards, streaks,
- * progress delight schedules, haptic-like reward bursts) live in PF.zuck.rewards
- * and are DISABLED BY DEFAULT. They may only be enabled per the Psych
- * dopamine-rules brief at ~/workspace/hidden/psych/zuck-dopamine-rules-20261009.md
- * after psych worker psych-zuck-loop-law-20261009 clearance. The config slot
- * below is intentionally EMPTY — a config is not a clearance.
- * No dark patterns: nothing here manufactures urgency, scarcity, or FOMO.
- *
- * Kill: ?pf_off=dopamine (shared with 08-dopamine.js) — every motion effect
- * below checks PF.skip('dopamine') first. prefers-reduced-motion disables
- * all motion and renders everything final-state.
- */
+/* ZUCK DOPAMINE ("ZUCK IT UP" 2026-10-09). Implements Psych loop-law brief
+ * zuck-dopamine-rules-20261009.md EXACTLY: §1-A press/ripple, §1-B launch
+ * (glow+burst), §1-C entrance. Confirmation-node feedback only — reward the
+ * action, never manufacture it. No dark patterns; all §2 vetoes honored:
+ * no variable-ratio/streaks/loss-aversion/attention-bait/tap-counting/
+ * fake-progress/confetti-for-everything/trigger-manipulation/nav-delay.
+ * §1-D: transform/opacity only, ≤6 keyframes, <3KB; Vibration API NOT used.
+ * §3: progress delight lives on DESTINATION pages, not the landing.
+ * PF.zuck.rewards DISABLED BY DEFAULT (clearance-gated hook). Awards nothing,
+ * no economy events, never touches the tally. Kill: ?pf_off=dopamine. */
 (function(){
   if(!window.PF) window.PF={};
   if(PF.zuck) return;
@@ -4488,157 +4480,164 @@ document.addEventListener("pf-tally-settle",function(e){
   function killed(){ try{ return !!(window.PF&&PF.skip&&PF.skip('dopamine')); }catch(e){ return false; } }
   function off(){ return reduced||killed(); }
 
-  /* ---- injected CSS: ripple, press, progress sheen (entrance off/on states
-     live in index.html <style> so first paint doesn't flash) ---- */
   function style(){
     if(document.getElementById('pf-zuck-css')) return;
     var s=document.createElement('style');
     s.id='pf-zuck-css';
     s.textContent=
-      '.pf-pillar{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}'
-      +'.pf-pillar-pressed{transform:scale(.965)!important;transition:transform .11s ease-out!important}'
+      '.pf-pillar{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;'
+      +'transition:transform .22s cubic-bezier(.2,.9,.25,1.2),box-shadow .12s ease-out,border-color .15s}'
+      +'.pf-zuck-pressed{transform:scale(.98) translateY(1px)!important;transition:transform .1s ease-out!important}'
       +'.pf-zuck-ripple{position:absolute;border-radius:50%;pointer-events:none;z-index:5;'
-      +'background:radial-gradient(circle,rgba(229,56,59,.55) 0%,rgba(229,56,59,.18) 55%,rgba(229,56,59,0) 72%);'
-      +'transform:translate(-50%,-50%) scale(0);animation:pfzuckrip .55s ease-out forwards}'
-      +'@keyframes pfzuckrip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}'
-      +'.pf-zuck-glow{box-shadow:0 0 0 1px #e5383b,0 0 22px rgba(229,56,59,.45)!important;'
-      +'transition:box-shadow .28s ease-out,transform .11s ease-out!important}'
-      +'.pf-prog{position:relative;overflow:hidden;background:#242424;border-radius:999px;height:10px}'
-      +'.pf-prog-fill{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#c1121f,#e5383b);'
-      +'transition:width .6s cubic-bezier(.22,.9,.3,1.1)}'
-      +'.pf-prog-fill::after{content:"";position:absolute;inset:0;border-radius:999px;'
-      +'background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.35) 50%,transparent 80%);'
-      +'background-size:200% 100%;animation:pfzucksheen 2.8s ease-in-out infinite}'
-      +'@keyframes pfzucksheen{0%{background-position:180% 0}100%{background-position:-80% 0}}'
-      +'.pf-prog-ind{display:block;height:100%;width:32%;border-radius:999px;'
-      +'background:linear-gradient(90deg,#c1121f,#e5383b);animation:pfzuckind 1.4s ease-in-out infinite alternate}'
-      +'@keyframes pfzuckind{from{transform:translateX(-8%)}to{transform:translateX(290%)}}'
-      +'@media (prefers-reduced-motion: reduce){.pf-zuck-ripple,.pf-prog-fill::after,.pf-prog-ind{animation:none!important}'
-      +'.pf-pillar-pressed{transform:none!important}.pf-zuck-glow{box-shadow:none!important}}';
+      +'background:radial-gradient(circle,rgba(229,56,59,.22) 0%,rgba(229,56,59,0) 70%);'
+      +'transform:translate(-50%,-50%) scale(.2);opacity:.22;animation:pfzrip .4s ease-out forwards}'
+      +'@keyframes pfzrip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}'
+      +'.pf-zuck-glow{box-shadow:0 0 0 1px #e5383b,0 0 18px rgba(229,56,59,.4)!important}'
+      +'.pf-zuck-p{position:absolute;border-radius:50%;pointer-events:none;z-index:6;'
+      +'transform:translate(-50%,-50%);animation:pfzburst .5s ease-out forwards}'
+      +'@keyframes pfzburst{to{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,-70px)));opacity:0}}'
+      +'@media (prefers-reduced-motion: reduce){.pf-zuck-ripple,.pf-zuck-p{animation:none!important;display:none!important}}';
     document.head.appendChild(s);
   }
 
-  /* ---- 1. staggered entrances -------------------------------------- */
+  /* §1-C entrance */
+  function delayFor(el,fallbackIdx){
+    if(el.classList.contains('pf-pillars-h1')) return 0;
+    if(el.classList.contains('pf-pillars-sub')) return 120;
+    if(el.id==='pf-op-claim') return 200;
+    if(el.classList.contains('pf-pillar')){
+      var sibs=el.parentNode?el.parentNode.children:[];
+      var n=0;
+      for(var j=0;j<sibs.length;j++){
+        if(sibs[j]===el) break;
+        if(sibs[j].classList&&sibs[j].classList.contains('pf-pillar')) n++;
+      }
+      return 240+n*80; /* 240/320/400/480 */
+    }
+    return Math.min(fallbackIdx*75,600);
+  }
   function runEntrances(root){
     root=root||document;
-    if(off()) return; /* reduced motion / killed: content stays final-state */
-    var groups={}, i, els=root.querySelectorAll('[data-pf-entrance]');
+    if(off()) return;
+    var els=root.querySelectorAll?root.querySelectorAll('[data-pf-entrance]'):[];
+    var fresh=[], i;
     for(i=0;i<els.length;i++){
-      var el=els[i];
-      if(el.classList.contains('pf-entr-on')||el.getAttribute('data-pf-entr-done')) continue;
-      var g=el.closest('[data-pf-stagger]');
-      var key=g?(g.getAttribute('data-pf-stagger')||'g')+':'+els[i].tagName:'solo';
-      if(!groups[key]) groups[key]=[];
-      groups[key].push(el);
+      if(!els[i].classList.contains('pf-entr-on')&&!els[i].getAttribute('data-pf-entr-done')){
+        els[i].setAttribute('data-pf-entr-done','1');
+        fresh.push(els[i]);
+      }
     }
-    Object.keys(groups).forEach(function(k){
-      groups[k].forEach(function(el,idx){
-        el.style.transitionDelay=Math.min(idx*75,600)+'ms';
-        el.setAttribute('data-pf-entr-done','1');
-      });
-    });
-    /* double rAF so the off-state paints before we flip to on */
+    if(!fresh.length) return;
+    for(i=0;i<fresh.length;i++) fresh[i].style.transitionDelay=delayFor(fresh[i],i)+'ms';
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        Object.keys(groups).forEach(function(k){
-          groups[k].forEach(function(el){ el.classList.add('pf-entr-on'); });
-        });
+        for(var j=0;j<fresh.length;j++) fresh[j].classList.add('pf-entr-on');
       });
     });
   }
 
-  /* ---- 2. pillar tap micro-interactions + haptic-like visual pulse - */
-  function hapticPulse(el,clientX,clientY){
-    if(off()) return;
-    style();
-    try{
-      var r=el.getBoundingClientRect();
-      var x=(clientX!=null?clientX:r.left+r.width/2)-r.left;
-      var y=(clientY!=null?clientY:r.top+r.height/2)-r.top;
-      var d=document.createElement('span');
-      d.className='pf-zuck-ripple';
-      var size=Math.max(r.width,r.height)*1.6;
-      d.style.width=size+'px'; d.style.height=size+'px';
-      d.style.left=x+'px'; d.style.top=y+'px';
-      el.appendChild(d);
-      setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },620);
-    }catch(e){}
+  /* §1-A press/ripple */
+  function ripple(el,x,y){
+    var r=el.getBoundingClientRect();
+    var d=document.createElement('span');
+    d.className='pf-zuck-ripple';
+    var size=Math.max(r.width,r.height)*1.05; /* capped at card corner */
+    d.style.width=size+'px'; d.style.height=size+'px';
+    d.style.left=x+'px'; d.style.top=y+'px';
+    el.appendChild(d);
+    var gone=false;
+    function rm(){ if(!gone){ gone=true; if(d.parentNode) d.parentNode.removeChild(d); } }
+    try{ d.addEventListener('animationend',rm); }catch(e){}
+    setTimeout(rm,700);
   }
-  function bindPillars(root){
+
+  /* §1-B launch burst */
+  var BCOLORS=['#e5383b','#e8b10c','#f5ead6'];
+  function burst(el,x,y){
+    if(el.getAttribute('data-pf-burst')) return; /* 1/tap */
+    el.setAttribute('data-pf-burst','1');
+    var r=el.getBoundingClientRect(), i, p;
+    for(i=0;i<10;i++){
+      p=document.createElement('span');
+      p.className='pf-zuck-p';
+      var sz=5+((i*7)%3);
+      p.style.width=sz+'px'; p.style.height=sz+'px';
+      p.style.left=x+'px'; p.style.top=y+'px';
+      p.style.background=BCOLORS[i%3];
+      p.style.setProperty('--dx',((i*37)%80-40)+'px');
+      p.style.setProperty('--dy',(-50-((i*23)%40))+'px');
+      p.style.animationDuration=(0.4+(i%5)*0.05)+'s';
+      el.appendChild(p);
+      (function(node){
+        var gone=false;
+        function rm(){ if(!gone){ gone=true; if(node.parentNode) node.parentNode.removeChild(node); } }
+        try{ node.addEventListener('animationend',rm); }catch(e){}
+        setTimeout(rm,800);
+      })(p);
+    }
+    setTimeout(function(){ el.removeAttribute('data-pf-burst'); },800);
+  }
+
+  function bindTap(root){
     root=root||document;
     if(off()) return;
     style();
-    var pillars=root.querySelectorAll('a.pf-pillar');
-    for(var i=0;i<pillars.length;i++){
+    var els=root.querySelectorAll?root.querySelectorAll('a.pf-pillar,#pf-op-claim'):[];
+    for(var i=0;i<els.length;i++){
       (function(el){
-        if(el.getAttribute('data-pf-zuck')) return;
-        el.setAttribute('data-pf-zuck','1');
+        if(el.getAttribute('data-pf-ztap')) return;
+        el.setAttribute('data-pf-ztap','1');
         el.addEventListener('pointerdown',function(ev){
           if(off()) return;
-          el.classList.add('pf-pillar-pressed');
-          hapticPulse(el,ev.clientX,ev.clientY);
+          el.classList.add('pf-zuck-pressed');
+          try{
+            var r=el.getBoundingClientRect();
+            var x=(ev.clientX!=null?ev.clientX:r.left+r.width/2)-r.left;
+            var y=(ev.clientY!=null?ev.clientY:r.top+r.height/2)-r.top;
+            ripple(el,x,y);
+            el._zuckTap={x:x,y:y};
+          }catch(e){}
         },{passive:true});
-        ['pointerup','pointercancel','pointerleave'].forEach(function(t){
-          el.addEventListener(t,function(){
-            el.classList.remove('pf-pillar-pressed');
-            if(off()) return;
-            /* glow bloom on release = the "thock" landing, 300ms */
-            el.classList.add('pf-zuck-glow');
-            setTimeout(function(){ el.classList.remove('pf-zuck-glow'); },320);
-          },{passive:true});
-        });
-      })(pillars[i]);
-    }
-  }
-
-  /* ---- 3. progress delight (neutral polish, no schedules) ---------- */
-  function setProgress(el,pct){
-    if(!el) return;
-    pct=Math.max(0,Math.min(100,pct));
-    var fill=el.querySelector('.pf-prog-fill')||el;
-    if(fill!==el&&el.classList.contains('pf-prog')){
-      el.querySelector('.pf-prog-fill').style.width=pct+'%';
-    }else if(el.classList.contains('pf-prog-fill')){
-      el.style.width=pct+'%';
-    }else{
-      el.style.width=pct+'%';
-    }
-    el.setAttribute('aria-valuenow',String(Math.round(pct)));
-  }
-
-  /* ---- 4. REWARD SCAFFOLDING — GATED, disabled by default ---------- */
-  var rewards={
-    enabled:false, /* flip ONLY per Psych brief + clearance. Never unilaterally. */
-    brief:'~/workspace/hidden/psych/zuck-dopamine-rules-20261009.md',
-    config:{},     /* populated from the brief; empty until clearance lands */
-    milestone:function(hostEl,kind){
-      /* Reserved hook. No-op until config.enabledFor(kind) exists. */
-      if(!rewards.enabled) return;
-      if(!rewards.config||typeof rewards.config.shouldCelebrate!=='function') return;
-      try{
-        if(rewards.config.shouldCelebrate(kind)&&window.PF&&PF.dope&&PF.dope.ping){
-          PF.dope.ping(hostEl,rewards.config.labelFor?rewards.config.labelFor(kind):String(kind));
+        function release(fire){
+          el.classList.remove('pf-zuck-pressed');
+          if(off()||!fire) return;
+          /* §1-B glow: 120ms ramp; nav unimpeded */
+          el.classList.add('pf-zuck-glow');
+          setTimeout(function(){ el.classList.remove('pf-zuck-glow'); },300);
+          var t=el._zuckTap||null;
+          if(t) burst(el,t.x,t.y);
+          el._zuckTap=null;
         }
-      }catch(e){}
+        el.addEventListener('pointerup',function(){ release(true); },{passive:true});
+        el.addEventListener('pointercancel',function(){ release(false); },{passive:true});
+        el.addEventListener('pointerleave',function(){ release(false); },{passive:true});
+      })(els[i]);
     }
+  }
+
+  /* reward hook: DISABLED BY DEFAULT */
+  var rewards={
+    enabled:false, /* Psych brief + clearance ONLY. Never unilaterally. */
+    brief:'~/workspace/hidden/psych/zuck-dopamine-rules-20261009.md',
+    config:{},
+    milestone:function(){} /* reserved no-op */
   };
 
   function boot(){
     if(killed()) return;
+    function go(){ runEntrances(); bindTap(); }
     if(document.readyState==='loading'){
-      document.addEventListener('DOMContentLoaded',function(){ runEntrances(); bindPillars(); },{once:true});
-    }else{ runEntrances(); bindPillars(); }
-    /* catch sections mounted late by other bundles (MutationObserver, light) */
+      document.addEventListener('DOMContentLoaded',go,{once:true});
+    }else{ go(); }
     try{
-      var seen=0;
       var mo=new MutationObserver(function(muts){
         if(off()){ mo.disconnect(); return; }
         for(var m=0;m<muts.length;m++){
           var n=muts[m].target;
-          if(n&&n.querySelectorAll&&(n.querySelectorAll('[data-pf-entrance]:not([data-pf-entr-done])').length
-            ||n.querySelectorAll('a.pf-pillar:not([data-pf-zuck])').length)){
-            runEntrances(n); bindPillars(n); seen++;
-            if(seen>40) mo.disconnect();
+          if(n&&n.querySelectorAll&&(
+            n.querySelectorAll('[data-pf-entrance]:not([data-pf-entr-done])').length||
+            n.querySelectorAll('a.pf-pillar:not([data-pf-ztap]),#pf-op-claim:not([data-pf-ztap])').length)){
+            runEntrances(n); bindTap(n);
             break;
           }
         }
@@ -4648,14 +4647,7 @@ document.addEventListener("pf-tally-settle",function(e){
     }catch(e){}
   }
 
-  PF.zuck={
-    runEntrances:runEntrances,
-    bindPillars:bindPillars,
-    hapticPulse:hapticPulse,
-    setProgress:setProgress,
-    rewards:rewards,
-    reduced:reduced
-  };
+  PF.zuck={ runEntrances:runEntrances, bindTap:bindTap, burst:burst, rewards:rewards, reduced:reduced };
   boot();
 })();
 

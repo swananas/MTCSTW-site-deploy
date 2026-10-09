@@ -19,6 +19,9 @@
 <link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
 <link rel="manifest" href="/v1.4.3/pwa/manifest.json">
 <link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
+<link rel="preload" href="/v1.4.3/core/bundle-core.js" as="script">
+<link rel="preload" href="/v1.4.3/pages/bundle-ugc-remix.js" as="script">
+<link rel="preload" href="/v1.4.3/pages/bundle-pages.js" as="script">
 <style>
   html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   #pf-boot{min-height:100vh;}
@@ -37,8 +40,20 @@
   #pf-topbar-panel[hidden]{display:none;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
+  /* BUTTER (fe-zuck-butter-20261009): transitions, instant tap feedback, skeleton shimmer/morph */
+  .pf-skel{background:#242424;}
+  #pf-boot a,#pf-boot button{-webkit-tap-highlight-color:rgba(197,22,33,.3);touch-action:manipulation;}
+  @media (prefers-reduced-motion:no-preference){
+    #pf-boot a,#pf-boot button{transition:transform .09s ease-out;}
+    #pf-boot a:active,#pf-boot button:active{transform:scale(.96);}
+    #pf-boot.pf-butter-mounted main>div>*{animation:pf-butter-in .34s ease-out both;}
+    .pf-skel{background:linear-gradient(90deg,#1e1e1e 25%,#2b2b2b 50%,#1e1e1e 75%);background-size:200% 100%;animation:pf-skel-shimmer 1.5s linear infinite;}
+    .pf-skel-out{opacity:0;transition:opacity .24s ease;}
+  }
+  @keyframes pf-butter-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  @keyframes pf-skel-shimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
 </style>
-<script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
+<script>window.__PF_BUILD="20261009-0547-45eaa40";</script>
 <script>(function(){
   try{
     var cur = window.__PF_BUILD; if(!cur) return;
@@ -99,40 +114,63 @@
       return d.indexOf(n)!==-1;
     }catch(e){return false;}
   }
-  function load(src,async){
-    return new Promise(function(res,rej){
-      var s=document.createElement('script');
-      s.src=src;s.async=!!async;
-      s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
-      document.head.appendChild(s);
+  // BUTTER (fe-zuck-butter-20261009): parallel fetch, dependency-ordered
+  // execution. All bundle tags are inserted up front with async=false, so the
+  // browser downloads them in parallel while still executing them in
+  // insertion order: core -> games -> pages.
+  function loadOrdered(srcs){
+    var ps=srcs.map(function(src){
+      return new Promise(function(res){
+        var s=document.createElement('script');
+        s.src=src;s.async=false;
+        s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
+        document.head.appendChild(s);
+      });
     });
+    return Promise.all(ps);
   }
   function skeleton(host){
     if(pfSkip('butter-p0')||!host)return;
     if(host.children.length>0)return;
     host.insertAdjacentHTML('afterbegin',
-      '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
-      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
-    var obs=new MutationObserver(function(){
+      '<div class="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
+      '<div class="pf-skel" style="height:30px;border-radius:8px;margin:6px 0 12px;"></div>'+
+      '<div class="pf-skel" style="height:120px;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div class="pf-skel" style="height:120px;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div class="pf-skel" style="height:120px;border-radius:8px;margin:0 0 10px;"></div></div>');
+    var done=false;
+    var obs;
+    function morph(){
+      // BUTTER: crossfade skeleton -> content (no layout pop/jank)
+      if(done)return;done=true;
       try{
-        var sk=host.querySelector('#pf-skeleton');
-        if(sk&&host.textContent.replace(/\s+/g,'').length>0){sk.remove();obs.disconnect();}
+        var sk=host.querySelector('.pf-skeleton');
+        if(sk){
+          sk.classList.add('pf-skel-out');
+          setTimeout(function(){try{sk.remove();}catch(e){}},280);
+        }
+      }catch(e){}
+      try{obs.disconnect();}catch(e){}
+    }
+    obs=new MutationObserver(function(){
+      try{
+        var sk=host.querySelector('.pf-skeleton');
+        if(sk&&host.textContent.replace(/\s+/g,'').length>0){morph();}
       }catch(e){}
     });
     try{obs.observe(host,{childList:true,subtree:true});}catch(e){}
-    setTimeout(function(){try{var sk=host.querySelector('#pf-skeleton');if(sk)sk.remove();obs.disconnect();}catch(e){}},25000);
+    setTimeout(function(){morph();},25000);
   }
   // Paint skeletons immediately
   skeleton(document.getElementById("pf-ugc-remix"));
-  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
+  // Load: core+games+pages fetch in parallel and execute in order; pwa is
+  // async, karl stays lazy after idle.
   (async function(){
-    await load(BASE+'core/'+CORE,false);
+    var seq=[BASE+'core/'+CORE];
+    for(var i=0;i<GAMES.length;i++){seq.push(BASE+GAMES[i]);}
+    seq.push(BASE+PAGES);
+    await loadOrdered(seq);
     load(BASE+PWA,true); // async, guarded internally
-    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
-    await load(BASE+PAGES,false);
     // Karl companion: lazy after idle
     function goKarl(){
       if(pfSkip('karl-companion'))return;
@@ -140,9 +178,11 @@
     }
     if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
     else{setTimeout(goKarl,4000);}
-    // Trigger mount
+    // Trigger mount, then fade the mounted content in (butter transitions)
     try{
       if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
+      var boot=document.getElementById('pf-boot');
+      if(boot)boot.classList.add('pf-butter-mounted');
     }catch(e){}
     console.log('[PF] Pages shell loaded: /story-remixer');
   })();

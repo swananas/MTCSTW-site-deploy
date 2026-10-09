@@ -1,1 +1,1428 @@
-!function(){"use strict";var e=window.PF;if(e&&!e.skip("karl-companion")&&!window.__pfKarlCompanionDone){window.__pfKarlCompanionDone=!0;if(!function(){try{if(-1!==(window.location.href||"").indexOf("/config/"))return!0;var e=document.body;if(e&&(e.classList.contains("sqs-edit-mode")||e.classList.contains("sqs-editing")))return!0}catch(e){}return!1}()){var t,r,a,o,n,i,s=[{p:"/",t:"MY HQ",d:"Your war, your numbers, your next move — everything within two taps.",k:["home","homepage","dashboard","hq","main"]},{p:"/arcade",t:"THE ARCADE",d:"Six games. Zero mercy. Play them all.",k:["arcade","games","play","game"]},{p:"/call-it",t:"CALL IT.",d:"Predictions. Call it before it happens.",k:["predict","prediction","call it","forecast","markets","war room"]},{p:"/liquidation",t:"LIQUIDATION RECORDS",d:"The brackets. The carnage. The receipts.",k:["bracket","liquidation","tournament"]},{p:"/cells",t:"CELLS",d:"Your squad, your war. Build it, run it, win it.",k:["cell","cells","squad","team","join"]},{p:"/create",t:"CREATE",d:"The propaganda workshop. Make it. Ship it.",k:["create","make","poster","meme","workshop","forge"]},{p:"/bank",t:"THE PEOPLE'S BANK",d:"Your XP, weaponized. Save it, move it, grow it.",k:["bank","save","xp bank"]},{p:"/economy",t:"THE ECONOMY",d:"Spend XP like it matters. Because it does. FRED briefs here.",k:["economy","fred","briefing","spend"]},{p:"/follow-the-money",t:"FOLLOW THE MONEY",d:"Follow the money. See who funds the votes.",k:["money","donor","funds","pac","follow the money"]},{p:"/fund",t:"THE PROPAGANDA FUND",d:"Every cent, accounted for.",k:["fund","propaganda fund"]},{p:"/war-chest",t:"THE WAR CHEST",d:"Fund the fight. Watch where every cent goes.",k:["war chest","warchest","chest"]},{p:"/ventures",t:"JOINT VENTURES",d:"Pool up. Back creators. Share the spoils.",k:["venture","ventures","invest","pool"]},{p:"/events",t:"BOOTS ON THE GROUND",d:"Digital is the rehearsal. The street is the show.",k:["event","events","protest","irl","rally","street"]},{p:"/war-report",t:"WAR REPORT",d:"The week in the war. Numbers, winners, what's next.",k:["war report","report","weekly","week"]},{p:"/governance",t:"GOVERNANCE",d:"The machine runs itself — and you get a vote in how.",k:["governance","rules","vote","govern"]},{p:"/karl",t:"KARL",d:"Plain questions. Sourced answers. Never a guess.",k:["karl"]},{p:"/receipt",t:"RECEIPTS",d:"Politician dossiers — who they are, who funds them.",k:["receipt","dossier","politician","rep"]},{p:"/town",t:"YOUR TOWN",d:"Who owns your zip code? Power-mapping, street by street.",k:["town","zip","local","my town"]},{p:"/sick-left-radicals",t:"SICK LEFT RADICALS",d:"The creator roster. Find your people.",k:["roster","creator","sick left","radicals","affiliate"]},{p:"/creator-onboard",t:"CREATOR ONBOARDING",d:"Join the roster. Bring your audience.",k:["onboard","join roster","become creator"]},{p:"/request-access",t:"CREATOR HQ ACCESS",d:"Request access to the members-only Creator HQ.",k:["creator hq","request access","members"]},{p:"/academy",t:"THE ACADEMY",d:"Learn the craft. Graduate dangerous.",k:["academy","learn","school","train"]},{p:"/political-hq",t:"POLITICAL HQ",d:"The war room for the political fight. Strategy lives here.",k:["political","phq"]},{p:"/store",t:"THE STORE",d:"Gear that funds the fight.",k:["store","shop","merch","gear"]},{p:"/podcast",t:"THE PODCAST",d:"The Propaganda Factory, in your ears.",k:["podcast","listen","audio"]},{p:"/about",t:"ABOUT",d:"What this machine is and why it exists.",k:["about","what is"]},{p:"/faqs",t:"FAQS",d:"Questions, answered straight.",k:["faq","help","question"]},{p:"/privacy",t:"PRIVACY",d:"Your data, your rules. Aggregate by default, never sold.",k:["privacy","data","policy"]},{p:"/terms",t:"TERMS",d:"The rules of the road.",k:["terms","tos"]},{p:"/dossier",t:"DOSSIER BUILDER",d:"Pick a Receipt. Add your context. Publish the page.",k:["dossier","dossier builder","publish"]},{p:"/town-report",t:"MY TOWN REPORTS",d:"Your town’s data. What you’ve seen. Publish the page.",k:["town report","my town reports","publish"]},{p:"/extraction",t:"THE EXTRACTION ENGINE",d:"Who got paid. What they did. Who got hurt. Every number sourced.",k:["extraction","extraction engine","who got paid"]},{p:"/war-room",t:"THE WAR ROOM",d:"Debate nights. Election night. History, live.",k:["war room","debate","election night","live"]},{p:"/remix",t:"STORY REMIXER",d:"Sourced stories, citizen evidence. Remix the facts into propaganda.",k:["remix","story remixer","remix story"]},{p:"/peoples-cpi",t:"THE PEOPLE'S PRICE INDEX",d:"Crowdsourced prices. The real cost of living.",k:["cpi","price index","prices","inflation","cost of living"]},{p:"/cell-war",t:"CELL WAR",d:"Cell versus cell. Winner takes the week.",k:["cell war","cell battle","war"]},{p:"/my-hq",t:"MY HQ",d:"Your war, your numbers, your next move — everything within two taps.",k:["my hq","dashboard","hq"]}],l=[{k:["earn","xp","points","level"],a:"Earn XP by doing the work: daily check-in, Daily Orders missions, games, posts, recruits. Ranks run SYMPATHIZER to VANGUARD.",h:"/",l:"OPEN MY HQ"},{k:["callsign","claim","sign up","join","enlist","new here","start"],a:"Claim your callsign — one prompt, one tap, and you are in the fight. It is your identity across every game and mission.",h:"/",l:"CLAIM CALLSIGN"},{k:["check in","checkin","daily"],a:"Check in from the TODAY strip on My HQ. Streaks stack — do not break the chain.",h:"/",l:"CHECK IN"},{k:["delete","data","erase","privacy","remove my"],a:"Your data, your call. Hit DELETE MY DATA in the MY DATA section of your dashboard or the footer link — it burns your record.",h:"/",l:"MY DATA"},{k:["cell","squad","team","join a"],a:"Cells are squads. Join one or build your own — then run missions together and press the nuke as a unit.",h:"/cells",l:"FIND A CELL"},{k:["mission","daily orders","orders"],a:"Daily Orders drop fresh missions every day. Do them, report back, log the XP.",h:"/",l:"TODAY'S ORDERS"},{k:["nuke"],a:"The nuke charges when the movement acts. Press it daily from your dashboard — cells that press together win together.",h:"/",l:"PRESS THE NUKE"},{k:["vote","fan vote","fan favorite"],a:"Fan vote runs weekly — back your favorite propagandist. Winner is crowned FAN FAVORITE on Monday.",h:"/",l:"VOTE"},{k:["war report"],a:"The War Report lands weekly: the numbers, the winners, what is next. Your personal history lives there too.",h:"/war-report",l:"WAR REPORT"},{k:["share","poster","make shareable"],a:"Every answer and every win can be made shareable — posters built for the feed, stamped JOIN THE FIGHT.",h:"/create",l:"CREATE"},{k:["install","app","pwa","homescreen","home screen"],a:"Install the app: open the menu and Add to Home Screen. It runs like a native app from there.",h:"/",l:"MY HQ"},{k:["medal"],a:"Service medals drop weekly per game. Collect the full weekly set for FULL DEPLOYMENT — +50 XP and your callsign on the Vanguard Wall.",h:"/",l:"MY HQ"},{k:["calendar"],a:"The master calendar lives on your dashboard — debriefs, briefings, votes, war reports. Never miss a beat.",h:"/",l:"CALENDAR"},{k:["karl"],a:"That is me. I am the site’s voice — ask me where things are, how they work, or what the data says.",h:"/karl",l:"FULL KARL PAGE"}],c={"/":{label:"My HQ dashboard",chips:["How do I earn XP?","Where are my missions?","What is the nuke?"]},"/my-hq":{label:"My HQ dashboard",chips:["How do I earn XP?","Where are my missions?","What is the nuke?"]},"/economy":{label:"The Economy",chips:["How do I spend XP?","Where is FRED's briefing?","What is the People’s Bank?"]},"/bank":{label:"The People's Bank",chips:["How do I spend XP?","How do I earn XP?"]},"/cells":{label:"Cells",chips:["How do I join a cell?","What is a cell war?","How do contracts work?"]},"/cell-war":{label:"Cell War",chips:["How does cell war work?","How do I join a cell?"]},"/arcade":{label:"The Arcade",chips:["What games are there?","How do medals work?"]},"/war-report":{label:"War Report",chips:["Where is my history?","How is the winner picked?"]},"/call-it":{label:"CALL IT.",chips:["How do predictions work?","What is the War Room?"]},"/war-room":{label:"The War Room",chips:["What is the war room?","How do predictions work?"]},"/create":{label:"Create",chips:["How do I make a poster?","How do I share?"]},"/remix":{label:"Story Remixer",chips:["How do I remix a story?","Where do stories come from?"]},"/events":{label:"Events",chips:["Anything near me?","How do I host?"]},"/follow-the-money":{label:"Follow the Money",chips:["Who funds my rep?","What is a dossier?"]},"/karl":{label:"Karl",chips:["Who funds my rep?","What did ExxonMobil do?"]},"/receipt":{label:"Receipts",chips:["Who funds my rep?","What is a dossier?"]},"/dossier":{label:"Dossier Builder",chips:["How do I build a dossier?","What is a receipt?"]},"/town":{label:"Your Town",chips:["Who owns my zip?","What is power mapping?"]},"/town-report":{label:"My Town Reports",chips:["How do I publish a report?","What goes in a town report?"]},"/extraction":{label:"The Extraction Engine",chips:["Who got paid?","How are numbers sourced?"]},"/peoples-cpi":{label:"The People's Price Index",chips:["How do I submit a price?","What is the CPI?"]},"/liquidation":{label:"Liquidation Records",chips:["What is liquidation?","How do brackets work?"]},"/governance":{label:"Governance",chips:["How does the machine run?","Where do I vote?"]},"/fund":{label:"The Propaganda Fund",chips:["Where does the money go?","How is it funded?"]},"/ventures":{label:"Joint Ventures",chips:["How do ventures work?","How do I back a creator?"]},"/war-chest":{label:"The War Chest",chips:["Where does the money go?","How do I contribute?"]},"/store":{label:"The Store",chips:["What funds the fight?","What is a war bond?"]},"/sick-left-radicals":{label:"Sick Left Radicals",chips:["How do I join the roster?","Who are the affiliates?"]},"/creator-onboard":{label:"Creator Onboarding",chips:["How do I join?","What are the requirements?"]},"/request-access":{label:"Creator HQ Access",chips:["How do I get access?","What is Creator HQ?"]},"/academy":{label:"The Academy",chips:["What do I learn?","How do I graduate?"]},"/political-hq":{label:"Political HQ",chips:["What happens here?","How do I plug in?"]},"/podcast":{label:"The Podcast",chips:["Where do I listen?","What is the show about?"]},"/about":{label:"About",chips:["What is this machine?","Why does it exist?"]},"/faqs":{label:"FAQs",chips:["How do I start?","How do I earn XP?"]},roster:{label:"Sick Left Radicals",chips:["How do I join the roster?","Who are the affiliates?"]}},d={the:1,and:1,for:1,are:1,with:1,you:1,your:1,this:1,that:1,from:1,what:1,how:1,where:1,when:1,who:1,why:1,can:1,all:1,any:1,out:1,its:1,our:1,has:1,have:1,had:1,was:1,were:1,will:1,would:1,there:1,their:1,them:1,then:1,than:1,into:1,over:1,such:1,does:1},p=0,h=[".pf-kc-btn{position:fixed;right:14px;bottom:76px;z-index:9990;display:flex;align-items:center;gap:9px;","background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;border:0;border-radius:999px;","padding:14px 20px;font:900 14px/1 Arial,sans-serif;letter-spacing:1.5px;cursor:pointer;","box-shadow:0 10px 30px rgba(193,18,31,.35),0 3px 10px rgba(0,0,0,.45);min-height:48px;","transition:transform .18s cubic-bezier(.2,.7,.3,1.2),box-shadow .18s ease}",".pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}",".pf-kc-btn:active{transform:scale(.96)}",".pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}",".pf-kc-btn.pf-kc-wait{opacity:0;pointer-events:none;transform:translateY(24px)}","@media(prefers-reduced-motion:reduce){.pf-kc-btn.pf-kc-wait{transform:none}}",".pf-kc-btn .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pfkc-pulse 2s infinite}","@keyframes pfkc-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{opacity:.4;box-shadow:0 0 0 6px rgba(255,255,255,0)}}",".pf-kc-panel{position:fixed;z-index:9991;right:10px;left:10px;bottom:70px;max-height:min(66vh,560px);","background:linear-gradient(180deg,#151515 0%,#0d0d0d 100%);color:#f5f0e6;border:1px solid #2e2e2e;","border-radius:18px;display:none;flex-direction:column;overflow:hidden;","box-shadow:0 28px 70px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.07)}","@media(min-width:560px){.pf-kc-panel{left:auto;width:400px;right:14px}}",".pf-kc-panel.open{display:flex;animation:pfkc-in .28s cubic-bezier(.2,.9,.25,1.12) both}","@keyframes pfkc-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}",".pf-kc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;","border-bottom:1px solid #262626;background:linear-gradient(180deg,rgba(193,18,31,.10),transparent)}",".pf-kc-title{font:900 15px/1 Arial,sans-serif;letter-spacing:3px}",'.pf-kc-title::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;',"background:#c1121f;margin-right:9px;box-shadow:0 0 10px rgba(193,18,31,.9)}",".pf-kc-sub{font:400 11.5px/1.5 Arial,sans-serif;color:#a39c8b;margin-top:4px}",".pf-kc-x{background:none;border:0;border-radius:50%;color:#9a937f;font-size:22px;cursor:pointer;","min-width:44px;min-height:44px;transition:background .15s ease,color .15s ease}",".pf-kc-x:hover{background:#242424;color:#f5f0e6}",".pf-kc-log{flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}",".pf-kc-log::-webkit-scrollbar{width:8px}",".pf-kc-log::-webkit-scrollbar-thumb{background:#333;border-radius:8px}",".pf-kc-log::-webkit-scrollbar-track{background:transparent}",".pf-kc-msg{max-width:88%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;","animation:pfkc-m .24s cubic-bezier(.2,.8,.3,1.1) both;box-shadow:0 2px 10px rgba(0,0,0,.25)}","@keyframes pfkc-m{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}","@media(prefers-reduced-motion:reduce){.pf-kc-panel.open,.pf-kc-msg{animation:none}.pf-kc-btn .dot{animation:none}.pf-kc-btn:hover{transform:none}.pf-kc-td i{animation:none}}",".pf-kc-msg.karl{background:linear-gradient(180deg,#1e1e1e,#191919);border:1px solid #333;","align-self:flex-start;border-bottom-left-radius:5px;",'font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.62;color:#f2ecdf}',".pf-kc-msg.karl b{color:#fff}",".pf-kc-mv-h{font-family:Georgia,serif;font-weight:700;font-size:15.5px;color:#fff;letter-spacing:.2px}",".pf-kc-mv-b{font-family:Georgia,serif;font-size:14.5px;line-height:1.62}",".pf-kc-msg.user{background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;","align-self:flex-end;border-bottom-right-radius:5px;font:400 14px/1.55 Arial,sans-serif}",".pf-kc-msg .sig{color:#8a8478;font-family:Arial,sans-serif;font-size:11px;margin-top:7px;letter-spacing:.5px}",".pf-kc-go{display:inline-block;margin-top:9px;background:linear-gradient(135deg,#d61622,#a50e18);color:#fff!important;","font:900 12px/1 Arial,sans-serif;letter-spacing:1.2px;padding:11px 18px;border-radius:9px;text-decoration:none;","min-height:40px;box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}",".pf-kc-go:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,18,31,.45)}",".pf-kc-chips{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}",".pf-kc-chip{background:linear-gradient(180deg,#222,#1a1a1a);border:1px solid #3d3d3d;color:#f5f0e6;","border-radius:20px;padding:10px 15px;font:400 13px/1 Arial,sans-serif;cursor:pointer;min-height:40px;","transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}",".pf-kc-chip:hover{transform:translateY(-1px);border-color:#c1121f;box-shadow:0 4px 14px rgba(193,18,31,.25)}",".pf-kc-chip:active{background:#2a2a2a;transform:none}",".pf-kc-form{display:flex;gap:8px;padding:12px 12px 16px;border-top:1px solid #232323;background:rgba(0,0,0,.25)}",".pf-kc-in{flex:1;min-width:0;background:#1c1c1c;border:1px solid #3a3a3a;border-radius:12px;color:#f5f0e6;","font:400 16px/1.3 Arial,sans-serif;padding:13px 15px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}",".pf-kc-in:focus{border-color:#c1121f;box-shadow:0 0 0 3px rgba(193,18,31,.22)}",".pf-kc-send{background:linear-gradient(135deg,#d61622,#a50e18);color:#fff;border:0;border-radius:12px;","font:900 14px/1 Arial,sans-serif;letter-spacing:1.2px;padding:0 20px;cursor:pointer;min-height:48px;min-width:68px;","box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}",".pf-kc-send:hover{box-shadow:0 6px 18px rgba(193,18,31,.5)}",".pf-kc-send:active{transform:scale(.96)}",".pf-kc-typing{display:flex;align-items:center;gap:10px;align-self:flex-start;background:#1a1a1a;","border:1px solid #2c2c2c;border-radius:14px;border-bottom-left-radius:5px;padding:11px 15px;","color:#a39c8b;font:italic 400 13px Georgia,serif}",".pf-kc-td{display:inline-flex;gap:5px}",".pf-kc-td i{width:7px;height:7px;border-radius:50%;background:#c1121f;animation:pfkc-td 1.1s infinite ease-in-out}",".pf-kc-td i:nth-child(2){animation-delay:.15s}",".pf-kc-td i:nth-child(3){animation-delay:.3s}","@keyframes pfkc-td{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}"],u=!1;try{u="1"===sessionStorage.getItem("pf_kc_greeted")}catch(e){}var f="pf_kc_hist_v1",m=["Karl is thinking…","Checking the rails…","Consulting the canon…","Asking around…","Sharpening the answer…"];!function t(){try{if(!document.body)return void setTimeout(t,200);I()}catch(t){try{e&&e.error&&e.error("karl-companion",String(t&&t.message||t))}catch(e){}}}()}}function g(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function k(){try{return window.PFCallsign?String(window.PFCallsign()||""):String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){return""}}function w(e){return String(e||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(function(e){return e.length>2&&!d[e]})}function y(e){var t=w(e);if(!t.length)return null;var r,a,o,n=null,i=0;function c(r){for(var a=0,o=0;o<r.length;o++){for(var n=String(r[o]).toLowerCase(),i=0;i<t.length;i++)if(t[i]===n||n.length>4&&0===t[i].indexOf(n)||t[i].length>4&&0===n.indexOf(t[i])){a+=2;break}-1!==e.toLowerCase().indexOf(n)&&(a+=1)}return a}var d=/where|find|locate|go to|take me/.test(e.toLowerCase()),p=/how|what do|help/.test(e.toLowerCase());for(r=0;r<s.length;r++)o=c((a=s[r]).k.concat(w(a.t))),d&&(o+=1),o>i&&(i=o,n={text:a.t+" — "+a.d,href:a.p,link:"GO THERE"});for(r=0;r<l.length;r++)o=c((a=l[r]).k),p&&(o+=1),o>i&&(i=o,n={text:a.a,href:a.h,link:a.l});return i>=3?n:null}function v(){var e="/";try{e=window.location.pathname||"/"}catch(e){}var t=c[e]?e:"/";if("/"===e||c[e]||(t="other"),"other"===t)try{(document.getElementById("pf-catalog")||document.getElementById("pf-slr-roster"))&&(t="roster")}catch(e){}var r=c[t]||{label:"the site",chips:["What can I do here?","How do I earn XP?","Where is the war report?"]};return{path:e,label:r.label,chips:r.chips}}function b(){var e=(new Date).getHours();return e<5?"Up late, soldier.":e<12?"Morning. The fight is already moving.":e<18?"Afternoon. Time to make it count.":"Evening. Debrief o’clock soon."}function x(){try{if(window.PFKarlMuse&&PFKarlMuse.museChips){var e=PFKarlMuse.museChips(v().chips);if(e&&e.length)return e}}catch(e){}return v().chips.slice(0,3)}function E(e,t){var r=document.createElement("div");return r.className="pf-kc-msg "+e,r.innerHTML=t,a.appendChild(r),a.scrollTop=a.scrollHeight,r}function T(e){i.innerHTML="",e.forEach(function(e){var t=document.createElement("button");t.type="button",t.className="pf-kc-chip",t.textContent=e,t.addEventListener("click",function(){A(e)}),i.appendChild(t)})}function S(){try{var e=JSON.parse(sessionStorage.getItem(f)||"[]");return e&&e.length?e.slice(-3):[]}catch(e){return[]}}function _(e){var t=String(e||"").toLowerCase();function r(){for(var e=0;e<arguments.length;e++)if(-1!==t.indexOf(arguments[e]))return!0;return!1}return r("marx","lenin","trotsky","mao","fanon","luxemburg","che","engels","capital","surplus","theory","communis","socialis","imperialis")?"Who else wrote about this?":r("xp","rank","streak","medal","mission","vote","level")?"What’s my fastest path forward?":r("price","inflation","cpi","shrink","economy","wage","rent","cost of","grocery")?"How do I report a price?":r("how do i","how to","where is","where’s","where do")?"What should I do first?":r("news","happening","trump","biden","congress","election","protest")?"What’s the move on this?":"Tell me more about that"}function A(t){if(t=String(t||"").trim()){E("user",g(t)),i.innerHTML="";try{window.PFKarlMuse&&PFKarlMuse.observeQuestion&&PFKarlMuse.observeQuestion(t)}catch(e){}var o=v(),n=y(t);if(n){var s=g(n.text);return n.href&&function(e){var t=String(null==e?"":e).trim();if(!t)return"";if("/"===t.charAt(0))return t;try{var r=new URL(t,"https://x.invalid").protocol;if("http:"===r||"https:"===r)return t}catch(e){}return""}(n.href)&&(s+='<br><a class="pf-kc-go" href="'+g(n.href)+'">'+g(n.link||"GO THERE")+"</a>"),s+='<div class="sig">— Karl</div>',void setTimeout(function(){E("karl",s),T(x())},350)}var l=function(){var e=document.createElement("div");e.className="pf-kc-typing";var t=document.createElement("span");t.textContent=m[0];var r=document.createElement("span");r.className="pf-kc-td",r.innerHTML="<i></i><i></i><i></i>",e.appendChild(t),e.appendChild(r),a.appendChild(e),a.scrollTop=a.scrollHeight;var o=0,n=setInterval(function(){if(++o>=m.length)clearInterval(n);else try{t.textContent=m[o]}catch(e){clearInterval(n)}},2200);return{el:e,stop:function(){clearInterval(n);try{e.parentNode&&e.parentNode.removeChild(e)}catch(e){}}}}(),c={page:o.label,path:o.path},d=k();d&&(c.callsign=d);var h=S();h.length&&(c.history=h);try{if(window.PFKarlMuse&&PFKarlMuse.museContext){var u=PFKarlMuse.museContext();for(var w in u)c[w]=u[w]}}catch(e){}(function(e,t){return new Promise(function(r){if(Date.now()<p)r({ok:!1,error:"rate_limited"});else{var a={question:String(e).slice(0,500),context:t},o=!1;try{fetch("https://pf-karl.mtcstw.workers.dev/karl/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(a)}).then(function(e){if(429===e.status)return p=Date.now()+36e5,void n({ok:!1,error:"rate_limited"});e.json().then(function(e){n(e)},function(){n({ok:!1,error:"bad_json"})})},function(){n({ok:!1,error:"network"})})}catch(e){n({ok:!1,error:"network"})}setTimeout(function(){n({ok:!1,error:"timeout"})},2e4)}function n(e){o||(o=!0,r(e))}})})(t,c).then(function(a){if(l.stop(),a&&a.ok&&a.answer){var o=E("karl",g(String(a.answer)).replace(/\n/g,"<br>"));!function(e,t){try{var r=S();r.push({q:String(e).slice(0,200),a:String(t).slice(0,500)}),sessionStorage.setItem(f,JSON.stringify(r.slice(-3)))}catch(e){}}(t,a.answer);var n=[_(t)];try{for(var i=x(),s=0;s<i.length&&n.length<3;s++)-1===n.indexOf(i[s])&&n.push(i[s])}catch(e){}return T(n),void function(t,a){if(a&&"object"==typeof a)try{var o=window.PF&&e.dope?e.dope:null;if(!o)return;a.xp>0&&t&&o.xpFloat&&o.xpFloat(t,"+"+a.xp+" XP"),a.lucky&&o.ping&&r&&o.ping(r,"LUCKY QUESTION — DOUBLE XP"),a.milestone&&a.milestone_xp>0&&o.ping&&r&&o.ping(r,a.milestone+"-DAY KARL STREAK — +"+a.milestone_xp+" XP")}catch(e){}}(o,a.engage)}a&&"rate_limited"===a.error?E("karl",'I’ve been talking a lot this hour — even comrades need a breather. The site index still works though: ask me <i>where</i> something is or <i>how</i> to do it, and I’ll point you there instantly.<div class="sig">— Karl</div>'):E("karl",'The deep brain didn’t pick up just now — the connection dropped somewhere between us. But I still know this site cold: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>'),T(x())})}}function I(){var c;(c=document.createElement("style")).textContent=h.join("\n"),document.head.appendChild(c),(t=document.createElement("button")).type="button",t.className="pf-kc-btn",t.setAttribute("aria-label","Ask Karl"),t.innerHTML='<span class="dot"></span>ASK KARL';try{if(!(window.PF&&e.skip&&e.skip("karl-defer"))&&!k()&&document.getElementById("pf-dashboard")){t.classList.add("pf-kc-wait");var d=!1,p=function(){if(!d)try{((window.pageYOffset||document.documentElement&&document.documentElement.scrollTop||0)>480||k())&&(d=!0,t.classList.remove("pf-kc-wait"),window.removeEventListener("scroll",p))}catch(e){}};window.addEventListener("scroll",p,{passive:!0}),setTimeout(p,5e3)}}catch(e){}(r=document.createElement("div")).className="pf-kc-panel",r.setAttribute("role","dialog"),r.setAttribute("aria-label","Ask Karl"),r.innerHTML='<div class="pf-kc-head"><div><div class="pf-kc-title">KARL</div><div class="pf-kc-sub">The voice of the site. Ask anything.</div></div><button type="button" class="pf-kc-x" aria-label="Close">&times;</button></div><div class="pf-kc-log"></div><div class="pf-kc-chips"></div><form class="pf-kc-form"><input class="pf-kc-in" type="text" maxlength="300" autocomplete="off" placeholder="Where is…? How do I…?" aria-label="Ask Karl"><button type="submit" class="pf-kc-send">ASK</button></form>',a=r.querySelector(".pf-kc-log"),i=r.querySelector(".pf-kc-chips"),o=r.querySelector(".pf-kc-form"),n=r.querySelector(".pf-kc-in");var f=r.querySelector(".pf-kc-x");function m(e){var t="boolean"==typeof e?e:!r.classList.contains("open");if(r.classList.toggle("open",t),t){if(!u){u=!0;try{sessionStorage.setItem("pf_kc_greeted","1")}catch(e){}!function(){try{if(window.PFKarlMuse&&PFKarlMuse.museGreeting)return E("karl",PFKarlMuse.museGreeting()),void T(x())}catch(e){}var e=k(),t=v();E("karl",e?"I’m <b>Karl</b>. "+g(b())+"<br>You’re on <b>"+g(t.label)+"</b>, "+g(e)+'. Ask me where things are, how they work — or what the data says.<div class="sig">— Karl</div>':"I’m <b>Karl</b> — the voice of this site. "+g(b())+'<br><br>New here? <b>Claim your callsign</b> — one tap and you’re in the fight.<br><a class="pf-kc-go" href="/">CLAIM CALLSIGN</a><div class="sig">— Karl</div>'),T(x())}()}setTimeout(function(){try{n.focus()}catch(e){}},120)}}t.addEventListener("click",function(){m()}),f.addEventListener("click",function(){m(!1)}),o.addEventListener("submit",function(e){e.preventDefault();var t=n.value;n.value="",A(t)}),document.addEventListener("keydown",function(e){"Escape"===e.key&&r.classList.contains("open")&&m(!1)}),document.body.appendChild(t),document.body.appendChild(r),window.PFKarlCompanion={open:function(){m(!0)},close:function(){m(!1)},ask:function(e){m(!0),e&&A(e)},_match:y,_pages:s.length,_howtos:l.length}}}(),function(){"use strict";var e=window.PF;if(e&&!e.skip("karl-muse")){try{if(-1!==String(window.location.search||"").indexOf("pf_off=karl-muse"))return}catch(e){}if(!window.PFKarlMuse){var t="pf_karl_story_v1",r="pf_karl_nudge_v1",a=[[0,"SYMPATHIZER"],[250,"AGITATOR"],[750,"ORGANIZER"],[2e3,"OPERATIVE"],[5e3,"COMMANDER"],[12e3,"WARLORD"],[25e3,"VANGUARD"]],o={xp:["xp","rank","level","points","earn","agitator","vanguard"],missions:["mission","orders","daily","check","debrief","report back"],theory:["marx","surplus","capital","theory","lenin","engels","karl marx","manifesto"],vote:["vote","fan","ballot","favorite"],cell:["cell","squad","team","nuke","join"],money:["money","bank","war chest","warchest","fund","spend","economy","fred"],create:["poster","meme","create","share","forge","make"],calendar:["calendar","event","when","debrief","briefing"],intel:["receipt","dossier","politician","rep","donor","pac","town","zip"]},n={xp:"How do I earn XP?",missions:"Where are my missions?",theory:"What is surplus value?",vote:"How does fan vote work?",cell:"How do I join a cell?",money:"What is the war chest?",create:"How do I make a poster?",calendar:"What is on the calendar?",intel:"Who funds my rep?"},i={theory:{href:"/academy",link:"THE ACADEMY"},intel:{href:"/receipt",link:"THE RECEIPT"},create:{href:"/create",link:"CREATE"},money:{href:"/economy",link:"THE ECONOMY"},calendar:{href:"/events",link:"EVENTS"},cell:{href:"/cells",link:"FIND A CELL"},vote:{href:"/#pf-vote",link:"VOTE"},xp:{href:"/arcade",link:"THE ARCADE"},missions:{href:"/",link:"TODAY’S ORDERS"}};try{!function(){try{var e=m(),t=Date.now(),r="/";try{r=window.location.pathname||"/"}catch(e){}e.visits++,e.prevSeen=e.lastSeen||0,e.lastSeen=t;var a=d();e.days[a]=(e.days[a]||0)+1,e.pages[r]=(e.pages[r]||0)+1;var o=c();o&&!e.callsign&&(e.callsign=o,w(e,"Claimed callsign "+o));var n=y(e);3===n&&w(e,"3-day visiting streak"),7===n&&w(e,"A week of showing up"),30===n&&w(e,"30 days of showing up"),10===e.visits&&w(e,"10 visits — a regular");var i=Math.floor((t-e.firstSeen)/864e5);i>=7&&!k(e,"A week with the movement")&&w(e,"A week with the movement"),i>=30&&!k(e,"A month with the movement")&&w(e,"A month with the movement");for(var s=Object.keys(e.days||{}).sort();s.length>120;)delete e.days[s.shift()];g(e)}catch(e){}}()}catch(e){}window.PFKarlMuse={readUserState:S,readStory:m,nextMove:A,museGreeting:function(){var e=c(),t=A();I(t.id);var r,a="I’m <b>Karl</b> — the voice of this site. "+l((r=(new Date).getHours())<5?"Up late, soldier.":r<12?"Morning. The fight is already moving.":r<18?"Afternoon. Time to make it count.":"Evening. Debrief o’clock soon.");try{var o=m();if(e&&o.visits>1){var n=["Back again. Good — the fight needs regulars.","You came back. That already puts you ahead of most.","Another day, another front. Glad you’re here."];a+="<br>"+l(n[o.visits%n.length])}}catch(e){}e&&(a+="<br>You’re "+l(e)+", and I’ve been watching your war.");try{var i=T().filter(function(e){return 0!==e.indexOf("Claimed callsign")});i.length&&(a+="<br><b>"+l(i[i.length-1])+".</b> Noted on the record.")}catch(e){}return a+='<br><br><span class="pf-kc-mv-h">'+l(t.headline)+'</span><br><span class="pf-kc-mv-b">'+l(t.body)+"</span>",a+='<br><a class="pf-kc-go" href="'+l(t.href)+'">'+l(t.link)+"</a>",a+='<div class="sig">— Karl</div>'},museChips:function(e){var t=[],r={};function a(e){e&&!r[e]&&t.length<3&&(r[e]=1,t.push(e))}try{a(A().chip)}catch(e){}try{var o,i=m(),s=x(2);for(o=0;o<s.length;o++)n[s[o]]&&a(n[s[o]]);if(s.length&&s[0]){var l=E(i,s[0]);l&&n[l]&&a(n[l])}}catch(e){}try{var c,d=e||[];for(c=0;c<d.length;c++)a(d[c])}catch(e){}return t},museContext:function(){var e=S();return{muse:!0,user_state:{callsign:e.callsign||"",xp:null!=e.xp?e.xp:null,rank:e.rank||"",streak:null!=e.streak?e.streak:null,next_rank:e.next_rank||"",xp_to_next:null!=e.xp_to_next?e.xp_to_next:null,rank_pct:null!=e.rank_pct?e.rank_pct:null,medals_week:e.medals_week||(null!=e.medals_got?e.medals_got+"/16":""),reported_today:null!=e.reported_today?e.reported_today:null,votes_week:null!=e.votes_week?e.votes_week:null,cell_name:e.cell_name||"",upcoming:e.upcoming||"",engagement:e.engagement||"new",visit_streak:null!=e.visit_streak?e.visit_streak:0},taste_profile:H(),story:C()}},observeQuestion:function(e){try{var t=v(e);if(!t)return;var r=m(),a=Date.now();if(r.topics[t]=(r.topics[t]||0)+1,r.topicEvents.push({t:t,at:a}),r.topicEvents.length>60&&r.topicEvents.splice(0,r.topicEvents.length-60),r._lastTopic&&r._lastTopic!==t){var o=r._lastTopic+"|"+t;r.affin[o]=(r.affin[o]||0)+1}r._lastTopic=t,w(r,"First question to Karl");var n,i=0;for(n=0;n<r.topicEvents.length;n++)r.topicEvents[n]&&i++;10===i&&w(r,"10 questions asked"),50===i&&w(r,"50 questions asked — a thinker"),g(r)}catch(e){}},topicOf:v,storySummary:C,tasteProfile:H,_ranks:a,_nextRank:s,_movesList:_,_recordNudge:I,_topicOf:v,_variant:u,_topicScore:function(e){try{return b(m(),e)}catch(e){return 0}},_visitStreak:function(){try{return y(m())}catch(e){return 0}},_relatedTopic:function(e){try{return E(m(),e)}catch(e){return null}},_freshMilestones:T}}}function s(e){for(var t=0;t<a.length;t++)if(e<a[t][0])return{rank:a[t][1],at:a[t][0],gap:a[t][0]-e,span:a[t][0]-a[t-1][0]};return null}function l(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function c(){try{return window.PFCallsign?String(window.PFCallsign()||""):String(JSON.parse(localStorage.getItem("pf_identity_v1")||"{}").callsign||"")}catch(e){return""}}function d(e){return(e=e||new Date).getFullYear()+"-"+(e.getMonth()+1)+"-"+e.getDate()}function p(e){var t=new Date;return t.setHours(0,0,0,0),t.getTime()-864e5*e}function h(){try{var e={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[(new Date).toLocaleString("en-US",{timeZone:"America/Chicago",weekday:"short"})];return null==e?3:e}catch(e){return(new Date).getDay()}}function u(e){return e&&e.length?e[t=new Date,Math.floor((t-new Date(t.getFullYear(),0,0))/864e5)%e.length]:"";var t}function f(){return{v:2,firstSeen:Date.now(),lastSeen:Date.now(),prevSeen:0,visits:0,days:{},pages:{},topics:{},topicEvents:[],affin:{},milestones:[],_lastTopic:null}}function m(){var e=null;try{e=JSON.parse(localStorage.getItem(t)||"null")}catch(e){}return e&&"object"==typeof e?2===e.v?e:function(e){var t,r=f();if(e&&"object"==typeof e)for(t in e.firstSeen&&(r.firstSeen=e.firstSeen),e.visits&&(r.visits=e.visits),e.pages&&(r.pages=e.pages),e.topics&&(r.topics=e.topics),e.milestones&&(r.milestones=e.milestones),e.callsign&&(r.callsign=e.callsign),r.topics)r.topicEvents.push({t:t,at:Date.now()-3456e6});return r}(e):f()}function g(e){try{localStorage.setItem(t,JSON.stringify(e))}catch(e){}}function k(e,t){for(var r=0;r<e.milestones.length;r++)if(e.milestones[r].m===t)return!0;return!1}function w(e,t){return!k(e,t)&&(e.milestones.push({t:Date.now(),m:t}),e.milestones.length>24&&e.milestones.shift(),!0)}function y(e){for(var t=0,r=0;r<400;r++){var a=new Date(p(r)),o=a.getFullYear()+"-"+(a.getMonth()+1)+"-"+a.getDate();if(!e.days||!e.days[o]){if(0===r)continue;break}t++}return t}function v(e){var t,r,a=String(e||"").toLowerCase(),n=a.replace(/[^a-z0-9\s]/g," ").split(/\s+/),i=null,s=0;for(t in o){var l=0,c=o[t];for(r=0;r<c.length;r++){var d=c[r];-1!==n.indexOf(d)?l+=2:d.length>4&&-1!==a.indexOf(d)&&(l+=1)}l>s&&(s=l,i=t)}return s>=2?i:null}function b(e,t){var r,a,o=Date.now(),n=0;for(r=0;r<(e.topicEvents||[]).length;r++)if((a=e.topicEvents[r])&&a.t===t){var i=o-a.at;n+=i<6048e5?2:i<2592e6?1:.5}return n}function x(e){for(var t,r=m(),a=[],o={},n=0;n<(r.topicEvents||[]).length;n++)o[t=r.topicEvents[n].t]||(o[t]=1,a.push([t,b(r,t)]));for(t in r.topics)o[t]||a.push([t,.5*(r.topics[t]||0)]);return a.sort(function(e,t){return t[1]-e[1]}),a.slice(0,e||2).map(function(e){return e[0]})}function E(e,t){var r,a=null,o=0;for(r in e.affin){var n=String(r).split("|");n[0]===t&&e.affin[r]>o&&(o=e.affin[r],a=n[1])}return a}function T(){try{var e,t=m(),r=[],a=Date.now();for(e=0;e<t.milestones.length;e++)a-t.milestones[e].t<864e5&&r.push(t.milestones[e].m);return r}catch(e){return[]}}function S(){var t={};try{t.callsign=c();try{var r=JSON.parse(localStorage.getItem("pf_ranks_v1")||"null");r&&"number"==typeof r.xp&&(t.xp=r.xp)}catch(e){}try{var a=window.PF&&e.isoWeekKey&&e.chiNow?e.isoWeekKey(e.chiNow()):"",o=JSON.parse(localStorage.getItem("pf_medals_v2")||"null");if(o&&o.m&&(!a||!o.w||o.w===a)){var n,i=0;for(n in o.m)o.m[n]&&i++;t.medals_got=i,t.medals_fd=!!o.fd}}catch(e){}try{var l=JSON.parse(localStorage.getItem("pf_nuke_cell_v1")||"null");l&&l.cell&&l.cell.name&&(t.cell_name=String(l.cell.name))}catch(e){}var d=window.__pfKarlDashCtx||null;if(d&&"object"==typeof d&&(null!=d.xp&&(t.xp=d.xp),d.rank&&(t.rank=d.rank),null!=d.streak&&(t.streak=d.streak),d.medals_this_week&&(t.medals_week=d.medals_this_week),null!=d.reported_today&&(t.reported_today=d.reported_today),null!=d.votes_this_week&&(t.votes_week=d.votes_this_week),d.upcoming&&(t.upcoming=String(d.upcoming).slice(0,300))),null!=t.xp){var p=s(t.xp);p&&(t.next_rank=p.rank,t.xp_to_next=p.gap,t.rank_span=p.span,t.rank_pct=Math.round(100*(1-p.gap/p.span)))}try{var h=m(),u=y(h);t.visit_streak=u,t.visits=h.visits||0,(h.visits||0)>=25||null!=t.xp&&t.xp>=2e3?t.engagement="veteran":(h.visits||0)>=3||null!=t.xp&&t.xp>=100?t.engagement="active":t.engagement="new",null!=t.medals_got&&t.medals_got>=13&&t.medals_got<16&&!t.medals_fd&&(t.close_to_fd=!0)}catch(e){}}catch(e){}return t}function _(){var e=S(),t=e.callsign,r=[],a=Date.now();t||r.push({id:"onboard",headline:u(["New here? This is your enlistment.","Fresh boots. Let’s get you enlisted.","The door’s open, soldier. One step."]),body:"Claim your callsign — one tap and you’re in the fight. Everything runs through it: XP, ranks, cells, missions.",chip:"How do I claim my callsign?",href:"/",link:"CLAIM CALLSIGN"});try{var o=m();if(t&&o.visits>1&&o.prevSeen&&a-o.prevSeen>6048e5){var s=Math.floor((a-o.prevSeen)/864e5);r.push({id:"welcome-back",headline:"You’ve been away "+s+" days. The war kept moving.",body:"Check in, report today’s missions, and you’re back in the chain. We notice who returns.",chip:"What did I miss?",href:"/",link:"CHECK IN"})}}catch(e){}if(t&&e.streak>0&&0===e.reported_today&&r.push({id:"streak",headline:u(["Your "+e.streak+"-day streak is on the line.",e.streak+" days straight. Don’t let it die today.","The streak wants to live. Feed it."]),body:"Streaks die in silence. Check in and report back before the day turns — "+(e.next_rank?"and you’re "+e.xp_to_next+" XP from "+e.next_rank+".":"the chain holds."),chip:"How do I check in?",href:"/",link:"CHECK IN"}),t&&e.close_to_fd){var l=16-e.medals_got;r.push({id:"fd-push",headline:l+" medal"+(1===l?"":"s")+" from FULL DEPLOYMENT.",body:"The full weekly rack is +50 XP and your callsign on the Vanguard Wall. The arcade is where medals are minted.",chip:"How do medals work?",href:"/arcade",link:"THE ARCADE"})}if(t&&null!=e.xp&&e.next_rank&&e.xp_to_next<=Math.max(60,.2*e.rank_span)&&r.push({id:"rank",headline:u([e.xp_to_next+" XP from "+e.next_rank+".",e.next_rank+" is "+e.xp_to_next+" XP away. That’s today’s work.","You’re "+(null!=e.rank_pct?e.rank_pct:"")+"% of the way to "+e.next_rank+"."]),body:"You can taste it. One mission, one check-in, one recruit — that’s the gap. Close it today.",chip:"How do I earn XP fast?",href:"/",link:"EARN XP"}),t&&0===e.reported_today&&r.push({id:"missions",headline:u(["Today’s missions are waiting.","Orders are on the board. Nobody’s taken them yet.","The day has missions. Take them."]),body:"The network runs on reported work. Do today’s orders, report back, log it on the record.",chip:"Where are my missions?",href:"/",link:"TODAY’S ORDERS"}),t&&0===e.votes_week&&h()>=2){var c=u(["You haven’t voted this week.","The ballot box is open and your name’s not in it."]);0===h()?c="Fan vote closes TONIGHT.":6===h()&&(c="Fan vote closes tomorrow."),r.push({id:"vote",headline:c,body:"Fan vote closes Sunday. Back your propagandist — the crown is decided by people who show up.",chip:"How does fan vote work?",href:"/",link:"VOTE"})}t&&null!=e.medals_got&&e.medals_got<13&&r.push({id:"medals",headline:16-e.medals_got+" medals still on the table this week.",body:"The full weekly set is FULL DEPLOYMENT — +50 XP and your callsign on the Vanguard Wall.",chip:"How do medals work?",href:"/arcade",link:"THE ARCADE"}),t&&!e.cell_name&&r.push({id:"cell",headline:u(["You’re fighting alone.","No cell. No squad. That’s a choice you can unmake."]),body:"Cells that press together win together. Find your squad — or build one and lead it.",chip:"How do I join a cell?",href:"/cells",link:"FIND A CELL"});try{var d=x(1);if(t&&d.length&&i[d[0]]&&r.length<4){var p=i[d[0]],f=E(m(),d[0]);r.push({id:"taste",headline:"You keep asking about "+d[0]+". Go deeper.",body:(f?"And when you’re done — people into "+d[0]+" usually get into "+f+" next. ":"")+"Your curiosity is the compass. Follow it.",chip:n[d[0]]||"Tell me more",href:p.href,link:p.link})}}catch(e){}if(e.upcoming&&/today/i.test(e.upcoming)){var g=e.upcoming.split(";")[0].trim();r.push({id:"event",headline:"Today: "+g+".",body:"The calendar doesn’t wait. Be there — the network notices who shows up.",chip:"What is on the calendar?",href:"/",link:"CALENDAR"})}var k=(new Date).getHours(),w=k<12?{headline:"The fight is already moving.",body:"Check in, take today’s orders, make the morning count. Small actions, compounded, win wars."}:k<18?{headline:"The afternoon is yours.",body:"Missions, votes, recruits — pick one and move. The network is watching the board."}:{headline:"Evening. Debrief o’clock soon.",body:"Report back what you did today. The record remembers, and so does your streak."};return r.push({id:"inspire",headline:w.headline,body:w.body,chip:"What should I do today?",href:"/",link:"MY HQ"}),r}function A(){var e=_(),t=[];try{t=(JSON.parse(localStorage.getItem(r)||"null")||{}).ids||[]}catch(e){}var a=d();try{var o=JSON.parse(localStorage.getItem(r)||"null");o&&o.day===a||(t=[])}catch(e){t=[]}for(var n=0;n<e.length;n++)if(-1===t.indexOf(e[n].id))return e[n];return e[e.length-1]}function I(e){try{var t=d(),a=null;try{a=JSON.parse(localStorage.getItem(r)||"null")}catch(e){}a&&a.day===t||(a={day:t,ids:[]}),-1===a.ids.indexOf(e)&&a.ids.push(e),localStorage.setItem(r,JSON.stringify(a))}catch(e){}}function C(){try{var e=m(),t=[];if(t.push(e.visits+" visit"+(1===e.visits?"":"s")),e.firstSeen){var r=new Date(e.firstSeen);t.push("since "+r.toLocaleDateString("en-US",{month:"short",day:"numeric"}))}var a=y(e);a>=2&&t.push(a+"-day visiting streak");var o=function(e){var t,r=null,a=0;for(t in e.pages)e.pages[t]>a&&(a=e.pages[t],r=t);return r}(e);o&&"/"!==o&&t.push("favorite page "+o);var n=x(2);return n.length&&t.push("asks about "+n.join(" and ")),e.milestones.length&&t.push("milestones: "+e.milestones.slice(-3).map(function(e){return e.m}).join("; ")),t.join(" · ")}catch(e){return""}}function H(){try{var e,t=m(),r=[],a={};for(e=0;e<(t.topicEvents||[]).length;e++){var o=t.topicEvents[e].t;a[o]||(a[o]=1,r.push({topic:o,score:Math.round(10*b(t,o))/10}))}return r.sort(function(e,t){return t.score-e.score}),r.slice(0,3)}catch(e){return[]}}}();
+/* PF v1.4.3 core/bundle-karl-companion.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: core/karl-companion.js, core/karl-muse.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== core/karl-companion.js ===== */
+/* core/karl-companion.js  |  PF v1.4.3 | KARL COMPANION — the site's voice.
+   CEO directive 2026-10-07 ~13:54 CDT ("Fully integrated into the site.
+   It's so much information"): Karl is not a page or a button — Karl is the
+   site's voice. The dashboard is the body, Karl is the brain.
+
+   Self-mounting sitewide silo (no div needed): injects a floating
+   "ASK KARL" launcher + chat panel on every page.
+
+   What it does:
+     1. KNOWS EVERYTHING (local): an embedded site index answers
+        "where is X / how do I Y / what is Z" instantly — no network,
+        no rate-limit burn.
+     2. CONTEXTUAL: every question carries {page, path, callsign} to the
+        Karl worker, so answers know where you are.
+     3. PROACTIVE: first open per session greets with contextual suggestion
+        chips (page-aware, time-aware, onboarding-aware).
+     4. DEEP: anything the index can't answer goes to the Karl AI worker
+        (POST /karl/ask — theory + evidence, signed "— Karl"), 30/hr/IP.
+
+   Contract: zero XP, read-only, no PII (callsign only, it's public),
+   fail-soft (worker down -> honest message, never a spinner forever).
+   KILL: ?pf_off=karl-companion */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('karl-companion')) { return; }
+  if (window.__pfKarlCompanionDone) { return; }
+  window.__pfKarlCompanionDone = true;
+
+  var ASK_URL = 'https://pf-karl.mtcstw.workers.dev/karl/ask';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) { return ''; }
+    if (s.charAt(0) === '/') { return s; }
+    try {
+      var p = new URL(s, 'https://x.invalid').protocol;
+      if (p === 'http:' || p === 'https:') { return s; }
+    } catch (e) {}
+    return '';
+  }
+  function isEditor() {
+    try {
+      if ((window.location.href || '').indexOf('/config/') !== -1) { return true; }
+      var b = document.body;
+      if (b && (b.classList.contains('sqs-edit-mode') || b.classList.contains('sqs-editing'))) { return true; }
+    } catch (e) {}
+    return false;
+  }
+  function callsign() {
+    try {
+      if (window.PFCallsign) { return String(window.PFCallsign() || ''); }
+      return String((JSON.parse(localStorage.getItem('pf_identity_v1') || '{}')).callsign || '');
+    } catch (e) { return ''; }
+  }
+  if (isEditor()) { return; }
+
+  /* ============ THE SITE INDEX — Karl knows everything (local, instant) ============ */
+  var PAGES = [
+    { p: '/', t: 'MY HQ', d: 'Your war, your numbers, your next move — everything within two taps.', k: ['home', 'homepage', 'dashboard', 'hq', 'main'] },
+    { p: '/arcade', t: 'THE ARCADE', d: 'Six games. Zero mercy. Play them all.', k: ['arcade', 'games', 'play', 'game'] },
+    { p: '/call-it', t: 'CALL IT.', d: 'Predictions. Call it before it happens.', k: ['predict', 'prediction', 'call it', 'forecast', 'markets', 'war room'] },
+    { p: '/liquidation', t: 'LIQUIDATION RECORDS', d: 'The brackets. The carnage. The receipts.', k: ['bracket', 'liquidation', 'tournament'] },
+    { p: '/cells', t: 'CELLS', d: 'Your squad, your war. Build it, run it, win it.', k: ['cell', 'cells', 'squad', 'team', 'join'] },
+    { p: '/create', t: 'CREATE', d: 'The propaganda workshop. Make it. Ship it.', k: ['create', 'make', 'poster', 'meme', 'workshop', 'forge'] },
+    { p: '/bank', t: "THE PEOPLE'S BANK", d: 'Your XP, weaponized. Save it, move it, grow it.', k: ['bank', 'save', 'xp bank'] },
+    { p: '/economy', t: 'THE ECONOMY', d: 'Spend XP like it matters. Because it does. FRED briefs here.', k: ['economy', 'fred', 'briefing', 'spend'] },
+    { p: '/follow-the-money', t: 'FOLLOW THE MONEY', d: 'Follow the money. See who funds the votes.', k: ['money', 'donor', 'funds', 'pac', 'follow the money'] },
+    { p: '/fund', t: 'THE PROPAGANDA FUND', d: 'Every cent, accounted for.', k: ['fund', 'propaganda fund'] },
+    { p: '/war-chest', t: 'THE WAR CHEST', d: 'Fund the fight. Watch where every cent goes.', k: ['war chest', 'warchest', 'chest'] },
+    { p: '/ventures', t: 'JOINT VENTURES', d: 'Pool up. Back creators. Share the spoils.', k: ['venture', 'ventures', 'invest', 'pool'] },
+    { p: '/events', t: 'BOOTS ON THE GROUND', d: 'Digital is the rehearsal. The street is the show.', k: ['event', 'events', 'protest', 'irl', 'rally', 'street'] },
+    { p: '/war-report', t: 'WAR REPORT', d: "The week in the war. Numbers, winners, what's next.", k: ['war report', 'report', 'weekly', 'week'] },
+    { p: '/governance', t: 'GOVERNANCE', d: 'The machine runs itself — and you get a vote in how.', k: ['governance', 'rules', 'vote', 'govern'] },
+    { p: '/karl', t: 'KARL', d: 'Plain questions. Sourced answers. Never a guess.', k: ['karl'] },
+    { p: '/receipt', t: 'RECEIPTS', d: 'Politician dossiers — who they are, who funds them.', k: ['receipt', 'dossier', 'politician', 'rep'] },
+    { p: '/town', t: 'YOUR TOWN', d: 'Who owns your zip code? Power-mapping, street by street.', k: ['town', 'zip', 'local', 'my town'] },
+    { p: '/sick-left-radicals', t: 'SICK LEFT RADICALS', d: 'The creator roster. Find your people.', k: ['roster', 'creator', 'sick left', 'radicals', 'affiliate'] },
+    { p: '/creator-onboard', t: 'CREATOR ONBOARDING', d: 'Join the roster. Bring your audience.', k: ['onboard', 'join roster', 'become creator'] },
+    { p: '/request-access', t: 'CREATOR HQ ACCESS', d: 'Request access to the members-only Creator HQ.', k: ['creator hq', 'request access', 'members'] },
+    { p: '/academy', t: 'THE ACADEMY', d: 'Learn the craft. Graduate dangerous.', k: ['academy', 'learn', 'school', 'train'] },
+    { p: '/political-hq', t: 'POLITICAL HQ', d: 'The war room for the political fight. Strategy lives here.', k: ['political', 'phq'] },
+    { p: '/store', t: 'THE STORE', d: 'Gear that funds the fight.', k: ['store', 'shop', 'merch', 'gear'] },
+    { p: '/podcast', t: 'THE PODCAST', d: 'The Propaganda Factory, in your ears.', k: ['podcast', 'listen', 'audio'] },
+    { p: '/about', t: 'ABOUT', d: 'What this machine is and why it exists.', k: ['about', 'what is'] },
+    { p: '/faqs', t: 'FAQS', d: 'Questions, answered straight.', k: ['faq', 'help', 'question'] },
+    { p: '/privacy', t: 'PRIVACY', d: 'Your data, your rules. Aggregate by default, never sold.', k: ['privacy', 'data', 'policy'] },
+    { p: '/terms', t: 'TERMS', d: 'The rules of the road.', k: ['terms', 'tos'] },
+    { p: '/dossier', t: 'DOSSIER BUILDER', d: 'Pick a Receipt. Add your context. Publish the page.', k: ['dossier', 'dossier builder', 'publish'] },
+    { p: '/town-report', t: 'MY TOWN REPORTS', d: 'Your town\u2019s data. What you\u2019ve seen. Publish the page.', k: ['town report', 'my town reports', 'publish'] },
+    { p: '/extraction', t: 'THE EXTRACTION ENGINE', d: 'Who got paid. What they did. Who got hurt. Every number sourced.', k: ['extraction', 'extraction engine', 'who got paid'] },
+    { p: '/war-room', t: 'THE WAR ROOM', d: 'Debate nights. Election night. History, live.', k: ['war room', 'debate', 'election night', 'live'] },
+    { p: '/remix', t: 'STORY REMIXER', d: 'Sourced stories, citizen evidence. Remix the facts into propaganda.', k: ['remix', 'story remixer', 'remix story'] },
+    { p: '/peoples-cpi', t: "THE PEOPLE'S PRICE INDEX", d: 'Crowdsourced prices. The real cost of living.', k: ['cpi', 'price index', 'prices', 'inflation', 'cost of living'] },
+    { p: '/cell-war', t: 'CELL WAR', d: 'Cell versus cell. Winner takes the week.', k: ['cell war', 'cell battle', 'war'] },
+    { p: '/my-hq', t: 'MY HQ', d: 'Your war, your numbers, your next move — everything within two taps.', k: ['my hq', 'dashboard', 'hq'] }
+  ];
+
+  var HOWTOS = [
+    { k: ['earn', 'xp', 'points', 'level'], a: 'Earn XP by doing the work: daily check-in, Daily Orders missions, games, posts, recruits. Ranks run SYMPATHIZER to VANGUARD.', h: '/', l: 'OPEN MY HQ' },
+    { k: ['callsign', 'claim', 'sign up', 'join', 'enlist', 'new here', 'start'], a: 'Claim your callsign — one prompt, one tap, and you are in the fight. It is your identity across every game and mission.', h: '/', l: 'CLAIM CALLSIGN' },
+    { k: ['check in', 'checkin', 'daily'], a: 'Check in from the TODAY strip on My HQ. Streaks stack — do not break the chain.', h: '/', l: 'CHECK IN' },
+    { k: ['delete', 'data', 'erase', 'privacy', 'remove my'], a: 'Your data, your call. Hit DELETE MY DATA in the MY DATA section of your dashboard or the footer link — it burns your record.', h: '/', l: 'MY DATA' },
+    { k: ['cell', 'squad', 'team', 'join a'], a: 'Cells are squads. Join one or build your own — then run missions together and press the nuke as a unit.', h: '/cells', l: 'FIND A CELL' },
+    { k: ['mission', 'daily orders', 'orders'], a: 'Daily Orders drop fresh missions every day. Do them, report back, log the XP.', h: '/', l: "TODAY'S ORDERS" },
+    { k: ['nuke'], a: 'The nuke charges when the movement acts. Press it daily from your dashboard — cells that press together win together.', h: '/', l: 'PRESS THE NUKE' },
+    { k: ['vote', 'fan vote', 'fan favorite'], a: 'Fan vote runs weekly — back your favorite propagandist. Winner is crowned FAN FAVORITE on Monday.', h: '/', l: 'VOTE' },
+    { k: ['war report'], a: 'The War Report lands weekly: the numbers, the winners, what is next. Your personal history lives there too.', h: '/war-report', l: 'WAR REPORT' },
+    { k: ['share', 'poster', 'make shareable'], a: 'Every answer and every win can be made shareable — posters built for the feed, stamped JOIN THE FIGHT.', h: '/create', l: 'CREATE' },
+    { k: ['install', 'app', 'pwa', 'homescreen', 'home screen'], a: 'Install the app: open the menu and Add to Home Screen. It runs like a native app from there.', h: '/', l: 'MY HQ' },
+    { k: ['medal'], a: 'Service medals drop weekly per game. Collect the full weekly set for FULL DEPLOYMENT — +50 XP and your callsign on the Vanguard Wall.', h: '/', l: 'MY HQ' },
+    { k: ['calendar'], a: 'The master calendar lives on your dashboard — debriefs, briefings, votes, war reports. Never miss a beat.', h: '/', l: 'CALENDAR' },
+    { k: ['karl'], a: 'That is me. I am the site\u2019s voice — ask me where things are, how they work, or what the data says.', h: '/karl', l: 'FULL KARL PAGE' }
+  ];
+
+  var PAGE_CTX = {
+    '/': { label: 'My HQ dashboard', chips: ['How do I earn XP?', 'Where are my missions?', 'What is the nuke?'] },
+    '/my-hq': { label: 'My HQ dashboard', chips: ['How do I earn XP?', 'Where are my missions?', 'What is the nuke?'] },
+    '/economy': { label: 'The Economy', chips: ['How do I spend XP?', "Where is FRED's briefing?", 'What is the People\u2019s Bank?'] },
+    '/bank': { label: "The People's Bank", chips: ['How do I spend XP?', 'How do I earn XP?'] },
+    '/cells': { label: 'Cells', chips: ['How do I join a cell?', 'What is a cell war?', 'How do contracts work?'] },
+    '/cell-war': { label: 'Cell War', chips: ['How does cell war work?', 'How do I join a cell?'] },
+    '/arcade': { label: 'The Arcade', chips: ['What games are there?', 'How do medals work?'] },
+    '/war-report': { label: 'War Report', chips: ['Where is my history?', 'How is the winner picked?'] },
+    '/call-it': { label: 'CALL IT.', chips: ['How do predictions work?', 'What is the War Room?'] },
+    '/war-room': { label: 'The War Room', chips: ['What is the war room?', 'How do predictions work?'] },
+    '/create': { label: 'Create', chips: ['How do I make a poster?', 'How do I share?'] },
+    '/remix': { label: 'Story Remixer', chips: ['How do I remix a story?', 'Where do stories come from?'] },
+    '/events': { label: 'Events', chips: ['Anything near me?', 'How do I host?'] },
+    '/follow-the-money': { label: 'Follow the Money', chips: ['Who funds my rep?', 'What is a dossier?'] },
+    '/karl': { label: 'Karl', chips: ['Who funds my rep?', 'What did ExxonMobil do?'] },
+    '/receipt': { label: 'Receipts', chips: ['Who funds my rep?', 'What is a dossier?'] },
+    '/dossier': { label: 'Dossier Builder', chips: ['How do I build a dossier?', 'What is a receipt?'] },
+    '/town': { label: 'Your Town', chips: ['Who owns my zip?', 'What is power mapping?'] },
+    '/town-report': { label: 'My Town Reports', chips: ['How do I publish a report?', 'What goes in a town report?'] },
+    '/extraction': { label: 'The Extraction Engine', chips: ['Who got paid?', 'How are numbers sourced?'] },
+    '/peoples-cpi': { label: "The People's Price Index", chips: ['How do I submit a price?', 'What is the CPI?'] },
+    '/liquidation': { label: 'Liquidation Records', chips: ['What is liquidation?', 'How do brackets work?'] },
+    '/governance': { label: 'Governance', chips: ['How does the machine run?', 'Where do I vote?'] },
+    '/fund': { label: 'The Propaganda Fund', chips: ['Where does the money go?', 'How is it funded?'] },
+    '/ventures': { label: 'Joint Ventures', chips: ['How do ventures work?', 'How do I back a creator?'] },
+    '/war-chest': { label: 'The War Chest', chips: ['Where does the money go?', 'How do I contribute?'] },
+    '/store': { label: 'The Store', chips: ['What funds the fight?', 'What is a war bond?'] },
+    '/sick-left-radicals': { label: 'Sick Left Radicals', chips: ['How do I join the roster?', 'Who are the affiliates?'] },
+    '/creator-onboard': { label: 'Creator Onboarding', chips: ['How do I join?', 'What are the requirements?'] },
+    '/request-access': { label: 'Creator HQ Access', chips: ['How do I get access?', 'What is Creator HQ?'] },
+    '/academy': { label: 'The Academy', chips: ['What do I learn?', 'How do I graduate?'] },
+    '/political-hq': { label: 'Political HQ', chips: ['What happens here?', 'How do I plug in?'] },
+    '/podcast': { label: 'The Podcast', chips: ['Where do I listen?', 'What is the show about?'] },
+    '/about': { label: 'About', chips: ['What is this machine?', 'Why does it exist?'] },
+    '/faqs': { label: 'FAQs', chips: ['How do I start?', 'How do I earn XP?'] },
+    /* Synthetic key: set by pageInfo() div-detection for catalog + roster pages. */
+    'roster': { label: 'Sick Left Radicals', chips: ['How do I join the roster?', 'Who are the affiliates?'] }
+  };
+
+  var STOP = { the: 1, and: 1, 'for': 1, are: 1, with: 1, you: 1, your: 1, this: 1, that: 1, from: 1, what: 1, how: 1, where: 1, when: 1, who: 1, why: 1, can: 1, all: 1, any: 1, out: 1, its: 1, our: 1, has: 1, have: 1, had: 1, was: 1, were: 1, will: 1, would: 1, there: 1, their: 1, them: 1, then: 1, than: 1, into: 1, over: 1, such: 1, does: 1 };
+  function tokens(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(function (w) { return w.length > 2 && !STOP[w]; });
+  }
+  /* Local intent match: keyword overlap scoring. Returns {text, href, link} or null. */
+  function matchLocal(q) {
+    var tq = tokens(q);
+    if (!tq.length) { return null; }
+    var best = null, bestScore = 0;
+    function scoreKeys(keys) {
+      var s = 0;
+      for (var i = 0; i < keys.length; i++) {
+        var k = String(keys[i]).toLowerCase();
+        for (var j = 0; j < tq.length; j++) {
+          if (tq[j] === k || (k.length > 4 && tq[j].indexOf(k) === 0) || (tq[j].length > 4 && k.indexOf(tq[j]) === 0)) { s += 2; break; }
+        }
+        if (q.toLowerCase().indexOf(k) !== -1) { s += 1; }
+      }
+      return s;
+    }
+    var i, e, sc;
+    var isWhere = /where|find|locate|go to|take me/.test(q.toLowerCase());
+    var isHow = /how|what do|help/.test(q.toLowerCase());
+    for (i = 0; i < PAGES.length; i++) {
+      e = PAGES[i];
+      sc = scoreKeys(e.k.concat(tokens(e.t)));
+      if (isWhere) { sc += 1; }
+      if (sc > bestScore) { bestScore = sc; best = { text: e.t + ' — ' + e.d, href: e.p, link: 'GO THERE' }; }
+    }
+    for (i = 0; i < HOWTOS.length; i++) {
+      e = HOWTOS[i];
+      sc = scoreKeys(e.k);
+      if (isHow) { sc += 1; }
+      if (sc > bestScore) { bestScore = sc; best = { text: e.a, href: e.h, link: e.l }; }
+    }
+    return bestScore >= 3 ? best : null;
+  }
+
+  function pageInfo() {
+    var path = '/';
+    try { path = window.location.pathname || '/'; } catch (e) {}
+    var key = PAGE_CTX[path] ? path : '/';
+    if (path !== '/' && !PAGE_CTX[path]) { key = 'other'; }
+    /* SWEEP 2026-10-07: catalog + roster pages get roster context via mount-div
+       detection — covers all 62 affiliate pages without enumerating slugs. */
+    if (key === 'other') {
+      try {
+        if (document.getElementById('pf-catalog') || document.getElementById('pf-slr-roster')) {
+          key = 'roster';
+        }
+      } catch (e) {}
+    }
+    var ctx = PAGE_CTX[key] || { label: 'the site', chips: ['What can I do here?', 'How do I earn XP?', 'Where is the war report?'] };
+    return { path: path, label: ctx.label, chips: ctx.chips };
+  }
+
+  /* ============ WORKER (deep answers) ============ */
+  var rl429until = 0;
+  function askWorker(q, ctx) {
+    return new Promise(function (resolve) {
+      if (Date.now() < rl429until) {
+        resolve({ ok: false, error: 'rate_limited' });
+        return;
+      }
+      var payload = { question: String(q).slice(0, 500), context: ctx };
+      var done = false;
+      function fin(r) { if (!done) { done = true; resolve(r); } }
+      try {
+        fetch(ASK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(function (r) {
+          if (r.status === 429) { rl429until = Date.now() + 3600 * 1000; fin({ ok: false, error: 'rate_limited' }); return; }
+          r.json().then(function (j) { fin(j); }, function () { fin({ ok: false, error: 'bad_json' }); });
+        }, function () { fin({ ok: false, error: 'network' }); });
+      } catch (e) { fin({ ok: false, error: 'network' }); }
+      setTimeout(function () { fin({ ok: false, error: 'timeout' }); }, 20000);
+    });
+  }
+
+  /* ============ UI ============ */
+  var CSS = [
+    /* Launcher — soft red glow, springy hover. */
+    '.pf-kc-btn{position:fixed;right:14px;bottom:76px;z-index:9990;display:flex;align-items:center;gap:9px;',
+    'background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;border:0;border-radius:999px;',
+    'padding:14px 20px;font:900 14px/1 Arial,sans-serif;letter-spacing:1.5px;cursor:pointer;',
+    'box-shadow:0 10px 30px rgba(193,18,31,.35),0 3px 10px rgba(0,0,0,.45);min-height:48px;',
+    'transition:transform .18s cubic-bezier(.2,.7,.3,1.2),box-shadow .18s ease}',
+    '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}',
+    '.pf-kc-btn:active{transform:scale(.96)}',
+    '.pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}',
+    /* BUTTER MOBILE (2026-10-08): compact launcher on small screens — the
+       full pill overlapped card action rows. Smaller footprint, safe margin
+       above the bottom bar, never covers interactive content. */
+    '@media(max-width:480px){.pf-kc-btn{right:12px;bottom:88px;padding:11px 15px;font-size:12px;letter-spacing:1px;min-height:44px;gap:7px;box-shadow:0 6px 20px rgba(193,18,31,.4),0 2px 8px rgba(0,0,0,.5)}}',
+    /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
+       on the homepage the floating launcher waits until the visitor scrolls
+       past the hero (or has a callsign), so nothing competes with the claim
+       CTA at first paint. */
+    '.pf-kc-btn.pf-kc-wait{opacity:0;pointer-events:none;transform:translateY(24px)}',
+    '@media(prefers-reduced-motion:reduce){.pf-kc-btn.pf-kc-wait{transform:none}}',
+    '.pf-kc-btn .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pfkc-pulse 2s infinite}',
+    '@keyframes pfkc-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{opacity:.4;box-shadow:0 0 0 6px rgba(255,255,255,0)}}',
+    /* Panel — layered war-room comms channel. */
+    '.pf-kc-panel{position:fixed;z-index:9991;right:10px;left:10px;bottom:70px;max-height:min(66vh,560px);',
+    'background:linear-gradient(180deg,#151515 0%,#0d0d0d 100%);color:#f5f0e6;border:1px solid #2e2e2e;',
+    'border-radius:18px;display:none;flex-direction:column;overflow:hidden;',
+    'box-shadow:0 28px 70px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.07)}',
+    '@media(min-width:560px){.pf-kc-panel{left:auto;width:400px;right:14px}}',
+    '.pf-kc-panel.open{display:flex;animation:pfkc-in .28s cubic-bezier(.2,.9,.25,1.12) both}',
+    '@keyframes pfkc-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}',
+    '.pf-kc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;',
+    'border-bottom:1px solid #262626;background:linear-gradient(180deg,rgba(193,18,31,.10),transparent)}',
+    '.pf-kc-title{font:900 15px/1 Arial,sans-serif;letter-spacing:3px}',
+    '.pf-kc-title::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;',
+    'background:#c1121f;margin-right:9px;box-shadow:0 0 10px rgba(193,18,31,.9)}',
+    '.pf-kc-sub{font:400 11.5px/1.5 Arial,sans-serif;color:#a39c8b;margin-top:4px}',
+    '.pf-kc-x{background:none;border:0;border-radius:50%;color:#9a937f;font-size:22px;cursor:pointer;',
+    'min-width:44px;min-height:44px;transition:background .15s ease,color .15s ease}',
+    '.pf-kc-x:hover{background:#242424;color:#f5f0e6}',
+    '.pf-kc-log{flex:1;overflow-y:auto;padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}',
+    '.pf-kc-log::-webkit-scrollbar{width:8px}',
+    '.pf-kc-log::-webkit-scrollbar-thumb{background:#333;border-radius:8px}',
+    '.pf-kc-log::-webkit-scrollbar-track{background:transparent}',
+    '.pf-kc-msg{max-width:88%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;',
+    'animation:pfkc-m .24s cubic-bezier(.2,.8,.3,1.1) both;box-shadow:0 2px 10px rgba(0,0,0,.25)}',
+    '@keyframes pfkc-m{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}',
+    '@media(prefers-reduced-motion:reduce){.pf-kc-panel.open,.pf-kc-msg{animation:none}.pf-kc-btn .dot{animation:none}.pf-kc-btn:hover{transform:none}.pf-kc-td i{animation:none}}',
+    /* Karl speaks in serif — the voice of the site. */
+    '.pf-kc-msg.karl{background:linear-gradient(180deg,#1e1e1e,#191919);border:1px solid #333;',
+    'align-self:flex-start;border-bottom-left-radius:5px;',
+    'font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.62;color:#f2ecdf}',
+    '.pf-kc-msg.karl b{color:#fff}',
+    '.pf-kc-mv-h{font-family:Georgia,serif;font-weight:700;font-size:15.5px;color:#fff;letter-spacing:.2px}',
+    '.pf-kc-mv-b{font-family:Georgia,serif;font-size:14.5px;line-height:1.62}',
+    '.pf-kc-msg.user{background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;',
+    'align-self:flex-end;border-bottom-right-radius:5px;font:400 14px/1.55 Arial,sans-serif}',
+    '.pf-kc-msg .sig{color:#8a8478;font-family:Arial,sans-serif;font-size:11px;margin-top:7px;letter-spacing:.5px}',
+    '.pf-kc-go{display:inline-block;margin-top:9px;background:linear-gradient(135deg,#d61622,#a50e18);color:#fff!important;',
+    'font:900 12px/1 Arial,sans-serif;letter-spacing:1.2px;padding:11px 18px;border-radius:9px;text-decoration:none;',
+    'min-height:40px;box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}',
+    '.pf-kc-go:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,18,31,.45)}',
+    '.pf-kc-chips{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}',
+    '.pf-kc-chip{background:linear-gradient(180deg,#222,#1a1a1a);border:1px solid #3d3d3d;color:#f5f0e6;',
+    'border-radius:20px;padding:10px 15px;font:400 13px/1 Arial,sans-serif;cursor:pointer;min-height:40px;',
+    'transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}',
+    '.pf-kc-chip:hover{transform:translateY(-1px);border-color:#c1121f;box-shadow:0 4px 14px rgba(193,18,31,.25)}',
+    '.pf-kc-chip:active{background:#2a2a2a;transform:none}',
+    '.pf-kc-form{display:flex;gap:8px;padding:12px 12px 16px;border-top:1px solid #232323;background:rgba(0,0,0,.25)}',
+    '.pf-kc-in{flex:1;min-width:0;background:#1c1c1c;border:1px solid #3a3a3a;border-radius:12px;color:#f5f0e6;',
+    'font:400 16px/1.3 Arial,sans-serif;padding:13px 15px;outline:none;transition:border-color .15s ease,box-shadow .15s ease}',
+    '.pf-kc-in:focus{border-color:#c1121f;box-shadow:0 0 0 3px rgba(193,18,31,.22)}',
+    '.pf-kc-send{background:linear-gradient(135deg,#d61622,#a50e18);color:#fff;border:0;border-radius:12px;',
+    'font:900 14px/1 Arial,sans-serif;letter-spacing:1.2px;padding:0 20px;cursor:pointer;min-height:48px;min-width:68px;',
+    'box-shadow:0 4px 14px rgba(193,18,31,.35);transition:transform .15s ease,box-shadow .15s ease}',
+    '.pf-kc-send:hover{box-shadow:0 6px 18px rgba(193,18,31,.5)}',
+    '.pf-kc-send:active{transform:scale(.96)}',
+    /* Typing — Karl working, not a cheap spinner: bubble + bouncing dots. */
+    '.pf-kc-typing{display:flex;align-items:center;gap:10px;align-self:flex-start;background:#1a1a1a;',
+    'border:1px solid #2c2c2c;border-radius:14px;border-bottom-left-radius:5px;padding:11px 15px;',
+    'color:#a39c8b;font:italic 400 13px Georgia,serif}',
+    '.pf-kc-td{display:inline-flex;gap:5px}',
+    '.pf-kc-td i{width:7px;height:7px;border-radius:50%;background:#c1121f;animation:pfkc-td 1.1s infinite ease-in-out}',
+    '.pf-kc-td i:nth-child(2){animation-delay:.15s}',
+    '.pf-kc-td i:nth-child(3){animation-delay:.3s}',
+    '@keyframes pfkc-td{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}'
+  ];
+
+  var btn, panel, log, form, input, chipsBox;
+  var greeted = false;
+  try { greeted = sessionStorage.getItem('pf_kc_greeted') === '1'; } catch (e) {}
+
+  function style() {
+    var st = document.createElement('style');
+    st.textContent = CSS.join('\n');
+    document.head.appendChild(st);
+  }
+
+  function hourGreeting() {
+    var h = new Date().getHours();
+    if (h < 5) { return 'Up late, soldier.'; }
+    if (h < 12) { return 'Morning. The fight is already moving.'; }
+    if (h < 18) { return 'Afternoon. Time to make it count.'; }
+    return 'Evening. Debrief o\u2019clock soon.';
+  }
+
+  function suggestionChips() {
+    /* Muse: dynamic chips — the next move leads, taste biases the rest. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museChips) {
+        var mc = PFKarlMuse.museChips(pageInfo().chips);
+        if (mc && mc.length) { return mc; }
+      }
+    } catch (e) {}
+    var pi = pageInfo();
+    return pi.chips.slice(0, 3);
+  }
+
+  function addMsg(kind, html) {
+    var d = document.createElement('div');
+    d.className = 'pf-kc-msg ' + kind;
+    d.innerHTML = html;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function addChips(list) {
+    chipsBox.innerHTML = '';
+    list.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pf-kc-chip';
+      b.textContent = c;
+      b.addEventListener('click', function () { submitQ(c); });
+      chipsBox.appendChild(b);
+    });
+  }
+
+  function greet() {
+    /* Muse: the proactive greeting — who you are, where you stand, the move. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museGreeting) {
+        addMsg('karl', PFKarlMuse.museGreeting());
+        addChips(suggestionChips());
+        return;
+      }
+    } catch (e) {}
+    var cs = callsign();
+    var pi = pageInfo();
+    var g;
+    if (!cs) {
+      g = 'I\u2019m <b>Karl</b> — the voice of this site. ' + esc(hourGreeting()) +
+        '<br><br>New here? <b>Claim your callsign</b> — one tap and you\u2019re in the fight.' +
+        '<br><a class="pf-kc-go" href="/">CLAIM CALLSIGN</a>' +
+        '<div class="sig">— Karl</div>';
+    } else {
+      g = 'I\u2019m <b>Karl</b>. ' + esc(hourGreeting()) +
+        '<br>You\u2019re on <b>' + esc(pi.label) + '</b>, ' + esc(cs) +
+        '. Ask me where things are, how they work — or what the data says.' +
+        '<div class="sig">— Karl</div>';
+    }
+    addMsg('karl', g);
+    addChips(suggestionChips());
+  }
+
+  /* ============ CONVERSATION MEMORY (engagement sweep 2026-10-07) ============
+     Karl remembers the thread. Last 3 Q&A pairs ride in sessionStorage and
+     go to the worker as context.history — so Karl builds on what was just
+     said instead of answering every question like it's the first. */
+  var HIST_KEY = 'pf_kc_hist_v1';
+  function readHistory() {
+    try {
+      var h = JSON.parse(sessionStorage.getItem(HIST_KEY) || '[]');
+      return (h && h.length) ? h.slice(-3) : [];
+    } catch (e) { return []; }
+  }
+  function pushHistory(q, a) {
+    try {
+      var h = readHistory();
+      h.push({ q: String(q).slice(0, 200), a: String(a).slice(0, 500) });
+      sessionStorage.setItem(HIST_KEY, JSON.stringify(h.slice(-3)));
+    } catch (e) {}
+  }
+
+  /* ============ TOPIC-AWARE FOLLOW-UPS (engagement sweep retry 2026-10-07)
+     The old code always offered one generic "Tell me more about that".
+     Derive the follow-up from the question's topic so it reads like Karl
+     listening, not a button factory. */
+  function followUpFor(q) {
+    var t = String(q || '').toLowerCase();
+    function has() {
+      for (var i = 0; i < arguments.length; i++) {
+        if (t.indexOf(arguments[i]) !== -1) { return true; }
+      }
+      return false;
+    }
+    if (has('marx','lenin','trotsky','mao','fanon','luxemburg','che','engels','capital','surplus','theory','communis','socialis','imperialis')) {
+      return 'Who else wrote about this?';
+    }
+    if (has('xp','rank','streak','medal','mission','vote','level')) {
+      return 'What\u2019s my fastest path forward?';
+    }
+    if (has('price','inflation','cpi','shrink','economy','wage','rent','cost of','grocery')) {
+      return 'How do I report a price?';
+    }
+    if (has('how do i','how to','where is','where\u2019s','where do')) {
+      return 'What should I do first?';
+    }
+    if (has('news','happening','trump','biden','congress','election','protest')) {
+      return 'What\u2019s the move on this?';
+    }
+    return 'Tell me more about that';
+  }
+
+  /* ============ REWARD FEEDBACK (engagement sweep retry 2026-10-07) ============
+     The karl_engage loop granted XP server-side but the user never saw it —
+     an invisible reward is no reward. The worker now returns the engage
+     outcome ({xp, lucky, capped, milestone, milestone_xp, streak, tier}).
+     Surface it: XP float on the answer, milestone pings. All guarded,
+     all fail-soft — a missing PF.dope never breaks the chat. */
+  function rewardNudge(msgEl, eng) {
+    if (!eng || typeof eng !== 'object') { return; }
+    try {
+      var dope = (window.PF && PF.dope) ? PF.dope : null;
+      if (!dope) { return; }
+      if (eng.xp > 0 && msgEl && dope.xpFloat) {
+        dope.xpFloat(msgEl, '+' + eng.xp + ' XP');
+      }
+      if (eng.lucky && dope.ping && panel) {
+        dope.ping(panel, 'LUCKY QUESTION \u2014 DOUBLE XP');
+      }
+      if (eng.milestone && eng.milestone_xp > 0 && dope.ping && panel) {
+        dope.ping(panel, eng.milestone + '-DAY KARL STREAK \u2014 +' + eng.milestone_xp + ' XP');
+      }
+    } catch (e) {}
+  }
+  /* ============ STAGED TYPING (engagement sweep 2026-10-07) ============
+     9 seconds of "Karl is thinking…" feels broken on a phone. Rotating
+     personality lines make the wait feel like Karl working — because he is. */
+  var THINK_LINES = [
+    'Karl is thinking\u2026',
+    'Checking the rails\u2026',
+    'Consulting the canon\u2026',
+    'Asking around\u2026',
+    'Sharpening the answer\u2026'
+  ];
+  function stagedTyping() {
+    var tp = document.createElement('div');
+    tp.className = 'pf-kc-typing';
+    var think = document.createElement('span');
+    think.textContent = THINK_LINES[0];
+    var dots = document.createElement('span');
+    dots.className = 'pf-kc-td';
+    dots.innerHTML = '<i></i><i></i><i></i>';
+    tp.appendChild(think);
+    tp.appendChild(dots);
+    log.appendChild(tp);
+    log.scrollTop = log.scrollHeight;
+    var i = 0;
+    var iv = setInterval(function () {
+      i++;
+      if (i >= THINK_LINES.length) { clearInterval(iv); return; }
+      try { think.textContent = THINK_LINES[i]; } catch (e) { clearInterval(iv); }
+    }, 2200);
+    return { el: tp, stop: function () { clearInterval(iv); try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {} } };
+  }
+
+  function submitQ(q) {
+    q = String(q || '').trim();
+    if (!q) { return; }
+    addMsg('user', esc(q));
+    chipsBox.innerHTML = '';
+    /* Muse: the question is a signal — feed the taste model. */
+    try { if (window.PFKarlMuse && PFKarlMuse.observeQuestion) { PFKarlMuse.observeQuestion(q); } } catch (e) {}
+    var pi = pageInfo();
+    /* 1. Local index first — instant, no rate limit. */
+    var local = matchLocal(q);
+    if (local) {
+      var html = esc(local.text);
+      if (local.href && safeUrl(local.href)) {
+        html += '<br><a class="pf-kc-go" href="' + esc(local.href) + '">' + esc(local.link || 'GO THERE') + '</a>';
+      }
+      html += '<div class="sig">— Karl</div>';
+      setTimeout(function () {
+        addMsg('karl', html);
+        addChips(suggestionChips());
+      }, 350);
+      return;
+    }
+    /* 2. Worker — the deep brain. */
+    var typing = stagedTyping();
+    var ctx = { page: pi.label, path: pi.path };
+    var cs = callsign();
+    if (cs) { ctx.callsign = cs; }
+    /* Conversation memory: the thread goes with the question. */
+    var hist = readHistory();
+    if (hist.length) { ctx.history = hist; }
+    /* Muse mode: the worker answers as the muse — inspirational, narrative-
+       aware, one clear next step. The user state travels with the question. */
+    try {
+      if (window.PFKarlMuse && PFKarlMuse.museContext) {
+        var mc = PFKarlMuse.museContext();
+        for (var mk in mc) { ctx[mk] = mc[mk]; }
+      }
+    } catch (e) {}
+    askWorker(q, ctx).then(function (r) {
+      typing.stop();
+      if (r && r.ok && r.answer) {
+        var ansHtml = esc(String(r.answer)).replace(/\n/g, '<br>');
+        var msgEl = addMsg('karl', ansHtml);
+        /* Remember the thread — next question builds on this one. */
+        pushHistory(q, r.answer);
+        /* Engagement sweep (retry): the follow-up used to be wiped by the
+           unconditional addChips() after this block — it never survived.
+           Chips are now set exactly once per branch. */
+        var followChips = [followUpFor(q)];
+        try {
+          var sc = suggestionChips();
+          for (var fi = 0; fi < sc.length && followChips.length < 3; fi++) {
+            if (followChips.indexOf(sc[fi]) === -1) { followChips.push(sc[fi]); }
+          }
+        } catch (e) {}
+        addChips(followChips);
+        /* Reward feedback: the invisible +2 XP is now visible. */
+        rewardNudge(msgEl, r.engage);
+        return;
+      }
+      if (r && r.error === 'rate_limited') {
+        addMsg('karl', 'I\u2019ve been talking a lot this hour — even comrades need a breather. The site index still works though: ask me <i>where</i> something is or <i>how</i> to do it, and I\u2019ll point you there instantly.<div class="sig">— Karl</div>');
+      } else {
+        addMsg('karl', 'The deep brain didn\u2019t pick up just now — the connection dropped somewhere between us. But I still know this site cold: ask me <i>where</i> something is or <i>how</i> to do it.<div class="sig">— Karl</div>');
+      }
+      addChips(suggestionChips());
+    });
+  }
+
+  function build() {
+    style();
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pf-kc-btn';
+    btn.setAttribute('aria-label', 'Ask Karl');
+    btn.innerHTML = '<span class="dot"></span>ASK KARL';
+    /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
+       on the homepage, first-time visitors see ONE action at first paint
+       (the claim CTA). The launcher waits until they scroll past the hero
+       or have a callsign. Kill: ?pf_off=karl-defer (shows immediately). */
+    try {
+      var _kcDefer = !(window.PF && PF.skip && PF.skip('karl-defer'));
+      if (_kcDefer && !callsign() && document.getElementById('pf-dashboard')) {
+        btn.classList.add('pf-kc-wait');
+        var _kcRevealed = false;
+        var _kcMaybe = function () {
+          if (_kcRevealed) return;
+          try {
+            var y = window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+            if (y > 480 || callsign()) {
+              _kcRevealed = true;
+              btn.classList.remove('pf-kc-wait');
+              window.removeEventListener('scroll', _kcMaybe);
+            }
+          } catch (e2) {}
+        };
+        window.addEventListener('scroll', _kcMaybe, { passive: true });
+        setTimeout(_kcMaybe, 5000);
+      }
+    } catch (e) {}
+    panel = document.createElement('div');
+    panel.className = 'pf-kc-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'Ask Karl');
+    panel.innerHTML =
+      '<div class="pf-kc-head"><div><div class="pf-kc-title">KARL</div>' +
+      '<div class="pf-kc-sub">The voice of the site. Ask anything.</div></div>' +
+      '<button type="button" class="pf-kc-x" aria-label="Close">&times;</button></div>' +
+      '<div class="pf-kc-log"></div>' +
+      '<div class="pf-kc-chips"></div>' +
+      '<form class="pf-kc-form"><input class="pf-kc-in" type="text" maxlength="300" autocomplete="off" ' +
+      'placeholder="Where is\u2026? How do I\u2026?" aria-label="Ask Karl">' +
+      '<button type="submit" class="pf-kc-send">ASK</button></form>';
+    log = panel.querySelector('.pf-kc-log');
+    chipsBox = panel.querySelector('.pf-kc-chips');
+    form = panel.querySelector('.pf-kc-form');
+    input = panel.querySelector('.pf-kc-in');
+    var x = panel.querySelector('.pf-kc-x');
+
+    function toggle(force) {
+      var open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+      panel.classList.toggle('open', open);
+      if (open) {
+        if (!greeted) {
+          greeted = true;
+          try { sessionStorage.setItem('pf_kc_greeted', '1'); } catch (e) {}
+          greet();
+        }
+        setTimeout(function () { try { input.focus(); } catch (e) {} }, 120);
+      }
+    }
+    btn.addEventListener('click', function () { toggle(); });
+    x.addEventListener('click', function () { toggle(false); });
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var v = input.value;
+      input.value = '';
+      submitQ(v);
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && panel.classList.contains('open')) { toggle(false); }
+    });
+
+    document.body.appendChild(btn);
+    document.body.appendChild(panel);
+
+    window.PFKarlCompanion = {
+      open: function () { toggle(true); },
+      close: function () { toggle(false); },
+      ask: function (q) { toggle(true); if (q) { submitQ(q); } },
+      /* Test hook: local intent matcher (PAGES/HOWTOS). */
+      _match: matchLocal,
+      _pages: PAGES.length,
+      _howtos: HOWTOS.length
+    };
+  }
+
+  /* Boot after DOM is ready — the chunk itself loads after idle, so the
+     body is long available. */
+  function boot() {
+    try {
+      if (!document.body) { setTimeout(boot, 200); return; }
+      build();
+    } catch (e) {
+      try { if (PF && PF.error) { PF.error('karl-companion', String(e && e.message || e)); } } catch (e2) {}
+    }
+  }
+  boot();
+})();
+
+;
+
+/* ===== core/karl-muse.js ===== */
+/* core/karl-muse.js  |  PF v1.4.3 | KARL MUSE ENGINE v2.
+   CEO directive 2026-10-07 ~14:09 CDT ("Make Karl the muse of the site").
+   Butter sweep #2 2026-10-07: the user-modeling suite gets deeper.
+   Engels is the muse of CODE (inspires builders). Karl is the muse of the
+   SITE (inspires users). This file is the muse's brain on the frontend.
+
+   What it does:
+     1. STORY — narrative memory in localStorage (visits, visit STREAKS,
+        favorite pages, story arcs, milestones). Karl knows where you've been.
+     2. TASTE v2 — recency-weighted topic events: what you asked about
+        LATELY counts more than what you asked about months ago. Topic
+        affinities ("theory people often ask about intel") surface the
+        related next thing, not just the same thing again.
+     3. USER STATE — reads the signals already on the page: callsign, XP,
+        rank, streak, medals, missions, votes, calendar, cell. Never fetches;
+        only reads what the page already knows. Derives engagement tiers
+        (new / active / veteran) and rank momentum.
+     4. NEXT MOVE — ordered rules pick the single most meaningful action
+        right now. Not a list. The move. Headlines rotate daily so Karl
+        never sounds like a broken record. Fresh milestones get celebrated.
+     5. MUSE CONTEXT — {muse:true, user_state, story, taste_profile} for the
+        Karl worker's muse mode (pf-karl), so deep answers speak as a muse too.
+
+   Contract: read-only, zero XP, no PII beyond the public callsign,
+   fail-soft (every signal optional; the companion's static behavior is the
+   fallback). KILL: ?pf_off=karl-muse */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) { return; }
+  if (PF.skip('karl-muse')) { return; }
+  try {
+    if (String(window.location.search || '').indexOf('pf_off=karl-muse') !== -1) { return; }
+  } catch (e) {}
+  if (window.PFKarlMuse) { return; }
+
+  var STORY_KEY = 'pf_karl_story_v1';
+  var NUDGE_KEY = 'pf_karl_nudge_v1';
+  var MAX_TOPICS = 24;
+  var MAX_TOPIC_EVENTS = 60;
+
+  /* Rank ladder — mirrors backend RANKS (mtcstw-api/src/briefing.js).
+     Stretched 2026-10-02: 0/250/750/2000/5000/12000/25000. */
+  var RANKS = [
+    [0, 'SYMPATHIZER'], [250, 'AGITATOR'], [750, 'ORGANIZER'],
+    [2000, 'OPERATIVE'], [5000, 'COMMANDER'], [12000, 'WARLORD'], [25000, 'VANGUARD']
+  ];
+  function nextRank(xp) {
+    for (var i = 0; i < RANKS.length; i++) {
+      if (xp < RANKS[i][0]) { return { rank: RANKS[i][1], at: RANKS[i][0], gap: RANKS[i][0] - xp, span: RANKS[i][0] - RANKS[i - 1][0] }; }
+    }
+    return null;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function callsign() {
+    try {
+      if (window.PFCallsign) { return String(window.PFCallsign() || ''); }
+      return String((JSON.parse(localStorage.getItem('pf_identity_v1') || '{}')).callsign || '');
+    } catch (e) { return ''; }
+  }
+  function dayKey(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+  function dayMsAgo(n) {
+    var d = new Date(); d.setHours(0, 0, 0, 0);
+    return d.getTime() - n * 86400000;
+  }
+  function chicagoDay() {
+    // 0=Sunday..6=Saturday, America/Chicago
+    try {
+      var s = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'short' });
+      var d = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[s];
+      return (d == null) ? 3 : d;
+    } catch (e) { return new Date().getDay(); }
+  }
+  function dayOfYear() {
+    var n = new Date();
+    return Math.floor((n - new Date(n.getFullYear(), 0, 0)) / 86400000);
+  }
+  /* Pick a variant by day — Karl never repeats the same line two days
+     running. Stable within the day (no flicker between renders). */
+  function variant(list) {
+    if (!list || !list.length) { return ''; }
+    return list[dayOfYear() % list.length];
+  }
+  function hourGreeting() {
+    var h = new Date().getHours();
+    if (h < 5) { return 'Up late, soldier.'; }
+    if (h < 12) { return 'Morning. The fight is already moving.'; }
+    if (h < 18) { return 'Afternoon. Time to make it count.'; }
+    return 'Evening. Debrief o\u2019clock soon.';
+  }
+
+  /* ============ STORY v2 — narrative memory ============ */
+  function blankStory() {
+    return { v: 2, firstSeen: Date.now(), lastSeen: Date.now(), prevSeen: 0, visits: 0,
+      days: {}, pages: {}, topics: {}, topicEvents: [], affin: {},
+      milestones: [], _lastTopic: null };
+  }
+  function migrateStory(s) {
+    var n = blankStory();
+    if (s && typeof s === 'object') {
+      if (s.firstSeen) { n.firstSeen = s.firstSeen; }
+      if (s.visits) { n.visits = s.visits; }
+      if (s.pages) { n.pages = s.pages; }
+      if (s.topics) { n.topics = s.topics; }
+      if (s.milestones) { n.milestones = s.milestones; }
+      if (s.callsign) { n.callsign = s.callsign; }
+      /* v1 topic counters become one aging event each (weight 0.5) so
+         old taste fades gracefully instead of vanishing. */
+      var t;
+      for (t in n.topics) {
+        n.topicEvents.push({ t: t, at: Date.now() - 40 * 86400000 });
+      }
+    }
+    return n;
+  }
+  function readStory() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(STORY_KEY) || 'null'); } catch (e) {}
+    if (!s || typeof s !== 'object') { return blankStory(); }
+    if (s.v === 2) { return s; }
+    return migrateStory(s);
+  }
+  function writeStory(s) {
+    try { localStorage.setItem(STORY_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+  function hasMilestone(s, m) {
+    for (var i = 0; i < s.milestones.length; i++) {
+      if (s.milestones[i].m === m) { return true; }
+    }
+    return false;
+  }
+  function milestone(s, m) {
+    if (hasMilestone(s, m)) { return false; }
+    s.milestones.push({ t: Date.now(), m: m });
+    if (s.milestones.length > MAX_TOPICS) { s.milestones.shift(); }
+    return true;
+  }
+  /* Consecutive days with at least one visit, ending today or yesterday. */
+  function visitStreak(s) {
+    var n = 0;
+    for (var back = 0; back < 400; back++) {
+      var d = new Date(dayMsAgo(back));
+      var k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      if (s.days && s.days[k]) { n++; } else if (back === 0) { continue; } else { break; }
+    }
+    return n;
+  }
+  function favoritePage(s) {
+    var best = null, bestN = 0, p;
+    for (p in s.pages) {
+      if (s.pages[p] > bestN) { bestN = s.pages[p]; best = p; }
+    }
+    return best;
+  }
+  function recordVisit() {
+    try {
+      var s = readStory();
+      var now = Date.now();
+      var path = '/';
+      try { path = window.location.pathname || '/'; } catch (e) {}
+      s.visits++;
+      s.prevSeen = s.lastSeen || 0;
+      s.lastSeen = now;
+      var dk = dayKey();
+      s.days[dk] = (s.days[dk] || 0) + 1;
+      s.pages[path] = (s.pages[path] || 0) + 1;
+      var cs = callsign();
+      if (cs && !s.callsign) { s.callsign = cs; milestone(s, 'Claimed callsign ' + cs); }
+      var vs = visitStreak(s);
+      if (vs === 3) { milestone(s, '3-day visiting streak'); }
+      if (vs === 7) { milestone(s, 'A week of showing up'); }
+      if (vs === 30) { milestone(s, '30 days of showing up'); }
+      if (s.visits === 10) { milestone(s, '10 visits — a regular'); }
+      var daysSince = Math.floor((now - s.firstSeen) / 86400000);
+      if (daysSince >= 7 && !hasMilestone(s, 'A week with the movement')) { milestone(s, 'A week with the movement'); }
+      if (daysSince >= 30 && !hasMilestone(s, 'A month with the movement')) { milestone(s, 'A month with the movement'); }
+      /* Trim the days map so localStorage stays small (keep ~120 days). */
+      var keys = Object.keys(s.days || {}).sort();
+      while (keys.length > 120) { delete s.days[keys.shift()]; }
+      writeStory(s);
+    } catch (e) {}
+  }
+
+  /* Topic taxonomy for the taste model. */
+  var TOPICS = {
+    xp: ['xp', 'rank', 'level', 'points', 'earn', 'agitator', 'vanguard'],
+    missions: ['mission', 'orders', 'daily', 'check', 'debrief', 'report back'],
+    theory: ['marx', 'surplus', 'capital', 'theory', 'lenin', 'engels', 'karl marx', 'manifesto'],
+    vote: ['vote', 'fan', 'ballot', 'favorite'],
+    cell: ['cell', 'squad', 'team', 'nuke', 'join'],
+    money: ['money', 'bank', 'war chest', 'warchest', 'fund', 'spend', 'economy', 'fred'],
+    create: ['poster', 'meme', 'create', 'share', 'forge', 'make'],
+    calendar: ['calendar', 'event', 'when', 'debrief', 'briefing'],
+    intel: ['receipt', 'dossier', 'politician', 'rep', 'donor', 'pac', 'town', 'zip']
+  };
+  var TOPIC_CHIPS = {
+    xp: 'How do I earn XP?',
+    missions: 'Where are my missions?',
+    theory: 'What is surplus value?',
+    vote: 'How does fan vote work?',
+    cell: 'How do I join a cell?',
+    money: 'What is the war chest?',
+    create: 'How do I make a poster?',
+    calendar: 'What is on the calendar?',
+    intel: 'Who funds my rep?'
+  };
+  /* Where taste points when it becomes the move — the deep link for each
+     appetite. Never a generic page; always the thing they actually want. */
+  var TOPIC_LINKS = {
+    theory: { href: '/academy', link: 'THE ACADEMY' },
+    intel: { href: '/receipt', link: 'THE RECEIPT' },
+    create: { href: '/create', link: 'CREATE' },
+    money: { href: '/economy', link: 'THE ECONOMY' },
+    calendar: { href: '/events', link: 'EVENTS' },
+    cell: { href: '/cells', link: 'FIND A CELL' },
+    vote: { href: '/#pf-vote', link: 'VOTE' },
+    xp: { href: '/arcade', link: 'THE ARCADE' },
+    missions: { href: '/', link: "TODAY\u2019S ORDERS" }
+  };
+  function topicOf(q) {
+    var lq = String(q || '').toLowerCase();
+    var words = lq.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
+    var best = null, bestScore = 0, t, i;
+    for (t in TOPICS) {
+      var sc = 0, keys = TOPICS[t];
+      for (i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (words.indexOf(k) !== -1) { sc += 2; }
+        else if (k.length > 4 && lq.indexOf(k) !== -1) { sc += 1; }
+      }
+      if (sc > bestScore) { bestScore = sc; best = t; }
+    }
+    return bestScore >= 2 ? best : null;
+  }
+  function observeQuestion(q) {
+    try {
+      var t = topicOf(q);
+      if (!t) { return; }
+      var s = readStory();
+      var now = Date.now();
+      s.topics[t] = (s.topics[t] || 0) + 1;
+      s.topicEvents.push({ t: t, at: now });
+      if (s.topicEvents.length > MAX_TOPIC_EVENTS) {
+        s.topicEvents.splice(0, s.topicEvents.length - MAX_TOPIC_EVENTS);
+      }
+      /* Affinity: what do they ask about AFTER asking about t? */
+      if (s._lastTopic && s._lastTopic !== t) {
+        var ak = s._lastTopic + '|' + t;
+        s.affin[ak] = (s.affin[ak] || 0) + 1;
+      }
+      s._lastTopic = t;
+      milestone(s, 'First question to Karl');
+      var qc = 0, i;
+      for (i = 0; i < s.topicEvents.length; i++) { if (s.topicEvents[i]) { qc++; } }
+      if (qc === 10) { milestone(s, '10 questions asked'); }
+      if (qc === 50) { milestone(s, '50 questions asked — a thinker'); }
+      writeStory(s);
+    } catch (e) {}
+  }
+  /* Recency-weighted taste: last 7 days count double, last 30 count
+     single, older counts half. What you're into NOW beats what you were
+     into in June. */
+  function topicScore(s, t) {
+    var now = Date.now(), sc = 0, i, e;
+    for (i = 0; i < (s.topicEvents || []).length; i++) {
+      e = s.topicEvents[i];
+      if (!e || e.t !== t) { continue; }
+      var age = now - e.at;
+      sc += (age < 7 * 86400000) ? 2 : (age < 30 * 86400000) ? 1 : 0.5;
+    }
+    return sc;
+  }
+  function topTopics(n) {
+    var s = readStory(), arr = [], t;
+    var seen = {};
+    for (var i = 0; i < (s.topicEvents || []).length; i++) {
+      t = s.topicEvents[i].t;
+      if (!seen[t]) { seen[t] = 1; arr.push([t, topicScore(s, t)]); }
+    }
+    /* Fall back to raw counters when there are no events (v1 migration). */
+    for (t in s.topics) {
+      if (!seen[t]) { arr.push([t, (s.topics[t] || 0) * 0.5]); }
+    }
+    arr.sort(function (a, b) { return b[1] - a[1]; });
+    return arr.slice(0, n || 2).map(function (x) { return x[0]; });
+  }
+  /* The related-next-thing: given the top topic, what do people like you
+     ask about next? (affinity pairs from observed behavior.) */
+  function relatedTopic(s, t) {
+    var best = null, bestN = 0, k;
+    for (k in s.affin) {
+      var parts = String(k).split('|');
+      if (parts[0] === t && s.affin[k] > bestN) { bestN = s.affin[k]; best = parts[1]; }
+    }
+    return best;
+  }
+  function freshMilestones() {
+    /* Milestones earned in the last 24h — Karl celebrates them. */
+    try {
+      var s = readStory(), out = [], now = Date.now(), i;
+      for (i = 0; i < s.milestones.length; i++) {
+        if (now - s.milestones[i].t < 24 * 3600000) { out.push(s.milestones[i].m); }
+      }
+      return out;
+    } catch (e) { return []; }
+  }
+
+  /* ============ USER STATE — read, never fetch ============ */
+  function readUserState() {
+    var st = {};
+    try {
+      st.callsign = callsign();
+      // XP fallback: enlistment ranks ledger (dashboard ctx wins when present)
+      try {
+        var rl = JSON.parse(localStorage.getItem('pf_ranks_v1') || 'null');
+        if (rl && typeof rl.xp === 'number') { st.xp = rl.xp; }
+      } catch (e) {}
+      // Medals (same shape the dashboard reads)
+      try {
+        var wk = (window.PF && PF.isoWeekKey && PF.chiNow) ? PF.isoWeekKey(PF.chiNow()) : '';
+        var ms = JSON.parse(localStorage.getItem('pf_medals_v2') || 'null');
+        if (ms && ms.m && (!wk || !ms.w || ms.w === wk)) {
+          var got = 0, k;
+          for (k in ms.m) { if (ms.m[k]) { got++; } }
+          st.medals_got = got;
+          st.medals_fd = !!ms.fd;
+        }
+      } catch (e) {}
+      // Cell (nuke strip cache)
+      try {
+        var nc = JSON.parse(localStorage.getItem('pf_nuke_cell_v1') || 'null');
+        if (nc && nc.cell && nc.cell.name) { st.cell_name = String(nc.cell.name); }
+      } catch (e) {}
+      // Dashboard context stashed by the ASK KARL dashboard section
+      var dc = window.__pfKarlDashCtx || null;
+      if (dc && typeof dc === 'object') {
+        if (dc.xp != null) { st.xp = dc.xp; }
+        if (dc.rank) { st.rank = dc.rank; }
+        if (dc.streak != null) { st.streak = dc.streak; }
+        if (dc.medals_this_week) { st.medals_week = dc.medals_this_week; }
+        if (dc.reported_today != null) { st.reported_today = dc.reported_today; }
+        if (dc.votes_this_week != null) { st.votes_week = dc.votes_this_week; }
+        if (dc.upcoming) { st.upcoming = String(dc.upcoming).slice(0, 300); }
+      }
+      if (st.xp != null) {
+        var nr = nextRank(st.xp);
+        if (nr) {
+          st.next_rank = nr.rank; st.xp_to_next = nr.gap; st.rank_span = nr.span;
+          st.rank_pct = Math.round(100 * (1 - nr.gap / nr.span));
+        }
+      }
+      /* Engagement tier: how deep is this person in the war? */
+      try {
+        var s = readStory();
+        var vs = visitStreak(s);
+        st.visit_streak = vs;
+        st.visits = s.visits || 0;
+        if ((s.visits || 0) >= 25 || (st.xp != null && st.xp >= 2000)) { st.engagement = 'veteran'; }
+        else if ((s.visits || 0) >= 3 || (st.xp != null && st.xp >= 100)) { st.engagement = 'active'; }
+        else { st.engagement = 'new'; }
+        if (st.medals_got != null && st.medals_got >= 13 && st.medals_got < 16 && !st.medals_fd) {
+          st.close_to_fd = true;
+        }
+      } catch (e2) {}
+    } catch (e) {}
+    return st;
+  }
+
+  /* ============ NEXT MOVE — the single most meaningful action ============ */
+  /* Each move: {id, headline, body, chip, href, link}. First match wins.
+     Headlines rotate daily (variant()) so Karl never sounds canned. */
+  /* _movesList() is exposed for tests (ordered candidates, no nudge dedup). */
+  function _movesList() {
+    var st = readUserState();
+    var cs = st.callsign;
+    var moves = [];
+    var now = Date.now();
+
+    if (!cs) {
+      moves.push({
+        id: 'onboard',
+        headline: variant([
+          'New here? This is your enlistment.',
+          'Fresh boots. Let\u2019s get you enlisted.',
+          'The door\u2019s open, soldier. One step.'
+        ]),
+        body: 'Claim your callsign — one tap and you\u2019re in the fight. Everything runs through it: XP, ranks, cells, missions.',
+        chip: 'How do I claim my callsign?',
+        href: '/', link: 'CLAIM CALLSIGN'
+      });
+    }
+    /* Welcome back: away more than a week. Re-engage before anything else.
+       (prevSeen: recordVisit() runs on load and refreshes lastSeen, so the
+       pre-load value is what proves absence.) */
+    try {
+      var s0 = readStory();
+      if (cs && s0.visits > 1 && s0.prevSeen && now - s0.prevSeen > 7 * 86400000) {
+        var awayDays = Math.floor((now - s0.prevSeen) / 86400000);
+        moves.push({
+          id: 'welcome-back',
+          headline: 'You\u2019ve been away ' + awayDays + ' days. The war kept moving.',
+          body: 'Check in, report today\u2019s missions, and you\u2019re back in the chain. We notice who returns.',
+          chip: 'What did I miss?',
+          href: '/', link: 'CHECK IN'
+        });
+      }
+    } catch (e) {}
+    if (cs && st.streak > 0 && st.reported_today === 0) {
+      moves.push({
+        id: 'streak',
+        headline: variant([
+          'Your ' + st.streak + '-day streak is on the line.',
+          st.streak + ' days straight. Don\u2019t let it die today.',
+          'The streak wants to live. Feed it.'
+        ]),
+        body: 'Streaks die in silence. Check in and report back before the day turns — ' +
+          (st.next_rank ? 'and you\u2019re ' + st.xp_to_next + ' XP from ' + st.next_rank + '.' : 'the chain holds.'),
+        chip: 'How do I check in?',
+        href: '/', link: 'CHECK IN'
+      });
+    }
+    /* FULL DEPLOYMENT push: 13+/16 medals is close enough to taste. */
+    if (cs && st.close_to_fd) {
+      var need = 16 - st.medals_got;
+      moves.push({
+        id: 'fd-push',
+        headline: need + ' medal' + (need === 1 ? '' : 's') + ' from FULL DEPLOYMENT.',
+        body: 'The full weekly rack is +50 XP and your callsign on the Vanguard Wall. The arcade is where medals are minted.',
+        chip: 'How do medals work?',
+        href: '/arcade', link: 'THE ARCADE'
+      });
+    }
+    if (cs && st.xp != null && st.next_rank && st.xp_to_next <= Math.max(60, st.rank_span * 0.2)) {
+      moves.push({
+        id: 'rank',
+        headline: variant([
+          st.xp_to_next + ' XP from ' + st.next_rank + '.',
+          st.next_rank + ' is ' + st.xp_to_next + ' XP away. That\u2019s today\u2019s work.',
+          'You\u2019re ' + (st.rank_pct != null ? st.rank_pct : '') + '% of the way to ' + st.next_rank + '.'
+        ]),
+        body: 'You can taste it. One mission, one check-in, one recruit — that\u2019s the gap. Close it today.',
+        chip: 'How do I earn XP fast?',
+        href: '/', link: 'EARN XP'
+      });
+    }
+    if (cs && st.reported_today === 0) {
+      moves.push({
+        id: 'missions',
+        headline: variant([
+          'Today\u2019s missions are waiting.',
+          'Orders are on the board. Nobody\u2019s taken them yet.',
+          'The day has missions. Take them.'
+        ]),
+        body: 'The network runs on reported work. Do today\u2019s orders, report back, log it on the record.',
+        chip: 'Where are my missions?',
+        href: '/', link: 'TODAY\u2019S ORDERS'
+      });
+    }
+    if (cs && st.votes_week === 0 && chicagoDay() >= 2) {
+      var voteHead = variant([
+        'You haven\u2019t voted this week.',
+        'The ballot box is open and your name\u2019s not in it.'
+      ]);
+      if (chicagoDay() === 0) {
+        voteHead = 'Fan vote closes TONIGHT.';
+      } else if (chicagoDay() === 6) {
+        voteHead = 'Fan vote closes tomorrow.';
+      }
+      moves.push({
+        id: 'vote',
+        headline: voteHead,
+        body: 'Fan vote closes Sunday. Back your propagandist — the crown is decided by people who show up.',
+        chip: 'How does fan vote work?',
+        href: '/', link: 'VOTE'
+      });
+    }
+    if (cs && st.medals_got != null && st.medals_got < 13) {
+      moves.push({
+        id: 'medals',
+        headline: (16 - st.medals_got) + ' medals still on the table this week.',
+        body: 'The full weekly set is FULL DEPLOYMENT — +50 XP and your callsign on the Vanguard Wall.',
+        chip: 'How do medals work?',
+        href: '/arcade', link: 'THE ARCADE'
+      });
+    }
+    if (cs && !st.cell_name) {
+      moves.push({
+        id: 'cell',
+        headline: variant([
+          'You\u2019re fighting alone.',
+          'No cell. No squad. That\u2019s a choice you can unmake.'
+        ]),
+        body: 'Cells that press together win together. Find your squad — or build one and lead it.',
+        chip: 'How do I join a cell?',
+        href: '/cells', link: 'FIND A CELL'
+      });
+    }
+    /* Taste-driven: what you actually care about gets a deep link. The move
+       isn't generic — it's YOUR appetite, served. */
+    try {
+      var tops = topTopics(1);
+      if (cs && tops.length && TOPIC_LINKS[tops[0]] && moves.length < 4) {
+        var tl = TOPIC_LINKS[tops[0]];
+        var rel = relatedTopic(readStory(), tops[0]);
+        moves.push({
+          id: 'taste',
+          headline: 'You keep asking about ' + tops[0] + '. Go deeper.',
+          body: (rel ? 'And when you\u2019re done — people into ' + tops[0] + ' usually get into ' + rel + ' next. ' : '') +
+            'Your curiosity is the compass. Follow it.',
+          chip: TOPIC_CHIPS[tops[0]] || 'Tell me more',
+          href: tl.href, link: tl.link
+        });
+      }
+    } catch (e) {}
+    if (st.upcoming && /today/i.test(st.upcoming)) {
+      var ev = st.upcoming.split(';')[0].trim();
+      moves.push({
+        id: 'event',
+        headline: 'Today: ' + ev + '.',
+        body: 'The calendar doesn\u2019t wait. Be there — the network notices who shows up.',
+        chip: 'What is on the calendar?',
+        href: '/', link: 'CALENDAR'
+      });
+    }
+    /* The default: time-aware inspiration. Never empty. */
+    var h = new Date().getHours();
+    var insp = h < 12
+      ? { headline: 'The fight is already moving.', body: 'Check in, take today\u2019s orders, make the morning count. Small actions, compounded, win wars.' }
+      : h < 18
+      ? { headline: 'The afternoon is yours.', body: 'Missions, votes, recruits — pick one and move. The network is watching the board.' }
+      : { headline: 'Evening. Debrief o\u2019clock soon.', body: 'Report back what you did today. The record remembers, and so does your streak.' };
+    moves.push({
+      id: 'inspire',
+      headline: insp.headline,
+      body: insp.body,
+      chip: 'What should I do today?',
+      href: '/', link: 'MY HQ'
+    });
+    return moves;
+  }
+  function nextMove() {
+    var moves = _movesList();
+    var shown = [];
+    try { shown = (JSON.parse(localStorage.getItem(NUDGE_KEY) || 'null') || {}).ids || []; } catch (e) {}
+    var dk = dayKey();
+    try {
+      var nk = JSON.parse(localStorage.getItem(NUDGE_KEY) || 'null');
+      if (!nk || nk.day !== dk) { shown = []; }
+    } catch (e) { shown = []; }
+    for (var i = 0; i < moves.length; i++) {
+      if (shown.indexOf(moves[i].id) === -1) { return moves[i]; }
+    }
+    return moves[moves.length - 1];
+  }
+  function recordNudge(id) {
+    try {
+      var dk = dayKey(), nk = null;
+      try { nk = JSON.parse(localStorage.getItem(NUDGE_KEY) || 'null'); } catch (e) {}
+      if (!nk || nk.day !== dk) { nk = { day: dk, ids: [] }; }
+      if (nk.ids.indexOf(id) === -1) { nk.ids.push(id); }
+      localStorage.setItem(NUDGE_KEY, JSON.stringify(nk));
+    } catch (e) {}
+  }
+
+  /* ============ MUSE SURFACES ============ */
+  function museGreeting() {
+    var cs = callsign();
+    var move = nextMove();
+    recordNudge(move.id);
+    var g = 'I\u2019m <b>Karl</b> — the voice of this site. ' + esc(hourGreeting());
+    /* Welcome-back: returning soldiers get noticed. (Engagement sweep 2026-10-07) */
+    try {
+      var st0 = readStory();
+      if (cs && st0.visits > 1) {
+        var backs = ['Back again. Good — the fight needs regulars.',
+          'You came back. That already puts you ahead of most.',
+          'Another day, another front. Glad you\u2019re here.'];
+        g += '<br>' + esc(backs[st0.visits % backs.length]);
+      }
+    } catch (e) {}
+    if (cs) { g += '<br>You\u2019re ' + esc(cs) + ', and I\u2019ve been watching your war.'; }
+    /* Fresh milestones get celebrated — Karl notices growth. */
+    try {
+      var fresh = freshMilestones().filter(function (m) {
+        return m.indexOf('Claimed callsign') !== 0;
+      });
+      if (fresh.length) {
+        g += '<br><b>' + esc(fresh[fresh.length - 1]) + '.</b> Noted on the record.';
+      }
+    } catch (e) {}
+    g += '<br><br><span class="pf-kc-mv-h">' + esc(move.headline) + '</span><br><span class="pf-kc-mv-b">' + esc(move.body) + '</span>';
+    g += '<br><a class="pf-kc-go" href="' + esc(move.href) + '">' + esc(move.link) + '</a>';
+    g += '<div class="sig">— Karl</div>';
+    return g;
+  }
+  function museChips(pageChips) {
+    var chips = [], seen = {};
+    function push(c) {
+      if (c && !seen[c] && chips.length < 3) { seen[c] = 1; chips.push(c); }
+    }
+    /* The move leads. */
+    try { push(nextMove().chip); } catch (e) {}
+    /* Taste: the user's top topics get a voice — plus the related thing. */
+    try {
+      var s = readStory();
+      var tops = topTopics(2), i;
+      for (i = 0; i < tops.length; i++) {
+        if (TOPIC_CHIPS[tops[i]]) { push(TOPIC_CHIPS[tops[i]]); }
+      }
+      if (tops.length && tops[0]) {
+        var rel = relatedTopic(s, tops[0]);
+        if (rel && TOPIC_CHIPS[rel]) { push(TOPIC_CHIPS[rel]); }
+      }
+    } catch (e) {}
+    /* Page context fills the rest. */
+    try {
+      var pc = pageChips || [], j;
+      for (j = 0; j < pc.length; j++) { push(pc[j]); }
+    } catch (e) {}
+    return chips;
+  }
+  function summarizeStory() {
+    try {
+      var s = readStory();
+      var parts = [];
+      parts.push(s.visits + ' visit' + (s.visits === 1 ? '' : 's'));
+      if (s.firstSeen) {
+        var d = new Date(s.firstSeen);
+        parts.push('since ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      }
+      var vs = visitStreak(s);
+      if (vs >= 2) { parts.push(vs + '-day visiting streak'); }
+      var fp = favoritePage(s);
+      if (fp && fp !== '/') { parts.push('favorite page ' + fp); }
+      var tops = topTopics(2);
+      if (tops.length) { parts.push('asks about ' + tops.join(' and ')); }
+      if (s.milestones.length) {
+        parts.push('milestones: ' + s.milestones.slice(-3).map(function (m) { return m.m; }).join('; '));
+      }
+      return parts.join(' · ');
+    } catch (e) { return ''; }
+  }
+  function tasteProfile() {
+    try {
+      var s = readStory();
+      var prof = [], seen = {}, i;
+      for (i = 0; i < (s.topicEvents || []).length; i++) {
+        var t = s.topicEvents[i].t;
+        if (!seen[t]) { seen[t] = 1; prof.push({ topic: t, score: Math.round(topicScore(s, t) * 10) / 10 }); }
+      }
+      prof.sort(function (a, b) { return b.score - a.score; });
+      return prof.slice(0, 3);
+    } catch (e) { return []; }
+  }
+  function museContext() {
+    var st = readUserState();
+    return {
+      muse: true,
+      user_state: {
+        callsign: st.callsign || '',
+        xp: st.xp != null ? st.xp : null,
+        rank: st.rank || '',
+        streak: st.streak != null ? st.streak : null,
+        next_rank: st.next_rank || '',
+        xp_to_next: st.xp_to_next != null ? st.xp_to_next : null,
+        rank_pct: st.rank_pct != null ? st.rank_pct : null,
+        medals_week: st.medals_week || (st.medals_got != null ? st.medals_got + '/16' : ''),
+        reported_today: st.reported_today != null ? st.reported_today : null,
+        votes_week: st.votes_week != null ? st.votes_week : null,
+        cell_name: st.cell_name || '',
+        upcoming: st.upcoming || '',
+        engagement: st.engagement || 'new',
+        visit_streak: st.visit_streak != null ? st.visit_streak : 0
+      },
+      taste_profile: tasteProfile(),
+      story: summarizeStory()
+    };
+  }
+
+  /* Record the visit on load (chunk loads after idle — still once per page). */
+  try { recordVisit(); } catch (e) {}
+
+  /* Convergence (2026-10-07): the pf:action protocol — user actions in one
+     place ripple into Karl's story memory. Any silo can announce:
+       document.dispatchEvent(new CustomEvent('pf:action', { detail: { action: 'mission-reported' } }))
+     Known actions: mission-reported, vote-cast, checkin-done, callsign-claimed,
+     cell-joined, price-reported, bounty-done. Unknown actions are still
+     recorded (future-proof) but never trusted for numbers — Karl's guardrails
+     only use real user_state numbers from the dashboard stash. */
+  try {
+    document.addEventListener('pf:action', function (ev) {
+      try {
+        var d = (ev && ev.detail) || {};
+        var a = String(d.action || '').slice(0, 60);
+        if (!a) { return; }
+        var s = readStory();
+        var label = { 'mission-reported': 'Reported a mission',
+          'vote-cast': 'Cast a fan vote', 'checkin-done': 'Checked in',
+          'callsign-claimed': 'Claimed a callsign', 'cell-joined': 'Joined a cell',
+          'price-reported': 'Reported a price', 'bounty-done': 'Completed a bounty'
+        }[a] || ('Did: ' + a);
+        milestone(s, label);
+        writeStory(s);
+      } catch (e2) {}
+    });
+  } catch (e3) {}
+
+  window.PFKarlMuse = {
+    readUserState: readUserState,
+    readStory: readStory,
+    nextMove: nextMove,
+    museGreeting: museGreeting,
+    museChips: museChips,
+    museContext: museContext,
+    observeQuestion: observeQuestion,
+    topicOf: topicOf,
+    storySummary: summarizeStory,
+    tasteProfile: tasteProfile,
+    /* Test hooks. */
+    _ranks: RANKS,
+    _nextRank: nextRank,
+    _movesList: _movesList,
+    _recordNudge: recordNudge,
+    _topicOf: topicOf,
+    _variant: variant,
+    _topicScore: function (t) { try { return topicScore(readStory(), t); } catch (e) { return 0; } },
+    _visitStreak: function () { try { return visitStreak(readStory()); } catch (e) { return 0; } },
+    _relatedTopic: function (t) { try { return relatedTopic(readStory(), t); } catch (e) { return null; } },
+    _freshMilestones: freshMilestones
+  };
+})();
+
+
+;

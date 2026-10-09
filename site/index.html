@@ -49,7 +49,13 @@
   .pf-pillar-title{display:block;font-size:24px;font-weight:900;letter-spacing:.06em;margin-bottom:6px;}
   .pf-pillar-desc{display:block;font-size:14px;line-height:1.45;color:#cfcfcf;}
   @media (min-width:640px){.pf-pillars-grid{grid-template-columns:1fr 1fr;}}
+  /* zuck dopamine: entrance off/on states (JS-gated; reduced-motion + fail-safe) */
+  .pf-js [data-pf-entrance]{opacity:0;transform:translateY(16px);}
+  .pf-js [data-pf-entrance].pf-entr-on{opacity:1;transform:none;transition:opacity .5s ease,transform .55s cubic-bezier(.22,.9,.3,1.12);}
+  @media (prefers-reduced-motion:reduce){.pf-js [data-pf-entrance]{opacity:1!important;transform:none!important;transition:none!important;}}
+  .pf-entr-fail [data-pf-entrance]{opacity:1!important;transform:none!important;transition:none!important;}
 </style>
+<script>try{document.documentElement.classList.add('pf-js');setTimeout(function(){try{document.documentElement.classList.add('pf-entr-fail');}catch(e){}},3000);}catch(e){}</script>
 <script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
 <script>(function(){
   try{
@@ -94,25 +100,25 @@
 <main id="main">
   <section id="pf-pillars" aria-label="The four pillars">
     <div class="pf-pillars-inner">
-      <h1 class="pf-pillars-h1">JOIN THE FIGHT.</h1>
-      <p class="pf-pillars-sub">Four ways in. Pick yours.</p>
-      <nav class="pf-pillars-grid" aria-label="Mission pillars">
-        <a class="pf-pillar" href="/create">
+      <h1 class="pf-pillars-h1" data-pf-entrance>JOIN THE FIGHT.</h1>
+      <p class="pf-pillars-sub" data-pf-entrance>Four ways in. Pick yours.</p>
+      <nav class="pf-pillars-grid" aria-label="Mission pillars" data-pf-stagger="pillars">
+        <a class="pf-pillar" data-pf-entrance href="/create">
           <span class="pf-pillar-kicker">01</span>
           <span class="pf-pillar-title">CREATE</span>
           <span class="pf-pillar-desc">Make propaganda. Memes, art, content that hits back.</span>
         </a>
-        <a class="pf-pillar" href="/sick-left-radicals">
+        <a class="pf-pillar" data-pf-entrance href="/sick-left-radicals">
           <span class="pf-pillar-kicker">02</span>
           <span class="pf-pillar-title">CONNECT</span>
           <span class="pf-pillar-desc">Join the 62 Sick Left Radicals. Nobody fights alone.</span>
         </a>
-        <a class="pf-pillar" href="/cells">
+        <a class="pf-pillar" data-pf-entrance href="/cells">
           <span class="pf-pillar-kicker">03</span>
           <span class="pf-pillar-title">COORDINATE</span>
           <span class="pf-pillar-desc">Turn content into coordinated real-world action.</span>
         </a>
-        <a class="pf-pillar" href="/money">
+        <a class="pf-pillar" data-pf-entrance href="/money">
           <span class="pf-pillar-kicker">04</span>
           <span class="pf-pillar-title">CAPITAL</span>
           <span class="pf-pillar-desc">Fund the fight. Keep it alive without selling out.</span>

@@ -1,1 +1,1744 @@
-!function(){"use strict";var e=window.PF;if(e&&!window.PFStackEm){var t=[{sid1:"LES1252881600Q",sid2:"CPIAUCNS",hook:"Wages vs Inflation",question:"Are paychecks beating prices?",why:"The median paycheck vs prices is the real-raise question — the median series isn’t fooled by executive raises. Both legs as 12-month change, so the units can’t lie."},{sid1:"MORTGAGE30US",sid2:"FEDFUNDS",hook:"Mortgage rates vs Fed rate",question:"Who moved first?",why:"The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain."},{sid1:"PAYEMS",sid2:"UNRATE",hook:"Jobs vs Unemployment",question:"Hiring up, jobless up — how?",why:"Two surveys, two answers — payrolls count jobs, unemployment counts people looking for work."},{sid1:"DGS10",sid2:"DGS2",hook:"The Yield Curve",question:"The market’s fear gauge",why:"The 10-year minus the 2-year is the market’s fear gauge. It has called every recession in 50 years — and it also cries wolf. That’s the lesson."},{sid1:"CPIAUCNS",sid2:"PCEPI",hook:"Inflation gauges",question:"Headline vs the Fed’s favorite",why:"Two inflation baskets, two answers. The Fed watches PCE; you feel CPI. Same economy, different thermometers."},{sid1:"MORTGAGE30US",sid2:"CPIAUCNS",hook:"The Real Mortgage Rate",question:"What does a mortgage actually cost in real terms?",why:"The mortgage rate minus inflation is the real rate — what borrowing actually costs you."}],a=["FEDFUNDS","UNRATE","DGS10","DGS2","MORTGAGE30US","CPIAUCNS","CPILFESL","PCEPI","GDP","CES0500000003","PAYEMS","CUUR0000SEHA","DRCCLACBS","LES1252881600Q","CUSR0000SAF11"],i={FEDFUNDS:"Fed funds rate",UNRATE:"Unemployment rate",DGS10:"10-year Treasury yield",DGS2:"2-year Treasury yield",MORTGAGE30US:"30-year mortgage rate",CPIAUCNS:"Consumer prices (CPI)",CPILFESL:"Core consumer prices",PAYEMS:"Nonfarm payrolls",PCEPI:"PCE price index",GDP:"Real GDP",CES0500000003:"Average hourly earnings",CUUR0000SEHA:"Rent of primary residence",DRCCLACBS:"Credit-card delinquency",LES1252881600Q:"Median weekly earnings (real)",CUSR0000SAF11:"Food at home (CPI)"},r=[["1y","1Y"],["3y","3Y"],["5y","5Y"],["10y","10Y"],["all","ALL"]],n=["#6aa5ff","#e0685c","#e8b923"],o="pf-stackem-guided-done",l=[".pf-se{max-width:980px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-se-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-se-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-se-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}",".pf-se-modes{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}",".pf-se-mode{background:#1a1a1a;border:1px solid #3a3a3a;color:#c9bfa8;border-radius:6px;min-height:44px;padding:10px 18px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}",".pf-se-mode.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-se-matchups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}","@media (max-width:640px){.pf-se-matchups{grid-template-columns:1fr 1fr}}",".pf-se-mu{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:12px;cursor:pointer;min-height:44px;text-align:left;color:#f5ead6}",".pf-se-mu.on{border-color:#c1121f;background:#160a0a}",".pf-se-mu b{display:block;font-size:14px;letter-spacing:0.5px;margin-bottom:4px}",".pf-se-mu span{font-size:12px;color:#c9bfa8;font-style:italic}",".pf-se-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}",".pf-se-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}",".pf-se-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-se-winrow{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap;align-items:center}",".pf-se-winrow .pf-se-wlabel{font-size:12px;color:#8a8271;letter-spacing:1px}",".pf-se-go{background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:48px;padding:0 28px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}",".pf-se-out{margin-top:14px}",".pf-se-head{font-weight:900;font-size:19px;line-height:1.4;margin:0 0 8px;color:#f5ead6}",".pf-se-read{font-size:14px;line-height:1.65;color:#f5ead6;margin:0 0 6px}",".pf-se-chartwrap{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:10px 6px 4px;margin:10px 0}",".pf-se-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#c9bfa8;padding:4px 8px 8px}",".pf-se-legend i{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}",".pf-se-axisnote{font-size:10px;color:#8a8271;text-align:center;letter-spacing:0.5px;padding:2px 8px 8px}",".pf-se-dis{font-size:11px;color:#8a8271;line-height:1.6;border-left:3px solid #3a3a3a;padding:6px 10px;margin:8px 0}",".pf-se-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0}",".pf-se-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}",".pf-se-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:10px}",".pf-se-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}",".pf-se-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}",".pf-se-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;color:#c9bfa8;margin:10px 0}",".pf-se-why b{color:#e8b923;letter-spacing:1px}",".pf-se-prog{text-align:center;font-size:12px;color:#8a8271;letter-spacing:2px;margin-bottom:8px}",".pf-se-next{display:block;margin:12px auto 0;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;padding:0 32px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}",".pf-se-lock{font-size:12px;color:#8a8271;text-align:center;margin-top:8px;font-style:italic}",".pf-se-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}",".pf-se-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}"].join("\n");try{window.PFStackEm={mount:function(e){if(e&&!c("money-stackem"))try{h(e,!1)}catch(e){}},mountGuided:m,mountCurated:y},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",v):v()}catch(e){}}function s(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function c(t){try{return e.skip("fred")||e.skip(t)}catch(e){return!1}}function p(){try{if(document.getElementById("pf-se-css"))return;var e=document.createElement("style");e.id="pf-se-css",e.textContent=l,document.head.appendChild(e)}catch(e){}}function d(e,t,a){try{for(var i=e.querySelectorAll(".pf-se-pt"),r=0;r<i.length;r++)(function(e){e.addEventListener("click",function(){var i=e.getAttribute("data-sid"),r=null;if((t.legs||[]).forEach(function(e){e.series_id===i&&(r=e)}),r&&a){var n=parseFloat(e.getAttribute("data-v")),o={series_id:i,title:r.title,value_label:isFinite(n)?n.toFixed(2):"—",unit_label:r.unit_label||"",period:e.getAttribute("data-p"),period_label:null,citation:r.latest&&r.latest.citation||"",sa_nsa:r.sa_nsa,source_url:r.latest&&r.latest.source_url||"https://fred.stlouisfed.org/series/"+i,stale:r.latest&&r.latest.stale,stale_note:r.latest&&r.latest.stale_note};try{a.tapSheet(o)}catch(e){}}})})(i[r])}catch(e){}}function f(e,t,a){a=a||{};var i="";return i+='<h3 class="pf-se-head">'+s(e.headline||"")+"</h3>",(e.read||[]).forEach(function(e){i+='<p class="pf-se-read">'+s(e)+"</p>"}),i+=function(e){var t=(e.legs||[]).filter(function(e){return e&&e.points&&e.points.length>1});if(!t.length)return"";var a=[];if(t.forEach(function(e){e.points.forEach(function(e){isFinite(+e.value)&&a.push(+e.value)})}),a.length<2)return"";var i=Math.min.apply(null,a),r=Math.max.apply(null,a);r-i<1e-9&&(i-=1,r+=1);var o=r-i;function l(e,t){return(8+e/(t-1)*704).toFixed(1)}function c(e){return(10+224*(1-(e-i)/o)).toFixed(1)}o=(r+=.04*o)-(i-=.04*o);var p='<svg viewBox="0 0 720 260" style="display:block;width:100%;height:auto;min-height:240px" role="img" aria-label="comparison chart">';i<0&&r>0&&(p+='<line x1="8" y1="'+c(0)+'" x2="712" y2="'+c(0)+'" stroke="#3a3a3a" stroke-width="1"/>');var d="";t.forEach(function(e,t){var a=e.points,i=a.length,r=a.map(function(e,t){return(t?"L":"M")+l(t,i)+" "+c(+e.value)}).join(" "),o=n[t%n.length];p+='<path d="'+r+'" fill="none" stroke="'+o+'" stroke-width="2.5"/>';for(var f=Math.max(1,Math.floor(i/40)),u=0;u<i;u+=f)(function(e,t,r){p+='<circle class="pf-se-pt" cx="'+l(a.indexOf(e),i)+'" cy="'+c(+e.value)+'" r="10" fill="transparent" data-sid="'+s(t.series_id)+'" data-v="'+s(String(e.value))+'" data-p="'+s(String(e.period))+'" data-c="'+s(r)+'"/>'})(a[u],e,o);var g=String(e.sa_nsa||"").toUpperCase(),x=0===g.indexOf("NSA")?" (NSA)":0===g.indexOf("SA")?" (SA)":"",h=s((e.title||e.series_id)+x);d+='<span><i style="background:'+o+'"></i>'+h+"</span>"}),p+='<text x="712" y="20" fill="#8a8271" font-size="10" text-anchor="end">'+r.toFixed(1)+"</text>",p+='<text x="712" y="238" fill="#8a8271" font-size="10" text-anchor="end">'+i.toFixed(1)+"</text>";var f=t[0].points[0].period,u=t[0].points[t[0].points.length-1].period;function g(e){var t=/^(\d{4})-(\d{2})/.exec(String(e));return t?t[1]:String(e).slice(0,10)}p+='<text x="8" y="252" fill="#8a8271" font-size="10">'+s(g(f))+"</text>",p+='<text x="712" y="252" fill="#8a8271" font-size="10" text-anchor="end">'+s(g(u))+"</text>",p+="</svg>";var x="axis starts at "+i.toFixed(1)+" — not zero";return("yoy"===e.basis||/% change/.test(e.legs[0].basis||""))&&(x+=" · "+s(e.legs[0].basis||"")),'<div class="pf-se-chartwrap"><div class="pf-se-legend">'+d+"</div>"+p+'<div class="pf-se-axisnote">'+x+"</div></div>"}(e),(e.disclosures||[]).forEach(function(e){i+='<div class="pf-se-dis">'+s(e.text||"")+"</div>"}),(e.citations||[]).forEach(function(e){e&&(i+='<div class="pf-fred-cite">'+s(e)+"</div>")}),a.noFollow||(i+='<div class="pf-se-follow"><button type="button" class="pf-se-fbtn" data-se-act="flip">FLIP IT</button><button type="button" class="pf-se-fbtn" data-se-act="again">TRY A MATCHUP</button><a class="pf-se-fbtn" data-se-act="explain" href="https://www.mtcstw.com/economy#pf-explain">WHAT DOES THIS MEAN FOR ME?</a></div>'),i+='<button type="button" class="pf-se-share" data-se-act="share">SHARE THE RECEIPTS</button>',i+='<div data-pf-share="stackem" data-pf-share-mode="nets" data-pf-share-link="/economy"></div>',a.noXlinks||(i+='<div class="pf-se-xlinks">Stacked it? Now <a href="https://www.mtcstw.com/economy#pf-explain">translate it</a> · <a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>'),'<div class="pf-se-out">'+i+"</div>"}function u(e,t,a){for(var i=String(t||"").split(/\s+/),r=[],n="",o=0;o<i.length;o++){var l=n?n+" "+i[o]:i[o];e.measureText(l).width>a&&n?(r.push(n),n=i[o]):n=l}return n&&r.push(n),r}function g(e){var t=(e.headline||"")+"\n"+(e.read||[]).join(" ")+"\n"+(e.citations||[]).filter(Boolean).join("\n")+"\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/follow-the-money#pf-stackem";try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t),"Headline + sources copied — paste it anywhere."}catch(e){}return null}function x(e,t){var a=null;try{a=function(e){var t=1080,a=1080,i=document.createElement("canvas");i.width=t,i.height=a;var r=i.getContext("2d");if(!r)return null;var o="#c1121f",l="#7d0b16",s="#f2ecdc",c="#6f6350";r.fillStyle="#0e0d0c",r.fillRect(0,0,t,a),r.save(),r.globalAlpha=.032,r.strokeStyle="#ffffff",r.lineWidth=1;for(var p=-a;p<t+a;p+=26)r.beginPath(),r.moveTo(p,0),r.lineTo(p+a,a),r.stroke();r.restore();var d=r.createRadialGradient(540,432,172.8,540,540,918);d.addColorStop(0,"rgba(0,0,0,0)"),d.addColorStop(1,"rgba(0,0,0,0.55)"),r.fillStyle=d,r.fillRect(0,0,t,a);var f=r.createLinearGradient(0,0,0,10);f.addColorStop(0,o),f.addColorStop(1,l),r.fillStyle=f,r.fillRect(0,0,t,10),r.save(),r.globalAlpha=.05,r.fillStyle=s,r.font="900 620px Arial,sans-serif",r.textAlign="center",r.fillText("★",540,648),r.restore();var g=540,x=110;r.textAlign="center",r.fillStyle="#c9a227",r.font="700 28px Arial,sans-serif";try{r.letterSpacing="8px"}catch(e){}r.fillText("STACK ’EM · OFFICIAL DATA · FRED",g,x),x+=66;try{r.letterSpacing="0px"}catch(e){}x+=30,r.strokeStyle="rgba(201,162,39,0.5)",r.lineWidth=1,r.beginPath(),r.moveTo(390,x),r.lineTo(690,x),r.stroke(),x+=66,r.fillStyle=s,r.font='900 48px Georgia,"Times New Roman",serif';for(var h=u(r,e.headline||"",940),m=0;m<h.length&&m<4;m++)r.fillText(h[m],g,x),x+=60;x+=16;var y=(e.legs||[]).filter(function(e){return e.points&&e.points.length>1}).slice(0,2);if(y.length){var v=x,b=240,w=[];y.forEach(function(e){e.points.forEach(function(e){isFinite(+e.value)&&w.push(+e.value)})});var S=Math.min.apply(null,w),E=Math.max.apply(null,w);E-S<1e-9&&(S-=1,E+=1),r.strokeStyle="#2a2a2a",r.lineWidth=2,r.strokeRect(90,v,900,b),y.forEach(function(e,t){var a=e.points,i=a.length;r.strokeStyle=n[t%n.length],r.lineWidth=4,r.beginPath(),a.forEach(function(e,t){var a=90+t/(i-1)*900,n=v+b-(+e.value-S)/(E-S)*b;t?r.lineTo(a,n):r.moveTo(a,n)}),r.stroke()}),r.fillStyle=c,r.font="italic 400 24px Georgia,serif",r.fillText("axis starts at "+S.toFixed(1)+" — not zero",g,v+b+34),x=v+b+70,r.font="700 26px Arial,sans-serif";try{r.letterSpacing="2px"}catch(e){}y.forEach(function(e,t){r.fillStyle=n[t%n.length];var a=String(e.sa_nsa||"").toUpperCase(),i=0===a.indexOf("NSA")?" (NSA)":0===a.indexOf("SA")?" (SA)":"";r.fillText("— "+(e.title||e.series_id)+i,g,x),x+=36});try{r.letterSpacing="0px"}catch(e){}x+=10}r.fillStyle="#a89a7d",r.font='400 30px Georgia,"Times New Roman",serif';for(var T=(e.read||[]).slice(0,2).join(" "),k=u(r,T,920),A=0;A<k.length&&A<3;A++)r.fillText(k[A],g,x),x+=40;x+=24,r.font="400 22px Georgia,serif";var C=[];if((e.citations||[]).forEach(function(e){e&&u(r,String(e),840).slice(0,2).forEach(function(e){C.push(e)})}),(C=C.slice(0,4)).length){var R=32*C.length+40;r.strokeStyle="rgba(242,236,220,0.35)",r.lineWidth=1.5,r.strokeRect(110,x,860,R),r.fillStyle=s;for(var I=0;I<C.length;I++)r.fillText(C[I],g,x+38+32*I);x+=R+30}else x+=10;r.fillStyle=c,r.font="italic 400 26px Arial,sans-serif",r.fillText("Info, not advice. Data: FRED.",g,x);var F=890;r.strokeStyle="rgba(201,162,39,0.45)",r.lineWidth=1,r.beginPath(),r.moveTo(140,F),r.lineTo(940,F),r.stroke(),F+=54,r.font="900 42px Arial,sans-serif",r.fillStyle=s;try{r.letterSpacing="8px"}catch(e){}var P="JOIN THE FIGHT",L=r.measureText(P).width;r.fillText(P,g,F),r.fillStyle=o,r.fillText(".",g+L/2-4,F);try{r.letterSpacing="0px"}catch(e){}F+=50,r.fillStyle=o,r.font="900 30px Arial,sans-serif";try{r.letterSpacing="10px"}catch(e){}r.fillText("MTCSTW.COM",g,F);try{r.letterSpacing="0px"}catch(e){}var M=r.createLinearGradient(0,1070,0,a);return M.addColorStop(0,l),M.addColorStop(1,o),r.fillStyle=M,r.fillRect(0,1070,t,10),i}(e)}catch(e){a=null}if(a){try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(a,"pf-stackem.png",e.headline||"Stacked numbers","stackem",{text:(e.headline||"")+" https://www.mtcstw.com/follow-the-money#pf-stackem via The Propaganda Factory",link:"https://www.mtcstw.com/follow-the-money#pf-stackem"})}catch(e){}try{var i=document.createElement("a");i.href=a.toDataURL("image/png"),i.download="pf-stackem.png",document.body.appendChild(i),i.click(),setTimeout(function(){try{i.parentNode.removeChild(i)}catch(e){}},500)}catch(a){var r=g(e);t&&(t.textContent=r||"SHARE FAILED — TRY AGAIN")}}else{var o=g(e);t&&(t.textContent=o||"SHARE FAILED — TRY AGAIN")}}function h(e,n){p();var o=window.PFFred;e.innerHTML='<div class="pf-se">'+function(e){var n="";return e||(n+='<div class="pf-se-kicker">MONEY SUITE · MACRO</div><h2 class="pf-se-title">STACK ’EM</h2><p class="pf-se-sub">Pick two numbers. Pick a window. Start an argument — with receipts.</p>'),n+='<div class="pf-se-modes"><button type="button" class="pf-se-mode on" data-se-mode="suggested">SUGGESTED MATCHUPS</button><button type="button" class="pf-se-mode" data-se-mode="free">FREE PICK</button></div>',n+='<div class="pf-se-matchups" data-se-matchups>'+t.map(function(e,t){return'<button type="button" class="pf-se-mu'+(0===t?" on":"")+'" data-se-mu="'+t+'"><b>'+s(e.hook)+"</b><span>"+s(e.question)+"</span></button>"}).join("")+"</div>",n+='<div class="pf-se-chips" data-se-free style="display:none">'+a.map(function(e,t){return'<button type="button" class="pf-se-chip" data-se-sid="'+s(e)+'" data-se-slot="">'+s(i[e]||e)+"</button>"}).join("")+"</div>",n+='<div class="pf-se-winrow"><span class="pf-se-wlabel">WINDOW</span>'+r.map(function(e,t){return'<button type="button" class="pf-se-chip'+(2===t?" on":"")+'" data-se-win="'+e[0]+'">'+e[1]+"</button>"}).join("")+"</div>",n+='<div style="text-align:center"><button type="button" class="pf-se-go" data-se-act="go">STACK ’EM</button></div>',n+"<div data-se-out></div>"}(n)+"</div>";var l={mode:"suggested",mu:0,freeA:null,freeB:null,win:"5y",last:null};function c(t){return e.querySelector(t)}function u(t){return e.querySelectorAll(t)}function g(e){if(o){var a;if(e)a={sid1:e.sid1,sid2:e.sid2,window:l.win,mode:"guided"};else if("suggested"===l.mode){var i=t[l.mu];a={sid1:i.sid1,sid2:i.sid2,window:l.win,mode:"guided"}}else{if(!l.freeA||!l.freeB)return void(c("[data-se-out]").innerHTML='<div class="pf-se-err">Pick two series first — tap any two chips above.</div>');a={sid1:l.freeA,sid2:l.freeB,window:l.win,mode:"free"}}c("[data-se-out]").innerHTML='<div class="pf-se-loading">PULLING THE NUMBERS…</div>',o.api("fred_compare",a,function(e){!function(e){var a=c("[data-se-out]");if(e&&!0===e.ok){l.last=e,a.innerHTML=f(e,0,{}),d(a,e,o),a.querySelectorAll("[data-se-act]").forEach(function(a){a.addEventListener("click",function(i){var r=a.getAttribute("data-se-act");if("share"===r)x(e,a);else if("flip"===r){var n=l.freeA;if(l.freeA=l.freeB,l.freeB=n,"suggested"===l.mode){var o=t[l.mu];g({sid1:o.sid2,sid2:o.sid1})}else l.freeA&&l.freeB&&g({sid1:l.freeA,sid2:l.freeB})}else if("again"===r)try{c("[data-se-matchups]").scrollIntoView({behavior:"smooth",block:"center"})}catch(e){}else if("explain"===r)try{var s=e.sid1&&"SAHM"!==e.sid1?e.sid1:e.sid2;a.href="https://www.mtcstw.com/economy#pf-explain?series="+encodeURIComponent(s)}catch(e){}})});try{a.scrollIntoView({behavior:"smooth",block:"nearest"})}catch(e){}}else{var i=e&&(e.message||e.note)||(e&&"pair_not_approved"===e.err?"That pair isn’t on the approved list — the 6 suggested matchups are the vetted set.":"FRED's got nothing here for this window. Pick another.");a.innerHTML='<div class="pf-se-err">'+s(i)+"</div>"}}(e)})}}u("[data-se-mode]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-mode]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.mode=e.getAttribute("data-se-mode"),c("[data-se-matchups]").style.display="suggested"===l.mode?"":"none",c("[data-se-free]").style.display="free"===l.mode?"":"none"})}),u("[data-se-mu]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-mu]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.mu=parseInt(e.getAttribute("data-se-mu"),10)||0})}),u("[data-se-win]").forEach(function(e){e.addEventListener("click",function(){u("[data-se-win]").forEach(function(e){e.classList.remove("on")}),e.classList.add("on"),l.win=e.getAttribute("data-se-win")})}),u("[data-se-free] [data-se-sid]").forEach(function(e){e.addEventListener("click",function(){var t=e.getAttribute("data-se-sid");l.freeA===t?l.freeA=null:l.freeB===t?l.freeB=null:l.freeA?l.freeB?(l.freeA=l.freeB,l.freeB=t):l.freeB=t:l.freeA=t,u("[data-se-free] [data-se-sid]").forEach(function(e){var t=e.getAttribute("data-se-sid");e.classList.toggle("on",t===l.freeA||t===l.freeB)})})}),c('[data-se-act="go"]').addEventListener("click",function(){g(null)}),g(null)}function m(e){if(!c("academy-stackem")){p();var a=window.PFFred,i=!1;try{i="1"===localStorage.getItem(o)}catch(e){}var r='<div class="pf-se"><div class="pf-se-kicker">ACADEMY · GUIDED</div><h2 class="pf-se-title">LEARN TO READ THE NUMBERS THEY USE AGAINST YOU.</h2>';if(i){r+='<p class="pf-se-sub">Guided set complete — free pick unlocked. Learning before lab.</p><div data-se-guidedfree></div></div>',e.innerHTML=r;try{h(e.querySelector("[data-se-guidedfree]"),!0)}catch(e){}}else{r+='<p class="pf-se-sub">Six matchups, one at a time. Finish the set to unlock free pick.</p><div data-se-gbody></div></div>',e.innerHTML=r;var n=e.querySelector("[data-se-gbody]"),l=0;a?u():n.innerHTML='<div class="pf-se-err">The data toolkit isn’t loaded yet — reload the page.</div>'}}function u(){var e=t[l];n.innerHTML='<div class="pf-se-prog">MATCHUP '+(l+1)+" OF "+t.length+'</div><h3 class="pf-se-head" style="text-align:center">'+s(e.hook)+'</h3><p class="pf-se-sub">“'+s(e.question)+'”</p><div class="pf-se-why"><b>WHY THIS PAIR — </b>'+s(e.why)+'</div><div class="pf-se-loading">PULLING THE NUMBERS…</div>',a.api("fred_compare",{sid1:e.sid1,sid2:e.sid2,window:"5y",mode:"guided"},function(i){if(!i||!0!==i.ok)return n.innerHTML='<div class="pf-se-err">Couldn’t load this matchup — try the next one.</div>'+g(),void y();var r=f(i,0,{noXlinks:!0});n.innerHTML='<div class="pf-se-prog">MATCHUP '+(l+1)+" OF "+t.length+'</div><h3 class="pf-se-head" style="text-align:center">'+s(e.hook)+'</h3><p class="pf-se-sub">“'+s(e.question)+'”</p><div class="pf-se-why"><b>WHY THIS PAIR — </b>'+s(e.why)+"</div>"+r+g(),d(n,i,a),n.querySelectorAll("[data-se-act]").forEach(function(e){e.addEventListener("click",function(){"share"===e.getAttribute("data-se-act")&&x(i,e)})}),y();try{n.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}})}function g(){return l+1<t.length?'<button type="button" class="pf-se-next" data-se-gnext>NEXT MATCHUP →</button>':'<button type="button" class="pf-se-next" data-se-gnext>FINISH THE SET</button>'}function y(){var a=n.querySelector("[data-se-gnext]");a&&a.addEventListener("click",function(){if(++l>=t.length){try{localStorage.setItem(o,"1")}catch(e){}m(e)}else u()})}}function y(e){if(!c("war-stack")){p();var a=window.PFFred,i=t[function(){try{var e=new Date,t=((e=new Date(Date.UTC(e.getUTCFullYear(),e.getUTCMonth(),e.getUTCDate()))).getUTCDay()+6)%7;e.setUTCDate(e.getUTCDate()-t+3);var a=new Date(Date.UTC(e.getUTCFullYear(),0,4)),i=(a.getUTCDay()+6)%7;return a.setUTCDate(a.getUTCDate()-i+3),Math.round((e-a)/6048e5)+1}catch(e){return 1}}()%t.length];e.innerHTML='<div class="pf-se"><div class="pf-se-kicker">WAR REPORT</div><h2 class="pf-se-title">THIS WEEK’S STACK</h2><p class="pf-se-sub">“'+s(i.question)+"” — "+s(i.hook)+'</p><div class="pf-se-loading">PULLING THE NUMBERS…</div></div>',a&&a.api("fred_compare",{sid1:i.sid1,sid2:i.sid2,window:"5y",mode:"guided"},function(t){var r=e.querySelector(".pf-se");t&&!0===t.ok&&r&&(r.innerHTML='<div class="pf-se-kicker">WAR REPORT</div><h2 class="pf-se-title">THIS WEEK’S STACK</h2><p class="pf-se-sub">“'+s(i.question)+"” — "+s(i.hook)+"</p>"+f(t,0,{noFollow:!0}),d(r,t,a),r.querySelectorAll("[data-se-act]").forEach(function(e){e.addEventListener("click",function(){"share"===e.getAttribute("data-se-act")&&x(t,e)})}))})}}function v(){try{var e=document.getElementById("xWarReport");if(e&&!document.getElementById("pf-war-stack")&&!c("war-stack")){var t=document.createElement("div");t.id="pf-war-stack";var a=e.querySelector("#pf-wrnum");a&&a.parentNode?a.parentNode.insertBefore(t,a.nextSibling):e.appendChild(t),y(t)}var i=document.getElementById("pf-academy-hq");if(i&&!document.getElementById("pf-academy-stackem")&&!c("academy-stackem")){var r=document.createElement("div");r.id="pf-academy-stackem",i.parentNode?i.parentNode.insertBefore(r,i.nextSibling):document.body.appendChild(r),m(r)}}catch(e){}}}(),function(){"use strict";var e=window.PF;if(e&&!window.PFExplain){var t=[{key:"rent",label:"RENT",sub:"What renters actually pay, from the CPI rent index"},{key:"groceries",label:"GROCERIES",sub:"What food prices are doing"},{key:"job-hunt",label:"JOB HUNT",sub:"How tight the job market is"},{key:"savings",label:"SAVINGS",sub:"What your cash earns"}],a=["FEDFUNDS","UNRATE","DGS10","DGS2","MORTGAGE30US","CPIAUCNS","CPILFESL","PCEPI","GDP","CES0500000003","PAYEMS","CUUR0000SEHA","DRCCLACBS","LES1252881600Q","CUSR0000SAF11"],i={FEDFUNDS:"Fed funds rate",UNRATE:"Unemployment rate",DGS10:"10-year Treasury yield",DGS2:"2-year Treasury yield",MORTGAGE30US:"30-year mortgage rate",CPIAUCNS:"Consumer prices (CPI)",CPILFESL:"Core consumer prices",PAYEMS:"Nonfarm payrolls",PCEPI:"PCE price index",GDP:"Real GDP",CES0500000003:"Average hourly earnings",CUUR0000SEHA:"Rent of primary residence",DRCCLACBS:"Credit-card delinquency",LES1252881600Q:"Median weekly earnings (real)",CUSR0000SAF11:"Food at home (CPI)"},r=["rent","groceries","job-hunt","savings"],n=[".pf-ex{max-width:860px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-ex-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-ex-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-ex-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}",".pf-ex-topics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}","@media (max-width:640px){.pf-ex-topics{grid-template-columns:1fr 1fr}}",".pf-ex-tp{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:14px 8px;cursor:pointer;min-height:64px;color:#f5ead6;text-align:center}",".pf-ex-tp.on{border-color:#c1121f;background:#160a0a}",".pf-ex-tp b{display:block;font-size:15px;letter-spacing:1px;margin-bottom:4px}",".pf-ex-tp span{font-size:11px;color:#8a8271;line-height:1.4;display:block}",".pf-ex-nerd{display:block;text-align:center;margin:6px 0 12px;color:#e8b923;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;background:none;border:0;text-decoration:underline;min-height:44px;width:100%}",".pf-ex-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}",".pf-ex-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}",".pf-ex-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-ex-card{background:#0d0d0d;border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;padding:16px;margin-top:10px}",".pf-ex-fig{font-weight:900;font-size:34px;margin:0 0 2px;color:#f5ead6;line-height:1.2}",".pf-ex-vin{font-size:12px;color:#c9bfa8;margin-bottom:8px}",".pf-ex-dis{font-size:12px;color:#c9bfa8;background:#141414;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;line-height:1.6;margin:10px 0;font-style:italic}",".pf-ex-beat{border-top:1px solid #2a2a2a;margin:0}",".pf-ex-beat summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;list-style:none;padding:6px 0}",".pf-ex-beat summary::-webkit-details-marker{display:none}",'.pf-ex-beat summary::before{content:"+";margin-right:10px;font-size:16px}','.pf-ex-beat[open] summary::before{content:"\\2212"}',".pf-ex-beat p{font-size:14px;line-height:1.7;color:#f5ead6;margin:0 0 12px}",".pf-ex-topicnote{font-size:11px;color:#8a8271;font-style:italic;margin:0 0 8px}",".pf-ex-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:10px}",".pf-ex-sharedis{font-size:11px;color:#8a8271;text-align:center;margin-top:6px;font-style:italic}",".pf-ex-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0 4px}",".pf-ex-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}",".pf-ex-xlinks{border-top:1px solid #2a2a2a;margin-top:14px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}",".pf-ex-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}",".pf-ex-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}",".pf-ex-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}"].join("\n");try{window.PFExplain={mount:u},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",g):g()}catch(e){}}function o(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function l(t){try{return e.skip("fred")||e.skip(t)}catch(e){return!1}}function s(){try{if(document.getElementById("pf-ex-css"))return;var e=document.createElement("style");e.id="pf-ex-css",e.textContent=n,document.head.appendChild(e)}catch(e){}}function c(e,t,a){for(var i=String(t||"").split(/\s+/),r=[],n="",o=0;o<i.length;o++){var l=n?n+" "+i[o]:i[o];e.measureText(l).width>a&&n?(r.push(n),n=i[o]):n=l}return n&&r.push(n),r}function p(e){var t=(e.figure&&e.figure.headline||"")+"\n"+(e.figure&&e.figure.citation||"")+"\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-explain";try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t),"Figure + source copied — paste it anywhere."}catch(e){}return null}function d(e,t){var a=null;try{a=function(e){var t=1080,a=1080,i=document.createElement("canvas");i.width=t,i.height=a;var r=i.getContext("2d");if(!r)return null;var n="#c1121f",o="#7d0b16",l="#f2ecdc";r.fillStyle="#0e0d0c",r.fillRect(0,0,t,a),r.save(),r.globalAlpha=.032,r.strokeStyle="#ffffff",r.lineWidth=1;for(var s=-a;s<t+a;s+=26)r.beginPath(),r.moveTo(s,0),r.lineTo(s+a,a),r.stroke();r.restore();var p=r.createRadialGradient(540,432,172.8,540,540,918);p.addColorStop(0,"rgba(0,0,0,0)"),p.addColorStop(1,"rgba(0,0,0,0.55)"),r.fillStyle=p,r.fillRect(0,0,t,a);var d=r.createLinearGradient(0,0,0,10);d.addColorStop(0,n),d.addColorStop(1,o),r.fillStyle=d,r.fillRect(0,0,t,10),r.save(),r.globalAlpha=.05,r.fillStyle=l,r.font="900 620px Arial,sans-serif",r.textAlign="center",r.fillText("★",540,648),r.restore();var f=540,u=120;r.textAlign="center",r.fillStyle="#c9a227",r.font="700 28px Arial,sans-serif";try{r.letterSpacing="8px"}catch(e){}r.fillText("YOUR MONEY, EXPLAINED · FRED",f,u),u+=90;try{r.letterSpacing="0px"}catch(e){}u+=40,r.strokeStyle="rgba(201,162,39,0.5)",r.lineWidth=1,r.beginPath(),r.moveTo(390,u),r.lineTo(690,u),r.stroke(),u+=84,r.fillStyle=l,r.font='900 62px Georgia,"Times New Roman",serif';for(var g=c(r,e.figure&&e.figure.headline||"",940),x=0;x<g.length&&x<3;x++)r.fillText(g[x],f,u),u+=74;r.strokeStyle=n,r.lineWidth=2,r.beginPath(),r.moveTo(350,u),r.lineTo(514,u),r.stroke(),r.beginPath(),r.moveTo(566,u),r.lineTo(730,u),r.stroke(),r.save(),r.translate(f,u),r.rotate(Math.PI/4),r.fillStyle=n,r.fillRect(-8,-8,16,16),r.restore(),u+=62;var h="";(e.beats||[]).forEach(function(e){4===e.n&&(h=e.text)}),h=String(h).split(/\. /)[0]+".",r.fillStyle="#a89a7d",r.font="italic 400 32px Georgia,serif";for(var m=c(r,h,920),y=0;y<m.length&&y<4;y++)r.fillText(m[y],f,u),u+=44;u+=36,r.font="700 22px Arial,sans-serif";try{r.letterSpacing="3px"}catch(e){}var v=c(r,e.figure&&e.figure.citation||"",860),b=34*Math.min(v.length,2)+44,w=u;r.strokeStyle="rgba(242,236,220,0.35)",r.lineWidth=1.5,r.strokeRect(100,w,880,b),r.fillStyle=l;for(var S=0;S<v.length&&S<2;S++)r.fillText(v[S],f,w+40+34*S);try{r.letterSpacing="0px"}catch(e){}u=w+b+44,r.fillStyle="#6f6350",r.font="italic 400 26px Arial,sans-serif",r.fillText("Info, not advice. Data: FRED.",f,u);var E=890;r.strokeStyle="rgba(201,162,39,0.45)",r.lineWidth=1,r.beginPath(),r.moveTo(140,E),r.lineTo(940,E),r.stroke(),E+=54,r.font="900 42px Arial,sans-serif",r.fillStyle=l;try{r.letterSpacing="8px"}catch(e){}var T="JOIN THE FIGHT",k=r.measureText(T).width;r.fillText(T,f,E),r.fillStyle=n,r.fillText(".",f+k/2-4,E);try{r.letterSpacing="0px"}catch(e){}E+=50,r.fillStyle=n,r.font="900 30px Arial,sans-serif";try{r.letterSpacing="10px"}catch(e){}r.fillText("MTCSTW.COM",f,E);try{r.letterSpacing="0px"}catch(e){}var A=r.createLinearGradient(0,1070,0,a);return A.addColorStop(0,o),A.addColorStop(1,n),r.fillStyle=A,r.fillRect(0,1070,t,10),i}(e)}catch(e){a=null}if(a){try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(a,"pf-explainer.png",e.figure&&e.figure.headline||"Explainer","explain",{text:(e.figure&&e.figure.headline||"")+" https://www.mtcstw.com/economy#pf-explain via The Propaganda Factory",link:"https://www.mtcstw.com/economy#pf-explain"})}catch(e){}try{var i=document.createElement("a");i.href=a.toDataURL("image/png"),i.download="pf-explainer.png",document.body.appendChild(i),i.click(),setTimeout(function(){try{i.parentNode.removeChild(i)}catch(e){}},500)}catch(a){var r=p(e);t&&(t.textContent=r||"SHARE FAILED — TRY AGAIN")}}else{var n=p(e);t&&(t.textContent=n||"SHARE FAILED — TRY AGAIN")}}function f(e,t,a){a=a||{},s();var i=window.PFFred;i?(e.innerHTML='<div class="pf-ex"><div class="pf-ex-loading">READING THE NUMBERS…</div></div>',i.api("fred_explain",t,function(t){var r=e.querySelector(".pf-ex");if(r)if(t&&!0===t.ok){r.innerHTML=function(e,t,a){a=a||{};var i=e.figure||{},r='<div class="pf-ex-card">';return r+='<div class="pf-ex-fig">'+o(i.headline||"")+(i.revised?'<sup class="pf-fred-rev" title="revised observation">ʳ</sup>':"")+"</div>",r+='<div class="pf-ex-vin">'+o(i.period_label||"")+" "+(t?t.staleBadge({stale:i.stale,days_old:i.days_old,series_id:e.primary_series||e.series_id}):"")+"</div>",r+='<div class="pf-ex-dis">'+o(e.disclaimer||"")+"</div>",e.topic_note&&(r+='<p class="pf-ex-topicnote">'+o(e.topic_note)+"</p>"),(e.beats||[]).forEach(function(e){1!==e.n&&(r+='<details class="pf-ex-beat"'+(a.openAll?" open":"")+"><summary>"+o(e.title||"BEAT "+e.n)+"</summary><p>"+o(e.text||"")+"</p></details>")}),i.citation&&(r+='<div class="pf-fred-cite">'+o(i.citation)+"</div>"),r+='<button type="button" class="pf-ex-share" data-ex-act="share">PUT IT ON THEIR TIMELINE</button>',r+='<div class="pf-ex-sharedis">'+o(e.disclaimer_short||"")+"</div>",a.noFollow||(r+='<div class="pf-ex-follow">',(e.followups||[]).forEach(function(e){r+='<a class="pf-ex-fbtn" href="'+o(e.href||"#")+'">'+o(e.label||"")+"</a>"}),r+="</div>"),r+="</div>",a.noXlinks||(r+='<div class="pf-ex-xlinks">Translated it? Now <a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · <a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>'),r}(t,i,a);var n=r.querySelector('[data-ex-act="share"]');n&&n.addEventListener("click",function(){d(t,n)})}else r.innerHTML='<div class="pf-ex-err">'+o(t&&t.note||"Couldn’t load this explainer — try another topic.")+"</div>"})):e.innerHTML='<div class="pf-ex"><div class="pf-ex-err">The data toolkit isn’t loaded yet — reload the page.</div></div>'}function u(e,n){if(e&&!l({money:"money-explain",economy:"economy-explain",war:"war-explain",brief:"brief-explain"}[n||"economy"]||"economy-explain")){s();window.PFFred;var c={money:["WHAT’S THIS COSTING YOU?","You tell it what’s hitting your wallet; it tells you what the numbers actually say."],economy:["TRANSLATE THE ECONOMY.","The economy in words, not jargon."],war:["WHAT IT MEANS FOR YOU","This week’s number, translated."],brief:["YOUR MONEY, IN 30 SECONDS.","One number, translated."]},p=c[n||"economy"]||c.economy,d=null;try{var u=/[?&#]series=([A-Z0-9]+)/i.exec(window.location.hash||"");u&&i[u[1].toUpperCase()]&&(d=u[1].toUpperCase())}catch(e){}var g='<div class="pf-ex"><div class="pf-se-kicker pf-ex-kicker">'+("money"===n?"FOLLOW THE MONEY":"war"===n?"WAR REPORT":"brief"===n?"MORNING BRIEFING":"ECONOMY")+'</div><h2 class="pf-ex-title">'+p[0]+'</h2><p class="pf-ex-sub">'+p[1]+"</p>";if("war"!==n&&"brief"!==n){g+='<div class="pf-ex-topics">'+t.map(function(e,t){return'<button type="button" class="pf-ex-tp'+(d&&e.key,'" data-ex-topic="')+e.key+'"><b>'+e.label+"</b><span>"+o(e.sub)+"</span></button>"}).join("")+"</div>",g+='<button type="button" class="pf-ex-nerd" data-ex-nerd>“I know what I’m looking at” — pick the series directly</button>',g+='<div class="pf-ex-chips" data-ex-chips style="display:none">'+a.map(function(e){return'<button type="button" class="pf-ex-chip" data-ex-sid="'+e+'">'+o(i[e])+"</button>"}).join("")+"</div>",g+="<div data-ex-out></div></div>",e.innerHTML=g;var x=e.querySelector("[data-ex-out]");if(e.querySelectorAll("[data-ex-topic]").forEach(function(t){t.addEventListener("click",function(){e.querySelector("[data-ex-chips]").style.display="none",y(t.getAttribute("data-ex-topic"))})}),e.querySelector("[data-ex-nerd]").addEventListener("click",function(){var t=e.querySelector("[data-ex-chips]");t.style.display="none"===t.style.display?"":"none"}),e.querySelectorAll("[data-ex-sid]").forEach(function(t){t.addEventListener("click",function(){e.querySelectorAll("[data-ex-sid]").forEach(function(e){e.classList.remove("on")}),t.classList.add("on"),e.querySelectorAll("[data-ex-topic]").forEach(function(e){e.classList.remove("on")}),f(x,{series_id:t.getAttribute("data-ex-sid")},{})})}),d){e.querySelector("[data-ex-chips]").style.display="";var h=e.querySelector('[data-ex-sid="'+d+'"]');h&&h.classList.add("on"),f(x,{series_id:d},{})}else y("groceries")}else{g+="<div data-ex-single></div></div>",e.innerHTML=g;var m=r[function(){try{var e=new Date,t=((e=new Date(Date.UTC(e.getUTCFullYear(),e.getUTCMonth(),e.getUTCDate()))).getUTCDay()+6)%7;e.setUTCDate(e.getUTCDate()-t+3);var a=new Date(Date.UTC(e.getUTCFullYear(),0,4)),i=(a.getUTCDay()+6)%7;return a.setUTCDate(a.getUTCDate()-i+3),Math.round((e-a)/6048e5)+1}catch(e){return 1}}()%r.length];f(e.querySelector("[data-ex-single]"),{topic:m},{noXlinks:!0})}}function y(t){e.querySelectorAll("[data-ex-topic]").forEach(function(e){e.classList.toggle("on",e.getAttribute("data-ex-topic")===t)}),f(x,{topic:t},{})}}function g(){try{var e=document.getElementById("pf-economy");if(e&&!document.getElementById("pf-explain")&&!l("economy-explain")){var t=document.createElement("div");t.id="pf-explain";var a=e.querySelector("#pf-fred-rail")||document.getElementById("pf-inflation-trends");a&&a.parentNode?a.parentNode.insertBefore(t,a.nextSibling):e.appendChild(t),u(t,"economy")}var i=document.getElementById("xWarReport");if(i&&!document.getElementById("pf-war-explain")&&!l("war-explain")){var r=document.createElement("div");r.id="pf-war-explain",i.appendChild(r),u(r,"war")}var n=document.getElementById("xBrief");if(n&&!document.getElementById("pf-brief-explain")&&!l("brief-explain")){var o=document.createElement("div");o.id="pf-brief-explain";var s=document.getElementById("pf-fred-briefing");s&&s.parentNode?s.parentNode.insertBefore(o,s.nextSibling):n.appendChild(o),u(o,"brief")}}catch(t){}}}(),function(){"use strict";var e=window.PF;if(e&&!window.PFReceipt){var t={rent:{label:"RENT",official:"CUUR0000SEHA",people:"rent_1br",offPlain:"rent of primary residence",pplFig:"median reported 1BR rent",pplUnit:"/mo",pplDecimals:0,gapWord:"rents",gapOff:"official rent CPI"},groceries:{label:"GROCERIES",official:"CUSR0000SAF11",people:null,offPlain:"food at home (CPI)",pplThin:"No people’s grocery basket yet — item-level grocery reports (milk, eggs, bread…) exist, but there’s no aggregate to compare. Report prices to build it."},gas:{label:"GAS",official:"CUSR0000SETB01",people:"gasoline",offPlain:"gasoline (all types, CPI)",pplFig:"median reported gas price",pplUnit:"/gal",pplDecimals:2,gapWord:"gas prices",gapOff:"the official gasoline index"}},a="Crowdsourced — not a statistical sample. Your receipts power the movement’s intelligence.",i="Part of the gap is mechanical: the official basket weights items by a national formula and lets the basket substitute cheaper goods; the people’s basket is what reporters actually bought, where they bought it. Neither is ‘the’ inflation — they’re different baskets answering different questions.",r=[".pf-rc{max-width:980px;margin:0 auto 18px;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}",".pf-rc-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}",".pf-rc-title{font-weight:900;font-size:24px;text-align:center;margin:0 0 4px;letter-spacing:1px}",".pf-rc-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}",".pf-rc-seg{display:flex;justify-content:center;margin-bottom:12px}",".pf-rc-segwrap{display:inline-flex;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;overflow:hidden}",".pf-rc-seg button{background:transparent;border:0;color:#c9bfa8;min-height:48px;padding:0 20px;font-weight:900;font-size:13px;letter-spacing:1px;cursor:pointer}",".pf-rc-seg button.on{background:#c1121f;color:#fff}",".pf-rc-cats{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}",".pf-rc-cat{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;min-height:48px;padding:0 20px;font-weight:700;font-size:13px;cursor:pointer}",".pf-rc-cat.on{background:#c1121f;border-color:#c1121f;color:#fff}",".pf-rc-cat:disabled{opacity:0.45;cursor:not-allowed}",".pf-rc-cat small{display:block;font-size:10px;color:#8a8271;font-weight:400}",".pf-rc-panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}","@media (max-width:640px){.pf-rc-panels{grid-template-columns:1fr}}",".pf-rc-panel{border-radius:10px;padding:14px;min-height:200px}",".pf-rc-off{background:#10141a;border:1px solid #2a3a4a}",".pf-rc-ppl{background:#1a100d;border:1px solid #4a2a1a}",".pf-rc-badge{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1.5px;padding:5px 10px;border-radius:4px;margin-bottom:10px}",".pf-rc-off .pf-rc-badge{background:#2a3a4a;color:#9fc0e8}",".pf-rc-ppl .pf-rc-badge{background:#4a2a1a;color:#f0a080}",".pf-rc-fig{font-weight:900;font-size:32px;margin:0 0 2px}",".pf-rc-off .pf-rc-fig{color:#cfe0f5}",".pf-rc-ppl .pf-rc-fig{color:#f5cfae}",".pf-rc-meta{font-size:12px;color:#8a8271;margin-bottom:8px}",".pf-rc-bars{display:flex;gap:10px;align-items:flex-end;height:110px;margin:10px 0 4px;justify-content:center}",".pf-rc-bar{width:64px;background:linear-gradient(to top,#c1121f,#f0a080);border-radius:4px 4px 0 0;position:relative;min-height:8px}",".pf-rc-bar span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:10px;color:#8a8271}",".pf-rc-gap{background:#0d0d0d;border:1px dashed #3a3a3a;border-radius:8px;padding:14px;margin:12px 0;font-size:14px;line-height:1.65}",".pf-rc-gap b{color:#e8b923}",".pf-rc-gap .pf-rc-method{font-size:12px;color:#8a8271;margin-top:8px;font-style:italic}",".pf-rc-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px 14px;margin:12px 0}",".pf-rc-why b{color:#e8b923;letter-spacing:1px;font-size:12px}",".pf-rc-why p{font-size:13px;line-height:1.6;color:#c9bfa8;margin:6px 0 0}",".pf-rc-caveat{font-size:11px;color:#8a8271;font-style:italic;margin-top:8px}",".pf-rc-thin{background:#1a100d;border:1px dashed #4a2a1a;border-radius:8px;padding:18px;text-align:center;font-size:14px;color:#c9bfa8;margin:12px 0}",".pf-rc-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:12px}",".pf-rc-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}",".pf-rc-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}",".pf-rc-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;margin:10px 0}",".pf-rc-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}"].join("\n");try{window.PFReceipt={mount:u},"loading"===document.readyState?document.addEventListener("DOMContentLoaded",u):u()}catch(e){}}function n(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function o(e,t){var a=t&&null!=t.pplDecimals?t.pplDecimals:0;return"$"+(Number(e)/100).toLocaleString("en-US",{minimumFractionDigits:a,maximumFractionDigits:a})}function l(e,t,a){for(var i=String(t||"").split(/\s+/),r=[],n="",o=0;o<i.length;o++){var l=n?n+" "+i[o]:i[o];e.measureText(l).width>a&&n?(r.push(n),n=i[o]):n=l}return n&&r.push(n),r}function s(e,t,a){var i="CHECK THE RECEIPTS — TWO NUMBERS, TWO METHODS.\nOfficial: "+(e.fig||"—")+" ("+(e.cite||"")+")\nPeople’s: "+(t.fig||"—")+" ("+(t.src||"")+")\n"+(a||"")+"\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-receipt";try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(i),"Both numbers + sources copied — paste it anywhere."}catch(e){}return null}function c(e,t){var a=null;try{a=function(e,t,a){var r=1080,n=1080,o=document.createElement("canvas");o.width=r,o.height=n;var s=o.getContext("2d");if(!s)return null;var c="#c1121f",p="#7d0b16",d="#f2ecdc";s.fillStyle="#0e0d0c",s.fillRect(0,0,r,n),s.save(),s.globalAlpha=.032,s.strokeStyle="#ffffff",s.lineWidth=1;for(var f=-n;f<r+n;f+=26)s.beginPath(),s.moveTo(f,0),s.lineTo(f+n,n),s.stroke();s.restore();var u=s.createRadialGradient(540,432,172.8,540,540,918);u.addColorStop(0,"rgba(0,0,0,0)"),u.addColorStop(1,"rgba(0,0,0,0.55)"),s.fillStyle=u,s.fillRect(0,0,r,n);var g=s.createLinearGradient(0,0,0,10);g.addColorStop(0,c),g.addColorStop(1,p),s.fillStyle=g,s.fillRect(0,0,r,10),s.save(),s.globalAlpha=.05,s.fillStyle=d,s.font="900 620px Arial,sans-serif",s.textAlign="center",s.fillText("★",540,648),s.restore();var x=540,h=110;s.textAlign="center",s.fillStyle="#c9a227",s.font="700 28px Arial,sans-serif";try{s.letterSpacing="8px"}catch(e){}s.fillText("CHECK THE RECEIPTS · TWO NUMBERS, TWO METHODS",x,h),h+=70;try{s.letterSpacing="0px"}catch(e){}h+=36,s.strokeStyle="rgba(201,162,39,0.5)",s.lineWidth=1,s.beginPath(),s.moveTo(390,h),s.lineTo(690,h),s.stroke(),h+=70,s.textAlign="left",s.fillStyle="#10141a",s.fillRect(60,h,460,300),s.strokeStyle="rgba(159,192,232,0.35)",s.lineWidth=1.5,s.strokeRect(60,h,460,300),s.fillStyle="#9fc0e8",s.font="700 24px Arial,sans-serif";try{s.letterSpacing="4px"}catch(e){}s.fillText("OFFICIAL",90,h+44);try{s.letterSpacing="0px"}catch(e){}s.fillStyle="#cfe0f5",s.font='900 70px Georgia,"Times New Roman",serif',s.fillText(e.fig||"—",90,h+140),s.fillStyle="#8a8271",s.font="italic 400 22px Georgia,serif";for(var m=l(s,e.cite||"",400),y=0;y<m.length&&y<3;y++)s.fillText(m[y],90,h+180+30*y);s.fillStyle="#1a100d",s.fillRect(560,h,460,300),s.strokeStyle="rgba(240,160,128,0.35)",s.lineWidth=1.5,s.strokeRect(560,h,460,300),s.fillStyle="#f0a080",s.font="700 24px Arial,sans-serif";try{s.letterSpacing="4px"}catch(e){}s.fillText("PEOPLE’S",590,h+44);try{s.letterSpacing="0px"}catch(e){}s.fillStyle="#f5cfae",s.font='900 70px Georgia,"Times New Roman",serif',s.fillText(t.fig||"—",590,h+140),s.fillStyle="#8a8271",s.font="italic 400 22px Georgia,serif";for(var v=l(s,t.src||"",400),b=0;b<v.length&&b<3;b++)s.fillText(v[b],590,h+180+30*b);h+=350,s.textAlign="center",s.fillStyle=d,s.font="italic 700 34px Georgia,serif";for(var w=l(s,a||"",940),S=0;S<w.length&&S<3;S++)s.fillText(w[S],x,h),h+=46;h+=14,s.strokeStyle=c,s.lineWidth=2,s.beginPath(),s.moveTo(390,h),s.lineTo(518,h),s.stroke(),s.beginPath(),s.moveTo(562,h),s.lineTo(690,h),s.stroke(),s.save(),s.translate(x,h),s.rotate(Math.PI/4),s.fillStyle=c,s.fillRect(-7,-7,14,14),s.restore(),h+=44,s.fillStyle="#a89a7d",s.font="italic 400 24px Georgia,serif";for(var E=l(s,i,940),T=0;T<E.length&&T<4;T++)s.fillText(E[T],x,h),h+=32;h+=30,s.fillStyle="#6f6350",s.font="italic 400 26px Arial,sans-serif",s.fillText("Info, not advice. Data: FRED.",x,h);var k=890;s.strokeStyle="rgba(201,162,39,0.45)",s.lineWidth=1,s.beginPath(),s.moveTo(140,k),s.lineTo(940,k),s.stroke(),k+=54,s.font="900 42px Arial,sans-serif",s.fillStyle=d;try{s.letterSpacing="8px"}catch(e){}var A="JOIN THE FIGHT",C=s.measureText(A).width;s.fillText(A,x,k),s.fillStyle=c,s.fillText(".",x+C/2-4,k);try{s.letterSpacing="0px"}catch(e){}k+=50,s.fillStyle=c,s.font="900 30px Arial,sans-serif";try{s.letterSpacing="10px"}catch(e){}s.fillText("MTCSTW.COM",x,k);try{s.letterSpacing="0px"}catch(e){}var R=s.createLinearGradient(0,1070,0,n);return R.addColorStop(0,p),R.addColorStop(1,c),s.fillStyle=R,s.fillRect(0,1070,r,10),o}(e.off,e.ppl,e.gapText)}catch(e){a=null}if(a){try{if(window.PFShare&&"function"==typeof window.PFShare.shareImage)return void window.PFShare.shareImage(a,"pf-receipt-check.png","Check the receipts","receipt",{text:"CHECK THE RECEIPTS — TWO NUMBERS, TWO METHODS. https://www.mtcstw.com/economy#pf-receipt via The Propaganda Factory",link:"https://www.mtcstw.com/economy#pf-receipt"})}catch(e){}try{var r=document.createElement("a");r.href=a.toDataURL("image/png"),r.download="pf-receipt-check.png",document.body.appendChild(r),r.click(),setTimeout(function(){try{r.parentNode.removeChild(r)}catch(e){}},500)}catch(a){var n=s(e.off,e.ppl,e.gapText);t&&(t.textContent=n||"SHARE FAILED — TRY AGAIN")}}else{var o=s(e.off,e.ppl,e.gapText);t&&(t.textContent=o||"SHARE FAILED — TRY AGAIN")}}function p(a){var i="";return["rent","groceries","gas"].forEach(function(r){var n=t[r];"groceries"===r&&function(){try{return e.skip("receipt-groceries")}catch(e){return!1}}()||"gas"===r&&function(){try{return e.skip("receipt-gas")}catch(e){return!1}}()||(i+='<button type="button" class="pf-rc-cat'+(a===r?" on":"")+'" data-rc-cat="'+r+'">'+n.label+("groceries"===r?"<small>NEW</small>":"")+"</button>")}),i}function d(e,l,s,u){!function(){try{if(document.getElementById("pf-rc-css"))return;var e=document.createElement("style");e.id="pf-rc-css",e.textContent=r,document.head.appendChild(e)}catch(e){}}();var g=window.PFFred,x=t[s]||t.rent,h='<div class="pf-rc"><div class="pf-rc-kicker">ECONOMY</div><h2 class="pf-rc-title">RECEIPT CHECK</h2><p class="pf-rc-sub">The government’s number and the people’s number — side by side, never blended.</p>';h+='<div class="pf-rc-seg"><div class="pf-rc-segwrap">'+["official","peoples","side"].map(function(e){return'<button type="button" data-rc-view="'+e+'" class="'+(l===e?"on":"")+'">'+("official"===e?"OFFICIAL":"peoples"===e?"PEOPLE’S":"SIDE-BY-SIDE")+"</button>"}).join("")+"</div></div>",h+='<div class="pf-rc-cats">'+p(s)+"</div>";var m=u.offStale||null,y=function(e,a,i,r){var o=(r=r||t.rent).official,l=(e||[]).slice().reverse().slice(-12),s=l.map(function(e){return+e.value}).filter(isFinite),c="";if(s.length>1){var p=Math.min.apply(null,s),d=Math.max.apply(null,s);d-p<1e-9&&(p-=1,d+=1);var f=l.map(function(e,t){return(t?"L":"M")+(6+t/(s.length-1)*328).toFixed(1)+" "+(6+108*(1-(+e.value-p)/(d-p))).toFixed(1)}).join(" ");c='<svg viewBox="0 0 340 120" style="display:block;width:100%;height:auto" role="img" aria-label="official '+n(r.offPlain)+' inflation trend"><path d="'+f+'" fill="none" stroke="#6aa5ff" stroke-width="2.5"/></svg>'}var u=(e||[])[0],g=null;if(e&&e.length>=13){var x=+e[0].value,h=+e[12].value;h&&(g=100*(x/h-1))}var m='<div class="pf-rc-panel pf-rc-off"><span class="pf-rc-badge">OFFICIAL — U.S. BUREAU OF LABOR STATISTICS VIA FRED</span><div class="pf-rc-fig">'+(null==g?"—":(g>=0?"+":"−")+Math.abs(g).toFixed(1)+"%")+"</div>"+(i&&i.stale&&a&&a.staleBadge?a.staleBadge({stale:!0,days_old:i.days_old,series_id:o}):"")+'<div class="pf-rc-meta">'+n(r.offPlain)+", 12-month change"+(u?" · "+n(a.fmtPeriod({series_id:o,period:u.period})):"")+"</div>"+c;if(u){var y={series_id:o,retrieved_at:u.retrieved_at,period:u.period};m+='<div class="pf-fred-cite">'+n(a.citation(y))+"</div>"}return{html:m+="</div>",yoy:g}}(u.obs,g,m,x),v=function(e,i){i=i||t.rent;var r='<div class="pf-rc-panel pf-rc-ppl"><span class="pf-rc-badge">PEOPLE’S — REPORTED BY THE MOVEMENT</span>';if(!e||!e.enough_data)return r+='<div class="pf-rc-thin">'+(i.pplThin?'<b>No people’s grocery basket yet.</b><br><span style="font-size:12px">'+n(i.pplThin)+"</span>":'<b>Not enough reports yet — add yours.</b><br><span style="font-size:12px">The people’s panel publishes at 5 reports from 3+ callsigns.</span>')+"</div>",{html:r+='<div class="pf-rc-caveat">'+n(a)+"</div></div>",publishable:!1};var l=e.median_cents,s=e.week_ago_median_cents,c=e.delta_pct,p=Math.max(l||0,s||0,1);function d(e,t){return'<div class="pf-rc-bar" style="height:'+Math.max(8,Math.round(e/p*90))+'px"><span>'+n(t)+"</span></div>"}return{html:r+='<div class="pf-rc-fig">'+o(l,i)+'<span style="font-size:14px;color:#8a8271">'+n(i.pplUnit||"/mo")+'</span></div><div class="pf-rc-meta">'+n(i.pplFig||"median reported price")+" · "+(null==c?"no prior window":(c>=0?"+":"−")+Math.abs(c).toFixed(1)+"% vs last month")+" · "+(e.sample_count||0)+' reports</div><div class="pf-rc-bars">'+(s?d(s,"LAST MO"):"")+d(l,"THIS MO")+'</div><div style="height:22px"></div><div class="pf-rc-caveat">'+n(a)+"</div></div>",publishable:!0,delta:c,reports:e.sample_count}}(u.item,x),b="peoples"!==l,w="official"!==l;h+='<div class="pf-rc-panels"'+("side"===l?"":' style="grid-template-columns:1fr"')+">",b&&(h+=y.html),w&&(h+=v.html),h+="</div>";var S="";if(m&&m.stale&&b&&w&&v.publishable)h+='<div class="pf-rc-gap"><b>THE GAP — </b>'+n(S="Comparison paused — "+x.official+" is "+(null==m.days_old?"?":m.days_old)+" days past its expected refresh.")+'<div class="pf-rc-method">'+n(i)+"</div></div>";else if(b&&w&&v.publishable&&null!=y.yoy&&null!=v.delta){var E=100*(Math.pow(1+v.delta/100,12)-1),T=Math.abs(E-y.yoy),k=E>=y.yoy?"above":"below";h+='<div class="pf-rc-gap"><b>THE GAP — </b>'+n(S="People report "+(x.gapWord||"prices")+" moving "+(v.delta>=0?"+":"−")+Math.abs(v.delta).toFixed(1)+"% this month — about a "+(E>=0?"+":"−")+Math.abs(E).toFixed(1)+"% annual pace; "+(x.gapOff||"the official index")+" says "+(y.yoy>=0?"+":"−")+Math.abs(y.yoy).toFixed(1)+"% over the year. That’s roughly a "+T.toFixed(1)+"-point gap, with the people’s number "+k+".")+'<div class="pf-rc-method">'+n(i)+"</div></div>"}h+='<div class="pf-rc-why"><b>WHY THEY’RE DIFFERENT</b><p>'+n("The official number is a national average built from thousands of surveyed prices. The people’s number is what real people in this movement actually paid. Different methods, different stories — both worth seeing.")+"</p></div>",b&&w&&v.publishable&&(h+='<button type="button" class="pf-rc-share" data-rc-share>SHOW THE GAP</button>'),h+='<div class="pf-rc-xlinks">Checked the receipts? Now <a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · <a href="https://www.mtcstw.com/economy#pf-explain">translate the economy</a></div>',h+="</div>",e.innerHTML=h,e.querySelectorAll("[data-rc-view]").forEach(function(t){t.addEventListener("click",function(){d(e,t.getAttribute("data-rc-view"),s,u)})}),e.querySelectorAll("[data-rc-cat]").forEach(function(t){t.addEventListener("click",function(){f(e,l,t.getAttribute("data-rc-cat"))})});var A=e.querySelector("[data-rc-share]");A&&A.addEventListener("click",function(){c({off:{fig:null==y.yoy?"—":(y.yoy>=0?"+":"−")+Math.abs(y.yoy).toFixed(1)+"%",cite:"BLS via FRED · "+x.official},ppl:{fig:u.item?o(u.item.median_cents,x)+(x.pplUnit||"/mo"):"—",src:(u.item?u.item.sample_count+" reports":"")+" · reported by the movement"},gapText:S},A)})}function f(e,a,i){var r=t[i]||t.rent,n=window.PFFred,o=null,l=null,s=null,c=0;function p(){++c<2||d(e,a,i,{obs:o,item:l,offStale:s})}n.api("fred_series",{series_id:r.official,limit:15},function(e){o=e&&e.ok&&e.observations||null,e&&e.ok&&(s={stale:!!e.stale,days_old:null==e.days_old?null:e.days_old,stale_note:e.stale_note||null}),p()}),r.people?n.api("price_board",{area_key:"national"},function(e){try{for(var t=e&&e.items||[],a=0;a<t.length;a++)if(t[a]&&t[a].item_id===r.people){l=t[a];break}}catch(e){}p()}):p(),setTimeout(function(){c<2&&(c=2,d(e,a,i,{obs:o,item:l,offStale:s}))},15e3)}function u(){if(!function(){try{return e.skip("fred")||e.skip("economy-fred")||e.skip("economy-receipt")}catch(e){return!1}}()){var t=null;try{t=document.getElementById("pf-economy")}catch(e){}if(t&&!document.getElementById("pf-receipt"))if(window.PFFred){var a=document.createElement("div");a.id="pf-receipt",t.firstChild?t.insertBefore(a,t.firstChild):t.appendChild(a),a.innerHTML='<div class="pf-rc"><div class="pf-rc-loading">CHECKING THE RECEIPTS…</div></div>',f(a,"side","rent")}}}}();
+/* PF v1.4.3 core/bundle-fred-tools.js — concatenated bundle, generated by build/bundle-core.js.
+   DO NOT EDIT. Regenerate with: node build/bundle-core.js [--debug]
+   Contains: games/fred-stackem.js, games/fred-explain.js, games/fred-receipt.js
+   Each file keeps its own PF.skip() kill switch (?pf_off=<silo>). */
+
+/* ===== games/fred-stackem.js ===== */
+/* games/fred-stackem.js  |  PF v1.4.3 | TOOL 1 — "STACK 'EM" COMPARISON BUILDER.
+   Pick two economic series + a time window -> chart + auto-generated
+   plain-English read + share card. All pair math and honesty enforcement
+   happens server-side (?action=fred_compare); this file renders.
+
+   Mounts:
+     PFStackEm.mount(el)        — full builder (Money suite MACRO section).
+                                  money-page.js SECTIONS entry 'stackem'.
+                                  Kill: ?pf_off=money-stackem.
+     PFStackEm.mountCurated(el) — one curated matchup, read-only
+                                  (War Report). Self-mounts into #xWarReport.
+                                  Kill: ?pf_off=war-stack.
+     PFStackEm.mountGuided(el)  — Academy guided mode: the 6 matchups one
+                                  at a time with teaching copy; free pick
+                                  unlocks after the guided set is complete
+                                  ("learning before lab").
+                                  Self-mounts after #pf-academy-hq.
+                                  Kill: ?pf_off=academy-stackem.
+
+   Binding honesty (News Desk §§2-4, remediated):
+   - Every figure: 4-fact citation. Stale legs freeze the read server-side.
+   - Dual-axis: the backend normalizes (YoY % / indexed-100); this file
+     never draws raw dual axes.
+   - Suggested matchups default; free pick is guardrailed server-side.
+   - Headlines/read come from the backend generator (banned/allowed lists,
+     0.5pp margin rule, finalized vintages only) — never composed here.
+   - No predictions, no financial advice. Public identity MTCSTW only.
+   Read-only, zero XP. Cross-links are user-initiated taps only — no
+   auto-advance, no streak/XP pressure between tools. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) return;
+  if (window.PFStackEm) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
+
+  /* The 6 suggested matchups (Design brief, remediated hooks).
+     Phase 3 (2026-10-06): the wages-vs-inflation matchup re-points to the
+     median series (LES1252881600Q) — the CES-average-based matchup is
+     retired, not edited. */
+  var MATCHUPS = [
+    { sid1: 'LES1252881600Q', sid2: 'CPIAUCNS',
+      hook: 'Wages vs Inflation', question: 'Are paychecks beating prices?',
+      why: 'The median paycheck vs prices is the real-raise question — the median series isn\u2019t fooled by executive raises. Both legs as 12-month change, so the units can\u2019t lie.' },
+    { sid1: 'MORTGAGE30US', sid2: 'FEDFUNDS',
+      hook: 'Mortgage rates vs Fed rate', question: 'Who moved first?',
+      why: 'The Fed sets one rate; lenders charge another. The gap between them is the policy transmission chain.' },
+    { sid1: 'PAYEMS', sid2: 'UNRATE',
+      hook: 'Jobs vs Unemployment', question: 'Hiring up, jobless up — how?',
+      why: 'Two surveys, two answers — payrolls count jobs, unemployment counts people looking for work.' },
+    { sid1: 'DGS10', sid2: 'DGS2',
+      hook: 'The Yield Curve', question: 'The market\u2019s fear gauge',
+      why: 'The 10-year minus the 2-year is the market\u2019s fear gauge. It has called every recession in 50 years — and it also cries wolf. That\u2019s the lesson.' },
+    { sid1: 'CPIAUCNS', sid2: 'PCEPI',
+      hook: 'Inflation gauges', question: 'Headline vs the Fed\u2019s favorite',
+      why: 'Two inflation baskets, two answers. The Fed watches PCE; you feel CPI. Same economy, different thermometers.' },
+    { sid1: 'MORTGAGE30US', sid2: 'CPIAUCNS',
+      hook: 'The Real Mortgage Rate', question: 'What does a mortgage actually cost in real terms?',
+      why: 'The mortgage rate minus inflation is the real rate — what borrowing actually costs you.' }
+  ];
+
+  /* Phase 3 (2026-10-06): DRCCLACBS, LES1252881600Q, CUSR0000SAF11 join
+     the free-pick list. CES0500000003 stays — the average-vs-median
+     inequality comparison is an approved free-mode use. */
+  var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
+  var PLAIN = {
+    FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
+    DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
+    MORTGAGE30US: '30-year mortgage rate',
+    CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
+    PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
+    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
+  };
+  var WINDOWS = [['1y', '1Y'], ['3y', '3Y'], ['5y', '5Y'], ['10y', '10Y'], ['all', 'ALL']];
+  var LEG_COLORS = ['#6aa5ff', '#e0685c', '#e8b923'];
+  var DONE_KEY = 'pf-stackem-guided-done';
+
+  function isoWeek() {
+    try {
+      var d = new Date();
+      d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      var dow = (d.getUTCDay() + 6) % 7;
+      d.setUTCDate(d.getUTCDate() - dow + 3);
+      var first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+      var fdow = (first.getUTCDay() + 6) % 7;
+      first.setUTCDate(first.getUTCDate() - fdow + 3);
+      return Math.round((d - first) / (7 * 24 * 3600 * 1000)) + 1;
+    } catch (e) { return 1; }
+  }
+
+  var CSS = [
+    '.pf-se{max-width:980px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-se-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-se-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-se-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}',
+    '.pf-se-modes{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}',
+    '.pf-se-mode{background:#1a1a1a;border:1px solid #3a3a3a;color:#c9bfa8;border-radius:6px;min-height:44px;padding:10px 18px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}',
+    '.pf-se-mode.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-se-matchups{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}',
+    '@media (max-width:640px){.pf-se-matchups{grid-template-columns:1fr 1fr}}',
+    '.pf-se-mu{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:12px;cursor:pointer;min-height:44px;text-align:left;color:#f5ead6}',
+    '.pf-se-mu.on{border-color:#c1121f;background:#160a0a}',
+    '.pf-se-mu b{display:block;font-size:14px;letter-spacing:0.5px;margin-bottom:4px}',
+    '.pf-se-mu span{font-size:12px;color:#c9bfa8;font-style:italic}',
+    '.pf-se-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}',
+    '.pf-se-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}',
+    '.pf-se-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-se-winrow{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap;align-items:center}',
+    '.pf-se-winrow .pf-se-wlabel{font-size:12px;color:#8a8271;letter-spacing:1px}',
+    '.pf-se-go{background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:48px;padding:0 28px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}',
+    '.pf-se-out{margin-top:14px}',
+    '.pf-se-head{font-weight:900;font-size:19px;line-height:1.4;margin:0 0 8px;color:#f5ead6}',
+    '.pf-se-read{font-size:14px;line-height:1.65;color:#f5ead6;margin:0 0 6px}',
+    '.pf-se-chartwrap{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:10px 6px 4px;margin:10px 0}',
+    '.pf-se-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#c9bfa8;padding:4px 8px 8px}',
+    '.pf-se-legend i{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}',
+    '.pf-se-axisnote{font-size:10px;color:#8a8271;text-align:center;letter-spacing:0.5px;padding:2px 8px 8px}',
+    '.pf-se-dis{font-size:11px;color:#8a8271;line-height:1.6;border-left:3px solid #3a3a3a;padding:6px 10px;margin:8px 0}',
+    '.pf-se-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0}',
+    '.pf-se-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}',
+    '.pf-se-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:10px}',
+    '.pf-se-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}',
+    '.pf-se-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}',
+    '.pf-se-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px;font-size:13px;line-height:1.6;color:#c9bfa8;margin:10px 0}',
+    '.pf-se-why b{color:#e8b923;letter-spacing:1px}',
+    '.pf-se-prog{text-align:center;font-size:12px;color:#8a8271;letter-spacing:2px;margin-bottom:8px}',
+    '.pf-se-next{display:block;margin:12px auto 0;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;padding:0 32px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer}',
+    '.pf-se-lock{font-size:12px;color:#8a8271;text-align:center;margin-top:8px;font-style:italic}',
+    '.pf-se-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}',
+    '.pf-se-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-se-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-se-css'; st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  /* ---------- SVG chart (single axis — the backend normalizes) ---------- */
+  function chartSvg(j, F) {
+    var legs = (j.legs || []).filter(function (l) {
+      return l && l.points && l.points.length > 1;
+    });
+    if (!legs.length) return '';
+    var W = 720, H = 260, PADL = 8, PADR = 8, PADT = 10, PADB = 26;
+    var all = [];
+    legs.forEach(function (l) {
+      l.points.forEach(function (p) { if (isFinite(+p.value)) all.push(+p.value); });
+    });
+    if (all.length < 2) return '';
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+    var span = hi - lo;
+    /* Scale-honesty: the axis minimum is always labeled. */
+    lo -= span * 0.04; hi += span * 0.04; span = hi - lo;
+    function X(i, n) { return (PADL + (i / (n - 1)) * (W - PADL - PADR)).toFixed(1); }
+    function Y(v) { return (PADT + (1 - (v - lo) / span) * (H - PADT - PADB)).toFixed(1); }
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto;min-height:240px" role="img" aria-label="comparison chart">';
+    /* zero line when in range */
+    if (lo < 0 && hi > 0) {
+      svg += '<line x1="' + PADL + '" y1="' + Y(0) + '" x2="' + (W - PADR) + '" y2="' + Y(0) + '" stroke="#3a3a3a" stroke-width="1"/>';
+    }
+    var legend = '';
+    legs.forEach(function (l, li) {
+      var pts = l.points, n = pts.length;
+      var d = pts.map(function (p, i) {
+        return (i ? 'L' : 'M') + X(i, n) + ' ' + Y(+p.value);
+      }).join(' ');
+      var col = LEG_COLORS[li % LEG_COLORS.length];
+      svg += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.5"/>';
+      /* tap targets: up to 40 points per leg -> bottom sheet */
+      var step = Math.max(1, Math.floor(n / 40));
+      for (var i = 0; i < n; i += step) {
+        (function (pt, leg, color) {
+          svg += '<circle class="pf-se-pt" cx="' + X(pts.indexOf(pt), n) + '" cy="' + Y(+pt.value) +
+            '" r="10" fill="transparent" data-sid="' + esc(leg.series_id) +
+            '" data-v="' + esc(String(pt.value)) + '" data-p="' + esc(String(pt.period)) +
+            '" data-c="' + esc(color) + '"/>';
+        })(pts[i], l, col);
+      }
+      /* Prohibition 2: seasonal adjustment shown inline for mixed pairs. */
+      var sa0 = String(l.sa_nsa || '').toUpperCase();
+      var saLbl = sa0.indexOf('NSA') === 0 ? ' (NSA)' : (sa0.indexOf('SA') === 0 ? ' (SA)' : '');
+      var nm = esc((l.title || l.series_id) + saLbl);
+      legend += '<span><i style="background:' + col + '"></i>' + nm + '</span>';
+    });
+    /* y min/max labels */
+    svg += '<text x="' + (W - PADR) + '" y="' + (PADT + 10) + '" fill="#8a8271" font-size="10" text-anchor="end">' + hi.toFixed(1) + '</text>';
+    svg += '<text x="' + (W - PADR) + '" y="' + (H - PADB + 4) + '" fill="#8a8271" font-size="10" text-anchor="end">' + lo.toFixed(1) + '</text>';
+    /* x first/last labels */
+    var p0 = legs[0].points[0].period, p1 = legs[0].points[legs[0].points.length - 1].period;
+    function shortP(p) {
+      var m = /^(\d{4})-(\d{2})/.exec(String(p));
+      if (m) return m[1];
+      return String(p).slice(0, 10);
+    }
+    svg += '<text x="' + PADL + '" y="' + (H - 8) + '" fill="#8a8271" font-size="10">' + esc(shortP(p0)) + '</text>';
+    svg += '<text x="' + (W - PADR) + '" y="' + (H - 8) + '" fill="#8a8271" font-size="10" text-anchor="end">' + esc(shortP(p1)) + '</text>';
+    svg += '</svg>';
+    var note = 'axis starts at ' + lo.toFixed(1) + ' — not zero';
+    if (j.basis === 'yoy' || /% change/.test(j.legs[0].basis || '')) note += ' · ' + esc(j.legs[0].basis || '');
+    return '<div class="pf-se-chartwrap"><div class="pf-se-legend">' + legend + '</div>' +
+      svg + '<div class="pf-se-axisnote">' + note + '</div></div>';
+  }
+
+  function wirePoints(wrap, j, F) {
+    try {
+      var pts = wrap.querySelectorAll('.pf-se-pt');
+      for (var i = 0; i < pts.length; i++) {
+        (function (el) {
+          el.addEventListener('click', function () {
+            var sid = el.getAttribute('data-sid');
+            var leg = null;
+            (j.legs || []).forEach(function (l) { if (l.series_id === sid) leg = l; });
+            if (!leg || !F) return;
+            var v = parseFloat(el.getAttribute('data-v'));
+            var card = {
+              series_id: sid, title: leg.title,
+              value_label: isFinite(v) ? v.toFixed(2) : '—',
+              unit_label: leg.unit_label || '',
+              period: el.getAttribute('data-p'),
+              period_label: null,
+              citation: (leg.latest && leg.latest.citation) || '',
+              sa_nsa: leg.sa_nsa,
+              source_url: (leg.latest && leg.latest.source_url) || ('https://fred.stlouisfed.org/series/' + sid),
+              stale: leg.latest && leg.latest.stale,
+              stale_note: leg.latest && leg.latest.stale_note
+            };
+            try { F.tapSheet(card); } catch (e) {}
+          });
+        })(pts[i]);
+      }
+    } catch (e) {}
+  }
+
+  /* ---------- output card ---------- */
+  function outputHtml(j, F, opts) {
+    opts = opts || {};
+    var h = '';
+    h += '<h3 class="pf-se-head">' + esc(j.headline || '') + '</h3>';
+    (j.read || []).forEach(function (s) { h += '<p class="pf-se-read">' + esc(s) + '</p>'; });
+    h += chartSvg(j, F);
+    (j.disclosures || []).forEach(function (d) {
+      h += '<div class="pf-se-dis">' + esc(d.text || '') + '</div>';
+    });
+    (j.citations || []).forEach(function (c) {
+      if (c) h += '<div class="pf-fred-cite">' + esc(c) + '</div>';
+    });
+    if (!opts.noFollow) {
+      h += '<div class="pf-se-follow">' +
+        '<button type="button" class="pf-se-fbtn" data-se-act="flip">FLIP IT</button>' +
+        '<button type="button" class="pf-se-fbtn" data-se-act="again">TRY A MATCHUP</button>' +
+        '<a class="pf-se-fbtn" data-se-act="explain" href="https://www.mtcstw.com/economy#pf-explain">WHAT DOES THIS MEAN FOR ME?</a>' +
+        '</div>';
+    }
+    h += '<button type="button" class="pf-se-share" data-se-act="share">SHARE THE RECEIPTS</button>';
+    /* Brand-integration (2026-10-06): networks row on the unified component —
+       the builder already owns its share button, so nets-only mode. */
+    h += '<div data-pf-share="stackem" data-pf-share-mode="nets" data-pf-share-link="/economy"></div>';
+    if (!opts.noXlinks) h += xlinks();
+    return '<div class="pf-se-out">' + h + '</div>';
+  }
+
+  function xlinks() {
+    return '<div class="pf-se-xlinks">Stacked it? Now ' +
+      '<a href="https://www.mtcstw.com/economy#pf-explain">translate it</a> · ' +
+      '<a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>';
+  }
+
+  /* ---------- share card (canvas 1080x1080) ---------- */
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintShare(j) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 110;
+    x.textAlign = 'center';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    x.fillText('STACK \u2019EM \u00B7 OFFICIAL DATA \u00B7 FRED', cx, y); y += 66;
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 30;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 66;
+    /* headline: monumental serif */
+    x.fillStyle = btC; x.font = '900 48px Georgia,"Times New Roman",serif';
+    var hl = wrapText(x, j.headline || '', W - 140);
+    for (var i = 0; i < hl.length && i < 4; i++) { x.fillText(hl[i], cx, y); y += 60; }
+    y += 16;
+    /* mini chart: first two legs */
+    var legs = (j.legs || []).filter(function (l) { return l.points && l.points.length > 1; }).slice(0, 2);
+    if (legs.length) {
+      var chX = 90, chW = W - 180, chY = y, chH = 240;
+      var all = [];
+      legs.forEach(function (l) { l.points.forEach(function (p) { if (isFinite(+p.value)) all.push(+p.value); }); });
+      var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+      if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+      x.strokeStyle = '#2a2a2a'; x.lineWidth = 2;
+      x.strokeRect(chX, chY, chW, chH);
+      legs.forEach(function (l, li) {
+        var pts = l.points, n = pts.length;
+        x.strokeStyle = LEG_COLORS[li % LEG_COLORS.length]; x.lineWidth = 4;
+        x.beginPath();
+        pts.forEach(function (p, pi) {
+          var px = chX + (pi / (n - 1)) * chW;
+          var py = chY + chH - ((+p.value - lo) / (hi - lo)) * chH;
+          if (pi) x.lineTo(px, py); else x.moveTo(px, py);
+        });
+        x.stroke();
+      });
+      x.fillStyle = btF; x.font = 'italic 400 24px Georgia,serif';
+      x.fillText('axis starts at ' + lo.toFixed(1) + ' \u2014 not zero', cx, chY + chH + 34);
+      y = chY + chH + 70;
+      /* legend (Prohibition 2: SA/NSA inline) */
+      x.font = '700 26px Arial,sans-serif';
+      try { x.letterSpacing = '2px'; } catch (e3) {}
+      legs.forEach(function (l, li) {
+        x.fillStyle = LEG_COLORS[li % LEG_COLORS.length];
+        var sa1 = String(l.sa_nsa || '').toUpperCase();
+        var saLbl1 = sa1.indexOf('NSA') === 0 ? ' (NSA)' : (sa1.indexOf('SA') === 0 ? ' (SA)' : '');
+        x.fillText('\u2014 ' + (l.title || l.series_id) + saLbl1, cx, y);
+        y += 36;
+      });
+      try { x.letterSpacing = '0px'; } catch (e4) {}
+      y += 10;
+    }
+    /* read: first two sentences */
+    x.fillStyle = btM; x.font = '400 30px Georgia,"Times New Roman",serif';
+    var rs = (j.read || []).slice(0, 2).join(' ');
+    var rl = wrapText(x, rs, W - 160);
+    for (var r2 = 0; r2 < rl.length && r2 < 3; r2++) { x.fillText(rl[r2], cx, y); y += 40; }
+    y += 24;
+    /* source strips: hairline box */
+    x.font = '400 22px Georgia,serif';
+    var btStrips = [];
+    (j.citations || []).forEach(function (c) {
+      if (!c) return;
+      wrapText(x, String(c), W - 240).slice(0, 2).forEach(function (l) { btStrips.push(l); });
+    });
+    btStrips = btStrips.slice(0, 4);
+    if (btStrips.length) {
+      var btSh = btStrips.length * 32 + 40;
+      x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+      x.strokeRect(cx - (W - 220)/2, y, W - 220, btSh);
+      x.fillStyle = btC;
+      for (var c2 = 0; c2 < btStrips.length; c2++) { x.fillText(btStrips[c2], cx, y + 38 + c2 * 32); }
+      y += btSh + 30;
+    } else { y += 10; }
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e5) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
+    return cv;
+  }
+
+  function shareAsText(j) {
+    var txt = (j.headline || '') + '\n' + (j.read || []).join(' ') + '\n' +
+      (j.citations || []).filter(Boolean).join('\n') +
+      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/follow-the-money#pf-stackem';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        return 'Headline + sources copied — paste it anywhere.';
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function doShare(j, btn) {
+    var cv = null;
+    try { cv = paintShare(j); } catch (e) { cv = null; }
+    if (!cv) {
+      var msg = shareAsText(j);
+      if (btn) btn.textContent = msg || 'SHARE FAILED — TRY AGAIN';
+      return;
+    }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        window.PFShare.shareImage(cv, 'pf-stackem.png', j.headline || 'Stacked numbers',
+          'stackem', { text: (j.headline || '') + ' https://www.mtcstw.com/follow-the-money#pf-stackem via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/follow-the-money#pf-stackem' });
+        return;
+      }
+    } catch (e) {}
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'pf-stackem.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+    } catch (e2) {
+      var m2 = shareAsText(j);
+      if (btn) btn.textContent = m2 || 'SHARE FAILED — TRY AGAIN';
+    }
+  }
+
+  /* ---------- full builder ---------- */
+  function builderHtml(guided) {
+    var h = '';
+    if (!guided) {
+      h += '<div class="pf-se-kicker">MONEY SUITE · MACRO</div>' +
+        '<h2 class="pf-se-title">STACK \u2019EM</h2>' +
+        '<p class="pf-se-sub">Pick two numbers. Pick a window. Start an argument — with receipts.</p>';
+    }
+    h += '<div class="pf-se-modes">' +
+      '<button type="button" class="pf-se-mode on" data-se-mode="suggested">SUGGESTED MATCHUPS</button>' +
+      '<button type="button" class="pf-se-mode" data-se-mode="free">FREE PICK</button>' +
+      '</div>';
+    h += '<div class="pf-se-matchups" data-se-matchups>' +
+      MATCHUPS.map(function (m, i) {
+        return '<button type="button" class="pf-se-mu' + (i === 0 ? ' on' : '') + '" data-se-mu="' + i + '">' +
+          '<b>' + esc(m.hook) + '</b><span>' + esc(m.question) + '</span></button>';
+      }).join('') + '</div>';
+    h += '<div class="pf-se-chips" data-se-free style="display:none">' +
+      SERIES12.map(function (s, i) {
+        return '<button type="button" class="pf-se-chip" data-se-sid="' + esc(s) + '" data-se-slot="">' + esc(PLAIN[s] || s) + '</button>';
+      }).join('') + '</div>';
+    h += '<div class="pf-se-winrow"><span class="pf-se-wlabel">WINDOW</span>' +
+      WINDOWS.map(function (w, i) {
+        return '<button type="button" class="pf-se-chip' + (i === 2 ? ' on' : '') + '" data-se-win="' + w[0] + '">' + w[1] + '</button>';
+      }).join('') + '</div>';
+    h += '<div style="text-align:center"><button type="button" class="pf-se-go" data-se-act="go">STACK \u2019EM</button></div>';
+    h += '<div data-se-out></div>';
+    return h;
+  }
+
+  function mountBuilder(el, guided) {
+    cssOnce();
+    var F = window.PFFred;
+    el.innerHTML = '<div class="pf-se">' + builderHtml(guided) + '</div>';
+    var state = { mode: 'suggested', mu: 0, freeA: null, freeB: null, win: '5y', last: null };
+
+    function q(s) { return el.querySelector(s); }
+    function qa(s) { return el.querySelectorAll(s); }
+
+    qa('[data-se-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-mode]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.mode = b.getAttribute('data-se-mode');
+        q('[data-se-matchups]').style.display = state.mode === 'suggested' ? '' : 'none';
+        q('[data-se-free]').style.display = state.mode === 'free' ? '' : 'none';
+      });
+    });
+    qa('[data-se-mu]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-mu]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.mu = parseInt(b.getAttribute('data-se-mu'), 10) || 0;
+      });
+    });
+    qa('[data-se-win]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qa('[data-se-win]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        state.win = b.getAttribute('data-se-win');
+      });
+    });
+    qa('[data-se-free] [data-se-sid]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var sid = b.getAttribute('data-se-sid');
+        if (state.freeA === sid) { state.freeA = null; }
+        else if (state.freeB === sid) { state.freeB = null; }
+        else if (!state.freeA) { state.freeA = sid; }
+        else if (!state.freeB) { state.freeB = sid; }
+        else { state.freeA = state.freeB; state.freeB = sid; }
+        qa('[data-se-free] [data-se-sid]').forEach(function (x) {
+          var s2 = x.getAttribute('data-se-sid');
+          x.classList.toggle('on', s2 === state.freeA || s2 === state.freeB);
+        });
+      });
+    });
+
+    function renderOut(j) {
+      var out = q('[data-se-out]');
+      if (!j || j.ok !== true) {
+        var msg = (j && (j.message || j.note)) ||
+          (j && j.err === 'pair_not_approved'
+            ? 'That pair isn\u2019t on the approved list — the 6 suggested matchups are the vetted set.'
+            : "FRED's got nothing here for this window. Pick another.");
+        out.innerHTML = '<div class="pf-se-err">' + esc(msg) + '</div>';
+        return;
+      }
+      state.last = j;
+      out.innerHTML = outputHtml(j, F, {});
+      wirePoints(out, j, F);
+      out.querySelectorAll('[data-se-act]').forEach(function (b) {
+        b.addEventListener('click', function (ev) {
+          var act = b.getAttribute('data-se-act');
+          if (act === 'share') { doShare(j, b); }
+          else if (act === 'flip') {
+            var t = state.freeA; state.freeA = state.freeB; state.freeB = t;
+            if (state.mode === 'suggested') {
+              var m = MATCHUPS[state.mu];
+              go({ sid1: m.sid2, sid2: m.sid1 });
+            } else if (state.freeA && state.freeB) { go({ sid1: state.freeA, sid2: state.freeB }); }
+          }
+          else if (act === 'again') {
+            try { q('[data-se-matchups]').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+          }
+          else if (act === 'explain') {
+            try {
+              var sid = (j.sid1 && j.sid1 !== 'SAHM') ? j.sid1 : j.sid2;
+              b.href = 'https://www.mtcstw.com/economy#pf-explain?series=' + encodeURIComponent(sid);
+            } catch (e) {}
+          }
+        });
+      });
+      try { out.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    }
+
+    function go(override) {
+      if (!F) return;
+      var params;
+      if (override) {
+        params = { sid1: override.sid1, sid2: override.sid2, window: state.win, mode: 'guided' };
+      } else if (state.mode === 'suggested') {
+        var m = MATCHUPS[state.mu];
+        params = { sid1: m.sid1, sid2: m.sid2, window: state.win, mode: 'guided' };
+      } else {
+        if (!state.freeA || !state.freeB) {
+          q('[data-se-out]').innerHTML = '<div class="pf-se-err">Pick two series first — tap any two chips above.</div>';
+          return;
+        }
+        params = { sid1: state.freeA, sid2: state.freeB, window: state.win, mode: 'free' };
+      }
+      q('[data-se-out]').innerHTML = '<div class="pf-se-loading">PULLING THE NUMBERS…</div>';
+      F.api('fred_compare', params, function (j) { renderOut(j); });
+    }
+
+    q('[data-se-act="go"]').addEventListener('click', function () { go(null); });
+    /* Auto-run the default matchup on mount — the tool opens with a chart,
+       not an empty picker. */
+    go(null);
+  }
+
+  /* ---------- guided mode (Academy) ---------- */
+  function mountGuided(el) {
+    if (skip('academy-stackem')) return;
+    cssOnce();
+    var F = window.PFFred;
+    var done = false;
+    try { done = localStorage.getItem(DONE_KEY) === '1'; } catch (e) {}
+    var h = '<div class="pf-se"><div class="pf-se-kicker">ACADEMY · GUIDED</div>' +
+      '<h2 class="pf-se-title">LEARN TO READ THE NUMBERS THEY USE AGAINST YOU.</h2>';
+    if (done) {
+      h += '<p class="pf-se-sub">Guided set complete — free pick unlocked. Learning before lab.</p>' +
+        '<div data-se-guidedfree></div></div>';
+      el.innerHTML = h;
+      try { mountBuilder(el.querySelector('[data-se-guidedfree]'), true); } catch (e) {}
+      return;
+    }
+    h += '<p class="pf-se-sub">Six matchups, one at a time. Finish the set to unlock free pick.</p>' +
+      '<div data-se-gbody></div></div>';
+    el.innerHTML = h;
+    var body = el.querySelector('[data-se-gbody]');
+    var idx = 0;
+
+    function step() {
+      var m = MATCHUPS[idx];
+      body.innerHTML = '<div class="pf-se-prog">MATCHUP ' + (idx + 1) + ' OF ' + MATCHUPS.length + '</div>' +
+        '<h3 class="pf-se-head" style="text-align:center">' + esc(m.hook) + '</h3>' +
+        '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D</p>' +
+        '<div class="pf-se-why"><b>WHY THIS PAIR — </b>' + esc(m.why) + '</div>' +
+        '<div class="pf-se-loading">PULLING THE NUMBERS…</div>';
+      F.api('fred_compare', { sid1: m.sid1, sid2: m.sid2, window: '5y', mode: 'guided' }, function (j) {
+        if (!j || j.ok !== true) {
+          body.innerHTML = '<div class="pf-se-err">Couldn\u2019t load this matchup — try the next one.</div>' +
+            nextBtn();
+          wireNext();
+          return;
+        }
+        var out = outputHtml(j, F, { noXlinks: true });
+        body.innerHTML = '<div class="pf-se-prog">MATCHUP ' + (idx + 1) + ' OF ' + MATCHUPS.length + '</div>' +
+          '<h3 class="pf-se-head" style="text-align:center">' + esc(m.hook) + '</h3>' +
+          '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D</p>' +
+          '<div class="pf-se-why"><b>WHY THIS PAIR — </b>' + esc(m.why) + '</div>' +
+          out + nextBtn();
+        wirePoints(body, j, F);
+        body.querySelectorAll('[data-se-act]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (b.getAttribute('data-se-act') === 'share') doShare(j, b);
+          });
+        });
+        wireNext();
+        try { body.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      });
+    }
+    function nextBtn() {
+      return idx + 1 < MATCHUPS.length
+        ? '<button type="button" class="pf-se-next" data-se-gnext>NEXT MATCHUP \u2192</button>'
+        : '<button type="button" class="pf-se-next" data-se-gnext>FINISH THE SET</button>';
+    }
+    function wireNext() {
+      var b = body.querySelector('[data-se-gnext]');
+      if (!b) return;
+      b.addEventListener('click', function () {
+        idx++;
+        if (idx >= MATCHUPS.length) {
+          try { localStorage.setItem(DONE_KEY, '1'); } catch (e) {}
+          mountGuided(el); /* re-render: free pick unlocked */
+        } else { step(); }
+      });
+    }
+    if (!F) { body.innerHTML = '<div class="pf-se-err">The data toolkit isn\u2019t loaded yet — reload the page.</div>'; return; }
+    step();
+  }
+
+  /* ---------- curated mode (War Report) ---------- */
+  function mountCurated(el) {
+    if (skip('war-stack')) return;
+    cssOnce();
+    var F = window.PFFred;
+    /* Department rotation: the weekly pick rotates mechanically across the
+       6 vetted matchups by ISO week. Human editors may override the pick;
+       the standing rule (no more than two consecutive curated matchups
+       framing the same directional grievance) is editorial, not code. */
+    var m = MATCHUPS[isoWeek() % MATCHUPS.length];
+    el.innerHTML = '<div class="pf-se"><div class="pf-se-kicker">WAR REPORT</div>' +
+      '<h2 class="pf-se-title">THIS WEEK\u2019S STACK</h2>' +
+      '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D — ' + esc(m.hook) + '</p>' +
+      '<div class="pf-se-loading">PULLING THE NUMBERS…</div></div>';
+    if (!F) return;
+    F.api('fred_compare', { sid1: m.sid1, sid2: m.sid2, window: '5y', mode: 'guided' }, function (j) {
+      var box = el.querySelector('.pf-se');
+      if (!j || j.ok !== true || !box) return;
+      box.innerHTML = '<div class="pf-se-kicker">WAR REPORT</div>' +
+        '<h2 class="pf-se-title">THIS WEEK\u2019S STACK</h2>' +
+        '<p class="pf-se-sub">\u201C' + esc(m.question) + '\u201D — ' + esc(m.hook) + '</p>' +
+        outputHtml(j, F, { noFollow: true });
+      wirePoints(box, j, F);
+      box.querySelectorAll('[data-se-act]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (b.getAttribute('data-se-act') === 'share') doShare(j, b);
+        });
+      });
+    });
+  }
+
+  function mount(el) {
+    if (!el || skip('money-stackem')) return;
+    try { mountBuilder(el, false); } catch (e) {}
+  }
+
+  /* Self-mount: War Report curated slot + Academy guided block. The Money
+     suite mounts explicitly via money-page.js SECTIONS. */
+  function selfMount() {
+    try {
+      var wr = document.getElementById('xWarReport');
+      if (wr && !document.getElementById('pf-war-stack') && !skip('war-stack')) {
+        var slot = document.createElement('div');
+        slot.id = 'pf-war-stack';
+        var anchor = wr.querySelector('#pf-wrnum');
+        if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(slot, anchor.nextSibling);
+        else wr.appendChild(slot);
+        mountCurated(slot);
+      }
+      var ahq = document.getElementById('pf-academy-hq');
+      if (ahq && !document.getElementById('pf-academy-stackem') && !skip('academy-stackem')) {
+        var g = document.createElement('div');
+        g.id = 'pf-academy-stackem';
+        if (ahq.parentNode) ahq.parentNode.insertBefore(g, ahq.nextSibling);
+        else document.body.appendChild(g);
+        mountGuided(g);
+      }
+    } catch (e) {}
+  }
+
+  try {
+    window.PFStackEm = { mount: mount, mountGuided: mountGuided, mountCurated: mountCurated };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', selfMount);
+    } else { selfMount(); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== games/fred-explain.js ===== */
+/* games/fred-explain.js  |  PF v1.4.3 | TOOL 2 — "WHAT DOES THIS MEAN FOR ME?"
+   Plain-English explainers on official FRED data. Two doors: 4 life-topic
+   cards (Rent, Groceries, Job Hunt, Savings) or direct series pick
+   ("nerd mode"). Fixed 5-beat structure, all copy server-generated
+   (?action=fred_explain) under the banned/allowed phrasing lists.
+
+   Mounts:
+     PFExplain.mount(el, context) — full explainer. Contexts: 'money'
+       (Follow the Money section, via money-page.js), 'economy', 'war',
+       'brief'. Self-mounts on #pf-economy (Economy page, secondary),
+       #xWarReport (one weekly explainer), #xBrief (Morning Briefing,
+       rotating topic).
+     Kills: money-explain · economy-explain · war-explain · brief-explain
+       (master ?pf_off=fred).
+
+   Binding honesty:
+   - Exact disclaimer on every render, visible without scrolling (inside
+     the always-visible beat-1 block); short form adjacent to every share
+     button. Beats 2–5 collapse to accordions on mobile.
+   - No predictions, no financial advice — enforced server-side; this file
+     renders beats verbatim and never invents copy.
+   - Every figure: 4-fact citation + staleness badge + ʳ marker.
+   - Rent card is backed by the live CUUR0000SEHA rent series (Phase 3);
+     the via-mortgage label is retired.
+   Read-only, zero XP. Cross-links are user-initiated taps only — no
+   auto-advance, no streak/XP pressure between tools. */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) return;
+  if (window.PFExplain) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function skip(id) { try { return PF.skip('fred') || PF.skip(id); } catch (e) { return false; } }
+
+  var TOPICS = [
+    /* Phase 3 (2026-10-06): the rent series is live — the card is backed
+       by CUUR0000SEHA directly; the via-mortgage label is retired. */
+    { key: 'rent', label: 'RENT', sub: 'What renters actually pay, from the CPI rent index' },
+    { key: 'groceries', label: 'GROCERIES', sub: 'What food prices are doing' },
+    { key: 'job-hunt', label: 'JOB HUNT', sub: 'How tight the job market is' },
+    { key: 'savings', label: 'SAVINGS', sub: 'What your cash earns' }
+  ];
+  /* Phase 3 (2026-10-06): the 3 new series join the nerd-mode list. */
+  var SERIES12 = ['FEDFUNDS', 'UNRATE', 'DGS10', 'DGS2', 'MORTGAGE30US',
+    'CPIAUCNS', 'CPILFESL', 'PCEPI', 'GDP', 'CES0500000003', 'PAYEMS', 'CUUR0000SEHA',
+    'DRCCLACBS', 'LES1252881600Q', 'CUSR0000SAF11'];
+  var PLAIN = {
+    FEDFUNDS: 'Fed funds rate', UNRATE: 'Unemployment rate',
+    DGS10: '10-year Treasury yield', DGS2: '2-year Treasury yield',
+    MORTGAGE30US: '30-year mortgage rate',
+    CPIAUCNS: 'Consumer prices (CPI)', CPILFESL: 'Core consumer prices',
+    PAYEMS: 'Nonfarm payrolls', PCEPI: 'PCE price index',
+    GDP: 'Real GDP', CES0500000003: 'Average hourly earnings',
+    CUUR0000SEHA: 'Rent of primary residence', DRCCLACBS: 'Credit-card delinquency',
+    LES1252881600Q: 'Median weekly earnings (real)', CUSR0000SAF11: 'Food at home (CPI)'
+  };
+  var ROTATE = ['rent', 'groceries', 'job-hunt', 'savings'];
+
+  function isoWeek() {
+    try {
+      var d = new Date();
+      d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      var dow = (d.getUTCDay() + 6) % 7;
+      d.setUTCDate(d.getUTCDate() - dow + 3);
+      var first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+      var fdow = (first.getUTCDay() + 6) % 7;
+      first.setUTCDate(first.getUTCDate() - fdow + 3);
+      return Math.round((d - first) / (7 * 24 * 3600 * 1000)) + 1;
+    } catch (e) { return 1; }
+  }
+
+  var CSS = [
+    '.pf-ex{max-width:860px;margin:0 auto;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-ex-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-ex-title{font-weight:900;font-size:22px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-ex-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}',
+    '.pf-ex-topics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}',
+    '@media (max-width:640px){.pf-ex-topics{grid-template-columns:1fr 1fr}}',
+    '.pf-ex-tp{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:14px 8px;cursor:pointer;min-height:64px;color:#f5ead6;text-align:center}',
+    '.pf-ex-tp.on{border-color:#c1121f;background:#160a0a}',
+    '.pf-ex-tp b{display:block;font-size:15px;letter-spacing:1px;margin-bottom:4px}',
+    '.pf-ex-tp span{font-size:11px;color:#8a8271;line-height:1.4;display:block}',
+    '.pf-ex-nerd{display:block;text-align:center;margin:6px 0 12px;color:#e8b923;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;background:none;border:0;text-decoration:underline;min-height:44px;width:100%}',
+    '.pf-ex-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}',
+    '.pf-ex-chip{flex:0 0 auto;min-height:48px;padding:0 16px;background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}',
+    '.pf-ex-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-ex-card{background:#0d0d0d;border:1px solid #2a2a2a;border-top:4px solid #c1121f;border-radius:8px;padding:16px;margin-top:10px}',
+    '.pf-ex-fig{font-weight:900;font-size:34px;margin:0 0 2px;color:#f5ead6;line-height:1.2}',
+    '.pf-ex-vin{font-size:12px;color:#c9bfa8;margin-bottom:8px}',
+    '.pf-ex-dis{font-size:12px;color:#c9bfa8;background:#141414;border:1px solid #2a2a2a;border-radius:6px;padding:10px 12px;line-height:1.6;margin:10px 0;font-style:italic}',
+    '.pf-ex-beat{border-top:1px solid #2a2a2a;margin:0}',
+    '.pf-ex-beat summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:900;font-size:12px;letter-spacing:2px;color:#e8b923;list-style:none;padding:6px 0}',
+    '.pf-ex-beat summary::-webkit-details-marker{display:none}',
+    '.pf-ex-beat summary::before{content:"+";margin-right:10px;font-size:16px}',
+    '.pf-ex-beat[open] summary::before{content:"\\2212"}',
+    '.pf-ex-beat p{font-size:14px;line-height:1.7;color:#f5ead6;margin:0 0 12px}',
+    '.pf-ex-topicnote{font-size:11px;color:#8a8271;font-style:italic;margin:0 0 8px}',
+    '.pf-ex-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:10px}',
+    '.pf-ex-sharedis{font-size:11px;color:#8a8271;text-align:center;margin-top:6px;font-style:italic}',
+    '.pf-ex-follow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0 4px}',
+    '.pf-ex-fbtn{background:#1a1a1a;border:1px solid #3a3a3a;color:#e8b923;border-radius:6px;min-height:44px;padding:10px 16px;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;text-decoration:none;display:inline-block;line-height:22px}',
+    '.pf-ex-xlinks{border-top:1px solid #2a2a2a;margin-top:14px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}',
+    '.pf-ex-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}',
+    '.pf-ex-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;color:#f5ead6;margin:10px 0}',
+    '.pf-ex-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-ex-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-ex-css'; st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function xlinks() {
+    return '<div class="pf-ex-xlinks">Translated it? Now ' +
+      '<a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · ' +
+      '<a href="https://www.mtcstw.com/economy#pf-receipt">check the receipts</a></div>';
+  }
+
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintShare(j) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 120;
+    x.textAlign = 'center';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    x.fillText('YOUR MONEY, EXPLAINED \u00B7 FRED', cx, y); y += 90;
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 40;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 84;
+    /* headline: monumental serif */
+    x.fillStyle = btC; x.font = '900 62px Georgia,"Times New Roman",serif';
+    var fl = wrapText(x, (j.figure && j.figure.headline) || '', W - 140);
+    for (var i = 0; i < fl.length && i < 3; i++) { x.fillText(fl[i], cx, y); y += 74; }
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(cx - 190, y); x.lineTo(cx - 26, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 26, y); x.lineTo(cx + 190, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-8, -8, 16, 16); x.restore();
+    y += 62;
+    /* takeaway: beat 4, first sentence — quiet serif */
+    var b4 = '';
+    (j.beats || []).forEach(function (b) { if (b.n === 4) b4 = b.text; });
+    b4 = String(b4).split(/\. /)[0] + '.';
+    x.fillStyle = btM; x.font = 'italic 400 32px Georgia,serif';
+    var tl = wrapText(x, b4, W - 160);
+    for (var t2 = 0; t2 < tl.length && t2 < 4; t2++) { x.fillText(tl[t2], cx, y); y += 44; }
+    y += 36;
+    /* source citation: hairline box with the real figure citation */
+    x.font = '700 22px Arial,sans-serif';
+    try { x.letterSpacing = '3px'; } catch (e3) {}
+    var cite = (j.figure && j.figure.citation) || '';
+    var cl = wrapText(x, cite, W - 220);
+    var srcH = Math.min(cl.length, 2) * 34 + 44;
+    var sy = y;
+    x.strokeStyle = 'rgba(242,236,220,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(cx - (W - 200)/2, sy, W - 200, srcH);
+    x.fillStyle = btC;
+    for (var c2 = 0; c2 < cl.length && c2 < 2; c2++) { x.fillText(cl[c2], cx, sy + 40 + c2 * 34); }
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    y = sy + srcH + 44;
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e5) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e7) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
+    return cv;
+  }
+
+  function shareAsText(j) {
+    var txt = ((j.figure && j.figure.headline) || '') + '\n' +
+      ((j.figure && j.figure.citation) || '') +
+      '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-explain';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        return 'Figure + source copied — paste it anywhere.';
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function doShare(j, btn) {
+    var cv = null;
+    try { cv = paintShare(j); } catch (e) { cv = null; }
+    if (!cv) {
+      var msg = shareAsText(j);
+      if (btn) btn.textContent = msg || 'SHARE FAILED — TRY AGAIN';
+      return;
+    }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        window.PFShare.shareImage(cv, 'pf-explainer.png',
+          (j.figure && j.figure.headline) || 'Explainer', 'explain',
+          { text: ((j.figure && j.figure.headline) || '') + ' https://www.mtcstw.com/economy#pf-explain via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/economy#pf-explain' });
+        return;
+      }
+    } catch (e) {}
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'pf-explainer.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+    } catch (e2) {
+      var m2 = shareAsText(j);
+      if (btn) btn.textContent = m2 || 'SHARE FAILED — TRY AGAIN';
+    }
+  }
+
+  function cardHtml(j, F, opts) {
+    opts = opts || {};
+    var fig = j.figure || {};
+    var h = '<div class="pf-ex-card">';
+    h += '<div class="pf-ex-fig">' + esc(fig.headline || '') +
+      (fig.revised ? '<sup class="pf-fred-rev" title="revised observation">ʳ</sup>' : '') + '</div>';
+    h += '<div class="pf-ex-vin">' + esc(fig.period_label || '') + ' ' +
+      (F ? F.staleBadge({ stale: fig.stale, days_old: fig.days_old, series_id: j.primary_series || j.series_id }) : '') + '</div>';
+    /* Disclaimer placement rule: full disclaimer visible without scrolling,
+       inside the always-visible beat-1 block. */
+    h += '<div class="pf-ex-dis">' + esc(j.disclaimer || '') + '</div>';
+    if (j.topic_note) h += '<p class="pf-ex-topicnote">' + esc(j.topic_note) + '</p>';
+    (j.beats || []).forEach(function (b) {
+      if (b.n === 1) return; /* beat 1 is the figure block above */
+      h += '<details class="pf-ex-beat"' + (opts.openAll ? ' open' : '') + '>' +
+        '<summary>' + esc(b.title || ('BEAT ' + b.n)) + '</summary>' +
+        '<p>' + esc(b.text || '') + '</p></details>';
+    });
+    if (fig.citation) h += '<div class="pf-fred-cite">' + esc(fig.citation) + '</div>';
+    h += '<button type="button" class="pf-ex-share" data-ex-act="share">PUT IT ON THEIR TIMELINE</button>';
+    h += '<div class="pf-ex-sharedis">' + esc(j.disclaimer_short || '') + '</div>';
+    if (!opts.noFollow) {
+      h += '<div class="pf-ex-follow">';
+      (j.followups || []).forEach(function (f) {
+        h += '<a class="pf-ex-fbtn" href="' + esc(f.href || '#') + '">' + esc(f.label || '') + '</a>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+    if (!opts.noXlinks) h += xlinks();
+    return h;
+  }
+
+  function mountInto(el, params, opts) {
+    opts = opts || {};
+    cssOnce();
+    var F = window.PFFred;
+    if (!F) {
+      el.innerHTML = '<div class="pf-ex"><div class="pf-ex-err">The data toolkit isn\u2019t loaded yet — reload the page.</div></div>';
+      return;
+    }
+    el.innerHTML = '<div class="pf-ex"><div class="pf-ex-loading">READING THE NUMBERS…</div></div>';
+    F.api('fred_explain', params, function (j) {
+      var box = el.querySelector('.pf-ex');
+      if (!box) return;
+      if (!j || j.ok !== true) {
+        box.innerHTML = '<div class="pf-ex-err">' + esc((j && j.note) || 'Couldn\u2019t load this explainer — try another topic.') + '</div>';
+        return;
+      }
+      box.innerHTML = cardHtml(j, F, opts);
+      var sb = box.querySelector('[data-ex-act="share"]');
+      if (sb) sb.addEventListener('click', function () { doShare(j, sb); });
+    });
+  }
+
+  /* ---------- full explainer (topic cards + nerd mode) ---------- */
+  function mount(el, context) {
+    if (!el) return;
+    var killId = { money: 'money-explain', economy: 'economy-explain',
+      war: 'war-explain', brief: 'brief-explain' }[context || 'economy'] || 'economy-explain';
+    if (skip(killId)) return;
+    cssOnce();
+    var F = window.PFFred;
+    var titles = {
+      money: ['WHAT\u2019S THIS COSTING YOU?', 'You tell it what\u2019s hitting your wallet; it tells you what the numbers actually say.'],
+      economy: ['TRANSLATE THE ECONOMY.', 'The economy in words, not jargon.'],
+      war: ['WHAT IT MEANS FOR YOU', 'This week\u2019s number, translated.'],
+      brief: ['YOUR MONEY, IN 30 SECONDS.', 'One number, translated.']
+    };
+    var T = titles[context || 'economy'] || titles.economy;
+    var deep = null;
+    try {
+      var m = /[?&#]series=([A-Z0-9]+)/i.exec(window.location.hash || '');
+      if (m && PLAIN[m[1].toUpperCase()]) deep = m[1].toUpperCase();
+    } catch (e) {}
+
+    var h = '<div class="pf-ex"><div class="pf-se-kicker pf-ex-kicker">' +
+      (context === 'money' ? 'FOLLOW THE MONEY' : context === 'war' ? 'WAR REPORT' : context === 'brief' ? 'MORNING BRIEFING' : 'ECONOMY') + '</div>' +
+      '<h2 class="pf-ex-title">' + T[0] + '</h2><p class="pf-ex-sub">' + T[1] + '</p>';
+    if (context === 'war' || context === 'brief') {
+      /* One explainer, no picker: weekly rotation (war) / daily rotation (brief). */
+      h += '<div data-ex-single></div></div>';
+      el.innerHTML = h;
+      var tk = ROTATE[isoWeek() % ROTATE.length];
+      mountInto(el.querySelector('[data-ex-single]'), { topic: tk }, { noXlinks: true });
+      return;
+    }
+    h += '<div class="pf-ex-topics">' + TOPICS.map(function (t, i) {
+      return '<button type="button" class="pf-ex-tp' + ((deep && deep === t.key) || (!deep && i === 1) ? '' : '') +
+        '" data-ex-topic="' + t.key + '"><b>' + t.label + '</b><span>' + esc(t.sub) + '</span></button>';
+    }).join('') + '</div>';
+    h += '<button type="button" class="pf-ex-nerd" data-ex-nerd>“I know what I\u2019m looking at” — pick the series directly</button>';
+    h += '<div class="pf-ex-chips" data-ex-chips style="display:none">' +
+      SERIES12.map(function (s) {
+        return '<button type="button" class="pf-ex-chip" data-ex-sid="' + s + '">' + esc(PLAIN[s]) + '</button>';
+      }).join('') + '</div>';
+    h += '<div data-ex-out></div></div>';
+    el.innerHTML = h;
+
+    var out = el.querySelector('[data-ex-out]');
+    function pickTopic(key) {
+      el.querySelectorAll('[data-ex-topic]').forEach(function (x) {
+        x.classList.toggle('on', x.getAttribute('data-ex-topic') === key);
+      });
+      mountInto(out, { topic: key }, {});
+    }
+    el.querySelectorAll('[data-ex-topic]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        el.querySelector('[data-ex-chips]').style.display = 'none';
+        pickTopic(b.getAttribute('data-ex-topic'));
+      });
+    });
+    el.querySelector('[data-ex-nerd]').addEventListener('click', function () {
+      var c = el.querySelector('[data-ex-chips]');
+      c.style.display = c.style.display === 'none' ? '' : 'none';
+    });
+    el.querySelectorAll('[data-ex-sid]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        el.querySelectorAll('[data-ex-sid]').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        el.querySelectorAll('[data-ex-topic]').forEach(function (x) { x.classList.remove('on'); });
+        mountInto(out, { series_id: b.getAttribute('data-ex-sid') }, {});
+      });
+    });
+    /* Default: groceries topic, or the deep-linked series. */
+    if (deep) {
+      el.querySelector('[data-ex-chips]').style.display = '';
+      var chip = el.querySelector('[data-ex-sid="' + deep + '"]');
+      if (chip) chip.classList.add('on');
+      mountInto(out, { series_id: deep }, {});
+    } else {
+      pickTopic('groceries');
+    }
+  }
+
+  /* Self-mount: Economy page (secondary), War Report (weekly), Briefing. */
+  function selfMount() {
+    try {
+      var eco = document.getElementById('pf-economy');
+      if (eco && !document.getElementById('pf-explain') && !skip('economy-explain')) {
+        var e = document.createElement('div');
+        e.id = 'pf-explain';
+        var rail = eco.querySelector('#pf-fred-rail') || document.getElementById('pf-inflation-trends');
+        if (rail && rail.parentNode) rail.parentNode.insertBefore(e, rail.nextSibling);
+        else eco.appendChild(e);
+        mount(e, 'economy');
+      }
+      var wr = document.getElementById('xWarReport');
+      if (wr && !document.getElementById('pf-war-explain') && !skip('war-explain')) {
+        var w = document.createElement('div');
+        w.id = 'pf-war-explain';
+        wr.appendChild(w);
+        mount(w, 'war');
+      }
+      var br = document.getElementById('xBrief');
+      if (br && !document.getElementById('pf-brief-explain') && !skip('brief-explain')) {
+        var b = document.createElement('div');
+        b.id = 'pf-brief-explain';
+        var fbrief = document.getElementById('pf-fred-briefing');
+        if (fbrief && fbrief.parentNode) fbrief.parentNode.insertBefore(b, fbrief.nextSibling);
+        else br.appendChild(b);
+        mount(b, 'brief');
+      }
+    } catch (e) {}
+  }
+
+  try {
+    window.PFExplain = { mount: mount };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', selfMount);
+    } else { selfMount(); }
+  } catch (e) {}
+})();
+
+;
+
+/* ===== games/fred-receipt.js ===== */
+/* games/fred-receipt.js  |  PF v1.4.3 | TOOL 3 — "RECEIPT CHECK" BRIDGE.
+   Official CPI vs the People's Price Index — side by side, never merged.
+   Segmented toggle [OFFICIAL | PEOPLE'S | SIDE-BY-SIDE], two visual
+   languages (blue-gray lines vs red-orange bars), fixed "why they're
+   different" copy, gap described but never adjudicated, sample-count
+   honesty (5 reports + 3 distinct callsigns minimum, backend-owned).
+
+   Self-mounts on /economy as the hero module (prepended to #pf-economy).
+   Read-only, zero XP.
+   Kill: ?pf_off=economy-receipt (master ?pf_off=economy-fred).
+
+   HARD SEPARATION (binding): no function here takes both datasets as
+   inputs to one output. The official panel reads fred_series; the
+   people's panel reads price_board. The gap strip is display arithmetic
+   on the two independently fetched, separately labeled figures plus the
+   fixed methodology line — never a blended index. There is no merged
+   number in this file.
+
+   Category picker (basket-scope rule, News Desk E7): a category ships
+   only when both legs exist. v1: RENT (CUUR0000SEHA vs people's rent
+   reports). Phase 3 (2026-10-06): GROCERIES enabled — official leg
+   CUSR0000SAF11 verified and ingested; the people's leg has no grocery
+   basket aggregate yet, so it renders the honest "building" state while
+   the official panel shows. GAS enabled 2026-10-06 — official leg
+   CUSR0000SETB01 (CPI: Gasoline (All Types) in U.S. City Average,
+   monthly SA, BLS) wired by CEO ruling: the people's leg is per-gallon
+   pump-price reports, and gasoline is what the official index tracks
+   here — the correct basket match. The chip reads GAS; the citation
+   names the series exactly.
+   Kill: ?pf_off=receipt-groceries (groceries chip), ?pf_off=receipt-gas
+   (gas chip). */
+(function () {
+  'use strict';
+  var PF = window.PF;
+  if (!PF) return;
+  if (window.PFReceipt) return;
+  function skip() {
+    try { return PF.skip('fred') || PF.skip('economy-fred') || PF.skip('economy-receipt'); }
+    catch (e) { return false; }
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* Category map (Phase 3). A category ships only when its official leg
+     exists; a missing people's leg renders the honest "building" state.
+     GAS official leg: CUSR0000SETB01, wired by CEO ruling 2026-10-06
+     (per-gallon pump prices = gasoline — the correct basket match). */
+  var CATS = {
+    rent: {
+      label: 'RENT', official: 'CUUR0000SEHA', people: 'rent_1br',
+      offPlain: 'rent of primary residence',
+      pplFig: 'median reported 1BR rent', pplUnit: '/mo', pplDecimals: 0,
+      gapWord: 'rents', gapOff: 'official rent CPI'
+    },
+    groceries: {
+      label: 'GROCERIES', official: 'CUSR0000SAF11', people: null,
+      offPlain: 'food at home (CPI)',
+      pplThin: 'No people\u2019s grocery basket yet — item-level grocery ' +
+        'reports (milk, eggs, bread\u2026) exist, but there\u2019s no aggregate ' +
+        'to compare. Report prices to build it.'
+    },
+    gas: {
+      label: 'GAS', official: 'CUSR0000SETB01', people: 'gasoline',
+      offPlain: 'gasoline (all types, CPI)',
+      pplFig: 'median reported gas price', pplUnit: '/gal', pplDecimals: 2,
+      gapWord: 'gas prices', gapOff: 'the official gasoline index'
+    }
+  };
+
+  var WHY_DIFFERENT = 'The official number is a national average built from ' +
+    'thousands of surveyed prices. The people\u2019s number is what real people ' +
+    'in this movement actually paid. Different methods, different stories — ' +
+    'both worth seeing.';
+  var PEOPLE_CAVEAT = 'Crowdsourced — not a statistical sample. Your receipts ' +
+    'power the movement\u2019s intelligence.';
+  var GAP_METHOD = 'Part of the gap is mechanical: the official basket weights ' +
+    'items by a national formula and lets the basket substitute cheaper goods; ' +
+    'the people\u2019s basket is what reporters actually bought, where they ' +
+    'bought it. Neither is \u2018the\u2019 inflation — they\u2019re different ' +
+    'baskets answering different questions.';
+
+  var CSS = [
+    '.pf-rc{max-width:980px;margin:0 auto 18px;padding:8px 0;color:#f5ead6;font-family:Arial,sans-serif}',
+    '.pf-rc-kicker{font-weight:700;font-size:13px;letter-spacing:5px;color:#e8b923;text-align:center;margin-bottom:8px}',
+    '.pf-rc-title{font-weight:900;font-size:24px;text-align:center;margin:0 0 4px;letter-spacing:1px}',
+    '.pf-rc-sub{font-size:13px;color:#c9bfa8;text-align:center;margin:0 0 14px}',
+    '.pf-rc-seg{display:flex;justify-content:center;margin-bottom:12px}',
+    '.pf-rc-segwrap{display:inline-flex;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;overflow:hidden}',
+    '.pf-rc-seg button{background:transparent;border:0;color:#c9bfa8;min-height:48px;padding:0 20px;font-weight:900;font-size:13px;letter-spacing:1px;cursor:pointer}',
+    '.pf-rc-seg button.on{background:#c1121f;color:#fff}',
+    '.pf-rc-cats{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}',
+    '.pf-rc-cat{background:#1a1a1a;border:1px solid #3a3a3a;color:#f5ead6;border-radius:24px;min-height:48px;padding:0 20px;font-weight:700;font-size:13px;cursor:pointer}',
+    '.pf-rc-cat.on{background:#c1121f;border-color:#c1121f;color:#fff}',
+    '.pf-rc-cat:disabled{opacity:0.45;cursor:not-allowed}',
+    '.pf-rc-cat small{display:block;font-size:10px;color:#8a8271;font-weight:400}',
+    '.pf-rc-panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
+    '@media (max-width:640px){.pf-rc-panels{grid-template-columns:1fr}}',
+    '.pf-rc-panel{border-radius:10px;padding:14px;min-height:200px}',
+    '.pf-rc-off{background:#10141a;border:1px solid #2a3a4a}',
+    '.pf-rc-ppl{background:#1a100d;border:1px solid #4a2a1a}',
+    '.pf-rc-badge{display:inline-block;font-weight:900;font-size:11px;letter-spacing:1.5px;padding:5px 10px;border-radius:4px;margin-bottom:10px}',
+    '.pf-rc-off .pf-rc-badge{background:#2a3a4a;color:#9fc0e8}',
+    '.pf-rc-ppl .pf-rc-badge{background:#4a2a1a;color:#f0a080}',
+    '.pf-rc-fig{font-weight:900;font-size:32px;margin:0 0 2px}',
+    '.pf-rc-off .pf-rc-fig{color:#cfe0f5}',
+    '.pf-rc-ppl .pf-rc-fig{color:#f5cfae}',
+    '.pf-rc-meta{font-size:12px;color:#8a8271;margin-bottom:8px}',
+    '.pf-rc-bars{display:flex;gap:10px;align-items:flex-end;height:110px;margin:10px 0 4px;justify-content:center}',
+    '.pf-rc-bar{width:64px;background:linear-gradient(to top,#c1121f,#f0a080);border-radius:4px 4px 0 0;position:relative;min-height:8px}',
+    '.pf-rc-bar span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:10px;color:#8a8271}',
+    '.pf-rc-gap{background:#0d0d0d;border:1px dashed #3a3a3a;border-radius:8px;padding:14px;margin:12px 0;font-size:14px;line-height:1.65}',
+    '.pf-rc-gap b{color:#e8b923}',
+    '.pf-rc-gap .pf-rc-method{font-size:12px;color:#8a8271;margin-top:8px;font-style:italic}',
+    '.pf-rc-why{background:#101418;border:1px solid #2a3a4a;border-radius:8px;padding:12px 14px;margin:12px 0}',
+    '.pf-rc-why b{color:#e8b923;letter-spacing:1px;font-size:12px}',
+    '.pf-rc-why p{font-size:13px;line-height:1.6;color:#c9bfa8;margin:6px 0 0}',
+    '.pf-rc-caveat{font-size:11px;color:#8a8271;font-style:italic;margin-top:8px}',
+    '.pf-rc-thin{background:#1a100d;border:1px dashed #4a2a1a;border-radius:8px;padding:18px;text-align:center;font-size:14px;color:#c9bfa8;margin:12px 0}',
+    '.pf-rc-share{display:block;width:100%;background:#c1121f;color:#fff;border:0;border-radius:6px;min-height:52px;font-weight:900;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:12px}',
+    '.pf-rc-xlinks{border-top:1px solid #2a2a2a;margin-top:16px;padding-top:12px;text-align:center;font-size:13px;color:#8a8271}',
+    '.pf-rc-xlinks a{color:#e8b923;font-weight:700;text-decoration:none;margin:0 10px;letter-spacing:0.5px}',
+    '.pf-rc-err{background:#1a0d0d;border:1px solid #c1121f;border-radius:8px;padding:14px;font-size:14px;margin:10px 0}',
+    '.pf-rc-loading{text-align:center;color:#8a8271;padding:30px 0;font-size:14px;letter-spacing:1px}'
+  ].join('\n');
+
+  function cssOnce() {
+    try {
+      if (document.getElementById('pf-rc-css')) return;
+      var st = document.createElement('style');
+      st.id = 'pf-rc-css'; st.textContent = CSS;
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+
+  function fmtMoney(cents) {
+    var d = Number(cents) / 100;
+    return '$' + d.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  /* People's figures are per-category: rent reports whole dollars/mo,
+     gas reports dollars-and-cents/gal. The unit and decimals ride on the
+     category so a publishing gasoline aggregate never renders as '$3'. */
+  function fmtPpl(cents, cat) {
+    var dec = (cat && cat.pplDecimals != null) ? cat.pplDecimals : 0;
+    var d = Number(cents) / 100;
+    return '$' + d.toLocaleString('en-US',
+      { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  /* Official panel: blue-gray line chart of the FRED series. */
+  function officialPanel(obs, F, stale, cat) {
+    cat = cat || CATS.rent;
+    var sid = cat.official;
+    var pts = (obs || []).slice().reverse().slice(-12); /* oldest-first, last 12 */
+    var W = 340, H = 120, PAD = 6;
+    var vals = pts.map(function (p) { return +p.value; }).filter(isFinite);
+    var svg = '';
+    if (vals.length > 1) {
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+      var d = pts.map(function (p, i) {
+        var x = (PAD + (i / (vals.length - 1)) * (W - PAD * 2)).toFixed(1);
+        var y = (PAD + (1 - ((+p.value - lo) / (hi - lo))) * (H - PAD * 2)).toFixed(1);
+        return (i ? 'L' : 'M') + x + ' ' + y;
+      }).join(' ');
+      svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="display:block;width:100%;height:auto" role="img" aria-label="official ' + esc(cat.offPlain) + ' inflation trend">' +
+        '<path d="' + d + '" fill="none" stroke="#6aa5ff" stroke-width="2.5"/></svg>';
+    }
+    var latest = (obs || [])[0];
+    var yoy = null;
+    if (obs && obs.length >= 13) {
+      var a = +obs[0].value, b = +obs[12].value;
+      if (b) yoy = ((a / b - 1) * 100);
+    }
+    var h = '<div class="pf-rc-panel pf-rc-off">' +
+      '<span class="pf-rc-badge">OFFICIAL — U.S. BUREAU OF LABOR STATISTICS VIA FRED</span>' +
+      '<div class="pf-rc-fig">' + (yoy == null ? '—' : (yoy >= 0 ? '+' : '−') + Math.abs(yoy).toFixed(1) + '%') + '</div>' +
+      (stale && stale.stale && F && F.staleBadge ? F.staleBadge({ stale: true, days_old: stale.days_old, series_id: sid }) : '') +
+      '<div class="pf-rc-meta">' + esc(cat.offPlain) + ', 12-month change' +
+      (latest ? ' · ' + esc(F.fmtPeriod({ series_id: sid, period: latest.period })) : '') + '</div>' +
+      svg;
+    if (latest) {
+      var card = { series_id: sid, retrieved_at: latest.retrieved_at, period: latest.period };
+      h += '<div class="pf-fred-cite">' + esc(F.citation(card)) + '</div>';
+    }
+    h += '</div>';
+    return { html: h, yoy: yoy };
+  }
+
+  /* People's panel: red-orange bars. enough_data is backend-owned
+     (5 reports + 3 distinct callsigns). */
+  function peoplePanel(item, cat) {
+    cat = cat || CATS.rent;
+    var h = '<div class="pf-rc-panel pf-rc-ppl">' +
+      '<span class="pf-rc-badge">PEOPLE\u2019S — REPORTED BY THE MOVEMENT</span>';
+    if (!item || !item.enough_data) {
+      /* Groceries: no people's basket aggregate exists yet — honest
+         "building" state instead of a silent gap. */
+      var thin = cat.pplThin
+        ? '<b>No people\u2019s grocery basket yet.</b><br><span style="font-size:12px">' + esc(cat.pplThin) + '</span>'
+        : '<b>Not enough reports yet — add yours.</b><br>' +
+          '<span style="font-size:12px">The people\u2019s panel publishes at 5 reports from 3+ callsigns.</span>';
+      h += '<div class="pf-rc-thin">' + thin + '</div>';
+      h += '<div class="pf-rc-caveat">' + esc(PEOPLE_CAVEAT) + '</div></div>';
+      return { html: h, publishable: false };
+    }
+    var med = item.median_cents, ago = item.week_ago_median_cents;
+    var d = item.delta_pct;
+    var max = Math.max(med || 0, ago || 0, 1);
+    function bar(v, label) {
+      var ht = Math.max(8, Math.round((v / max) * 90));
+      return '<div class="pf-rc-bar" style="height:' + ht + 'px"><span>' + esc(label) + '</span></div>';
+    }
+    h += '<div class="pf-rc-fig">' + fmtPpl(med, cat) +
+      '<span style="font-size:14px;color:#8a8271">' + esc(cat.pplUnit || '/mo') + '</span></div>' +
+      '<div class="pf-rc-meta">' + esc(cat.pplFig || 'median reported price') + ' · ' +
+      (d == null ? 'no prior window' : (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(1) + '% vs last month') +
+      ' · ' + (item.sample_count || 0) + ' reports</div>' +
+      '<div class="pf-rc-bars">' +
+      (ago ? bar(ago, 'LAST MO') : '') + bar(med, 'THIS MO') +
+      '</div><div style="height:22px"></div>' +
+      '<div class="pf-rc-caveat">' + esc(PEOPLE_CAVEAT) + '</div></div>';
+    return { html: h, publishable: true, delta: d, reports: item.sample_count };
+  }
+
+  /* (dead duplicate gapStrip removed 2026-10-05: keep one source of truth in render) */
+
+  /* ---------- share card: BOTH panels or nothing ---------- */
+  function wrapText(x, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var t = cur ? cur + ' ' + words[i] : words[i];
+      if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = words[i]; }
+      else cur = t;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  function paintShare(off, ppl, gapText) {
+    var W = 1080, H = 1080;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var x = cv.getContext('2d');
+    if (!x) return null;
+    /* ---- butter: editorial kit (factgen standard) ---- */
+    var btR='#c1121f', btRD='#7d0b16', btC='#f2ecdc', btG='#c9a227',
+        btM='#a89a7d', btF='#6f6350';
+    x.fillStyle = '#0e0d0c'; x.fillRect(0, 0, W, H);
+    x.save(); x.globalAlpha = 0.032; x.strokeStyle = '#ffffff'; x.lineWidth = 1;
+    for (var btD = -H; btD < W + H; btD += 26) {
+      x.beginPath(); x.moveTo(btD, 0); x.lineTo(btD + H, H); x.stroke();
+    }
+    x.restore();
+    var btVg = x.createRadialGradient(W/2, H*0.40, H*0.16, W/2, H*0.50, H*0.85);
+    btVg.addColorStop(0, 'rgba(0,0,0,0)'); btVg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    x.fillStyle = btVg; x.fillRect(0, 0, W, H);
+    var btBar = x.createLinearGradient(0, 0, 0, 10);
+    btBar.addColorStop(0, btR); btBar.addColorStop(1, btRD);
+    x.fillStyle = btBar; x.fillRect(0, 0, W, 10);
+    x.save(); x.globalAlpha = 0.05; x.fillStyle = btC;
+    x.font = '900 620px Arial,sans-serif'; x.textAlign = 'center';
+    x.fillText('★', W/2, H*0.60); x.restore();
+    var cx = W / 2, y = 110;
+    x.textAlign = 'center';
+    /* kicker: letterspaced gold */
+    x.fillStyle = btG; x.font = '700 28px Arial,sans-serif';
+    try { x.letterSpacing = '8px'; } catch (e) {}
+    x.fillText('CHECK THE RECEIPTS \u00B7 TWO NUMBERS, TWO METHODS', cx, y); y += 70;
+    try { x.letterSpacing = '0px'; } catch (e2) {}
+    y += 36;
+    x.strokeStyle = 'rgba(201,162,39,0.5)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx + 150, y); x.stroke();
+    y += 70;
+    /* official panel (left) */
+    x.textAlign = 'left';
+    x.fillStyle = '#10141a'; x.fillRect(60, y, 460, 300);
+    x.strokeStyle = 'rgba(159,192,232,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(60, y, 460, 300);
+    x.fillStyle = '#9fc0e8'; x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e3) {}
+    x.fillText('OFFICIAL', 90, y + 44);
+    try { x.letterSpacing = '0px'; } catch (e4) {}
+    x.fillStyle = '#cfe0f5'; x.font = '900 70px Georgia,"Times New Roman",serif';
+    x.fillText(off.fig || '—', 90, y + 140);
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 22px Georgia,serif';
+    var ol = wrapText(x, off.cite || '', 400);
+    for (var i = 0; i < ol.length && i < 3; i++) x.fillText(ol[i], 90, y + 180 + i * 30);
+    /* people's panel (right) */
+    x.fillStyle = '#1a100d'; x.fillRect(560, y, 460, 300);
+    x.strokeStyle = 'rgba(240,160,128,0.35)'; x.lineWidth = 1.5;
+    x.strokeRect(560, y, 460, 300);
+    x.fillStyle = '#f0a080'; x.font = '700 24px Arial,sans-serif';
+    try { x.letterSpacing = '4px'; } catch (e5) {}
+    x.fillText('PEOPLE\u2019S', 590, y + 44);
+    try { x.letterSpacing = '0px'; } catch (e6) {}
+    x.fillStyle = '#f5cfae'; x.font = '900 70px Georgia,"Times New Roman",serif';
+    x.fillText(ppl.fig || '—', 590, y + 140);
+    x.fillStyle = '#8a8271'; x.font = 'italic 400 22px Georgia,serif';
+    var pl2 = wrapText(x, ppl.src || '', 400);
+    for (var p2 = 0; p2 < pl2.length && p2 < 3; p2++) x.fillText(pl2[p2], 590, y + 180 + p2 * 30);
+    y += 350;
+    /* gap line + methodology */
+    x.textAlign = 'center';
+    x.fillStyle = btC; x.font = 'italic 700 34px Georgia,serif';
+    var gl = wrapText(x, gapText || '', W - 140);
+    for (var g2 = 0; g2 < gl.length && g2 < 3; g2++) { x.fillText(gl[g2], cx, y); y += 46; }
+    y += 14;
+    /* red diamond rule */
+    x.strokeStyle = btR; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(cx - 150, y); x.lineTo(cx - 22, y); x.stroke();
+    x.beginPath(); x.moveTo(cx + 22, y); x.lineTo(cx + 150, y); x.stroke();
+    x.save(); x.translate(cx, y); x.rotate(Math.PI/4);
+    x.fillStyle = btR; x.fillRect(-7, -7, 14, 14); x.restore();
+    y += 44;
+    x.fillStyle = btM; x.font = 'italic 400 24px Georgia,serif';
+    var ml = wrapText(x, GAP_METHOD, W - 140);
+    for (var m2 = 0; m2 < ml.length && m2 < 4; m2++) { x.fillText(ml[m2], cx, y); y += 32; }
+    y += 30;
+    x.fillStyle = btF; x.font = 'italic 400 26px Arial,sans-serif';
+    x.fillText('Info, not advice. Data: FRED.', cx, y);
+    /* ---- butter footer: CTA standard ---- */
+    var fy = H - 190;
+    x.strokeStyle = 'rgba(201,162,39,0.45)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(140, fy); x.lineTo(W - 140, fy); x.stroke();
+    fy += 54;
+    x.font = '900 42px Arial,sans-serif'; x.fillStyle = btC;
+    try { x.letterSpacing = '8px'; } catch (e7) {}
+    var btCta = 'JOIN THE FIGHT';
+    var btCtaW = x.measureText(btCta).width;
+    x.fillText(btCta, cx, fy);
+    x.fillStyle = btR; x.fillText('.', cx + btCtaW/2 - 4, fy);
+    try { x.letterSpacing = '0px'; } catch (e8) {}
+    fy += 50;
+    x.fillStyle = btR; x.font = '900 30px Arial,sans-serif';
+    try { x.letterSpacing = '10px'; } catch (e9) {}
+    x.fillText('MTCSTW.COM', cx, fy);
+    try { x.letterSpacing = '0px'; } catch (e10) {}
+    var btBar2 = x.createLinearGradient(0, H - 10, 0, H);
+    btBar2.addColorStop(0, btRD); btBar2.addColorStop(1, btR);
+    x.fillStyle = btBar2; x.fillRect(0, H - 10, W, 10);
+    return cv;
+  }
+
+  function shareAsText(off, ppl, gapText) {
+    var txt = 'CHECK THE RECEIPTS — TWO NUMBERS, TWO METHODS.\n' +
+      'Official: ' + (off.fig || '—') + ' (' + (off.cite || '') + ')\n' +
+      'People\u2019s: ' + (ppl.fig || '—') + ' (' + (ppl.src || '') + ')\n' +
+      (gapText || '') + '\nInfo, not advice. Data: FRED.\nhttps://www.mtcstw.com/economy#pf-receipt';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        return 'Both numbers + sources copied — paste it anywhere.';
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function doShare(state, btn) {
+    var cv = null;
+    try { cv = paintShare(state.off, state.ppl, state.gapText); } catch (e) { cv = null; }
+    if (!cv) {
+      var msg = shareAsText(state.off, state.ppl, state.gapText);
+      if (btn) btn.textContent = msg || 'SHARE FAILED — TRY AGAIN';
+      return;
+    }
+    try {
+      if (window.PFShare && typeof window.PFShare.shareImage === 'function') {
+        window.PFShare.shareImage(cv, 'pf-receipt-check.png', 'Check the receipts', 'receipt',
+          { text: 'CHECK THE RECEIPTS — TWO NUMBERS, TWO METHODS. https://www.mtcstw.com/economy#pf-receipt via The Propaganda Factory',
+            link: 'https://www.mtcstw.com/economy#pf-receipt' });
+        return;
+      }
+    } catch (e) {}
+    try {
+      var a = document.createElement('a');
+      a.href = cv.toDataURL('image/png');
+      a.download = 'pf-receipt-check.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
+    } catch (e2) {
+      var m2 = shareAsText(state.off, state.ppl, state.gapText);
+      if (btn) btn.textContent = m2 || 'SHARE FAILED — TRY AGAIN';
+    }
+  }
+
+  /* Category kill switches (Phase 3): ?pf_off=receipt-groceries,
+     ?pf_off=receipt-gas. */
+  function groceryKill() {
+    try { return PF.skip('receipt-groceries'); } catch (e) { return false; }
+  }
+  function gasKill() {
+    try { return PF.skip('receipt-gas'); } catch (e) { return false; }
+  }
+
+  /* Category buttons: every category ships — a missing people's leg
+     renders the honest building state, never silence or a gate. */
+  function catButtons(cur) {
+    var out = '';
+    ['rent', 'groceries', 'gas'].forEach(function (k) {
+      var c = CATS[k];
+      if (k === 'groceries' && groceryKill()) return;
+      if (k === 'gas' && gasKill()) return;
+      out += '<button type="button" class="pf-rc-cat' + (cur === k ? ' on' : '') + '"' +
+        ' data-rc-cat="' + k + '">' + c.label + (k === 'groceries' ? '<small>NEW</small>' : '') + '</button>';
+    });
+    return out;
+  }
+
+  /* ---------- render ---------- */
+  function render(el, view, catKey, data) {
+    cssOnce();
+    var F = window.PFFred;
+    var cat = CATS[catKey] || CATS.rent;
+    var h = '<div class="pf-rc"><div class="pf-rc-kicker">ECONOMY</div>' +
+      '<h2 class="pf-rc-title">RECEIPT CHECK</h2>' +
+      '<p class="pf-rc-sub">The government\u2019s number and the people\u2019s number — side by side, never blended.</p>';
+    h += '<div class="pf-rc-seg"><div class="pf-rc-segwrap">' +
+      ['official', 'peoples', 'side'].map(function (v) {
+        var lbl = v === 'official' ? 'OFFICIAL' : v === 'peoples' ? 'PEOPLE\u2019S' : 'SIDE-BY-SIDE';
+        return '<button type="button" data-rc-view="' + v + '" class="' + (view === v ? 'on' : '') + '">' + lbl + '</button>';
+      }).join('') + '</div></div>';
+    h += '<div class="pf-rc-cats">' + catButtons(catKey) + '</div>';
+
+    var offStale = data.offStale || null;
+    var off = officialPanel(data.obs, F, offStale, cat);
+    var ppl = peoplePanel(data.item, cat);
+    var showOff = view !== 'peoples', showPpl = view !== 'official';
+    h += '<div class="pf-rc-panels"' + (view === 'side' ? '' : ' style="grid-template-columns:1fr"') + '>';
+    if (showOff) h += off.html;
+    if (showPpl) h += ppl.html;
+    h += '</div>';
+
+    /* Gap: renders ONLY when both panels have publishable data AND the
+       official leg is fresh (staleness protocol: stale leg -> protocol line). */
+    var gapText = '';
+    if (offStale && offStale.stale && showOff && showPpl && ppl.publishable) {
+      /* Comparison paused — same protocol copy fred_compare uses. */
+      gapText = 'Comparison paused — ' + cat.official + ' is ' + (offStale.days_old == null ? '?' : offStale.days_old) +
+        ' days past its expected refresh.';
+      h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
+        '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
+    } else if (showOff && showPpl && ppl.publishable && off.yoy != null && ppl.delta != null) {
+      /* Horizon-honest: annualize the people's month-over-month delta before
+         differencing against the official 12-month change. */
+      var ann = (Math.pow(1 + ppl.delta / 100, 12) - 1) * 100;
+      var gap = Math.abs(ann - off.yoy);
+      var dir = ann >= off.yoy ? 'above' : 'below';
+      gapText = 'People report ' + (cat.gapWord || 'prices') + ' moving ' + (ppl.delta >= 0 ? '+' : '−') + Math.abs(ppl.delta).toFixed(1) +
+        '% this month — about a ' + (ann >= 0 ? '+' : '−') + Math.abs(ann).toFixed(1) +
+        '% annual pace; ' + (cat.gapOff || 'the official index') + ' says ' + (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) +
+        '% over the year. That\u2019s roughly a ' + gap.toFixed(1) +
+        '-point gap, with the people\u2019s number ' + dir + '.';
+      h += '<div class="pf-rc-gap"><b>THE GAP — </b>' + esc(gapText) +
+        '<div class="pf-rc-method">' + esc(GAP_METHOD) + '</div></div>';
+    }
+
+    h += '<div class="pf-rc-why"><b>WHY THEY\u2019RE DIFFERENT</b><p>' + esc(WHY_DIFFERENT) + '</p></div>';
+
+    if (showOff && showPpl && ppl.publishable) {
+      h += '<button type="button" class="pf-rc-share" data-rc-share>SHOW THE GAP</button>';
+    }
+    h += '<div class="pf-rc-xlinks">Checked the receipts? Now ' +
+      '<a href="https://www.mtcstw.com/follow-the-money#pf-stackem">stack two numbers</a> · ' +
+      '<a href="https://www.mtcstw.com/economy#pf-explain">translate the economy</a></div>';
+    h += '</div>';
+    el.innerHTML = h;
+
+    el.querySelectorAll('[data-rc-view]').forEach(function (b) {
+      b.addEventListener('click', function () { render(el, b.getAttribute('data-rc-view'), catKey, data); });
+    });
+    el.querySelectorAll('[data-rc-cat]').forEach(function (b) {
+      b.addEventListener('click', function () { loadCat(el, view, b.getAttribute('data-rc-cat')); });
+    });
+    var sb = el.querySelector('[data-rc-share]');
+    if (sb) sb.addEventListener('click', function () {
+      doShare({
+        off: { fig: off.yoy == null ? '—' : (off.yoy >= 0 ? '+' : '−') + Math.abs(off.yoy).toFixed(1) + '%',
+               cite: 'BLS via FRED · ' + cat.official },
+        ppl: { fig: data.item ? fmtPpl(data.item.median_cents, cat) + (cat.pplUnit || '/mo') : '—',
+               src: (data.item ? data.item.sample_count + ' reports' : '') + ' · reported by the movement' },
+        gapText: gapText
+      }, sb);
+    });
+  }
+
+  /* ---------- mount ---------- */
+  function loadCat(el, view, catKey) {
+    var cat = CATS[catKey] || CATS.rent;
+    var F = window.PFFred;
+    var obs = null, item = null, offMeta = null, done = 0;
+    function maybe() {
+      if (++done < 2) return;
+      render(el, view, catKey, { obs: obs, item: item, offStale: offMeta });
+    }
+    F.api('fred_series', { series_id: cat.official, limit: 15 }, function (j) {
+      obs = (j && j.ok && j.observations) || null;
+      if (j && j.ok) offMeta = { stale: !!j.stale, days_old: j.days_old == null ? null : j.days_old, stale_note: j.stale_note || null };
+      maybe();
+    });
+    /* People's panel: national board. enough_data is backend-owned
+       (5 reports + 3 distinct callsigns). Categories with no people's
+       leg (groceries) skip this call — the panel renders the honest
+       "building" state. */
+    if (!cat.people) { maybe(); }
+    else {
+      F.api('price_board', { area_key: 'national' }, function (j) {
+        try {
+          var items = (j && j.items) || [];
+          for (var i = 0; i < items.length; i++) {
+            if (items[i] && items[i].item_id === cat.people) { item = items[i]; break; }
+          }
+        } catch (e) {}
+        maybe();
+      });
+    }
+    /* Backstop: render whatever arrived after 15s. */
+    setTimeout(function () {
+      if (done < 2) { done = 2; render(el, view, catKey, { obs: obs, item: item, offStale: offMeta }); }
+    }, 15000);
+  }
+
+  function mount() {
+    if (skip()) return;
+    var host = null;
+    try { host = document.getElementById('pf-economy'); } catch (e) {}
+    if (!host || document.getElementById('pf-receipt')) return;
+    var F = window.PFFred;
+    if (!F) return;
+    var el = document.createElement('div');
+    el.id = 'pf-receipt';
+    if (host.firstChild) host.insertBefore(el, host.firstChild);
+    else host.appendChild(el);
+    el.innerHTML = '<div class="pf-rc"><div class="pf-rc-loading">CHECKING THE RECEIPTS…</div></div>';
+    loadCat(el, 'side', 'rent');
+  }
+
+  try {
+    window.PFReceipt = { mount: mount };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', mount);
+    } else { mount(); }
+  } catch (e) {}
+})();
+
+;

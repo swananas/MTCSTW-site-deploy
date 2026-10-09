@@ -91,6 +91,15 @@ var CORE_FILES = [
   'core/04-ledger.js',
   'core/05-tally.js',
   'core/08-dopamine.js',
+  'core/45-zuck-dopamine.js',
+  /* zuck-dopamine (CEO directive "ZUCK IT UP", 2026-10-09): homepage motion
+     polish — staggered entrances, pillar tap micro-interactions, haptic-like
+     visual pulse, progress polish. Neutral motion ONLY: awards nothing, no
+     economy events, no variable-reward schedules. PF.zuck.rewards is present
+     but DISABLED BY DEFAULT — reward mechanics gate on the Psych
+     dopamine-rules brief + psych-zuck-loop-law-20261009 clearance, never
+     enabled unilaterally. After 08-dopamine (shares its kill story).
+     Kill: ?pf_off=dopamine. */
   /* UGC dopamine layer (CEO directive, 2026-10-06): celebration moments,
      quorum progress bars, contributor streaks, TOP HANDS spotlight strip,
      leaderboard pulses, stacked-leg apex celebrations. Cross-cutting hooks

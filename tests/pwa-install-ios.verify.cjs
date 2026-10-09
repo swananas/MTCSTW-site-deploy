@@ -27,6 +27,10 @@
  *      button is gone; GOT IT closes the modal; backdrop tap closes it;
  *      X tap dismisses with no modal and sets the session flag; the second
  *      instance never stacks a duplicate.
+ *   3f (Android): ZUCK 2026-10-09 — Android is now engagement-gated like iOS
+ *      (2nd visit or first engagement unlocks the held prompt), so the
+ *      scenario pre-seeds pf_pwa_visits_v1=2 exactly like the iOS scenarios
+ *      do; the prompt/accept/dismiss mechanics asserted are unchanged.
  *   4. The rebuilt bundles (bundle-core.js, bundle-core-slr.js) contain
  *      the fix.
  * Exits 0 when every check passes, 1 with a failure list otherwise. */
@@ -290,6 +294,11 @@ function findById(w, root, id) {
     '(KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
   var w = makeWorld();
   w.sb.navigator.userAgent = ANDROID_UA;
+  /* ZUCK 2026-10-09 (fe-zuck-pwa): Android is now engagement-gated like iOS
+     (2nd visit or first engagement) — a cold first-visit beforeinstallprompt
+     is held, not shown. Pre-seed the gate the same way the iOS scenarios do
+     so this block keeps testing the prompt/accept/dismiss mechanics. */
+  w.sb.localStorage.setItem('pf_pwa_visits_v1', '2');
   var toastCalls = [];
   w.sb.PF.toast = function (m) { toastCalls.push(m); };
   vm.runInContext(src, w.sb, { filename: 'install.js#instanceA(bundle)' });

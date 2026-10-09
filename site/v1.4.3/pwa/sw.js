@@ -2,27 +2,80 @@
    Strategy:
    - API calls (pf-api.mtcstw.workers.dev): network-first, cache fallback
    - Static assets (jsdelivr CDN, images): cache-first, then network
-   - Navigations: network-first, offline fallback page
+   - Navigations: network-first, offline = cached app shell with a branded
+     offline ribbon (last resort: minimal offline page)
    IMPORTANT: browsers require the service worker to be SAME-ORIGIN as the
    site. This file must be served from https://www.mtcstw.com/sw.js to take
    effect. See pwa/README.md for the hosting options. */
 
-var CACHE = 'mtcstw-pwa-v1';
+var CACHE = 'mtcstw-pwa-20261009-zuck-pwa';
 var API_HOST = 'pf-api.mtcstw.workers.dev';
 var CDN_HOST = 'cdn.jsdelivr.net';
+
+/* ZUCK 2026-10-09 (fe-zuck-pwa): the app shell. Precached on install so an
+   offline launch still opens the real homepage (its bundles are cache-first
+   statics, so the page renders from cache with last-known data). The build
+   self-heals staleness: index.html's __PF_BUILD check unregisters the SW
+   and wipes caches when the build hash changes, so the shell is refreshed
+   on the next online visit. */
+var SHELL = [
+  '/',
+  '/v1.4.3/core/bundle-core-slr.js',
+  '/v1.4.3/core/bundle-styles.css',
+  '/v1.4.3/pwa/manifest.json',
+  '/v1.4.3/pwa/icon-192.png',
+  '/v1.4.3/pwa/icon-512.png',
+  '/v1.4.3/pwa/apple-touch-icon.png'
+];
 
 var OFFLINE_HTML = '<!DOCTYPE html><html><head><meta charset="utf-8">'
   + '<meta name="viewport" content="width=device-width,initial-scale=1">'
   + '<title>MTCSTW — Offline</title>'
   + '<style>body{background:#0a0a0a;color:#eee;font-family:monospace,monospace;'
   + 'display:flex;align-items:center;justify-content:center;height:100vh;margin:0;'
-  + 'text-align:center}h1{color:#c81e1e;letter-spacing:2px}p{color:#999}</style>'
+  + 'text-align:center}h1{color:#c1121f;letter-spacing:3px;margin:0 0 10px}'
+  + 'p{color:#999;margin:6px 0}.cta{color:#c1121f;font-weight:bold;letter-spacing:2px}</style>'
   + '</head><body><div><h1>MTCSTW</h1>'
   + '<p>YOU ARE OFFLINE.</p>'
-  + '<p>The factory reopens when you reconnect.</p></div></body></html>';
+  + '<p>The factory reopens when you reconnect.</p>'
+  + '<p class="cta">JOIN THE FIGHT.</p></div></body></html>';
+
+/* Branded ribbon injected into the cached shell on offline navigations —
+   the visitor gets the real homepage, honestly labeled as saved. */
+var OFFLINE_RIBBON = '<div id="pf-offline-ribbon" role="status" style="position:fixed;'
+  + 'left:0;right:0;bottom:0;z-index:999999;background:#0b0b0c;color:#f5ead6;'
+  + 'border-top:3px solid #c1121f;font:bold 12px/1.5 monospace;letter-spacing:1px;'
+  + 'text-align:center;padding:10px 14px;box-sizing:border-box;">'
+  + '<span style="color:#c1121f;">OFFLINE</span> — RUNNING ON SAVED ORDERS. '
+  + 'Reconnect to resupply.</div>';
+
+function withOfflineRibbon(resp) {
+  return resp.text().then(function (html) {
+    try {
+      if (/<\/body\s*>/i.test(html)) {
+        html = html.replace(/<\/body\s*>/i, OFFLINE_RIBBON + '</body>');
+      } else {
+        html += OFFLINE_RIBBON;
+      }
+      var headers = {};
+      try { resp.headers.forEach(function (v, k) { headers[k] = v; }); } catch (e2) {}
+      headers['Content-Type'] = 'text/html; charset=utf-8';
+      return new Response(html, { status: 200, statusText: 'OK', headers: headers });
+    } catch (e) {
+      return resp;
+    }
+  }).catch(function () { return resp; });
+}
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(self.skipWaiting());
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) {
+      /* Fail-soft per asset: one missing file must never fail the install. */
+      return Promise.all(SHELL.map(function (u) {
+        return c.add(u).catch(function () {});
+      }));
+    }).then(function () { return self.skipWaiting(); })
+  );
 });
 
 self.addEventListener('activate', function (e) {
@@ -47,6 +100,16 @@ self.addEventListener('push', function (e) {
   var title = data.title || 'MTCSTW';
   var body = data.body || 'Something new from the factory.';
   var url = data.url || '/';
+  /* L-1 (2026-10-08): validate the push-payload URL before opening — a
+     compromised push sender must not be able to navigate users off-site.
+     Only same-origin (or mtcstw.com) targets are honored; anything else
+     falls back to the app root. */
+  try {
+    var _t = new URL(url, self.registration.scope);
+    var _ok = _t.origin === location.origin ||
+      /(^|\.)mtcstw\.com$/.test(_t.hostname);
+    if (!_ok) url = '/';
+  } catch (err3) { url = '/'; }
   e.waitUntil(
     self.registration.showNotification(title, {
       body: body,
@@ -60,16 +123,6 @@ self.addEventListener('push', function (e) {
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
   var url = (e.notification.data && e.notification.data.url) || '/';
-  /* L-1 (2026-10-08): validate the push-payload URL before opening — a
-     compromised push sender must not be able to navigate users off-site.
-     Only same-origin (or mtcstw.com) targets are honored; anything else
-     falls back to the app root. */
-  try {
-    var _t = new URL(url, self.registration.scope);
-    var _ok = _t.origin === location.origin ||
-      /(^|\.)mtcstw\.com$/.test(_t.hostname);
-    if (!_ok) url = '/';
-  } catch (err3) { url = '/'; }
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
       var i, c, cUrl, tUrl;
@@ -138,13 +191,23 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // Navigations: network-first, offline fallback
+  // Navigations: network-first; refresh the cached shell copy of '/' when
+  // online; offline = cached shell + ribbon, last resort = offline page.
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).catch(function () {
-        return new Response(OFFLINE_HTML, {
-          status: 200,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      fetch(req).then(function (res) {
+        if (res && res.ok && url.pathname === '/') {
+          var copy = res.clone();
+          caches.open(CACHE).then(function (c) { c.put('/', copy); });
+        }
+        return res;
+      }).catch(function () {
+        return caches.match('/').then(function (hit) {
+          if (hit) { return withOfflineRibbon(hit); }
+          return new Response(OFFLINE_HTML, {
+            status: 200,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+          });
         });
       })
     );

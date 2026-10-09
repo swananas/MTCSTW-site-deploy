@@ -301,6 +301,14 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
 <link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
 <link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<!-- PWA splash (fe-zuck-pwa 2026-10-09): iOS home-screen launch screens. Only fetched on home-screen launch — zero page-load cost. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MTCSTW">
+<link rel="apple-touch-startup-image" href="/v1.4.3/pwa/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/v1.4.3/pwa/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/v1.4.3/pwa/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="/v1.4.3/pwa/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
 <link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
 <style>
   html,body{{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}}

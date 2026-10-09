@@ -171,12 +171,43 @@
   skeleton(document.getElementById("pf-v2"));
   skeleton(document.getElementById("pf-dashboard"));
   skeleton(document.getElementById("xBrief"));
-  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
+  // ZUCK IT UP: parallel loading + butter + dopamine (2026-10-09)
+  // Butter: pillar entrance animations
+  function butterPillars(){
+    try{
+      var pillars=document.querySelectorAll('.pf-pillar');
+      pillars.forEach(function(p,i){
+        p.style.opacity='0';
+        p.style.transform='translateY(16px)';
+        p.style.transition='opacity .4s ease, transform .4s cubic-bezier(.2,.8,.2,1)';
+        setTimeout(function(){
+          p.style.opacity='1';
+          p.style.transform='translateY(0)';
+        }, 80*i+50);
+        // Dopamine: tap feedback
+        p.addEventListener('touchstart',function(){
+          p.style.transform='scale(.97)';
+        },{passive:true});
+        p.addEventListener('touchend',function(){
+          p.style.transform='scale(1)';
+        },{passive:true});
+      });
+    }catch(e){}
+  }
+  // Run butter immediately (pillars are static HTML, no JS dependency)
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',butterPillars);
+  }else{butterPillars();}
+  // Load sequence: PARALLEL (not sequential) -> karl lazy
   (async function(){
-    await load(BASE+'core/'+CORE,false);
-    load(BASE+PWA,true); // async, guarded internally
-    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
-    await load(BASE+PAGES,false);
+    // Fire all critical scripts in parallel
+    var critical=[
+      load(BASE+'core/'+CORE,true),
+      load(BASE+PWA,true),
+    ];
+    GAMES.forEach(function(g){critical.push(load(BASE+g,true));});
+    critical.push(load(BASE+PAGES,true));
+    await Promise.all(critical);
     // Karl companion: lazy after idle
     function goKarl(){
       if(pfSkip('karl-companion'))return;
@@ -188,7 +219,7 @@
     try{
       if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
     }catch(e){}
-    console.log('[PF] Pages shell loaded: /');
+    console.log('[PF] Pages shell loaded (parallel): /');
   })();
 })();
 </script>

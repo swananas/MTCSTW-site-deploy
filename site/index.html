@@ -22,19 +22,6 @@
 <style>
   html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   #pf-boot{min-height:100vh;}
-  .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}
-  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
-  .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
-  .pf-topbar-nav::-webkit-scrollbar{display:none;}
-  .pf-topbar-nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
-  .pf-topbar-nav a:hover{color:#e5383b;}
-  .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
-  #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}
-  #pf-topbar-search:hover{border-color:#c1121f;color:#fff;}
-  #pf-topbar-search svg{width:18px;height:18px;display:block;}
-  #pf-topbar-user{flex:0 0 auto;min-width:0;display:flex;}
-  #pf-topbar-panel{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}
-  #pf-topbar-panel[hidden]{display:none;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
   /* Merged header + pillars: butter-smooth, PWA-native */
@@ -43,6 +30,7 @@
     padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;
     background:#0a0a0a;
     border-bottom:1px solid #c1121f;
+    touch-action:manipulation;
   }
   /* PWA standalone: extra top space for status bar */
   @media (display-mode: standalone){
@@ -57,6 +45,9 @@
   .pf-topbar-brand{
     color:#c1121f;font-weight:900;font-size:20px;letter-spacing:.12em;
     text-decoration:none;flex:0 0 auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;padding:8px 4px;
   }
   .pf-pillars-nav{
     display:flex;gap:8px;flex:1 1 auto;
@@ -70,6 +61,10 @@
     font-size:12px;font-weight:800;letter-spacing:.1em;
     transition:background .15s,border-color .15s;
     white-space:nowrap;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;
+    position:relative;z-index:1;
   }
   .pf-pillar:active{background:#c1121f;border-color:#c1121f;color:#fff;}
   .pf-tagline{

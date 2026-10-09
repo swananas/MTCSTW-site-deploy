@@ -4,10 +4,16 @@
  * Run: node build/fedarch/verify-fedarch.mjs
  *  1. PASS scenario: real v1.4.3 sources as route entries -> build must succeed,
  *     report.json must exist with per-route sizes + provenance, vendor chunk named.
- *  2. FAIL scenario: same manifest + a generated ~130KB over-budget fixture route
+ *     Route count is manifest-driven (not hardcoded).
+ *  2. DATA scenario (gap-a regression): slr-data (kind:"data") must build and
+ *     pass the dataChunkBytes budget while exceeding the 100KB code budget.
+ *  3. CONTRACT scenario (gap-b regression): the build-emitted routes.json must
+ *     resolve the dispatcher's runtime contract — every manifest route present
+ *     with entry + SRI + silos, every referenced dist file on disk.
+ *  4. FAIL scenario: same manifest + a generated ~130KB over-budget fixture route
  *     -> budget-gate MUST exit non-zero (the gate fires on an over-budget fixture).
- *  3. Dispatcher snippet must parse (node --check).
- * Exit 0 only if all three hold. */
+ *  5. Dispatcher snippet must parse (node --check).
+ * Exit 0 only if all hold. */
 'use strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -28,8 +34,13 @@ const ok = (name, cond, extra = '') => {
 console.log('== fedarch verify: PASS scenario (real sources) ==');
 execFileSync(node, [path.join(here, 'build.mjs')], { stdio: 'pipe' });
 const report = JSON.parse(fs.readFileSync(path.join(DIST, 'report.json'), 'utf8'));
+const manifest = JSON.parse(fs.readFileSync(path.join(here, 'routes.manifest.json'), 'utf8'));
+const manifestRoutes = Object.keys(manifest.routes);
 ok('report.json written', !!report.routes);
-ok('2 routes built', Object.keys(report.routes).length === 2, Object.keys(report.routes).join(','));
+ok(`${manifestRoutes.length} routes built (manifest-driven)`,
+  Object.keys(report.routes).length === manifestRoutes.length,
+  Object.keys(report.routes).join(','));
+ok('every manifest route has a built chunk', manifestRoutes.every(r => !!report.routes[r]));
 const vendorOut = Object.keys(report.outputs).find(o => path.basename(o).startsWith('vendor.'));
 ok('vendor chunk deterministically named', !!vendorOut, vendorOut || 'none');
 ok('shared chunk produced (code splitting works)',
@@ -41,6 +52,38 @@ ok('routes.json manifest written w/ SRI',
   (() => { try { const m = JSON.parse(fs.readFileSync(path.join(DIST, 'routes.json'), 'utf8')); return !!m.routes.home.integrity; } catch { return false; } })());
 ok('no dist output committed outside v1.4.3/dist/fedarch',
   !fs.existsSync(path.join(REPO_ROOT, 'v1.4.3', 'dist', 'routes.json')));
+
+console.log('== fedarch verify: data-chunk budget (gap-a regression) ==');
+const budgets = JSON.parse(fs.readFileSync(path.join(here, 'budgets.json'), 'utf8'));
+const slrData = report.routes['slr-data'] || {};
+ok('slr-data route built with kind:"data"',
+  slrData.kind === 'data' && manifest.routes['slr-data']?.kind === 'data', JSON.stringify(slrData.kind));
+ok('167KB data chunk passes dataChunkBytes (not the 100KB code budget)',
+  slrData.bytes > budgets.routeChunkBytes && slrData.bytes <= budgets.dataChunkBytes,
+  `${(slrData.bytes / 1024).toFixed(1)}KB vs data budget ${(budgets.dataChunkBytes / 1024).toFixed(0)}KB`);
+
+console.log('== fedarch verify: dispatcher runtime contract (gap-b regression) ==');
+(() => {
+  // The dispatcher fetches routes.json (build-emitted) while the tree holds only
+  // routes.manifest.json (build source). This asserts the runtime contract
+  // resolves: every manifest route must be present in routes.json with an
+  // entry + SRI + silos, and every referenced file must exist in dist.
+  const rj = JSON.parse(fs.readFileSync(path.join(DIST, 'routes.json'), 'utf8'));
+  const missing = manifestRoutes.filter(r => !rj.routes[r]);
+  ok('routes.json covers every manifest route', missing.length === 0, missing.join(',') || `${manifestRoutes.length} routes`);
+  const badFields = manifestRoutes.filter(r => {
+    const d = rj.routes[r] || {};
+    return !(d.entry && d.integrity && d.integrity[d.entry] && d.silos);
+  });
+  ok('every route def has entry + SRI + silos', badFields.length === 0, badFields.join(','));
+  const missingFiles = [];
+  for (const r of manifestRoutes) {
+    for (const f of [rj.routes[r].entry, ...rj.routes[r].imports]) {
+      if (!fs.existsSync(path.join(DIST, f))) missingFiles.push(f);
+    }
+  }
+  ok('every referenced dist file exists', missingFiles.length === 0, missingFiles.slice(0, 3).join(','));
+})();
 
 console.log('== fedarch verify: FAIL scenario (over-budget fixture) ==');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fedarch-over-'));

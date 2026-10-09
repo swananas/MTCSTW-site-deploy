@@ -51,7 +51,15 @@
   /* 4. Dispatch: fetch routes.json manifest once, dynamic import() the route entry.
    * Vendor chunk is pulled automatically as a static import of the route chunk.
    * Mount/order semantics: routes.json `order` declares per-route sequencing;
-   * the dispatcher awaits entries in that order. */
+   * the dispatcher awaits entries in that order.
+   *
+   * routes.json provenance (wiring note): this file is NOT in the repo tree —
+   * the tree holds only the build SOURCE, build/fedarch/routes.manifest.json.
+   * build/fedarch/build.mjs emits v1.4.3/dist/fedarch/routes.json (route ->
+   * built chunk + imports + SRI) on every build, and dist/ is rebuilt centrally
+   * (never hand-merged). If this fetch 404s, the fedarch build did not run or
+   * its dist/ output was not deployed — the runtime contract resolves if and
+   * only if the central bundle rebuild ran the fedarch pipeline. */
   async function dispatch() {
     var killed = killedSilos();
     var base = cdnBase();

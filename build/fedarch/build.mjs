@@ -28,22 +28,22 @@ fs.mkdirSync(outdir, { recursive: true });
 console.log(`fedarch build: ${Object.keys(loaded.entries).length} route entries -> ${path.relative(REPO_ROOT, outdir)}`);
 const result = await esbuild.build(makeConfig({ entries: loaded.entries, outdir }));
 
-// Remap the vendor-chunk rename into the metafile and normalize output keys
+// Remap the vendor-chunk renames into the metafile and normalize output keys
 // to be relative to the outdir (analyzer + dispatcher both read these).
 let meta = result.metafile;
-const rename = result.vendorChunk; // {from, to} repo-root-relative, set by plugin
-const renameFrom = rename ? path.relative(outdir, path.resolve(REPO_ROOT, rename.from)) : null;
-const renameTo = rename ? path.relative(outdir, path.resolve(REPO_ROOT, rename.to)) : null;
+const renames = result.vendorChunks || (result.vendorChunk ? [result.vendorChunk] : []);
 const rel = p => path.relative(outdir, path.resolve(REPO_ROOT, p));
+const remap = key => {
+  for (const r of renames) {
+    const from = rel(r.from), to = rel(r.to);
+    if (key === from) return to;
+  }
+  return key;
+};
 const fixed = { inputs: meta.inputs, outputs: {} };
 for (const [out, m] of Object.entries(meta.outputs)) {
-  let key = rel(out);
-  if (renameFrom && key === renameFrom) key = renameTo;
-  const imports = (m.imports || []).map(d => {
-    let p = rel(d.path);
-    if (renameFrom && p === renameFrom) p = renameTo;
-    return { ...d, path: p };
-  });
+  const key = remap(rel(out));
+  const imports = (m.imports || []).map(d => ({ ...d, path: remap(rel(d.path)) }));
   fixed.outputs[key] = { ...m, imports, entryPoint: m.entryPoint ? path.resolve(m.entryPoint) : undefined };
 }
 meta = fixed;

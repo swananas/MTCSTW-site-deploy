@@ -1,5 +1,5 @@
 {
-  "_comment": "fedarch route manifest \u2014 Frontend Pod owned (signed frontend-route-map.md 2026-10-08). build.mjs reads routes.<name>.entry/order/silos; the footer dispatcher reads detect/timing/pages. Budget: route chunk <=102400 raw bytes (CEO-set).",
+  "_comment": "fedarch route manifest — Frontend Pod owned (signed frontend-route-map.md 2026-10-08). build.mjs reads routes.<name>.entry/order/silos; the footer dispatcher reads detect/timing/pages. Budget: route chunk <=102400 raw bytes (CEO-set).",
   "routes": {
     "pf-kernel": {
       "entry": "build/fedarch/entries/pf-kernel.entry.js",
@@ -36,6 +36,20 @@
         "vote-standings"
       ],
       "timing": "blocking-on-need",
+      "detect": {
+        "needSlr": true
+      }
+    },
+    "slr-data": {
+      "entry": "build/fedarch/entries/slr-data.entry.js",
+      "kind": "data",
+      "order": [
+        "slr-data"
+      ],
+      "silos": [
+        "slr-db"
+      ],
+      "timing": "lazy",
       "detect": {
         "needSlr": true
       }
@@ -243,7 +257,7 @@
     }
   },
   "dispatch": {
-    "_comment": "Dispatcher rule set (DOM-first route detection; URL path as fallback). slr-data (07-slr-db-data snapshot) is NOT an esbuild route: it is data, not code \u2014 it needs a data-chunk budget in the sibling's gate (follow-up filed for Toolchain; legacy core/bundle-slr-data.js keeps serving until then).",
+    "_comment": "Dispatcher rule set (DOM-first route detection; URL path as fallback). slr-data (07-slr-db-data snapshot, kind:\"data\") is now a built fedarch route with its own dataChunkBytes budget (data payloads are not code); lazy-load wiring into the timing arrays is Frontend Pod's dispatcher work — legacy core/bundle-slr-data.js keeps serving until then.",
     "blocking": [
       "pf-kernel",
       {

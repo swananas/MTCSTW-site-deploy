@@ -4,9 +4,11 @@
  * (+ budgets.json) and exits NON-ZERO on any violation — CI goes red, the
  * build fails. Budget policy (the numbers) is CEO-set; mechanics are Toolchain's.
  * Fails when:
- *   - any route chunk file > routeChunkBytes (100KB standing per-route budget)
+ *   - any route chunk file > routeChunkBytes (100KB standing per-route budget),
+ *     except kind:"data" routes which are checked against dataChunkBytes
+ *     (data payloads are not JS code — CEO budget applies to code, not data)
  *   - any route's total initial payload (route + its unique chunks, vendor
- *     excluded as amortized) > routeTotalBytes
+ *     excluded as amortized) > routeTotalBytes (dataChunkBytes for kind:"data")
  *   - vendor chunk > vendorChunkBytes
  *   - core runtime chunk (routes.json-adjacent bus shim) > coreRuntimeBytes
  *   - any gzip size > gzipMultiplier * corresponding raw budget
@@ -33,9 +35,23 @@ function check(label, bytes, budget, kind) {
 }
 
 for (const [route, r] of Object.entries(report.routes)) {
-  check(`route chunk ${route} (${r.chunk})`, r.bytes, budgets.routeChunkBytes, 'route-chunk');
-  check(`route chunk ${route} gzip`, r.gzipBytes, budgets.routeChunkBytes * budgets.gzipMultiplier, 'route-chunk-gzip');
-  check(`route total ${route} (route+chunks, vendor amortized)`, r.totalBytes, budgets.routeTotalBytes, 'route-total');
+  // Data payloads are not code: kind:"data" routes (declared in the manifest)
+  // are checked against the separate dataChunkBytes budget. Fail closed if the
+  // budget is missing — a data route with no data budget is a config error.
+  let chunkBudget = budgets.routeChunkBytes;
+  let totalBudget = budgets.routeTotalBytes;
+  const kindTag = r.kind === 'data' ? ' [data]' : '';
+  if (r.kind === 'data') {
+    if (!(budgets.dataChunkBytes > 0)) {
+      fails.push(`budget config: route "${route}" is kind:"data" but budgets.json has no dataChunkBytes`);
+    } else {
+      chunkBudget = budgets.dataChunkBytes;
+      totalBudget = budgets.dataChunkBytes;
+    }
+  }
+  check(`route chunk ${route} (${r.chunk})${kindTag}`, r.bytes, chunkBudget, 'route-chunk');
+  check(`route chunk ${route} gzip${kindTag}`, r.gzipBytes, chunkBudget * budgets.gzipMultiplier, 'route-chunk-gzip');
+  check(`route total ${route} (route+chunks, vendor amortized)${kindTag}`, r.totalBytes, totalBudget, 'route-total');
 }
 
 for (const [out, o] of Object.entries(report.outputs)) {

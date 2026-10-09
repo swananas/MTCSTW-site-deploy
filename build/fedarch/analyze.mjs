@@ -2,7 +2,7 @@
 /* build/fedarch/analyze.mjs
  * Reads esbuild's metafile and produces the CI bundle-analyzer report:
  * v1.4.3/dist/fedarch/report.json
- * Schema: builtAt, esbuild version, budgets, routes{chunk, bytes, gzipBytes,
+ * Schema: builtAt, esbuild version, budgets, routes{chunk, kind, bytes, gzipBytes,
  * chunks[], totalBytes, totalGzipBytes}, outputs{bytes, gzipBytes, entryPoint,
  * inputs[{path, bytesInOutput}]}, provenance{chunk -> [source inputs]}.
  * Usage: node build/fedarch/analyze.mjs <metafile> <manifest> <outReport> */
@@ -78,6 +78,7 @@ for (const [route, entryOut] of Object.entries(routeEntryOut)) {
   const chunkBase = path.basename(entryOut);
   routes[route] = {
     chunk: chunkBase,
+    kind: manifest.routes[route].kind || 'code',
     bytes: outputs[entryOut].bytes,
     gzipBytes: outputs[entryOut].gzipBytes,
     chunks: chunks.map(c => path.basename(c)),

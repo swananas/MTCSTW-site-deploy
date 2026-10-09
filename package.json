@@ -9,6 +9,10 @@
   },
   "scripts": {
     "deploy": "wrangler deploy",
-    "preview": "wrangler dev"
+    "preview": "wrangler dev",
+    "fedarch:build": "node build/fedarch/build.mjs",
+    "fedarch:analyze": "node build/fedarch/analyze.mjs",
+    "fedarch:gate": "node build/fedarch/budget-gate.mjs",
+    "fedarch:verify": "node build/fedarch/verify-fedarch.mjs"
   }
 }

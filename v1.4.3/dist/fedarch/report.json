@@ -1,0 +1,103 @@
+{
+  "builtAt": "2026-10-09T03:50:57.169Z",
+  "esbuild": "0.28.2",
+  "budgets": {
+    "routeChunk": 102400,
+    "vendor": 256000,
+    "coreRuntime": 51200,
+    "routeTotal": 102400
+  },
+  "routes": {
+    "arcade": {
+      "chunk": "arcade.TWDLEDYH.js",
+      "bytes": 11693,
+      "gzipBytes": 4250,
+      "chunks": [
+        "vendor.MXWAR5WT.js"
+      ],
+      "totalBytes": 11693,
+      "totalGzipBytes": 4250
+    },
+    "home": {
+      "chunk": "home.V3FSJBJR.js",
+      "bytes": 12547,
+      "gzipBytes": 4821,
+      "chunks": [
+        "vendor.MXWAR5WT.js"
+      ],
+      "totalBytes": 12547,
+      "totalGzipBytes": 4821
+    }
+  },
+  "outputs": {
+    "routes/arcade.TWDLEDYH.js": {
+      "bytes": 11693,
+      "gzipBytes": 4250,
+      "entryPoint": "build/fedarch/entries/arcade.entry.js",
+      "inputs": [
+        {
+          "path": "v1.4.3/core/30-hud.js",
+          "bytesInOutput": 8380
+        },
+        {
+          "path": "v1.4.3/core/08-dopamine.js",
+          "bytesInOutput": 3275
+        },
+        {
+          "path": "build/fedarch/entries/arcade.entry.js",
+          "bytesInOutput": 0
+        }
+      ]
+    },
+    "routes/home.V3FSJBJR.js": {
+      "bytes": 12547,
+      "gzipBytes": 4821,
+      "entryPoint": "build/fedarch/entries/home.entry.js",
+      "inputs": [
+        {
+          "path": "v1.4.3/core/32-hubhome.js",
+          "bytesInOutput": 8733
+        },
+        {
+          "path": "v1.4.3/core/14-auth.js",
+          "bytesInOutput": 3776
+        },
+        {
+          "path": "build/fedarch/entries/home.entry.js",
+          "bytesInOutput": 0
+        }
+      ]
+    },
+    "chunks/vendor.MXWAR5WT.js": {
+      "bytes": 27704,
+      "gzipBytes": 9275,
+      "entryPoint": null,
+      "inputs": [
+        {
+          "path": "v1.4.3/core/03-global.js",
+          "bytesInOutput": 19332
+        },
+        {
+          "path": "v1.4.3/core/00-bus.js",
+          "bytesInOutput": 8371
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "routes/arcade.TWDLEDYH.js": [
+      "v1.4.3/core/30-hud.js",
+      "v1.4.3/core/08-dopamine.js",
+      "build/fedarch/entries/arcade.entry.js"
+    ],
+    "routes/home.V3FSJBJR.js": [
+      "v1.4.3/core/32-hubhome.js",
+      "v1.4.3/core/14-auth.js",
+      "build/fedarch/entries/home.entry.js"
+    ],
+    "chunks/vendor.MXWAR5WT.js": [
+      "v1.4.3/core/03-global.js",
+      "v1.4.3/core/00-bus.js"
+    ]
+  }
+}

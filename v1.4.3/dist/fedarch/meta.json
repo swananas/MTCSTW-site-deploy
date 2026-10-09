@@ -1,0 +1,139 @@
+{
+  "inputs": {
+    "v1.4.3/core/00-bus.js": {
+      "bytes": 18305,
+      "imports": []
+    },
+    "v1.4.3/core/03-global.js": {
+      "bytes": 34100,
+      "imports": []
+    },
+    "v1.4.3/core/08-dopamine.js": {
+      "bytes": 4790,
+      "imports": []
+    },
+    "v1.4.3/core/30-hud.js": {
+      "bytes": 15148,
+      "imports": []
+    },
+    "build/fedarch/entries/arcade.entry.js": {
+      "bytes": 336,
+      "imports": [
+        {
+          "path": "v1.4.3/core/00-bus.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/00-bus.js"
+        },
+        {
+          "path": "v1.4.3/core/03-global.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/03-global.js"
+        },
+        {
+          "path": "v1.4.3/core/08-dopamine.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/08-dopamine.js"
+        },
+        {
+          "path": "v1.4.3/core/30-hud.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/30-hud.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "v1.4.3/core/14-auth.js": {
+      "bytes": 9992,
+      "imports": []
+    },
+    "v1.4.3/core/32-hubhome.js": {
+      "bytes": 18110,
+      "imports": []
+    },
+    "build/fedarch/entries/home.entry.js": {
+      "bytes": 341,
+      "imports": [
+        {
+          "path": "v1.4.3/core/00-bus.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/00-bus.js"
+        },
+        {
+          "path": "v1.4.3/core/03-global.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/03-global.js"
+        },
+        {
+          "path": "v1.4.3/core/14-auth.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/14-auth.js"
+        },
+        {
+          "path": "v1.4.3/core/32-hubhome.js",
+          "kind": "import-statement",
+          "original": "../../../v1.4.3/core/32-hubhome.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "routes/arcade.TWDLEDYH.js": {
+      "imports": [
+        {
+          "path": "chunks/vendor.MXWAR5WT.js",
+          "kind": "import-statement"
+        }
+      ],
+      "exports": [],
+      "entryPoint": "/home/hatch/workspace/wt/fe/fedarch-toolchain-20261008/build/fedarch/entries/arcade.entry.js",
+      "inputs": {
+        "v1.4.3/core/08-dopamine.js": {
+          "bytesInOutput": 3275
+        },
+        "v1.4.3/core/30-hud.js": {
+          "bytesInOutput": 8380
+        },
+        "build/fedarch/entries/arcade.entry.js": {
+          "bytesInOutput": 0
+        }
+      },
+      "bytes": 11692
+    },
+    "routes/home.V3FSJBJR.js": {
+      "imports": [
+        {
+          "path": "chunks/vendor.MXWAR5WT.js",
+          "kind": "import-statement"
+        }
+      ],
+      "exports": [],
+      "entryPoint": "/home/hatch/workspace/wt/fe/fedarch-toolchain-20261008/build/fedarch/entries/home.entry.js",
+      "inputs": {
+        "v1.4.3/core/14-auth.js": {
+          "bytesInOutput": 3776
+        },
+        "v1.4.3/core/32-hubhome.js": {
+          "bytesInOutput": 8733
+        },
+        "build/fedarch/entries/home.entry.js": {
+          "bytesInOutput": 0
+        }
+      },
+      "bytes": 12546
+    },
+    "chunks/vendor.MXWAR5WT.js": {
+      "imports": [],
+      "exports": [],
+      "inputs": {
+        "v1.4.3/core/00-bus.js": {
+          "bytesInOutput": 8371
+        },
+        "v1.4.3/core/03-global.js": {
+          "bytesInOutput": 19332
+        }
+      },
+      "bytes": 27704
+    }
+  }
+}

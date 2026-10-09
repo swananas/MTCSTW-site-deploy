@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "builtAt": "2026-10-09T03:50:57.072Z",
+  "routes": {
+    "arcade": {
+      "entry": "routes/arcade.TWDLEDYH.js",
+      "imports": [
+        "chunks/vendor.MXWAR5WT.js"
+      ],
+      "integrity": {
+        "routes/arcade.TWDLEDYH.js": "sha384-LQ5Qyit3fX0Om77SW8XixJv7ujL+XCtChVG2yHZjXCpMwnvWX3X4lJRBHvyEHuRi",
+        "chunks/vendor.MXWAR5WT.js": "sha384-bsMHY3LsiU+mtf53PFW3a/jGjp3vAKTX78YJJd4piQTp5X3/B8k6IJcrBbumOnxN"
+      },
+      "silos": [
+        "arcade"
+      ],
+      "order": [
+        "arcade"
+      ]
+    },
+    "home": {
+      "entry": "routes/home.V3FSJBJR.js",
+      "imports": [
+        "chunks/vendor.MXWAR5WT.js"
+      ],
+      "integrity": {
+        "routes/home.V3FSJBJR.js": "sha384-sXDLkN4du2pi2v92Xk3S7JC/st+YjgQ16lC8urBu8JMwFRcrMfjHJFKSbU9U/er9",
+        "chunks/vendor.MXWAR5WT.js": "sha384-bsMHY3LsiU+mtf53PFW3a/jGjp3vAKTX78YJJd4piQTp5X3/B8k6IJcrBbumOnxN"
+      },
+      "silos": [
+        "home"
+      ],
+      "order": [
+        "home"
+      ]
+    }
+  }
+}

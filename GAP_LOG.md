@@ -1,0 +1,40 @@
+# IMPROVEMENT LOOP — Live Gap Log
+**Workstream:** ws-imp-loop-design-map-20261010 (Design Team lead) · **Directive:** dir-20261010-021948-6267
+**Audited tree:** deploy-repo integration tip `ux/feed-destinations-20261010` @ `622be7c0` (post tonight's merges: butter-fullsite, beefy-feed, weave-spine, karl-homepage, pillar rebuilds, feed-destinations)
+**Updated:** 2026-10-10 ~04:10 CDT · **Status:** PASS 1 complete (homepage + 4 pillars). Pass 2 queued: Karl surfaces, modeling apps, games, cells app, catalog, dashboard, standalone feed.
+
+Severity: **P0** = dead end / broken promise (user taps, nothing real happens). **P1** = butter-bar miss on a shipped surface. **P2** = missing Blossom cross-link (surface works but sits isolated).
+
+## OPEN
+
+| ID | Sev | Surface | Gap | Next logical destination that's missing | Owner |
+|---|---|---|---|---|---|
+| G-D1 | P0 | /sick-left-radicals (CONNECT) | Roster cards expand-only; slugs in data but **no link to catalog pages** (`d.onclick` toggles open; zero catalog hrefs in shell). The old roster's VIEW HERE convention was lost in the rebuild. | → `/<slug>` catalog deep page | FE pillars-feed |
+| G-D2 | P0 | /cells (COORDINATE) | "FIND YOUR CELL" CTA → `/karl/?q=How do I join a cell` — a query, not a destination. User looking for a cell gets an answer card, not a cell directory/app. | → real cells surface (verify bundle-cells.js mount; else build one) | FE pillars-feed |
+| G-D3 | P1 | /create (CREATE) | Hub lists 3 doors (Karl / roster / feed) — **/fact-generator, /story-remixer, poster-forge unreachable from the Create hub** (G2.3 carried forward, still open after rebuild) | → `/fact-generator`, `/story-remixer`, poster-forge | FE pillars-feed |
+| G-D4 | P2 | /money (CAPITAL) | Rails link only to Karl queries; **no "Form a cell around this cause" / "Make propaganda about this"** CTAs (G5.1 carried forward) | → /cells, /create | FE pillars-feed + Design |
+| G-D5 | P2 | /money (CAPITAL) | Rail figures ($6.45T, $12.7B, 335, 71, 60) are plain text — **not tappable**; no drill path into the data (G1.2 carried forward; homepage has data-fig+drillSheet, pillars don't) | → drill-down sheet / modeling deep pages | FE pillars-feed |
+| G-D6 | P2 | /sick-left-radicals (CONNECT) | Roster index has no Money/Cells/Create CTAs per entry (G5.2 carried forward) — depends on G-D1 first | → catalog (then its CTAs) | FE pillars-feed |
+| G-D7 | P1 | All 4 pillar shells | **Butter-lite missing:** no ink ripple (bundle-core not loaded), mount `rise` animation replays on every load (spec: first-paint-only) and has **no `prefers-reduced-motion` guard**, no skeleton on async `karl_stats` fetch (money page number swaps silently), no kill switch on inline JS | butter-lite snippet | FE pillars-feed |
+| G-D8 | P1 | Homepage (site/index.html) | Butter present (toast, press states, data-fig+inline drill sheet, 7 destinations) but **no ripple, no skeleton, no `prefers-reduced-motion` guard**; homepage ships zero core JS by design (perf) so it can't inherit 45-butter-sitewide | inline ripple + reduced-motion guard | FE homepage |
+| G-D9 | P2 | Homepage feed cards | SAVE writes **localStorage only** (`kh_saved_v1`); backend `POST /api/feed/save` (WS-2/WS-1, be/feed-dest-apis-20261010) exists — FE not wired to it yet. Saved cards don't survive devices. | → POST /api/feed/save w/ device id | FE homepage (coord fe-feed-dest-wire) |
+| G-D10 | P2 | Pillar shells | Weave-spine (WS-C) injects feed rails + `← THE ROBBERY REPORT` on **bundle-core pages only** — pillar shells load no core JS, so the spine never lands there. (They do have manual feed-link cards back to `/` — partial.) | verify; may be fine as-is | FE pillars-feed |
+
+## CARRIED FORWARD from blossom-wiring-gaps.md (verified still open tonight)
+- G1.2: no drill on /economy, /peoples-cpi, /dossier, /corruption-index, /follow-the-money apps — **OPEN** (apps not re-audited yet; Pass 2)
+- G1.3/G3.2: Propaganda Feed (`games/feed.js`) SHARE & PUMP only — **OPEN** (Pass 2)
+- G2.1: Dossier Builder zero links to /create, /karl, /money, /cells, /feed — **OPEN** (Pass 2)
+- G2.2: /town, /peoples-cpi, /corruption-index share CTAs but no create-tool route w/ preloaded data — **OPEN** (Pass 2)
+- G3.1: no create tool posts into review pool/feed — **OPEN** (L, Backend Pod)
+- G4.1: /karl page query dead end — **OPEN** (Pass 2)
+- G4.2: deep data apps lack Ask-Karl CTA — **OPEN** (Pass 2)
+
+## CLOSED / PARTIALLY CLOSED by tonight's merges (verified on tip)
+- G1.1 (hub feed-link sections → deep drills): **PARTIAL** — pillar feed-link cards now route to `/karl/?q=` deep queries (a real drill path via Karl) but not to modeling deep pages
+- Homepage feed → 7 destinations (expand, drill-down, share image, go deeper, related, save, methodology): **CLOSED** on homepage cards (622be7c0) — all hit real APIs, no mocks
+- WS-A butter (45-butter-sitewide + 46-drill-sheet): **CLOSED** on bundle-core pages; corridor pages (corruption-index, slr-catalog, peoples-cpi) upgraded
+- WS-C weave spine: **CLOSED** on bundle-core pages (rail + `← THE ROBBERY REPORT`)
+
+## Notes
+- Pillar shells are standalone (5–24KB, inline CSS/JS, zero external scripts) — deliberate perf choice; butter must ride inline, not via bundle-core.
+- Catalog deep pages (`site/<slug>/`) exist with canonical `https://www.mtcstw.com/<slug>` — the roster just doesn't link them.

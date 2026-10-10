@@ -17,7 +17,7 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 ## P-002 — /create hub lists every create tool (fixes G-D3/G2.3)
 **Surface:** /create · **For:** ws-imp-loop-pillars-feed-20261010
 **Problem:** hub shows 3 doors; /fact-generator, /story-remixer, poster-forge unreachable from it.
-**Design:** add 3 `.tool` cards in the existing pattern: Fact Generator → `/fact-generator` ("Turn any claim into a sourced fact card"); Story Remixer → `/story-remixer` ("Remix a story into threads and scripts"); Poster Forge → canonical route TBD (verify mount — homepage CREATE block was replaced in rebuild; game file `games/poster-forge.js` mounts `#pf-poster`, no shell found mounting it — FE to confirm route or re-mount). Keep the 3 existing doors. ~1KB.
+**Design:** add 3 `.tool` cards in the existing pattern: Fact Generator → `/fact-generator` ("Turn any claim into a sourced fact card") — verified live shell; Story Remixer → `/story-remixer` ("Remix a story into threads and scripts") — verified live shell; Poster Forge → canonical route TBD (verify mount — homepage CREATE block was replaced in rebuild; game file `games/poster-forge.js` mounts `#pf-poster`, no shell found mounting it — FE to confirm route or re-mount). Keep the 3 existing doors. ~1KB.
 **Status:** PROPOSED — recommend APPROVE; poster-forge route needs FE verify (flagged).
 
 ## P-003 — /money gets Cells + Create CTAs (fixes G-D4/G5.1)
@@ -48,6 +48,7 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 **Surface:** homepage feed cards · **For:** ws-imp-loop-homepage-20261010 (coord fe-feed-dest-wire-20261010)
 **Problem:** SAVE is localStorage-only; `POST /api/feed/save` exists (be/feed-dest-apis-20261010).
 **Design:** SAVE POSTs `{cardId, callsign?, device}` (stable localStorage uuid per WS-1 contract) → `★ SAVED`; on failure/offline, fall back to localStorage with toast "Saved on this device". No UX change on happy path. Alert/follow-topic wiring rides the same pattern (follow-up proposal after this lands).
+**Coordination (2026-10-10 ~05:20 CDT):** `fe/feed-dest-wire-20261010` already wires `/api/feed/save` in bundle-core (46-feed-dest-wire.js) — but the homepage ships zero core JS, so its inline SAVE is a parallel implementation. This proposal is ALIGNMENT, not a new implementation: homepage SAVE must speak the same server contract (same cardId scheme, same device id) so saved state is coherent across surfaces.
 **Status:** PROPOSED — recommend APPROVE (check overlap with fe-feed-dest-wire-20261010 first).
 
 ## P-007 — Homepage inline ripple + reduced-motion (fixes G-D8)
@@ -81,6 +82,7 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 ## P-010 — Propaganda Feed cards: drill + remix (fixes G-F1/G1.3/G3.2)
 **Surface:** games/feed.js · **For:** ws-imp-loop-pillars-feed-20261010
 **Design:** per card add `DRILL ↓` (→ drill sheet if figure+source known, else `/karl/?q=<poster topic>`) and `REMIX` (→ `/karl/` with the poster as context, ending at MAKE SHAREABLE). Keeps SHARE & PUMP untouched.
+**Coordination (2026-10-10 ~05:20 CDT):** `fe/feed-dest-engage-20261010` ships SHARE/ASK/RELATED/TRACK UI in bundle-core — check whether it covers `games/feed.js` cards before building; if yes, this proposal narrows to REMIX-only.
 **Status:** PROPOSED — recommend APPROVE.
 
 ## P-011 — Catalog return paths + cross-links (fixes G-C1, with P-001)

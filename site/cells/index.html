@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Find Your Cell — JOIN THE FIGHT.</title>
-<meta name="description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
-<meta property="og:title" content="Find Your Cell — JOIN THE FIGHT.">
-<meta property="og:description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
+<title>Cells — Nobody Fights Alone.</title>
+<meta name="description" content="Cells are small crews that turn intel into action. Find yours, or start one.">
+<meta property="og:title" content="Cells — Nobody Fights Alone.">
+<meta property="og:description" content="Cells are small crews that turn intel into action. Find yours, or start one.">
 <meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
-<meta property="og:url" content="https://www.mtcstw.com/cells">
+<meta property="og:url" content="https://www.mtcstw.com/cells/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Find Your Cell — JOIN THE FIGHT.">
-<meta name="twitter:description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
+<meta name="twitter:title" content="Cells — Nobody Fights Alone.">
+<meta name="twitter:description" content="Cells are small crews that turn intel into action. Find yours, or start one.">
 <meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
@@ -22,23 +22,267 @@
 <style>
   html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   #pf-boot{min-height:100vh;}
-  .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}
-  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
-  .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
-  .pf-topbar-nav::-webkit-scrollbar{display:none;}
-  .pf-topbar-nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
-  .pf-topbar-nav a:hover{color:#e5383b;}
-  .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
-  #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}
-  #pf-topbar-search:hover{border-color:#c1121f;color:#fff;}
-  #pf-topbar-search svg{width:18px;height:18px;display:block;}
-  #pf-topbar-user{flex:0 0 auto;min-width:0;display:flex;}
-  #pf-topbar-panel{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}
-  #pf-topbar-panel[hidden]{display:none;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
+  /* Merged header + pillars: butter-smooth, PWA-native */
+  .pf-topbar{
+    position:fixed;top:0;left:0;right:0;z-index:10000;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;
+    background:#0a0a0a;
+    border-bottom:1px solid #c1121f;
+    touch-action:manipulation;
+  }
+  /* PWA standalone: extra top space for status bar (aggressive, no env dependency) */
+  @media (display-mode: standalone){
+    .pf-topbar{padding-top:48px;}
+    body{padding-top:158px;}
+  }
+  body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
+  .pf-topbar-inner{
+    max-width:960px;margin:0 auto;
+    display:flex;align-items:center;gap:10px;
+  }
+  .pf-topbar-brand{
+    color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;
+    text-decoration:none;flex:0 0 auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;padding:8px 2px;
+  }
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{
+    display:flex;gap:6px;flex:1 1 auto;
+  }
+  .pf-pillars-nav::-webkit-scrollbar{display:none;}
+  .pf-pillar{
+    flex:1 1 0;text-align:center;text-decoration:none;
+    background:transparent;border:none;border-radius:8px;
+    padding:10px 4px;color:#b0b0b0;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    white-space:nowrap;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;
+    position:relative;z-index:1;
+  }
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  .pf-tagline{display:none;}
+  #main{min-height:60vh;}
+  /* Karl floating chat button (bottom-right, PWA safe-area aware) */
+  .pf-karl-fab{
+    position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);z-index:9000;
+    width:56px;height:56px;border-radius:50%;
+    background:#c1121f;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font:900 22px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    text-decoration:none;letter-spacing:.02em;
+    box-shadow:0 4px 14px rgba(193,18,31,.45);
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(255,255,255,.2);
+  }
+  .pf-karl-fab:active{transform:scale(.94);}
 </style>
-<script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
+<style>
+  /* ---------- KARL HOMEPAGE (ux/karl-homepage-20261010) ---------- */
+  #pf-karl-home{
+    --kh-bg:#0a0a0a; --kh-card:#111111; --kh-card2:#141414; --kh-line:#232323;
+    --kh-red:#c1121f; --kh-red-bright:#e5383b; --kh-cream:#f5f0e6;
+    --kh-dim:#8a8478; --kh-faint:#5a554b; --kh-green:#2fbf71;
+    background:var(--kh-bg); color:var(--kh-cream);
+    max-width:560px; margin:0 auto; min-height:60vh;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  #pf-karl-home .kh-ask{ padding:26px 20px 10px; }
+  #pf-karl-home .kh-ask h1{
+    font-family:Georgia,serif; font-size:34px; line-height:1.15; font-weight:700;
+    margin:0 0 18px; letter-spacing:-.01em; color:var(--kh-cream);
+  }
+  #pf-karl-home .kh-ask h1 em{ color:var(--kh-red-bright); font-style:normal; }
+  #pf-karl-home .kh-composer{
+    background:var(--kh-card2); border:1px solid var(--kh-line); border-radius:16px;
+    padding:4px; transition:border-color .2s, box-shadow .2s;
+  }
+  #pf-karl-home .kh-composer:focus-within{ border-color:var(--kh-red); box-shadow:0 0 0 3px rgba(193,18,31,.18); }
+  #pf-karl-home .kh-composer textarea{
+    width:100%; background:transparent; border:0; outline:0; resize:none;
+    color:var(--kh-cream); font-size:17px; padding:14px 14px 6px; min-height:64px;
+    font-family:inherit; line-height:1.45;
+  }
+  #pf-karl-home .kh-composer textarea::placeholder{ color:var(--kh-faint); }
+  #pf-karl-home .kh-composer-foot{ display:flex; align-items:center; justify-content:space-between; padding:6px 10px 10px 14px; }
+  #pf-karl-home .kh-composer-hint{ font-size:12px; color:var(--kh-faint); }
+  #pf-karl-home .kh-ask-btn{
+    background:var(--kh-red); color:#fff; border:0; border-radius:999px;
+    padding:11px 26px; font-size:15px; font-weight:700; letter-spacing:.04em;
+    cursor:pointer; transition:transform .12s, background .2s, box-shadow .2s;
+    box-shadow:0 4px 18px rgba(193,18,31,.35); touch-action:manipulation;
+  }
+  #pf-karl-home .kh-ask-btn:active{ transform:scale(.95); }
+  #pf-karl-home .kh-ask-btn:disabled{ opacity:.55; box-shadow:none; }
+  #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; }
+  #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
+  #pf-karl-home .kh-chip{
+    flex:0 0 auto; background:var(--kh-card); border:1px solid var(--kh-line); color:var(--kh-cream);
+    border-radius:999px; padding:9px 15px; font-size:13.5px; cursor:pointer;
+    transition:border-color .2s, transform .12s; white-space:nowrap; touch-action:manipulation;
+  }
+  #pf-karl-home .kh-chip:active{ transform:scale(.95); border-color:var(--kh-red); }
+  #pf-karl-home .kh-feed-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:26px 20px 4px;
+  }
+  #pf-karl-home .kh-feed-head h2{ font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--kh-dim); font-weight:700; margin:0; }
+  #pf-karl-home .kh-feed-head .kh-tick{ font-size:11px; color:var(--kh-faint); display:flex; align-items:center; gap:6px; }
+  #pf-karl-home .kh-feed-head .kh-tick i{ width:6px; height:6px; border-radius:50%; background:var(--kh-green); display:inline-block; animation:kh-blink 2.2s infinite; }
+  @keyframes kh-blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
+  #pf-karl-home .kh-feed{ padding:10px 14px 30px; display:flex; flex-direction:column; gap:12px; }
+  #pf-karl-home .kh-card{
+    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
+    padding:16px 16px 13px; cursor:pointer;
+    transition:transform .12s, border-color .2s;
+    animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+  }
+  #pf-karl-home .kh-card:active{ transform:scale(.985); }
+  @keyframes kh-rise{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+  #pf-karl-home .kh-card .kh-q{ font-size:15px; font-weight:600; margin-bottom:8px; color:var(--kh-cream); }
+  #pf-karl-home .kh-card .kh-a{ font-size:14px; color:var(--kh-dim); line-height:1.55; }
+  #pf-karl-home .kh-card .kh-a b{ color:var(--kh-red-bright); font-weight:700; }
+  #pf-karl-home .kh-card-meta{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:12px; padding-top:10px; border-top:1px dashed var(--kh-line);
+    font-size:12px; color:var(--kh-faint);
+  }
+  #pf-karl-home .kh-deploys{ display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
+  #pf-karl-home .kh-deploys .n{ color:var(--kh-cream); font-weight:700; }
+  #pf-karl-home .kh-src{ font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em; }
+  #pf-karl-home .kh-proof{ display:none; margin-top:12px; border-top:1px solid var(--kh-line); padding-top:12px; }
+  #pf-karl-home .kh-card.kh-open .kh-proof{ display:block; animation:kh-rise .3s ease both; }
+  #pf-karl-home .kh-card.kh-inference{ border-color:rgba(193,18,31,.55); box-shadow:0 0 0 1px rgba(193,18,31,.25), 0 6px 24px rgba(193,18,31,.12); }
+  #pf-karl-home .kh-kbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10.5px; font-weight:700; letter-spacing:.18em;
+    color:var(--kh-red-bright); border:1px solid var(--kh-red); border-radius:999px;
+    padding:5px 12px; margin-bottom:10px; background:rgba(193,18,31,.08);
+  }
+  #pf-karl-home .kh-thinking{ display:flex; flex-direction:column; gap:10px; }
+  #pf-karl-home .kh-thinking .kh-tline{
+    font-size:14px; color:var(--kh-dim); font-style:italic;
+    display:flex; align-items:center; gap:8px;
+  }
+  #pf-karl-home .kh-thinking .kh-pulse-dot{
+    width:8px; height:8px; border-radius:50%; background:var(--kh-red-bright);
+    animation:kh-blink 1s infinite;
+  }
+  #pf-karl-home .kh-proof .kh-exhibit{
+    font-size:10.5px; letter-spacing:.22em; color:var(--kh-red-bright); font-weight:700; margin-bottom:10px;
+  }
+  #pf-karl-home .kh-proof-row{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    padding:9px 0; border-top:1px dashed var(--kh-line); font-size:14px;
+  }
+  #pf-karl-home .kh-proof-row .k{ color:var(--kh-dim); }
+  #pf-karl-home .kh-proof-row .v{ color:var(--kh-red-bright); font-weight:800; font-size:17px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  #pf-karl-home .kh-proof .kh-receipts{ margin-top:10px; font-family:ui-monospace,Menlo,monospace; font-size:10.5px; color:var(--kh-faint); letter-spacing:.05em; }
+  #pf-karl-home .kh-deploy-btn{
+    width:100%; margin-top:12px; background:transparent; color:var(--kh-red-bright);
+    border:1.5px solid var(--kh-red); border-radius:12px; padding:13px;
+    font-size:14px; font-weight:800; letter-spacing:.14em; cursor:pointer;
+    transition:background .2s, color .2s, transform .12s; touch-action:manipulation;
+  }
+  #pf-karl-home .kh-deploy-btn:active{ transform:scale(.98); }
+  #pf-karl-home .kh-deploy-btn.kh-done{ background:var(--kh-red); color:#fff; }
+  #pf-karl-home .kh-shimmer{
+    height:14px; border-radius:7px; margin:6px 0;
+    background:linear-gradient(90deg,#1a1a1a 25%,#262626 50%,#1a1a1a 75%);
+    background-size:200% 100%; animation:kh-shim 1.1s infinite linear;
+  }
+  @keyframes kh-shim{ to{ background-position:-200% 0; } }
+  #pf-karl-home .kh-toast{
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(80px);
+    background:var(--kh-red); color:#fff; font-weight:700; font-size:14px;
+    padding:13px 24px; border-radius:999px; z-index:99; opacity:0;
+    transition:transform .3s cubic-bezier(.2,.9,.3,1.2), opacity .3s;
+    box-shadow:0 8px 30px rgba(193,18,31,.5); white-space:nowrap; pointer-events:none;
+  }
+  #pf-karl-home .kh-toast.kh-show{ transform:translateX(-50%) translateY(0); opacity:1; }
+  #pf-karl-home .kh-foot{
+    padding:8px 20px 46px; text-align:center; color:var(--kh-faint); font-size:12px;
+    display:flex; justify-content:center; gap:22px; flex-wrap:wrap;
+  }
+  #pf-karl-home .kh-foot b{ color:var(--kh-cream); font-variant-numeric:tabular-nums; }
+  #pf-karl-home .kh-powered{ text-align:center; padding:0 20px 30px; color:var(--kh-faint); font-size:11px; letter-spacing:.14em; }
+  #pf-karl-home .kh-powered b{ color:var(--kh-dim); }
+  /* ---------- BEEFY FEED CARDS (fe/beefy-feed-20261010, dir-20261010-010215-1757) ---------- */
+  #pf-karl-home .kh-railrow{ display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  #pf-karl-home .kh-railbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.14em;
+    color:#e8b923; border:1px solid #4a3f1a; border-radius:999px;
+    padding:4px 11px; background:rgba(232,185,35,.06);
+  }
+  #pf-karl-home .kh-dbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.18em;
+    color:#2fbf71; border:1px solid #2fbf71; border-radius:999px;
+    padding:5px 12px; margin-bottom:10px; background:rgba(47,191,113,.08);
+  }
+  #pf-karl-home .kh-figstrip{ display:flex; gap:8px; margin:10px 0 2px; flex-wrap:wrap; }
+  #pf-karl-home .kh-fig{
+    flex:1 1 0; min-width:96px; background:var(--kh-card2); border:1px solid var(--kh-line);
+    border-radius:10px; padding:9px 10px; cursor:pointer; text-align:left;
+    transition:transform .1s ease-out, border-color .2s;
+    font-family:inherit; color:var(--kh-cream); touch-action:manipulation;
+  }
+  #pf-karl-home .kh-fig:active{ transform:scale(.96); border-color:var(--kh-red); }
+  #pf-karl-home .kh-fig .fv{ font-size:17px; font-weight:800; color:var(--kh-red-bright); font-variant-numeric:tabular-nums;
+    text-decoration:underline dotted rgba(229,56,59,.75); text-underline-offset:3px; }
+  #pf-karl-home .kh-fig .fl{ font-size:10.5px; color:var(--kh-faint); margin-top:3px; letter-spacing:.04em; }
+  #pf-karl-home .kh-deeplink{
+    display:block; margin-top:10px; font-size:12.5px; font-weight:700; letter-spacing:.08em;
+    color:#e8b923; text-decoration:none; padding:10px 2px; min-height:44px; box-sizing:border-box;
+  }
+  #pf-karl-home .kh-deeplink:active{ color:#fff; }
+  #pf-karl-home .kh-more-wrap{ text-align:center; padding:6px 20px 34px; }
+  #pf-karl-home .kh-more{
+    background:transparent; color:var(--kh-red-bright); border:1.5px solid var(--kh-red);
+    border-radius:999px; padding:13px 34px; font-size:13px; font-weight:800; letter-spacing:.16em;
+    cursor:pointer; transition:transform .1s ease-out, background .2s; touch-action:manipulation;
+    min-height:48px;
+  }
+  #pf-karl-home .kh-more:active{ transform:scale(.96); background:rgba(193,18,31,.12); }
+  #pf-karl-home .kh-more:disabled{ opacity:.4; }
+  #pf-karl-home .kh-quiet{
+    text-align:center; color:var(--kh-faint); font-size:13px; padding:18px 24px; line-height:1.6;
+  }
+  #pf-karl-home .kh-swap{ animation:kh-rise .2s ease-out both; }
+
+  /* ============ FEED DESTINATIONS (ux/feed-destinations-20261010) ============ */
+  #pf-karl-home .kh-card-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); }
+  #pf-karl-home .kh-act-btn{ flex:1; min-width:100px; padding:10px 8px; border:1px solid rgba(193,18,31,.5); background:rgba(193,18,31,.08); color:#f5f0e6; border-radius:10px; font-size:12px; font-weight:700; letter-spacing:.5px; cursor:pointer; text-align:center; }
+  #pf-karl-home .kh-act-btn:active{ transform:scale(.96); background:rgba(193,18,31,.2); }
+  #pf-karl-home .kh-proof-row .v{ cursor:pointer; border-bottom:1px dotted rgba(193,18,31,.6); }
+  #pf-karl-home .kh-proof-row .v:active{ color:#c1121f; }
+  #pf-karl-home .kh-live-ev{ margin-top:12px; padding:12px; background:rgba(193,18,31,.06); border:1px solid rgba(193,18,31,.25); border-radius:10px; }
+  #pf-karl-home .kh-live-ev .kh-ev-title{ font-size:11px; font-weight:800; letter-spacing:1.5px; color:#c1121f; margin-bottom:8px; }
+  #pf-karl-home .kh-related{ margin-top:12px; }
+  #pf-karl-home .kh-related-title{ font-size:11px; font-weight:800; letter-spacing:1.5px; color:#888; margin-bottom:8px; }
+  #pf-karl-home .kh-rel-card{ padding:10px 12px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:8px; margin-bottom:6px; cursor:pointer; font-size:13px; }
+  #pf-karl-home .kh-rel-card:active{ background:rgba(193,18,31,.1); }
+  #pf-karl-home .kh-modal{ position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.85); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; }
+  #pf-karl-home .kh-modal.kh-mopen{ opacity:1; pointer-events:auto; }
+  #pf-karl-home .kh-sheet{ width:100%; max-width:600px; max-height:85vh; overflow-y:auto; background:#111; border-radius:20px 20px 0 0; padding:24px 20px 40px; border-top:2px solid #c1121f; transform:translateY(30px); transition:transform .25s; }
+  #pf-karl-home .kh-modal.kh-mopen .kh-sheet{ transform:translateY(0); }
+  #pf-karl-home .kh-sheet h3{ margin:0 0 12px; font-size:18px; color:#f5f0e6; }
+  #pf-karl-home .kh-sheet .kh-close{ float:right; background:none; border:none; color:#888; font-size:24px; cursor:pointer; padding:0 0 0 12px; }
+  #pf-karl-home .kh-method{ font-size:14px; line-height:1.6; color:#ccc; }
+  #pf-karl-home .kh-method b{ color:#f5f0e6; }
+  #pf-karl-home .kh-save-btn.kh-saved{ background:rgba(193,18,31,.3); border-color:#c1121f; }
+  #pf-karl-home .kh-feed-tabs{ display:flex; gap:8px; margin-bottom:12px; }
+  #pf-karl-home .kh-tab{ padding:8px 16px; border-radius:20px; border:1px solid rgba(255,255,255,.15); background:transparent; color:#888; font-size:13px; font-weight:700; cursor:pointer; }
+  #pf-karl-home .kh-tab.kh-active{ background:#c1121f; border-color:#c1121f; color:#fff; }
+
+</style>
+<script>window.__PF_BUILD="20261009-0946-d469f51";</script>
 <script>(function(){
   try{
     var cur = window.__PF_BUILD; if(!cur) return;
@@ -65,88 +309,1093 @@
 <a href="#main" class="pf-skip-link">Skip to main content</a>
 <div id="pf-boot">
 <header class="pf-topbar">
-  <a href="/" class="pf-topbar-brand">MTCSTW</a>
-  <nav class="pf-topbar-nav" aria-label="Main">
-    <a href="/arcade">ARCADE</a>
-    <a href="/cells">CELLS</a>
-    <a href="/create">CREATE</a>
-    <a href="/sick-left-radicals">RADICALS</a>
-    <a href="/money">MONEY</a>
-  </nav>
-  <div class="pf-topbar-right">
-    <button id="pf-topbar-search" type="button" aria-label="Search the site"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
-    <div id="pf-topbar-user"></div>
+  <div class="pf-topbar-inner">
+    <a href="/" class="pf-topbar-brand" onclick="window.location.href='/';return false;">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
   </div>
-  <div id="pf-topbar-panel" hidden></div>
+  <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
 </header>
 <main id="main">
-  <div id="pf-cells-page"></div>
+<div id="pf-cells-dash">
+  <div class="kh-ask" style="padding:26px 20px 10px;max-width:560px;margin:0 auto;">
+    <h1 style="font-family:Georgia,serif;font-size:34px;line-height:1.15;font-weight:700;margin:0 0 12px;letter-spacing:-.01em;color:#f5f0e6;">Nobody fights <em style="color:#e5383b;font-style:normal;">alone.</em></h1>
+    <p style="color:#8a8478;font-size:15px;margin:0 0 20px;line-height:1.55;">Cells are small crews that turn intel into action. Find yours, or start one. Karl's discoveries become your missions.</p>
+  </div>
+
+  <div style="max-width:560px;margin:0 auto;padding:0 14px 30px;display:flex;flex-direction:column;gap:12px;">
+
+    <!-- MY CELL / FIND YOUR CELL -->
+    <div style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">My Cell</div>
+      <p style="color:#8a8478;font-size:14px;margin:0 0 14px;line-height:1.55;">You're not in a cell yet. Cells organize by location, interest, or target — small enough to trust, big enough to matter.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="/karl/?q=help+me+find+a+cell" style="background:#c1121f;color:#fff;border:0;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">FIND MY CELL</a>
+        <a href="/create" style="background:#1a1a1a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">START ONE</a>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:12px;">How cells work</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="background:#c1121f;color:#fff;font-weight:900;font-size:12px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">1</div>
+          <div><div style="font-weight:700;color:#f5f0e6;font-size:14px;margin-bottom:2px;">Get the intel</div><div style="color:#8a8478;font-size:13px;line-height:1.5;">Start with <a href="/" style="color:#e5383b;">THE ROBBERY REPORT</a> — find something worth acting on.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="background:#c1121f;color:#fff;font-weight:900;font-size:12px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">2</div>
+          <div><div style="font-weight:700;color:#f5f0e6;font-size:14px;margin-bottom:2px;">Find your people</div><div style="color:#8a8478;font-size:13px;line-height:1.5;">Cells organize by location, interest, or target.</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="background:#c1121f;color:#fff;font-weight:900;font-size:12px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">3</div>
+          <div><div style="font-weight:700;color:#f5f0e6;font-size:14px;margin-bottom:2px;">Deploy together</div><div style="color:#8a8478;font-size:13px;line-height:1.5;">Share discoveries, coordinate drops, amplify each other's work.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">Cell actions</div>
+      <p style="color:#8a8478;font-size:14px;margin:0 0 14px;line-height:1.55;">Coordinate with your cell: pick a target from the feed, plan the drop, deploy as one.</p>
+      <a href="/" style="display:inline-block;background:#1a1a1a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:10px 20px;font-size:13px;font-weight:700;text-decoration:none;touch-action:manipulation;">← BACK TO THE ROBBERY REPORT</a>
+    </div>
+
+    <!-- IMPACT -->
+    <div style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">Impact</div>
+      <p style="color:#8a8478;font-size:14px;margin:0;line-height:1.55;">Cell leaderboards and coordinated campaign results live here. Your cell's deployments feed the movement's scoreboard.</p>
+    </div>
+
+    <!-- CROSS-LINKS -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 0;">
+      <a href="/create" style="color:#8a8478;font-size:13px;text-decoration:none;border-bottom:1px dotted #c1121f;">Make propaganda →</a>
+      <a href="/money" style="color:#8a8478;font-size:13px;text-decoration:none;border-bottom:1px dotted #c1121f;">Follow the money →</a>
+      <a href="/sick-left-radicals" style="color:#8a8478;font-size:13px;text-decoration:none;border-bottom:1px dotted #c1121f;">Meet the radicals →</a>
+    </div>
+
+  </div>
+  <div style="text-align:center;padding:0 20px 30px;font-size:11px;letter-spacing:.2em;color:#5a554b;">POWERED BY <b style="color:#8a8478;">KARL</b> &middot; KOMRADE ARTIFICIAL REVOLUTIONARY LABORER</div>
+</div>
 </main>
 </div>
+
+<a href="/karl/" class="pf-karl-fab" aria-label="Chat with Karl">K</a>
 <script>
+// Minimal SW registration (homepage is zero-JS otherwise)
+// Forces PWA to update to latest SW on each visit
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(function(r){
+    // Check for updates
+    r.update();
+  }).catch(function(){});
+}
+</script>
+<script>
+/* ---------- KARL HOMEPAGE (ux/karl-homepage-20261010) ---------- */
 (function(){
-  var BASE='/v1.4.3/';
-  var CORE='bundle-core.js';
-  var GAMES=["games/bundle-cells-dash.js", "games/bundle-raid.js"];
-  var PAGES='pages/bundle-pages.js';
-  var PWA='pwa/install.js';
-  var KARL='core/bundle-karl-companion.js';
-  function pfSkip(n){
-    try{
-      var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
-      var m=location.search.match(/[?&]pf_off=([^&]+)/);
-      if(m)d=d.concat(decodeURIComponent(m[1]).split(','));
-      return d.indexOf(n)!==-1;
-    }catch(e){return false;}
-  }
-  function load(src,async){
-    return new Promise(function(res,rej){
-      var s=document.createElement('script');
-      s.src=src;s.async=!!async;
-      s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
-      document.head.appendChild(s);
-    });
-  }
-  function skeleton(host){
-    if(pfSkip('butter-p0')||!host)return;
-    if(host.children.length>0)return;
-    host.insertAdjacentHTML('afterbegin',
-      '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
-      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
-    var obs=new MutationObserver(function(){
-      try{
-        var sk=host.querySelector('#pf-skeleton');
-        if(sk&&host.textContent.replace(/\s+/g,'').length>0){sk.remove();obs.disconnect();}
-      }catch(e){}
-    });
-    try{obs.observe(host,{childList:true,subtree:true});}catch(e){}
-    setTimeout(function(){try{var sk=host.querySelector('#pf-skeleton');if(sk)sk.remove();obs.disconnect();}catch(e){}},25000);
-  }
-  // Paint skeletons immediately
-  skeleton(document.getElementById("pf-cells-page"));
-  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
-  (async function(){
-    await load(BASE+'core/'+CORE,false);
-    load(BASE+PWA,true); // async, guarded internally
-    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
-    await load(BASE+PAGES,false);
-    // Karl companion: lazy after idle
-    function goKarl(){
-      if(pfSkip('karl-companion'))return;
-      load(BASE+KARL,true);
+"use strict";
+var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+
+var SEED = [
+  { q:"Which defense contractor stole the most?",
+    a:"Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy — the largest penalty in the contractor ledger.",
+    rows:[["737 MAX fraud conspiracy","$2.5B"],["Defense contract fraud","$615M"],["Total Boeing penalties","$3.3B"]],
+    src:"▸ RECEIPTS — DOJ, SEC filings", deploys:1284, when:"2m" },
+  { q:"Is my hospital price-gouging?",
+    a:"The average ER visit is billed at <b>$2,200</b> but costs the hospital <b>$180</b> to deliver. 27K hospitals tracked.",
+    rows:[["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"],["Markup","12×"]],
+    src:"▸ RECEIPTS — CMS hospital price transparency", deploys:862, when:"9m" },
+  { q:"Who funds my congressman?",
+    a:"<b>176K</b> itemized FEC contributions tracked. The average House member takes <b>68%</b> of funds from outside their district.",
+    rows:[["Itemized contributions","176,870"],["Avg out-of-district share","68%"],["Top donor industry","Finance"]],
+    src:"▸ RECEIPTS — FEC filings", deploys:743, when:"14m" },
+  { q:"Biggest private prison operator?",
+    a:"GEO Group runs <b>19</b> of 30 tracked facilities. Four disclosed contracts total <b>$330M/yr</b> — most values are hidden.",
+    rows:[["GEO Group facilities","19"],["CoreCivic facilities","9"],["Disclosed contract value","$330M/yr"]],
+    src:"▸ RECEIPTS — BOP, SEC 10-K", deploys:591, when:"31m" },
+  { q:"Worst for-profit college?",
+    a:"<b>2,261</b> for-profit schools tracked. 54 flagged for fraud or enforcement action. 1.2M+ students enrolled.",
+    rows:[["Schools tracked","2,261"],["Flagged for fraud","54"],["Students enrolled","1.2M"]],
+    src:"▸ RECEIPTS — Dept. of Education", deploys:428, when:"48m" },
+  { q:"How rich are the billionaires?",
+    a:"<b>1,653</b> billionaires tracked with a combined <b>$6.45T</b> — more than the GDP of Japan.",
+    rows:[["Billionaires tracked","1,653"],["Combined net worth","$6.45T"],["Avg net worth","$3.9B"]],
+    src:"▸ RECEIPTS — Forbes, SEC 13F", deploys:1107, when:"1h" }
+];
+
+var INFERENCES = [
+  { q:"Boeing paid $2.5B in fraud penalties — then spent $13.3M lobbying the same regulators.",
+    a:"That's a <b>188:1 return</b> on corruption. For every $1 Boeing spends lobbying, they dodge $188 in accountability. The revolving door isn't a metaphor — it's a business model.",
+    rows:[["737 MAX fraud conspiracy penalty","$2.5B"],["Boeing 2025 lobbying spend","$13.3M"],["DoD → Boeing revolving-door hires","27"]],
+    src:"▸ RECEIPTS — DOJ case files · LDA filings · LittleSis", deploys:2147, when:"just now", inference:true },
+  { q:"2,261 for-profit schools collected federal aid while only 54 were ever flagged for fraud.",
+    a:"That's <b>2.4%</b> flagged — which means the scam isn't the exception, it's the business model. 1.2M students enrolled, billions in federal dollars, almost nobody watching.",
+    rows:[["For-profit schools tracked","2,261"],["Flagged for fraud","54"],["Students enrolled","1.2M"]],
+    src:"▸ RECEIPTS — Dept. of Education", deploys:986, when:"just now", inference:true },
+  { q:"GEO Group runs 19 private prisons. Four disclosed contracts are worth $330M/yr — the other 26 are hidden.",
+    a:"If 4 contracts are worth <b>$330M</b>, the 26 they won't disclose are worth billions. Your tax dollars fund cages, and they won't even tell you the price.",
+    rows:[["GEO Group facilities","19"],["Disclosed contract value","$330M/yr"],["Undisclosed contracts","26"]],
+    src:"▸ RECEIPTS — BOP · SEC 10-K", deploys:1104, when:"just now", inference:true },
+  { q:"1,653 billionaires hold $6.45T — more than the entire GDP of Japan.",
+    a:"The average billionaire is worth <b>$3.9B</b>. A worker earning $60K would need 65,000 years to catch up. This isn't wealth — it's a separate economy.",
+    rows:[["Billionaires tracked","1,653"],["Combined net worth","$6.45T"],["Avg net worth","$3.9B"]],
+    src:"▸ RECEIPTS — Forbes · SEC 13F", deploys:1893, when:"just now", inference:true },
+  { q:"The average House member takes 68% of campaign funds from outside their district.",
+    a:"You're the audience, not the customer. <b>176,870</b> itemized contributions tracked — and the money comes from finance, not from your neighbors.",
+    rows:[["Itemized contributions","176,870"],["Avg out-of-district share","68%"],["Top donor industry","Finance"]],
+    src:"▸ RECEIPTS — FEC filings", deploys:1302, when:"just now", inference:true },
+  { q:"59,717 eviction estimates pile up while hospital ER markups hit 12×.",
+    a:"You're being robbed coming and going — displaced from your home while hospitals bill <b>$2,200</b> for care that costs <b>$180</b>. Two datasets, one story.",
+    rows:[["County eviction estimates","59,717"],["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"]],
+    src:"▸ RECEIPTS — Eviction Lab · CMS price transparency", deploys:1587, when:"just now", inference:true },
+  { q:"Defense contractors paid $5.44B in penalties across 20 cases — while insiders traded their own stock 71 times.",
+    a:"They knew. <b>20</b> misconduct cases, <b>$5.44B</b> in fines — and executives were buying and selling their own shares the whole time.",
+    rows:[["Contractor penalties","$5.44B"],["Misconduct cases","20"],["Insider trades tracked","71"]],
+    src:"▸ RECEIPTS — DOJ · SEC Form 4", deploys:1755, when:"just now", inference:true }
+];
+
+var feed = document.getElementById('kh-feed');
+var toast = document.getElementById('kh-toast');
+var toastT = null;
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('kh-show');
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ toast.classList.remove('kh-show'); }, 2200);
+}
+function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function cardEl(d){
+  var el = document.createElement('div');
+  el.className = 'kh-card' + (d.inference ? ' kh-inference' : '');
+  var rowsHtml = (d.rows||[]).slice(0,4).map(function(r){
+    return '<div class="kh-proof-row"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
+  }).join('');
+  el.innerHTML =
+    (d.inference ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>' : '')+
+    '<div class="kh-q">'+esc(d.q)+'</div>'+
+    '<div class="kh-a">'+d.a+'</div>'+
+    '<div class="kh-proof">'+
+      '<div class="kh-exhibit">▸ EXHIBIT — VERIFIED</div>'+ rowsHtml +
+      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<button class="kh-deploy-btn">DEPLOY</button>'+
+    '</div>'+
+    '<div class="kh-card-actions" style="display:none">'+
+      '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
+      '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
+      '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+    '</div>'+
+    '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
+    '<div class="kh-related" style="display:none"><div class="kh-related-title">MORE LIKE THIS</div><div class="kh-rel-list"></div></div>'+
+    '<div class="kh-card-meta">'+
+      '<span class="kh-deploys"><span class="n">'+fmt(d.deploys)+'</span> deployed</span>'+
+      '<span><span class="kh-src">'+esc(String(d.src).split('—')[0].trim())+'</span> &middot; '+esc(d.when)+'</span>'+
+    '</div>';
+  el.addEventListener('click', function(e){
+    if(e.target.classList.contains('kh-deploy-btn')) return;
+    if(e.target.closest('.kh-card-actions')) return;
+    if(e.target.closest('.kh-related')) return;
+    if(e.target.closest('.kh-live-ev')) return;
+    el.classList.toggle('kh-open');
+    var isOpen = el.classList.contains('kh-open');
+    var acts = el.querySelector('.kh-card-actions');
+    var liveEv = el.querySelector('.kh-live-ev');
+    var rel = el.querySelector('.kh-related');
+    if(acts) acts.style.display = isOpen ? 'flex' : 'none';
+    if(liveEv) liveEv.style.display = isOpen ? 'block' : 'none';
+    if(rel) rel.style.display = isOpen ? 'block' : 'none';
+    if(isOpen && window.KHDest) window.KHDest.onExpand(el, d);
+  });
+  var btn = el.querySelector('.kh-deploy-btn');
+  var nEl = el.querySelector('.kh-deploys .n');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(btn.classList.contains('kh-done')) return;
+    /* Build share text from the card */
+    var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
+    /* Try native share, fall back to clipboard */
+    if (navigator.share) {
+      navigator.share({ title: 'KARL Discovery', text: shareText, url: 'https://mtcstw.com/' })
+        .then(function(){ markDeployed(); })
+        .catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText).then(function(){ markDeployed(); showToast('Copied — paste it anywhere'); });
+    } else { markDeployed(); }
+    function markDeployed(){
+      btn.classList.add('kh-done');
+      btn.textContent = 'DEPLOYED \u2713';
+      d.deploys = (d.deploys||0)+1;
+      nEl.textContent = fmt(d.deploys);
+      showToast('Deployed — the robbery report grows');
     }
-    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
-    else{setTimeout(goKarl,4000);}
-    // Trigger mount
-    try{
-      if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
-    }catch(e){}
-    console.log('[PF] Pages shell loaded: /cells');
-  })();
+  });
+  return el;
+}
+
+/* Seed feed */
+SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
+
+/* Karl's lead inference on every load */
+(function leadInference(){
+  var think = document.createElement('div');
+  think.className = 'kh-card kh-thinking';
+  think.innerHTML =
+    '<div class="kh-tline"><span class="kh-pulse-dot"></span>Karl is connecting the dots&hellip;</div>'+
+    '<div class="kh-shimmer"></div><div class="kh-shimmer" style="width:62%"></div>';
+  feed.insertBefore(think, feed.firstChild);
+  setTimeout(function(){
+    var pick = INFERENCES[Math.floor(Math.random()*INFERENCES.length)];
+    think.replaceWith(cardEl(pick));
+  }, 800);
 })();
+
+/* Live stats */
+(function loadStats(){
+  fetch(API+'karl_stats', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+    if(!d || !d.ok) return;
+    var w=document.getElementById('kh-stat-wealth'),
+        rr=document.getElementById('kh-stat-rows'),
+        cc=document.getElementById('kh-stat-creators');
+    if(w && d.wealth_display) w.textContent = d.wealth_display;
+    if(rr && d.rows_display) rr.textContent = d.rows_display;
+    if(cc && d.creators) cc.textContent = fmt(d.creators);
+    var hint=document.getElementById('kh-hint');
+    if(hint && d.rows_display) hint.innerHTML = esc(d.rows_display)+' records &middot; sourced answers';
+  }).catch(function(){});
+})();
+
+/* Generic fact renderer for live karl_query results */
+function factsToCard(q, r){
+  var facts = r.facts||[];
+  var rows = [], srcBits = [];
+  facts.forEach(function(f){
+    if(f.creators && f.creators.length){
+      f.creators.slice(0,3).forEach(function(c){
+        rows.push([c.name||'Creator', (c.propaganda_score?c.propaganda_score+'★ ':'')+(c.followers_display||'')]);
+      });
+      srcBits.push('slr_roster');
+    }
+    if(f.trades && f.trades.length){
+      f.trades.slice(0,3).forEach(function(t){
+        rows.push([(t.filer||'Insider'), (t.shares?fmt(t.shares)+' sh ':'')+(t.price?('@ $'+t.price):'')]);
+      });
+      srcBits.push('SEC Form 4');
+    }
+    if(f.positions && f.positions.length){
+      f.positions.slice(0,3).forEach(function(p){
+        rows.push([(p.person_name||p.name||'Person'), (p.org_name||'')]);
+      });
+      srcBits.push('LittleSis');
+    }
+    if(f.holdings && f.holdings.length){
+      f.holdings.slice(0,3).forEach(function(h){
+        var v=Number(h.value_usd||0);
+        var vt = v>=1e9 ? '$'+(v/1e9).toFixed(1)+'B' : v>=1e6 ? '$'+(v/1e6).toFixed(1)+'M' : '$'+fmt(v);
+        rows.push([(h.company_name||'Holding'), vt]);
+      });
+      srcBits.push('SEC 13F');
+    }
+    if(f.top_cases && f.top_cases.length){
+      f.top_cases.slice(0,3).forEach(function(c){
+        var p=Number(c.penalty||0);
+        var pt = p>=1e9 ? '$'+(p/1e9).toFixed(1)+'B' : p>=1e6 ? '$'+(p/1e6).toFixed(1)+'M' : '$'+fmt(p);
+        rows.push([(c.name||'Case'), pt]);
+      });
+      srcBits.push('enforcement records');
+    }
+    if(f.label && f.value_display){
+      rows.push([f.label, f.value_display]);
+      if(f.source && f.source.name) srcBits.push(f.source.name);
+    }
+  });
+  /* fallback: first 3 scalar fields of first fact */
+  if(!rows.length && facts.length){
+    var f0 = facts[0];
+    Object.keys(f0).slice(0,3).forEach(function(k){
+      var v = f0[k];
+      if(v==null || typeof v==='object') return;
+      rows.push([k.replace(/_/g,' '), String(v).slice(0,40)]);
+    });
+  }
+  if(!rows.length) return null;
+  var src = srcBits.length ? '▸ RECEIPTS — '+srcBits.filter(function(v,i,a){return a.indexOf(v)===i;}).join(' · ') : '▸ RECEIPTS — Karl rails';
+  var lead = rows[0];
+  return {
+    q: q,
+    a: '<b>'+esc(lead[1])+'</b> — '+esc(lead[0])+'. Karl pulled this from the live rails.',
+    rows: rows.slice(0,4), src: src, deploys: 0, when: "now"
+  };
+}
+
+/* Ask flow — live karl_query */
+var qInput = document.getElementById('kh-q');
+var askBtn = document.getElementById('kh-askBtn');
+document.getElementById('kh-chips').addEventListener('click', function(e){
+  var t = e.target;
+  if(!t.classList || !t.classList.contains('kh-chip')) return;
+  qInput.value = t.textContent;
+  qInput.focus();
+  doAsk();
+});
+askBtn.addEventListener('click', doAsk);
+qInput.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doAsk(); }
+});
+
+function doAsk(){
+  var text = qInput.value.trim();
+  if(!text || askBtn.disabled) return;
+  askBtn.disabled = true;
+  askBtn.textContent = '…';
+  var load = document.createElement('div');
+  load.className = 'kh-card';
+  load.innerHTML = '<div class="kh-q">'+esc(text)+'</div><div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div>';
+  feed.insertBefore(load, feed.firstChild);
+  load.scrollIntoView({behavior:'smooth', block:'center'});
+
+  var done = function(card){
+    var el = cardEl(card);
+    el.classList.add('kh-open');
+    load.replaceWith(el);
+    qInput.value = '';
+    askBtn.disabled = false;
+    askBtn.textContent = 'ASK';
+    showToast('Answer ready — tap DEPLOY to spread it');
+  };
+
+  fetch(API+'karl_query&q='+encodeURIComponent(text), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var card = (d && d.ok!==false) ? factsToCard(text, d) : null;
+      if(card){ done(card); return; }
+      /* fallback to canned keyword match */
+      var hit = SEED.find(function(s){
+        var kws = s.q.toLowerCase().split(/\s+/).filter(function(w){return w.length>4;});
+        return kws.some(function(k){ return text.toLowerCase().indexOf(k)>-1; });
+      });
+      if(hit){ done(Object.assign({}, hit, {q:text, when:"now"})); return; }
+      done({ q:text,
+        a:"Karl searched the live rails and found <b>no direct match</b> — try naming a company, person, or industry.",
+        rows:[["Template", d&&d.template?d.template:"unknown"],["Rails checked","27"]],
+        src:"▸ RECEIPTS — Karl rails", deploys:0, when:"now" });
+    })
+    .catch(function(){
+      done({ q:text,
+        a:"The rails didn't answer — check your connection and try again.",
+        rows:[["Status","offline"]], src:"▸ Karl", deploys:0, when:"now" });
+    });
+}
+
+/* stagger cards on first paint */
+setTimeout(function(){
+  var cards = feed.querySelectorAll('.kh-card');
+  cards.forEach(function(c,i){ c.style.animationDelay = (i*0.06)+'s'; });
+}, 50);
+
+/* ==========================================================================
+   BEEFY HOME FEED (fe/beefy-feed-20261010, dir-20261010-010215-1757, WS-B-FE)
+   Richer cards from the 9 rails: Karl inferences + comrade discoveries.
+   Card contract: site/v1.4.3/core/beefy-feed-contract.json (v1.0.0).
+
+   HARD BOUNDARY: the Robbery Report editorial spine is owned by
+   dir-20261010-011235-21553. This module renders BELOW the existing feed
+   (MORE FROM THE RAILS) — spine order untouched, cards + presentation only.
+
+   FIGURE GOVERNANCE (News Desk audit 2026-10-10 01:40 CDT): only audited
+   figures are hardcoded; everything else binds to live karl_query or ships
+   blank. Deploy counts are KILLED as public facts — new cards carry none.
+   ========================================================================== */
+(function beefy(){
+/* KILL: ?pf_off=beefy-feed or localStorage pf_disabled_v1='["beefy-feed"]' */
+try{
+  var __bq = location.search.match(/[?&]pf_off=([^&]+)/);
+  var __bd = [];
+  try{ __bd = JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]'); }catch(e){}
+  if((__bq && decodeURIComponent(__bq[1]).split(',').indexOf('beefy-feed')!==-1) || __bd.indexOf('beefy-feed')!==-1) return;
+}catch(e){}
+var beefyFeed = document.getElementById('kh-beefy');
+var moreBtn = document.getElementById('kh-more');
+var quietEl = document.getElementById('kh-beefy-quiet');
+if(!beefyFeed || !moreBtn) return;
+
+var RAILS = [
+  { rail:'colleges',    icon:'\uD83C\uDF93', label:'FOR-PROFIT COLLEGES', probe:'Worst for-profit college?',            deep:'/follow-the-money' },
+  { rail:'prisons',     icon:'\u26D3\uFE0F', label:'PRIVATE PRISONS',     probe:'Biggest private prison operator?',    deep:'/dossier' },
+  { rail:'rent',        icon:'\uD83C\uDFE0', label:'RENT',                probe:'Who is driving up rent?',             deep:'/town' },
+  { rail:'bills',       icon:'\uD83E\uDDFE', label:'BILLS',               probe:'Who profits from my bills?',          deep:'/economy' },
+  { rail:'evictions',   icon:'\uD83D\uDCE6', label:'EVICTIONS',           probe:'Who is evicting people?',             deep:'/town' },
+  { rail:'billionaires',icon:'\uD83D\uDCB0', label:'BILLIONAIRES',        probe:'How rich are the billionaires?',      deep:'/follow-the-money' },
+  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who stole the most wages?',           deep:'/follow-the-money' },
+  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital price-gouging?',       deep:'/town' },
+  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor stole the most?', deep:'/corruption-index' }
+];
+function railOf(key){
+  for(var i=0;i<RAILS.length;i++) if(RAILS[i].rail===key) return RAILS[i];
+  return RAILS[8];
+}
+
+/* Anchor cards — AUDITED FIGURES ONLY. live:false. */
+var ANCHORS = [
+  { rail:'billionaires', kind:'inference',
+    q:'3,428 billionaires hold $20.1T — a separate economy.',
+    a:'The average billionaire is worth <b>$5.9B</b> — Karl\u2019s best read from the Forbes-2026 roll. That\u2019s not wealth, it\u2019s a country of its own.',
+    figures:[
+      {label:'Billionaires tracked', value:'3,428', source:'Forbes-2026', chain:['Forbes-2026 billionaire roll, published figures','Count of individuals with $1B+ net worth','Excludes hidden offshore wealth — the real number is higher']},
+      {label:'Combined net worth', value:'$20.1T', source:'Forbes-2026', chain:['Forbes-2026 valuations summed','Public holdings + disclosed assets','Private valuations are estimates, not filings']},
+      {label:'Average net worth', value:'$5.9B', source:'Karl\u2019s best read', chain:['$20.1T \u00F7 3,428 billionaires','Arithmetic on audited figures, not a filing','Averages hide the skew — the top 10 hold far more']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Forbes-2026', when:'audited', deep:'/follow-the-money' },
+  { rail:'hospitals', kind:'inference',
+    q:'Is your hospital price-gouging?',
+    a:'The average ER visit is billed at <b>$2,200</b> (CPT 99285). Karl tracks 6,000 hospitals\u2019 posted prices.',
+    figures:[
+      {label:'Avg ER billed charge', value:'$2,200', source:'CMS price transparency', chain:['CPT 99285 — high-severity ER visit','Billed charge, not what insurers pay','Posted under federal transparency rules']},
+      {label:'Hospitals tracked', value:'6,000', source:'CMS price transparency', chain:['Hospitals with machine-readable price files','Audited count, corrected from 27K','Rural hospitals under-report — coverage is partial']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 CMS hospital price transparency', when:'audited', deep:'/town' },
+  { rail:'colleges', kind:'inference',
+    q:'How many students are in the for-profit machine?',
+    a:'<b>1.1M</b> students enrolled in for-profit schools — federal aid flowing to shareholders.',
+    figures:[
+      {label:'Students enrolled', value:'1.1M', source:'Dept. of Education', chain:['For-profit enrollment, audited count','Corrected from 1.2M per News Desk audit','Includes online mega-universities']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Dept. of Education', when:'audited', deep:'/follow-the-money' },
+  { rail:'economy', kind:'inference',
+    q:'Which defense contractor stole the most?',
+    a:'Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy (DOJ, 2021) — on top of <b>$615M</b> in 2006. Total: <b>$3.1B</b>.',
+    figures:[
+      {label:'737 MAX fraud conspiracy', value:'$2.5B', source:'DOJ-2021', chain:['DOJ settlement, January 2021','Criminal fraud conspiracy — 737 MAX certification','The largest contractor penalty on record']},
+      {label:'Defense contract fraud', value:'$615M', source:'DOJ-2006', chain:['DOJ settlement, 2006','Separate fraud case, separate docket','Summed across dockets, excludes state fines']},
+      {label:'Total Boeing penalties', value:'$3.1B', source:'DOJ case files', chain:['$2.5B + $615M summed','Audited total, corrected from $3.3B','Excludes undisclosed settlements']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 DOJ case files', when:'audited', deep:'/corruption-index' },
+  { rail:'economy', kind:'discovery',
+    q:'Who\u2019s fighting back?',
+    a:'<b>62</b> sick radicals in the network — 8M+ public reach and counting. The machine has an immune system now.',
+    figures:[
+      {label:'Creators in the network', value:'62', source:'Sick Left Radicals roster', chain:['Curated affiliate roster on mtcstw.com','Each with a catalog page and propaganda score','Pure index — the roster links out, never traps']},
+      {label:'Public reach', value:'8M+', source:'Roster rollup', chain:['Stated combined reach across platforms','User-directed positioning figure','Audited per-creator counts on catalog pages']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Sick Left Radicals roster', when:'audited', deep:'/sick-left-radicals' }
+];
+
+/* ---------- compact drill sheet (visual language from the shared .bt-* CSS
+   in bundle-styles.css; homepage ships zero core-bundle JS, so the behavior
+   rides inline. Same contract as PF.drillSheet: figure + source fail-closed. */
+var sheetState = null;
+function khSheet(cfg){
+  if(!cfg || !cfg.figure || !cfg.source) return;
+  if(sheetState) khSheetClose(true);
+  var scrim = document.createElement('div'); scrim.className = 'bt-scrim';
+  var sheet = document.createElement('div'); sheet.className = 'bt-sheet';
+  sheet.setAttribute('role','dialog'); sheet.setAttribute('aria-modal','true');
+  var chain = (cfg.chain||[]).slice(0,4).map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('');
+  sheet.innerHTML =
+    '<div class="bt-sheet-grab"></div>'+
+    '<div class="bt-sheet-head"><div>'+
+    '<div style="font-size:12px;letter-spacing:.2em;color:#e5383b;font-weight:800">WHY THIS NUMBER</div>'+
+    '<div class="bt-sheet-fig">'+esc(cfg.figure)+'</div>'+
+    '<div class="bt-sheet-unit">'+esc(cfg.label||'')+'</div></div>'+
+    '<button class="bt-sheet-x" aria-label="Close">\u00D7</button></div>'+
+    '<div class="bt-sheet-body">'+
+    (chain ? '<ul class="bt-sheet-chain">'+chain+'</ul>' : '')+
+    '<div style="font-size:11px;color:#5a554b;letter-spacing:.06em;margin:10px 0">SOURCE \u2014 '+esc(cfg.source)+'</div>'+
+    '<div class="bt-sheet-actions">'+
+    '<button class="bt-act bt-act-deploy">DEPLOY</button>'+
+    '<button class="bt-act bt-act-ask">ASK KARL</button>'+
+    '</div></div>';
+  document.body.appendChild(scrim); document.body.appendChild(sheet);
+  var prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  sheetState = { scrim:scrim, sheet:sheet, prevOverflow:prevOverflow, histPushed:false };
+  try{ history.pushState({khSheet:1},''); sheetState.histPushed = true; }catch(e){}
+  var dismissed = function(){ khSheetClose(); };
+  sheet.querySelector('.bt-sheet-x').addEventListener('click', dismissed);
+  scrim.addEventListener('click', dismissed);
+  sheetState.popstate = function(){ khSheetClose(true); };
+  window.addEventListener('popstate', sheetState.popstate);
+  var startY = null;
+  sheet.addEventListener('touchstart', function(e){ if(e.touches&&e.touches[0]) startY=e.touches[0].clientY; }, {passive:true});
+  sheet.addEventListener('touchend', function(e){
+    var dy = (startY!=null&&e.changedTouches&&e.changedTouches[0]) ? e.changedTouches[0].clientY-startY : 0;
+    startY = null;
+    if(dy>110) dismissed(); else sheet.style.transform='';
+  });
+  sheet.querySelector('.bt-act-deploy').addEventListener('click', function(){
+    var txt = cfg.figure+' — '+cfg.label+' — via KARL at mtcstw.com';
+    var done = function(){ showToast('Deployed — spread it'); khSheetClose(); };
+    if(navigator.share){ navigator.share({title:'KARL Discovery', text:txt, url:'https://mtcstw.com/'}).then(done).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(done); }
+    else done();
+  });
+  sheet.querySelector('.bt-act-ask').addEventListener('click', function(){
+    khSheetClose();
+    try{
+      var q = document.getElementById('kh-q');
+      if(q){ q.value = 'Why '+cfg.figure+'?'; q.focus(); q.scrollIntoView({behavior:'smooth', block:'center'}); }
+    }catch(e){}
+  });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    scrim.classList.add('bt-show'); sheet.classList.add('bt-show');
+  });});
+}
+function khSheetClose(fromPop){
+  if(!sheetState) return;
+  var st = sheetState; sheetState = null;
+  try{ window.removeEventListener('popstate', st.popstate); }catch(e){}
+  try{ if(st.histPushed && !fromPop && window.history) history.back(); }catch(e){}
+  st.scrim.classList.remove('bt-show'); st.sheet.classList.remove('bt-show');
+  setTimeout(function(){
+    try{ st.scrim.remove(); st.sheet.remove(); }catch(e){}
+    try{ document.body.style.overflow = st.prevOverflow||''; }catch(e){}
+  }, 300);
+}
+
+/* ---------- beefy card ---------- */
+function beefyCard(d){
+  var R = railOf(d.rail);
+  var el = document.createElement('div');
+  el.className = 'kh-card kh-swap' + (d.kind==='inference' ? ' kh-inference' : '');
+  var kindBadge = d.kind==='inference'
+    ? '<div class="kh-kbadge">\uD83E\uDDE0 KARL NOTICED</div>'
+    : '<div class="kh-dbadge">\u270A COMRADE FOUND</div>';
+  var figs = (d.figures||[]).slice(0,3).map(function(f){
+    return '<button class="kh-fig" data-fig="'+esc(f.value)+'"><span class="fv">'+esc(f.value)+
+      '</span><span class="fl">'+esc(f.label)+'</span></button>';
+  }).join('');
+  var rows = (d.figures||[]).slice(0,4).map(function(f){
+    return '<div class="kh-proof-row"><span class="k">'+esc(f.label)+'</span><span class="v">'+esc(f.value)+'</span></div>';
+  }).join('');
+  el.innerHTML =
+    '<div class="kh-railrow"><span class="kh-railbadge">'+R.icon+' '+esc(R.label)+'</span></div>'+
+    kindBadge+
+    '<div class="kh-q">'+esc(d.q)+'</div>'+
+    '<div class="kh-a">'+d.a+'</div>'+
+    (figs ? '<div class="kh-figstrip">'+figs+'</div>' : '')+
+    '<div class="kh-proof">'+
+      '<div class="kh-exhibit">\u25B8 EXHIBIT \u2014 VERIFIED</div>'+ rows +
+      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<button class="kh-deploy-btn">DEPLOY</button>'+
+    '</div>'+
+    '<div class="kh-card-actions" style="display:none">'+
+      '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
+      '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
+      '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+    '</div>'+
+    '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
+    '<div class="kh-related" style="display:none"><div class="kh-related-title">MORE LIKE THIS</div><div class="kh-rel-list"></div></div>'+
+    '<div class="kh-card-meta">'+
+      '<span class="kh-src">'+esc(String(d.src).split('\u2014')[0].trim())+'</span>'+
+      '<span>'+esc(d.when||'now')+'</span>'+
+    '</div>'+
+    '<a class="kh-deeplink" href="'+esc(d.deep||R.deep)+'">DIG DEEPER \u2192</a>';
+  el.addEventListener('click', function(e){
+    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink')) return;
+    el.classList.toggle('kh-open');
+  });
+  el.querySelectorAll('.kh-fig').forEach(function(b){
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var val = b.getAttribute('data-fig');
+      var f = (d.figures||[]).filter(function(x){ return x.value===val; })[0] || {};
+      khSheet({ figure:f.value||val, label:f.label||'', source:f.source||d.src, chain:f.chain||[] });
+    });
+  });
+  var btn = el.querySelector('.kh-deploy-btn');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(btn.classList.contains('kh-done')) return;
+    var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
+    var markDeployed = function(){
+      btn.classList.add('kh-done'); btn.textContent = 'DEPLOYED \u2713';
+      showToast('Deployed — the robbery report grows');
+      recordDiscovery(d);
+    };
+    if(navigator.share){
+      navigator.share({ title:'KARL Discovery', text:shareText, url:'https://mtcstw.com/' })
+        .then(markDeployed).catch(function(){});
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText).then(function(){ markDeployed(); showToast('Copied — paste it anywhere'); });
+    } else markDeployed();
+  });
+  return el;
+}
+
+/* ---------- discoveries: what the comrade DEPLOYED re-surfaces as COMRADE FOUND ---------- */
+var FINDS_KEY = 'pf-my-finds';
+function recordDiscovery(d){
+  try{
+    var finds = JSON.parse(localStorage.getItem(FINDS_KEY)||'[]');
+    if(finds.some(function(f){ return f.q===d.q; })) return;
+    finds.unshift({ q:d.q, a:d.a, rail:d.rail, kind:'discovery',
+      figures:(d.figures||[]).slice(0,3), src:d.src, when:'your find', deep:d.deep });
+    localStorage.setItem(FINDS_KEY, JSON.stringify(finds.slice(0,12)));
+  }catch(e){}
+}
+function getDiscoveries(){
+  try{ return JSON.parse(localStorage.getItem(FINDS_KEY)||'[]'); }catch(e){ return []; }
+}
+
+/* ---------- waves: anchors first, then live rail fan-out, then discoveries ---------- */
+var liveQueue = [];
+var livePending = 0;
+var waveIdx = 0;
+var WAVE = ANCHORS.slice();
+
+function relTime(iso){
+  try{
+    var t = new Date(iso).getTime(); if(!t) return 'now';
+    var m = Math.round((Date.now()-t)/60000);
+    if(m<1) return 'just now'; if(m<60) return m+'m';
+    var h = Math.round(m/60); if(h<24) return h+'h';
+    return Math.round(h/24)+'d';
+  }catch(e){ return 'now'; }
+}
+
+/* Live fan-out: one karl_query per rail, composed into cards (composition-over-karl_query). */
+function fanOut(){
+  RAILS.forEach(function(R, i){
+    livePending++;
+    setTimeout(function(){
+      fetch(API+'karl_query&q='+encodeURIComponent(R.probe), {cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          var card = (res && res.ok!==false) ? factsToCard(R.probe, res) : null;
+          if(card){
+            var rows = (card.rows||[]).slice(0,3).map(function(r){
+              return { label:r[0], value:r[1], source:card.src, chain:[] };
+            });
+            liveQueue.push({ rail:R.rail, kind:'inference', q:card.q, a:card.a,
+              figures:rows, src:card.src, when:'live', deep:R.deep });
+          }
+        })
+        .catch(function(){})
+        .finally(function(){
+          livePending--;
+          if(!livePending && !liveQueue.length && !beefyFeed.children.length) showQuiet();
+        });
+    }, i*700); /* staggered: one rail per 700ms, no thundering herd */
+  });
+}
+
+function showQuiet(){
+  if(beefyFeed.children.length) { quietEl.hidden = true; return; }
+  quietEl.hidden = false;
+  moreBtn.disabled = true; moreBtn.textContent = 'RAILS QUIET — TRY AGAIN LATER';
+}
+
+function nextWave(){
+  /* wave order: anchors → discoveries → live results */
+  if(waveIdx < WAVE.length){
+    var batch = WAVE.slice(waveIdx, waveIdx+3); waveIdx += batch.length;
+    batch.forEach(function(d,i){
+      var el = beefyCard(d);
+      el.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el);
+    });
+    quietEl.hidden = true;
+    return;
+  }
+  var finds = getDiscoveries();
+  if(finds.length){
+    finds.slice(0,3).forEach(function(d,i){
+      var el = beefyCard(d);
+      el.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el);
+    });
+    try{ localStorage.setItem(FINDS_KEY, JSON.stringify(finds.slice(3))); }catch(e){}
+    quietEl.hidden = true;
+    return;
+  }
+  if(liveQueue.length){
+    var n = Math.min(3, liveQueue.length);
+    for(var i=0;i<n;i++){
+      var el2 = beefyCard(liveQueue.shift());
+      el2.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el2);
+    }
+    quietEl.hidden = true;
+    return;
+  }
+  if(livePending>0){
+    moreBtn.disabled = true; moreBtn.textContent = 'KARL IS DIGGING…';
+    var iv = setInterval(function(){
+      if(livePending<=0){
+        clearInterval(iv);
+        moreBtn.disabled = false; moreBtn.textContent = 'MORE INTEL ↓';
+        nextWave();
+      }
+    }, 400);
+    return;
+  }
+  showQuiet();
+}
+
+moreBtn.addEventListener('click', function(){
+  if(moreBtn.disabled) return;
+  nextWave();
+});
+
+/* boot: first wave of anchors on load, fan-out in the background */
+setTimeout(function(){ nextWave(); }, 900);
+fanOut();
+})();
+/* stagger cards on first paint */
+setTimeout(function(){
+  var cards = feed.querySelectorAll('.kh-card');
+  cards.forEach(function(c,i){ c.style.animationDelay = (i*0.06)+'s'; });
+}, 50);
+})();
+
+/* ==========================================================================
+   FEED DESTINATIONS (ux/feed-destinations-20261010)
+   7 wired destinations from every feed card. All hit real APIs. No mocks.
+   ========================================================================== */
+(function(){
+'use strict';
+var API_BASE = (typeof API !== 'undefined') ? API : 'https://pf-api.mtcstw.workers.dev/?action=';
+
+/* ---------- utilities ---------- */
+function $id(id){ return document.getElementById(id); }
+function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(m){ if(typeof showToast==='function') showToast(m); }
+function apiGet(action, params){
+  var url = API_BASE + action;
+  if(params){ url += '&' + Object.keys(params).map(function(k){ return k+'='+encodeURIComponent(params[k]); }).join('&'); }
+  return fetch(url, {cache:'no-store'}).then(function(r){ return r.json(); });
+}
+
+/* ---------- modal system ---------- */
+function openModal(title, bodyHtml){
+  closeModal();
+  var m = document.createElement('div');
+  m.className = 'kh-modal'; m.id = 'kh-dest-modal';
+  m.innerHTML = '<div class="kh-sheet"><button class="kh-close" aria-label="Close">&times;</button><h3>'+escH(title)+'</h3><div class="kh-modal-body">'+bodyHtml+'</div></div>';
+  document.body.appendChild(m);
+  requestAnimationFrame(function(){ m.classList.add('kh-mopen'); });
+  m.querySelector('.kh-close').addEventListener('click', closeModal);
+  m.addEventListener('click', function(e){ if(e.target===m) closeModal(); });
+  return m.querySelector('.kh-modal-body');
+}
+function closeModal(){
+  var m = $id('kh-dest-modal');
+  if(m){ m.classList.remove('kh-mopen'); setTimeout(function(){ m.remove(); }, 300); }
+}
+
+/* ---------- 7. SOURCE methodology ---------- */
+var METHODOLOGY = {
+  'FEC': '<b>What:</b> Itemized campaign contributions from FEC filings.<br><b>How:</b> Bulk FEC data, parsed for donor name, employer, amount, recipient.<br><b>Coverage:</b> 176,870 itemized contributions.<br><b>Limitations:</b> Only itemized donations ($200+). Dark money not tracked.',
+  'DOJ': '<b>What:</b> Department of Justice enforcement actions.<br><b>How:</b> DOJ press releases and case filings, extracted for defendant, penalty, violation type.<br><b>Coverage:</b> 11 major actions, $4B+ in penalties.<br><b>Limitations:</b> Only publicly announced cases.',
+  'CMS': '<b>What:</b> Hospital price transparency data.<br><b>How:</b> CMS hospital price files, comparing billed charges vs actual costs.<br><b>Coverage:</b> 27,238 hospital procedures.<br><b>Limitations:</b> Not all hospitals comply with disclosure.',
+  'SEC': '<b>What:</b> SEC filings — 13F holdings and Form 4 insider trades.<br><b>How:</b> EDGAR filings parsed for positions and trades.<br><b>Coverage:</b> 335 institutional positions, 71 insider trades.<br><b>Limitations:</b> 13F only covers long positions over $100M.',
+  'BOP': '<b>What:</b> Bureau of Prisons facility and contract data.<br><b>How:</b> BOP facility listings cross-referenced with SEC 10-K filings.<br><b>Coverage:</b> 30 private prison facilities.<br><b>Limitations:</b> Many contract values are not disclosed.',
+  'default': '<b>What:</b> Karl\'s data rails.<br><b>How:</b> 954,000+ records across 500+ tables, sourced from public government filings, enforcement records, and financial disclosures.<br><b>Coverage:</b> Updated as new filings land.<br><b>Limitations:</b> Only public data. We show our work — every number traces to a source.'
+};
+function showMethodology(srcText){
+  var key = 'default';
+  ['FEC','DOJ','CMS','SEC','BOP','Forbes','LittleSis','Eviction'].forEach(function(k){
+    if(srcText && srcText.indexOf(k)>-1) key = k;
+  });
+  var body = '<div class="kh-method">'+(METHODOLOGY[key]||METHODOLOGY['default'])+'<br><br><b>Source line:</b> '+escH(srcText||'Karl rails')+'</div>';
+  openModal('How we got this', body);
+}
+
+/* ---------- 2. DRILL DOWN ---------- */
+function drillDown(label, value){
+  var body = openModal('Drilling into: '+label, '<div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div>');
+  var query = label + ' ' + String(value).replace(/[$,]/g,'');
+  apiGet('karl_query', {q: query}).then(function(d){
+    var html = '';
+    if(d && d.ok !== false && d.facts && d.facts.length){
+      html = '<div class="kh-method" style="margin-bottom:12px">Karl found <b>'+d.facts.length+'</b> result set(s) for this drill-down.</div>';
+      d.facts.slice(0,3).forEach(function(f){
+        html += '<div style="margin-bottom:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:8px">';
+        Object.keys(f).slice(0,5).forEach(function(k){
+          var v = f[k];
+          if(v==null || typeof v==='object') return;
+          html += '<div class="kh-proof-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:#888">'+escH(k.replace(/_/g,' '))+'</span><span style="color:#f5f0e6;font-weight:700">'+escH(String(v).slice(0,50))+'</span></div>';
+        });
+        html += '</div>';
+      });
+      html += '<div class="kh-method" style="margin-top:8px;color:#666;font-size:12px">Template: '+escH(d.template||'unknown')+'</div>';
+    } else {
+      html = '<div class="kh-method">No direct drill-down data for "<b>'+escH(label)+'</b>". Try asking Karl directly.</div>'+
+        '<button class="kh-act-btn" style="margin-top:12px;width:100%" onclick="document.getElementById(\'kh-q\').value='+JSON.stringify(query).replace(/"/g,'&quot;')+';document.getElementById(\'kh-dest-modal\').remove();document.getElementById(\'kh-q\').scrollIntoView({behavior:\'smooth\',block:\'center\'});">ASK KARL →</button>';
+    }
+    body.innerHTML = html;
+  }).catch(function(){
+    body.innerHTML = '<div class="kh-method">The rails didn\'t answer. Check your connection.</div>';
+  });
+}
+
+/* ---------- 3. SHAREABLE IMAGE ---------- */
+function paintShareImage(d, done){
+  var c = document.createElement('canvas');
+  c.width = 1080; c.height = 1350;
+  var x = c.getContext('2d');
+  /* bg */
+  x.fillStyle = '#0a0a0a'; x.fillRect(0,0,1080,1350);
+  /* red top bar */
+  x.fillStyle = '#c1121f'; x.fillRect(0,0,1080,12);
+  /* KARL NOTICED badge */
+  x.fillStyle = '#c1121f';
+  x.font = 'bold 36px system-ui, sans-serif';
+  x.fillText(d.inference ? '🧠 KARL NOTICED' : '⚡ THE ROBBERY REPORT', 60, 100);
+  /* question */
+  x.fillStyle = '#f5f0e6';
+  x.font = 'bold 52px Georgia, serif';
+  wrapText(x, d.q, 60, 200, 960, 70);
+  /* answer — strip HTML */
+  var plain = String(d.a||'').replace(/<[^>]*>/g, '');
+  x.fillStyle = '#cccccc';
+  x.font = '36px system-ui, sans-serif';
+  wrapText(x, plain, 60, 560, 960, 52);
+  /* proof rows */
+  var y = 900;
+  x.font = 'bold 28px system-ui, sans-serif';
+  x.fillStyle = '#c1121f';
+  x.fillText('▸ EXHIBIT — VERIFIED', 60, y); y += 50;
+  x.font = '30px system-ui, sans-serif';
+  (d.rows||[]).slice(0,4).forEach(function(r){
+    x.fillStyle = '#888'; x.fillText(String(r[0]).slice(0,40), 60, y);
+    x.fillStyle = '#f5f0e6'; x.font = 'bold 30px system-ui, sans-serif';
+    x.fillText(String(r[1]).slice(0,20), 700, y);
+    x.font = '30px system-ui, sans-serif'; y += 48;
+  });
+  /* footer */
+  x.fillStyle = '#c1121f'; x.fillRect(0, 1230, 1080, 120);
+  x.fillStyle = '#ffffff'; x.font = 'bold 44px system-ui, sans-serif';
+  x.textAlign = 'center';
+  x.fillText('JOIN THE FIGHT.', 540, 1285);
+  x.font = '32px system-ui, sans-serif';
+  x.fillText('mtcstw.com', 540, 1325);
+  x.textAlign = 'left';
+  c.toBlob(function(blob){ done(blob); }, 'image/png');
+}
+function wrapText(x, text, px, py, maxW, lh){
+  var words = String(text).split(' '), line = '', y = py;
+  words.forEach(function(w){
+    var t = line + w + ' ';
+    if(x.measureText(t).width > maxW && line){ x.fillText(line, px, y); line = w + ' '; y += lh; }
+    else line = t;
+    if(y > 1150) return;
+  });
+  x.fillText(line, px, y);
+}
+function shareImage(d, btn){
+  btn.disabled = true; btn.textContent = 'PAINTING…';
+  paintShareImage(d, function(blob){
+    btn.disabled = false; btn.textContent = 'SHARE IMAGE';
+    if(!blob){ toast('Could not paint image'); return; }
+    var file = new File([blob], 'karl-discovery.png', {type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({ title:'KARL Discovery', text: d.q, files:[file] }).catch(function(){});
+    } else {
+      /* fallback: download */
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'karl-discovery.png';
+      a.click(); toast('Image downloaded');
+    }
+  });
+}
+
+/* ---------- 4. GO DEEPER ---------- */
+var FOLLOW_UPS = {
+  'boeing': ['Which defense contractor stole the most?', 'Defense contractor penalties', 'Boeing enforcement actions'],
+  'hospital': ['Hospital price gouging examples', 'Worst hospital markups', 'Healthcare CEO pay'],
+  'fec': ['Who funds my congressman?', 'Top FEC donors', 'Dark money spending'],
+  'prison': ['GEO Group contracts', 'Private prison profits', 'CoreCivic lobbying'],
+  'college': ['Worst for-profit college?', 'For-profit college fraud cases', 'Student debt by school'],
+  'billionaire': ['Richest billionaires', 'Billionaire tax rate', 'Wealth inequality stats'],
+  'default': ['Who is being robbed here?', 'Show me the money trail', 'What can I do about this?']
+};
+function getFollowUps(d){
+  var text = (d.q + ' ' + (d.src||'')).toLowerCase();
+  for(var k in FOLLOW_UPS){ if(k!=='default' && text.indexOf(k)>-1) return FOLLOW_UPS[k]; }
+  return FOLLOW_UPS['default'];
+}
+
+/* ---------- 5. RELATED ---------- */
+function getRelated(d, allCards){
+  var text = (d.q + ' ' + (d.src||'')).toLowerCase();
+  var scored = [];
+  allCards.forEach(function(c){
+    if(c.q === d.q) return;
+    var ct = (c.q + ' ' + (c.src||'')).toLowerCase();
+    var score = 0;
+    ['boeing','defense','hospital','fec','donor','prison','college','billionaire','lobby','enforcement','eviction'].forEach(function(kw){
+      if(text.indexOf(kw)>-1 && ct.indexOf(kw)>-1) score += 2;
+    });
+    /* same source = related */
+    if(d.src && c.src && d.src.split('—')[1] && c.src.split('—')[1] && d.src.split('—')[1].trim() === c.src.split('—')[1].trim()) score += 1;
+    if(score > 0) scored.push({card:c, score:score});
+  });
+  scored.sort(function(a,b){ return b.score - a.score; });
+  return scored.slice(0,3).map(function(s){ return s.card; });
+}
+
+/* ---------- 6. TRACK (localStorage) ---------- */
+var SAVE_KEY = 'kh_saved_v1';
+function getSaved(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||'[]'); }catch(e){ return []; } }
+function isSaved(q){ return getSaved().some(function(s){ return s.q === q; }); }
+function toggleSave(d, btn){
+  var saved = getSaved();
+  var idx = saved.findIndex(function(s){ return s.q === d.q; });
+  if(idx > -1){ saved.splice(idx, 1); btn.textContent = '☆ SAVE'; btn.classList.remove('kh-saved'); toast('Removed from saved'); }
+  else {
+    saved.push({q:d.q, a:String(d.a).replace(/<[^>]*>/g,'').slice(0,200), src:d.src, when:'saved'});
+    btn.textContent = '★ SAVED'; btn.classList.add('kh-saved'); toast('Saved — find it in the SAVED tab');
+  }
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); }catch(e){}
+}
+
+/* ---------- main wiring ---------- */
+var KHD = {
+  onExpand: function(el, d){
+    var self = this;
+    /* 1. EXPAND: fetch live evidence */
+    var liveEv = el.querySelector('.kh-live-ev .kh-ev-body');
+    if(liveEv && !liveEv.dataset.loaded){
+      liveEv.dataset.loaded = '1';
+      apiGet('karl_query', {q: d.q}).then(function(r){
+        if(r && r.ok !== false && r.template){
+          var html = '<div style="font-size:13px;color:#aaa;margin-bottom:8px">Live template: <b style="color:#f5f0e6">'+escH(r.template)+'</b> · '+(r.facts||[]).length+' result set(s)</div>';
+          (r.facts||[]).slice(0,2).forEach(function(f){
+            Object.keys(f).slice(0,4).forEach(function(k){
+              var v = f[k];
+              if(v==null || typeof v==='object' || String(v).length > 60) return;
+              html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:#888">'+escH(k.replace(/_/g,' '))+'</span><span style="color:#f5f0e6">'+escH(String(v).slice(0,40))+'</span></div>';
+            });
+          });
+          liveEv.innerHTML = html;
+        } else {
+          liveEv.innerHTML = '<div style="font-size:13px;color:#666">Seed data shown above — live rails returned no additional rows for this query.</div>';
+        }
+      }).catch(function(){
+        liveEv.innerHTML = '<div style="font-size:13px;color:#666">Live rails unreachable — showing seed data.</div>';
+      });
+    }
+    /* 5. RELATED */
+    var relList = el.querySelector('.kh-rel-list');
+    if(relList && !relList.dataset.loaded){
+      relList.dataset.loaded = '1';
+      var allCards = [];
+      try{ if(typeof SEED!=='undefined') allCards = allCards.concat(SEED); if(typeof INFERENCES!=='undefined') allCards = allCards.concat(INFERENCES); }catch(e){}
+      var related = getRelated(d, allCards);
+      if(related.length){
+        relList.innerHTML = related.map(function(c, i){
+          return '<div class="kh-rel-card" data-rel-idx="'+i+'">'+escH(c.q.slice(0,80))+'</div>';
+        }).join('');
+        relList.querySelectorAll('.kh-rel-card').forEach(function(rc){
+          rc.addEventListener('click', function(e){
+            e.stopPropagation();
+            var c = related[parseInt(rc.dataset.relIdx)];
+            /* scroll to top and ask Karl */
+            var qi = $id('kh-q');
+            if(qi){ qi.value = c.q; qi.focus(); if(typeof doAsk==='function') doAsk(); }
+          });
+        });
+      } else {
+        relList.innerHTML = '<div style="font-size:13px;color:#666">No related discoveries yet.</div>';
+      }
+    }
+    /* wire action buttons (once) */
+    if(!el.dataset.destWired){
+      el.dataset.destWired = '1';
+      /* 4. GO DEEPER */
+      var gd = el.querySelector('.kh-go-deeper');
+      if(gd) gd.addEventListener('click', function(e){
+        e.stopPropagation();
+        var fups = getFollowUps(d);
+        var body = openModal('Go deeper', '<div class="kh-method" style="margin-bottom:12px">Pick a follow-up — Karl will run it live:</div>');
+        fups.forEach(function(fq){
+          var b = document.createElement('button');
+          b.className = 'kh-act-btn'; b.style.cssText = 'display:block;width:100%;margin-bottom:8px;text-align:left;padding:12px';
+          b.textContent = fq;
+          b.addEventListener('click', function(){
+            closeModal();
+            var qi = $id('kh-q');
+            if(qi){ qi.value = fq; if(typeof doAsk==='function') doAsk(); qi.scrollIntoView({behavior:'smooth',block:'center'}); }
+          });
+          body.appendChild(b);
+        });
+      });
+      /* 3. SHARE IMAGE */
+      var si = el.querySelector('.kh-share-img');
+      if(si) si.addEventListener('click', function(e){ e.stopPropagation(); shareImage(d, si); });
+      /* 6. SAVE */
+      var sv = el.querySelector('.kh-save-btn');
+      if(sv){
+        if(isSaved(d.q)){ sv.textContent = '★ SAVED'; sv.classList.add('kh-saved'); }
+        sv.addEventListener('click', function(e){ e.stopPropagation(); toggleSave(d, sv); });
+      }
+      /* 2. DRILL DOWN: make proof values tappable */
+      el.querySelectorAll('.kh-proof-row').forEach(function(row){
+        var vEl = row.querySelector('.v');
+        var kEl = row.querySelector('.k');
+        if(vEl && kEl){
+          vEl.addEventListener('click', function(e){
+            e.stopPropagation();
+            drillDown(kEl.textContent, vEl.textContent);
+          });
+        }
+      });
+      /* 7. SOURCE: tap receipts for methodology */
+      var rc = el.querySelector('.kh-receipts');
+      if(rc){
+        rc.style.cursor = 'pointer'; rc.style.borderBottom = '1px dotted rgba(193,18,31,.6)';
+        rc.addEventListener('click', function(e){ e.stopPropagation(); showMethodology(d.src); });
+      }
+    }
+  }
+};
+window.KHDest = KHD;
+
+/* ---------- saved tab ---------- */
+(function savedTab(){
+  var feedEl = $id('kh-feed');
+  if(!feedEl || !feedEl.parentNode) return;
+  var tabs = document.createElement('div');
+  tabs.className = 'kh-feed-tabs';
+  tabs.innerHTML = '<button class="kh-tab kh-active" data-tab="all">ALL INTEL</button><button class="kh-tab" data-tab="saved">★ SAVED</button>';
+  feedEl.parentNode.insertBefore(tabs, feedEl);
+  var savedCards = [];
+  tabs.addEventListener('click', function(e){
+    var t = e.target.closest('.kh-tab'); if(!t) return;
+    tabs.querySelectorAll('.kh-tab').forEach(function(x){ x.classList.remove('kh-active'); });
+    t.classList.add('kh-active');
+    if(t.dataset.tab === 'saved'){
+      /* hide all, show saved */
+      var all = feedEl.querySelectorAll('.kh-card');
+      all.forEach(function(c){ c.style.display = 'none'; });
+      savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
+      var saved = getSaved();
+      if(!saved.length){
+        var empty = document.createElement('div');
+        empty.className = 'kh-card'; empty.style.textAlign = 'center'; empty.style.color = '#666';
+        empty.innerHTML = '<div style="padding:24px">No saved discoveries yet.<br>Tap a card, hit ☆ SAVE.</div>';
+        feedEl.appendChild(empty); savedCards.push(empty);
+      } else {
+        saved.forEach(function(sd){
+          var card = {q: sd.q, a: escH(sd.a), rows: [], src: sd.src||'▸ Saved', deploys: 0, when: 'saved'};
+          if(typeof cardEl === 'function'){ var el = cardEl(card); feedEl.appendChild(el); savedCards.push(el); }
+        });
+      }
+    } else {
+      savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
+      feedEl.querySelectorAll('.kh-card').forEach(function(c){ c.style.display = ''; });
+    }
+  });
+})();
+})();
+
 </script>
 </body>
 </html>

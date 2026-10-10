@@ -541,6 +541,134 @@
         h += '<div class="pf-karl-src">SEC 13F filings</div></div>';
         return;
       }
+      /* For-profit colleges */
+      if (f.colleges && f.colleges.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — for-profit colleges</div>';
+        f.colleges.slice(0, 8).forEach(function (c, ci) {
+          h += '<div style="padding:' + (ci ? '10px 0 0' : '4px 0 0') + ';' + (ci ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(c.school_name || '') + '</b>' +
+            '<div class="nt">' + esc(c.parent_company || '') +
+            (c.enrollment ? ' · ' + Number(c.enrollment).toLocaleString() + ' students' : '') +
+            (c.fraud_allegations ? ' · <span style="color:#ff2a35">fraud flagged</span>' : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — Dept. of Education data</div></div>';
+        return;
+      }
+      /* Private prisons */
+      if (f.prisons && f.prisons.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — private prisons</div>';
+        f.prisons.slice(0, 8).forEach(function (p, pi) {
+          var _cv = Number(p.contract_value_usd);
+          var _cvTxt = _cv >= 1e6 ? '$' + (_cv/1e6).toFixed(1) + 'M' : _cv ? '$' + _cv.toLocaleString() : '—';
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (pi ? '10px 0 0' : '4px 0 0') + ';' + (pi ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(p.facility_name || '') + '</b><div class="nt">' +
+            esc(p.operator || '') + ' · ' + esc(p.location_state || '') +
+            (p.capacity ? ' · ' + Number(p.capacity).toLocaleString() + ' beds' : '') + '</div></div>' +
+            '<div class="vl" style="font-size:20px;white-space:nowrap"><span class="num">' + _cvTxt + '</span></div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — prison contract records</div></div>';
+        return;
+      }
+      /* Fair market rents */
+      if (f.rents && f.rents.length) {
+        var _r = f.rents[0];
+        if (_r.areas) {
+          h += '<div class="pf-karl-fact"><div class="lb">Exhibit — fair market rents</div>' +
+            '<div class="vl"><span class="num">' + Number(_r.areas).toLocaleString() + '</span> areas tracked</div>' +
+            '<div class="nt">Latest data: FY' + esc(String(_r.latest_fy || '')) + ' · HUD Fair Market Rents</div>' +
+            '<div class="pf-karl-src">▸ Receipts — HUD FMR data</div></div>';
+        } else {
+          h += '<div class="pf-karl-fact"><div class="lb">Exhibit — fair market rents</div>';
+          f.rents.slice(0, 5).forEach(function (r, ri) {
+            h += '<div style="padding:' + (ri ? '10px 0 0' : '4px 0 0') + ';' + (ri ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+              '<b style="color:#fff">' + esc(r.area_name || r.county || '') + '</b>' +
+              '<div class="nt">2BR: <span class="num">$' + Number(r.fmr_2 || 0).toLocaleString() + '</span>/mo · FY' + esc(String(r.fy || '')) + '</div></div>';
+          });
+          h += '<div class="pf-karl-src">▸ Receipts — HUD FMR data</div></div>';
+        }
+        return;
+      }
+      /* Bills */
+      if (f.bills && f.bills.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — federal bills</div>';
+        f.bills.slice(0, 5).forEach(function (b, bi) {
+          h += '<div style="padding:' + (bi ? '10px 0 0' : '4px 0 0') + ';' + (bi ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(b.bill_id || '') + '</b>' +
+            '<div class="nt">' + esc(String(b.title || '').slice(0, 120)) + '</div>' +
+            '<div class="nt">' + esc(b.status || '') + (b.sponsor_name ? ' · ' + esc(b.sponsor_name) : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — congressional records</div></div>';
+        return;
+      }
+      /* Evictions */
+      if (f.evictions && f.evictions.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — eviction filings</div>';
+        f.evictions.slice(0, 8).forEach(function (e, ei) {
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (ei ? '10px 0 0' : '4px 0 0') + ';' + (ei ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(e.county_name || '') + '</b><div class="nt">' +
+            esc(e.state_name || '') + ' · ' + esc(String(e.year || '')) + '</div></div>' +
+            '<div class="vl" style="font-size:20px;white-space:nowrap"><span class="num">' +
+            Number(e.filings_estimate || 0).toLocaleString() + '</span></div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — eviction lab estimates</div></div>';
+        return;
+      }
+      /* Billionaires */
+      if (f.billionaires && f.billionaires.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — billionaire wealth</div>';
+        f.billionaires.slice(0, 8).forEach(function (b, bi) {
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (bi ? '10px 0 0' : '4px 0 0') + ';' + (bi ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(b.name || '') + '</b>' +
+            (b.political_spending ? '<div class="nt">Political spending: $' + Number(b.political_spending).toLocaleString() + '</div>' : '') + '</div>' +
+            '<div class="vl" style="font-size:22px;white-space:nowrap"><span class="num">$' +
+            Number(b.net_worth_b || 0).toFixed(1) + 'B</span></div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — wealth tracking data</div></div>';
+        return;
+      }
+      /* Labor */
+      if (f.labor && f.labor.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — union elections</div>';
+        f.labor.slice(0, 8).forEach(function (l, li) {
+          var _total = Number(l.votes_for || 0) + Number(l.votes_against || 0);
+          var _pct = _total ? Math.round(Number(l.votes_for || 0) / _total * 100) : 0;
+          h += '<div style="padding:' + (li ? '10px 0 0' : '4px 0 0') + ';' + (li ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(l.employer || l.series_id || '') + '</b>' +
+            '<div class="nt">' + (l.union_1 ? esc(l.union_1) + ' · ' : '') + esc(String(l.election_year || l.period || '')) +
+            (_total ? ' · <span class="num">' + _pct + '%</span> voted yes' : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — NLRB / BLS data</div></div>';
+        return;
+      }
+      /* Hospital prices */
+      if (f.hospitals && f.hospitals.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — hospital prices</div>';
+        f.hospitals.slice(0, 8).forEach(function (hh2, hi2) {
+          h += '<div style="padding:' + (hi2 ? '10px 0 0' : '4px 0 0') + ';' + (hi2 ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(hh2.procedure_desc || hh2.hospital_name || '') + '</b>' +
+            '<div class="nt">Avg charge: <span class="num">$' + Number(hh2.avg_charge || hh2.avg_covered_charges || 0).toLocaleString() +
+            '</span>' + (hh2.city ? ' · ' + esc(hh2.city) + ', ' + esc(hh2.state || '') : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — CMS hospital data</div></div>';
+        return;
+      }
+      /* Economy */
+      if (f.economy && f.economy.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — economic indicators</div>';
+        f.economy.slice(0, 8).forEach(function (e2, ei2) {
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (ei2 ? '10px 0 0' : '4px 0 0') + ';' + (ei2 ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(e2.series || e2.series_id || '') + '</b>' +
+            '<div class="nt">' + esc(String(e2.period || '')) + '</div></div>' +
+            '<div class="vl" style="font-size:20px;white-space:nowrap"><span class="num">' +
+            esc(String(e2.value)) + (e2.unit ? ' ' + esc(e2.unit) : '') + '</span></div></div>';
+        });
+        h += '<div class="pf-karl-src">▸ Receipts — FRED / CPI data</div></div>';
+        return;
+      }
       /* Enforcement ledger */
       if (f.top_cases && f.top_cases.length) {
         var _tname = String(f.table || 'enforcement').replace(/_/g, ' ');

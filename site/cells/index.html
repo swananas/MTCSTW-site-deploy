@@ -3,111 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Cells — Nobody Fights Alone.</title>
-<meta name="description" content="Join a cell. Coordinate with your people. Turn intel into action.">
+<title>Find Your Cell — JOIN THE FIGHT.</title>
+<meta name="description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
+<meta property="og:title" content="Find Your Cell — JOIN THE FIGHT.">
+<meta property="og:description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/cells">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Find Your Cell — JOIN THE FIGHT.">
+<meta name="twitter:description" content="The network runs on cells. Lone wolves get picked off. Find your people.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
 <style>
-  html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
-  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;}
-  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
-  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
-  .pf-topbar-brand span{color:#c1121f;}
-  .pf-pillars-nav{display:flex;gap:6px;flex:1;}
-  .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;}
-  .pf-pillar.on{color:#fff;border-color:#c1121f;background:rgba(193,18,31,.12);}
-  body{padding-top:calc(env(safe-area-inset-top,0px) + 110px);}
-  #cel{--bg:#0a0a0a;--card:#111;--line:#232323;--red:#c1121f;--rbright:#e5383b;--cream:#f5f0e6;--dim:#8a8478;max-width:560px;margin:0 auto;padding:0 0 60px;}
-  #cel .hero{padding:28px 20px 8px;}
-  #cel .hero h1{font-family:Georgia,serif;font-size:32px;margin:0 0 8px;line-height:1.15;}
-  #cel .hero h1 em{color:var(--rbright);font-style:normal;}
-  #cel .hero p{color:var(--dim);font-size:15px;margin:0 0 16px;line-height:1.5;}
-  #cel .steps{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
-  #cel .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;animation:rise .4s ease both;}
-  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  #cel .step .n{display:inline-block;background:var(--red);color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:4px 12px;margin-bottom:10px;letter-spacing:.1em;}
-  #cel .step .t{font-weight:700;font-size:17px;margin-bottom:6px;}
-  #cel .step .d{font-size:14px;color:var(--dim);line-height:1.5;}
-  #cel .cta{display:block;margin:20px;background:var(--red);color:#fff;border-radius:14px;padding:16px;text-align:center;font-weight:800;font-size:15px;letter-spacing:.06em;text-decoration:none;box-shadow:0 4px 18px rgba(193,18,31,.35);}
-  #cel .cta:active{transform:scale(.98);}
-  #cel .feed-link{margin:24px 20px 0;}
-  #cel .feed-link h3{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin:0 0 10px;}
-  #cel .feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;text-decoration:none;display:block;color:var(--cream);}
-  #cel .feed-card .q{font-weight:600;font-size:14px;margin-bottom:6px;}
-  #cel .feed-card .a{font-size:13px;color:var(--dim);}
-  #cel .feed-card .a b{color:var(--rbright);}
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #pf-boot{min-height:100vh;}
+  .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}
+  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
+  .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
+  .pf-topbar-nav::-webkit-scrollbar{display:none;}
+  .pf-topbar-nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
+  .pf-topbar-nav a:hover{color:#e5383b;}
+  .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+  #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}
+  #pf-topbar-search:hover{border-color:#c1121f;color:#fff;}
+  #pf-topbar-search svg{width:18px;height:18px;display:block;}
+  #pf-topbar-user{flex:0 0 auto;min-width:0;display:flex;}
+  #pf-topbar-panel{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}
+  #pf-topbar-panel[hidden]{display:none;}
+  .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
+  .pf-skip-link:focus{left:0;}
 </style>
+<script>window.__PF_BUILD="20261008-1720-06c0c4b";</script>
+<script>(function(){
+  try{
+    var cur = window.__PF_BUILD; if(!cur) return;
+    if(sessionStorage.getItem('pf_upd_'+cur)) return; // already handled this build
+    fetch('/version.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
+      if(v && v.build && v.build!==cur){
+        sessionStorage.setItem('pf_upd_'+v.build,'1');
+        var done=function(){ location.reload(); };
+        if('serviceWorker' in navigator){
+          navigator.serviceWorker.getRegistrations().then(function(rs){
+            return Promise.all(rs.map(function(r){return r.unregister();}));
+          }).then(function(){
+            if(window.caches){ return caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }); }
+          }).then(done).catch(done);
+        } else done();
+      }
+    }).catch(function(){});
+    // Aggressive SW update check
+    if('serviceWorker' in navigator){ navigator.serviceWorker.ready.then(function(r){ try{ r.update(); }catch(e){} }); }
+  }catch(e){}
+})();</script>
 </head>
 <body>
+<a href="#main" class="pf-skip-link">Skip to main content</a>
 <div id="pf-boot">
-<header class="pf-topbar"><div class="pf-topbar-inner">
-<a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
-<nav class="pf-pillars-nav">
-<a class="pf-pillar" href="/create">CREATE</a>
-<a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
-<a class="pf-pillar on" href="/cells">COORDINATE</a>
-<a class="pf-pillar" href="/money">CAPITAL</a>
-</nav></div></header>
-<main id="cel">
-  <div class="hero">
-    <h1>Nobody fights <em>alone.</em></h1>
-    <p>Cells are small crews that turn intel into action. Find yours, or start one. Karl's discoveries become your missions.</p>
+<header class="pf-topbar">
+  <a href="/" class="pf-topbar-brand">MTCSTW</a>
+  <nav class="pf-topbar-nav" aria-label="Main">
+    <a href="/arcade">ARCADE</a>
+    <a href="/cells">CELLS</a>
+    <a href="/create">CREATE</a>
+    <a href="/sick-left-radicals">RADICALS</a>
+    <a href="/money">MONEY</a>
+  </nav>
+  <div class="pf-topbar-right">
+    <button id="pf-topbar-search" type="button" aria-label="Search the site"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
+    <div id="pf-topbar-user"></div>
   </div>
-  <div class="steps">
-    <div class="step">
-      <div class="n">STEP 1</div>
-      <div class="t">Get the intel</div>
-      <div class="d">Start with <a href="/" style="color:#e5383b">THE ROBBERY REPORT</a> — find something worth acting on.</div>
-    </div>
-    <div class="step">
-      <div class="n">STEP 2</div>
-      <div class="t">Find your people</div>
-      <div class="d">Cells organize by location, interest, or target. Small enough to trust, big enough to matter.</div>
-    </div>
-    <div class="step">
-      <div class="n">STEP 3</div>
-      <div class="t">Deploy together</div>
-      <div class="d">Share discoveries, coordinate drops, amplify each other's work. The feed is your battlefield map.</div>
-    </div>
-  </div>
-  <a class="cta" href="/karl/?q=How%20do%20I%20join%20a%20cell">FIND YOUR CELL</a>
-  <div class="feed-link">
-    <h3>Related discoveries</h3>
-    <a class="feed-card" href="/karl/?q=Private%20prisons">
-      <div class="q">Where are the private prisons near me?</div>
-      <div class="a">GEO Group runs <b>19 facilities</b>. Find the one in your backyard.</div>
-    </a>
-    <a class="feed-card" href="/">
-      <div class="q">Who's robbing you?</div>
-      <div class="a">Back to <b>THE ROBBERY REPORT</b> — arm yourself first.</div>
-    </a>
-  </div>
+  <div id="pf-topbar-panel" hidden></div>
+</header>
+<main id="main">
+  <div id="pf-cells-page"></div>
 </main>
 </div>
 <script>
-/* BLOSSOM G5.1 — consume ?cause= / #cause= from money surfaces and pre-fill the cell flow. */
 (function(){
-  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-  function param(name){
-    var m;
-    try{ m=location.search.match(new RegExp("[?&]"+name+"=([^&#]*)")); if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim(); }catch(e){}
-    try{ m=location.hash.match(new RegExp("[#&]"+name+"=([^&#]*)")); if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim(); }catch(e){}
-    return "";
+  var BASE='/v1.4.3/';
+  var CORE='bundle-core.js';
+  var GAMES=["games/bundle-cells-dash.js", "games/bundle-raid.js"];
+  var PAGES='pages/bundle-pages.js';
+  var PWA='pwa/install.js';
+  var KARL='core/bundle-karl-companion.js';
+  function pfSkip(n){
+    try{
+      var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
+      var m=location.search.match(/[?&]pf_off=([^&]+)/);
+      if(m)d=d.concat(decodeURIComponent(m[1]).split(','));
+      return d.indexOf(n)!==-1;
+    }catch(e){return false;}
   }
-  var cause = param("cause");
-  if(!cause) return;
-  try{
-    var hero = document.querySelector("#cel .hero");
-    if(hero){
-      var banner = document.createElement("div");
-      banner.style.cssText = "margin:0 0 16px;padding:14px 16px;background:rgba(193,18,31,.12);border:2px solid #c1121f;border-radius:12px;color:#f5f0e6;font-size:15px;line-height:1.5;";
-      banner.innerHTML = "<b style='color:#e5383b;letter-spacing:.1em;font-size:12px;'>FORMING A CELL AROUND:</b><br><b style='font-size:19px;'>"+esc(cause)+"</b><br><span style='color:#8a8478;font-size:13px;'>Money chose the fight. Now build the crew that fights it.</span>";
-      hero.insertBefore(banner, hero.firstChild);
+  function load(src,async){
+    return new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src=src;s.async=!!async;
+      s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
+      document.head.appendChild(s);
+    });
+  }
+  function skeleton(host){
+    if(pfSkip('butter-p0')||!host)return;
+    if(host.children.length>0)return;
+    host.insertAdjacentHTML('afterbegin',
+      '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
+      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
+    var obs=new MutationObserver(function(){
+      try{
+        var sk=host.querySelector('#pf-skeleton');
+        if(sk&&host.textContent.replace(/\s+/g,'').length>0){sk.remove();obs.disconnect();}
+      }catch(e){}
+    });
+    try{obs.observe(host,{childList:true,subtree:true});}catch(e){}
+    setTimeout(function(){try{var sk=host.querySelector('#pf-skeleton');if(sk)sk.remove();obs.disconnect();}catch(e){}},25000);
+  }
+  // Paint skeletons immediately
+  skeleton(document.getElementById("pf-cells-page"));
+  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
+  (async function(){
+    await load(BASE+'core/'+CORE,false);
+    load(BASE+PWA,true); // async, guarded internally
+    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
+    await load(BASE+PAGES,false);
+    // Karl companion: lazy after idle
+    function goKarl(){
+      if(pfSkip('karl-companion'))return;
+      load(BASE+KARL,true);
     }
-    /* Pre-fill the onward step: the FIND YOUR CELL ask carries the cause. */
-    var cta = document.querySelector("#cel a.cta");
-    if(cta) cta.href = "/karl/?q=" + encodeURIComponent("How do I form a cell around this cause: " + cause);
-  }catch(e){}
+    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
+    else{setTimeout(goKarl,4000);}
+    // Trigger mount
+    try{
+      if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
+    }catch(e){}
+    console.log('[PF] Pages shell loaded: /cells');
+  })();
 })();
 </script>
 </body>

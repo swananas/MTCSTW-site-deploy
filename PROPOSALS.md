@@ -10,7 +10,7 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 ## P-001 — Roster cards link to catalog pages (fixes G-D1, P0)
 **Surface:** /sick-left-radicals · **For:** ws-imp-loop-pillars-feed-20261010
 **Problem:** cards expand-only; 62 catalog pages exist but the roster links to none.
-**Design:** the name+score row becomes the link (`<a href="/<slug>">`), with a `→` affordance; card-body tap still toggles the bio. Keep search, keep expand. ~200B.
+**Design:** the name+score row becomes the link (`<a href="/<slug>">`), with a `→` affordance; card-body tap still toggles the bio. Implementation note: the card's `onclick` toggles `.open` — guard with `if(e.target.closest('a'))return` so link taps don't also toggle. Keep search, keep expand. ~200B.
 **Blossom:** restores IN-path roster→catalog (check #7); catalog CTAs then carry Money/Cells/Create.
 **Status:** PROPOSED — recommend APPROVE (P0 regression).
 
@@ -87,7 +87,8 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 
 ## P-011 — Catalog return paths + cross-links (fixes G-C1, with P-001)
 **Surfaces:** /<slug> catalog pages · **For:** ws-imp-loop-pillars-feed-20261010
-**Design:** (a) `← ALL 62 RADICALS` return link → /sick-left-radicals on every catalog page; (b) 2–3 related-creator cross-links (same score band) per page — catalog↔catalog Blossom edge. Pages are static: implement as a build-time generation step or a shared snippet; NOT 62 hand-edits.
+**Problem:** catalog pages are 62 hand-maintained static files (not generated — 0 matches in site/build-shells.py); no return link to /sick-left-radicals; no catalog↔catalog cross-links; roster data lives in two places (inlined ROSTER JSON on the SLR shell + 62 separate pages).
+**Design:** (a) immediate: add `← ALL 62 RADICALS` return link → /sick-left-radicals on every catalog page; (b) structural (recommended): build a **catalog page generator** — one template + the roster dataset emitting all 62 pages with return links, 2–3 related-creator cross-links (same score band), and the standard CTAs (FUND THEIR FIGHT / bounties / THEIR TOWN / CREATE FEED) baked in. Single source of truth going forward; no more 62-file edits. (c) P-001 (roster→catalog links) is the prerequisite — do that first.
 **Status:** PROPOSED — recommend APPROVE (after P-001).
 
 ## P-012 — Restore one-prompt onboarding on the new IA (P1, conversion-critical)

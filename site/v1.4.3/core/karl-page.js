@@ -393,6 +393,53 @@
         (meta.length ? '<div class="mt">' + esc(meta.join(' · ')) + '</div>' : '') + '</div>';
     }
     (r.facts || []).forEach(function (f) {
+      /* Creator roster: slr_roster table */
+      if (f.creators && f.creators.length) {
+        f.creators.forEach(function (c) {
+          h += '<div class="pf-karl-fact"><div class="lb">CREATOR</div>' +
+            '<div class="vl"><b>' + esc(c.name || '') + '</b></div>' +
+            '<div class="nt">Propaganda score: ' + esc(String(c.propaganda_score || '')) +
+            (c.primary_platform ? ' · ' + esc(c.primary_platform) : '') +
+            (c.followers_display ? ' · ' + esc(c.followers_display) + ' followers' : '') + '</div>' +
+            (c.bio ? '<div class="nt">' + esc(String(c.bio).slice(0, 300)) + '</div>' : '') +
+            '<div class="pf-karl-src">Sourced from the Sick Left Radicals roster</div></div>';
+        });
+        return;
+      }
+      /* Insider trades */
+      if (f.trades && f.trades.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">INSIDER TRADES</div>';
+        f.trades.slice(0, 5).forEach(function (t) {
+          h += '<div style="padding:6px 0;border-top:1px dashed #e2ddd0"><b>' + esc(t.filer || '') + '</b>' +
+            '<div class="nt">' + esc(t.company || '') + ' · ' + esc(String(t.shares || '')) + ' shares @ $' + esc(String(t.price || '')) +
+            (t.transaction_date ? ' · ' + esc(String(t.transaction_date).slice(0, 10)) : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">Sourced from SEC Form 4 filings</div></div>';
+        return;
+      }
+      /* Board interlocks */
+      if (f.positions && f.positions.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">BOARD POSITIONS</div>';
+        f.positions.slice(0, 8).forEach(function (p) {
+          h += '<div style="padding:6px 0;border-top:1px dashed #e2ddd0"><b>' + esc(p.person_name || p.name || '') + '</b>' +
+            '<div class="nt">' + esc(p.org_name || '') + (p.title ? ' — ' + esc(p.title) : '') + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">Sourced from LittleSis</div></div>';
+        return;
+      }
+      /* 13F holdings */
+      if (f.holdings && f.holdings.length) {
+        h += '<div class="pf-karl-fact"><div class="lb">INSTITUTIONAL HOLDINGS</div>';
+        f.holdings.slice(0, 8).forEach(function (hh) {
+          var _v = Number(hh.value_usd);
+          var _vTxt = _v >= 1e9 ? '$' + (_v/1e9).toFixed(1) + 'B' : _v >= 1e6 ? '$' + (_v/1e6).toFixed(1) + 'M' : '$' + _v;
+          h += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed #e2ddd0">' +
+            '<div><b>' + esc(hh.company_name || '') + '</b><div class="nt">' + esc(hh.manager_name || '') + '</div></div>' +
+            '<div class="vl">' + _vTxt + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">Sourced from SEC 13F filings</div></div>';
+        return;
+      }
       /* Enforcement ledger: top_cases from the penalty tables. */
       if (f.top_cases && f.top_cases.length) {
         var _tname = String(f.table || 'enforcement').replace(/_/g, ' ');

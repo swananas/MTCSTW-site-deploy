@@ -133,13 +133,22 @@
     load(BASE+PWA,true); // async, guarded internally
     for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
     await load(BASE+PAGES,false);
-    // Karl companion: lazy after idle
+    // Karl companion: interaction-gated on pillar pages (floating widget,
+    // never primary page content). First scroll/touch/key/mouse click loads
+    // it; 15s idle fallback covers passive readers. Kill switch honored.
     function goKarl(){
-      if(pfSkip('karl-companion'))return;
+      if(window.__pfKarlGo||pfSkip('karl-companion'))return;
+      window.__pfKarlGo=1;
       load(BASE+KARL,true);
     }
-    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
-    else{setTimeout(goKarl,4000);}
+    (function armKarl(){
+      var evs=['scroll','touchstart','pointerdown','keydown','mousemove'];
+      for(var i=0;i<evs.length;i++){
+        try{window.addEventListener(evs[i],goKarl,{once:true,passive:true});}
+        catch(e){try{window.addEventListener(evs[i],goKarl);}catch(e2){}}
+      }
+      setTimeout(goKarl,15000);
+    })();
     // Trigger mount
     try{
       if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}

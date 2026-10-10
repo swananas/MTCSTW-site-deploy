@@ -105,8 +105,6 @@
         ['war-map', 'pf-ov-warmap'],
         ['diplo', 'pf-ov-diplo'],
         ['contracts', 'pf-ov-contracts'],
-        /* W5-12 Frontlines: weekly territory war map (kill: war-map). */
-        ['war-map', 'pf-ov-warmap'],
         /* CELLS 2.0 (2026-10-05): territory map (kill: cell-territory-map)
            + competition seasons (kill: cell-comp-seasons). Mount next to the
            war map on /cells. */
@@ -198,15 +196,6 @@
       next: { href: '/follow-the-money', label: 'NEXT MOVE →' },
       order: [
         ['fund', null]
-      ]
-    },
-    /* money (fe/money-page, 2026-10-05): FOLLOW THE MONEY. Self-mounting
-       silo — core/money-page.js renders itself into #pf-money (page mode)
-       or the interim PHQ tab. Sub copy provisional — Psych veto. */
-    'pf-money': {
-      title: 'FOLLOW THE MONEY', sub: 'See who bought your government.',
-      order: [
-        ['money', null]
       ]
     },
     'pf-warchest': {

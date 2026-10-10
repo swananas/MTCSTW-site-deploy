@@ -74,6 +74,7 @@ ROUTES = {
         "mounts": ["pf-create"],
         "core": "bundle-core-slr.js",
         "games": ["games/bundle-create-h.js", "games/bundle-create.js", "games/bundle-factgen-mount.js"],
+        "karl": "defer",
     },
     "/fact-generator": {
         "title": "Fact Generator — Type a Claim. We Find the Receipts.",
@@ -88,6 +89,7 @@ ROUTES = {
         "mounts": ["pf-arcade"],
         "core": "bundle-core-slr.js",
         "games": ["games/bundle-arcade-h.js", "games/bundle-arcade.js", "games/bundle-raid.js"],
+        "karl": "defer",
     },
     "/cells": {
         "title": "Find Your Cell — JOIN THE FIGHT.",
@@ -151,6 +153,7 @@ ROUTES = {
         "mounts": ["pf-warchest"],
         "core": "bundle-core.js",
         "games": ["games/bundle-warchest.js"],
+        "karl": "defer",
     },
     "/events": {
         "title": "Events — The Propaganda Factory",
@@ -214,6 +217,7 @@ ROUTES = {
         "mounts": ["pf-slr-roster"],
         "core": "bundle-core-slr.js",
         "games": ["games/bundle-roster.js"],
+        "karl": "defer",
     },
     # ---- PROJECT BLOSSOM (rebuilt 2026-10-08 after migration wipe) ----
     "/dossier": {
@@ -303,6 +307,37 @@ ROUTES = {
     # /privacy, /terms, /about, /faqs, /network are still open — they need
     # Shane's copy.
 }
+
+# Karl companion loader modes.
+# IDLE (default): load lazily after browser idle (existing behavior).
+# DEFER (pillar pages): the companion is a floating widget, never primary
+# page content — it loads on first user interaction, with a 15s idle
+# fallback. Keeps the 42KB companion bundle out of the early network window.
+# Kill switch ?pf_off=karl-companion honored in both modes.
+KARL_IDLE_JS = """    // Karl companion: lazy after idle
+    function goKarl(){
+      if(pfSkip('karl-companion'))return;
+      load(BASE+KARL,true);
+    }
+    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
+    else{setTimeout(goKarl,4000);}"""
+
+KARL_DEFER_JS = """    // Karl companion: interaction-gated on pillar pages (floating widget,
+    // never primary page content). First scroll/touch/key/mouse click loads
+    // it; 15s idle fallback covers passive readers. Kill switch honored.
+    function goKarl(){
+      if(window.__pfKarlGo||pfSkip('karl-companion'))return;
+      window.__pfKarlGo=1;
+      load(BASE+KARL,true);
+    }
+    (function armKarl(){
+      var evs=['scroll','touchstart','pointerdown','keydown','mousemove'];
+      for(var i=0;i<evs.length;i++){
+        try{window.addEventListener(evs[i],goKarl,{once:true,passive:true});}
+        catch(e){try{window.addEventListener(evs[i],goKarl);}catch(e2){}}
+      }
+      setTimeout(goKarl,15000);
+    })();"""
 
 SHELL_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -419,13 +454,7 @@ SHELL_TEMPLATE = """<!DOCTYPE html>
     load(BASE+PWA,true); // async, guarded internally
     for(var i=0;i<GAMES.length;i++){{await load(BASE+GAMES[i],false);}}
     await load(BASE+PAGES,false);
-    // Karl companion: lazy after idle
-    function goKarl(){{
-      if(pfSkip('karl-companion'))return;
-      load(BASE+KARL,true);
-    }}
-    if('requestIdleCallback' in window){{try{{requestIdleCallback(goKarl,{{timeout:9000}});}}catch(e){{setTimeout(goKarl,4000);}}}}
-    else{{setTimeout(goKarl,4000);}}
+{karl_js}
     // Trigger mount
     try{{
       if(window.PF){{if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}}
@@ -508,6 +537,7 @@ def build():
             skeleton_calls=skeleton_calls,
             build_id=build_id,
             selfcheck_js=SELFCHECK_JS,
+            karl_js=KARL_DEFER_JS if cfg.get("karl") == "defer" else KARL_IDLE_JS,
         )
 
         with open(os.path.join(dirpath, "index.html"), "w") as f:
@@ -526,6 +556,7 @@ def build():
         mounts=mounts_html, core=cfg["core"],
         games_json=json.dumps(cfg["games"]), skeleton_calls=skeleton_calls,
         build_id=build_id, selfcheck_js=SELFCHECK_JS,
+        karl_js=KARL_DEFER_JS if cfg.get("karl") == "defer" else KARL_IDLE_JS,
     )
     with open(os.path.join(SITE, "404.html"), "w") as f:
         f.write(html404)

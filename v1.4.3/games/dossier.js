@@ -457,8 +457,28 @@
       + '<div style="font-size:14px;line-height:1.5;">The full sourced dossier on <strong>' + esc(doc.pol_name || '') + '</strong> — every figure, every source.</div>'
       + '<div style="font-size:12px;color:' + MUTED + ';margin-top:6px;">/receipt/' + esc(polSlug) + ' \u2192</div></a>';
     if (!isPreview) {
-      html += '<div style="text-align:center;margin:8px 0 26px;">'
-        + '<button id="pf-dossier-share" type="button" style="' + btnStyle(true) + '">SHARE THIS DOSSIER</button></div>';
+      /* BLOSSOM G2.1 (2026-10-10): no dossier ends without a deploy path.
+         TURN THIS INTO PROPAGANDA hands the case file to the Create suite
+         preloaded (pf_forge_prefill_v1 -> /create, ammo FORGE THIS precedent).
+         ASK KARL routes the case into /karl as a deep-link query (G4.2).
+         SHARE THIS DOSSIER keeps the existing PFShare share-image path
+         (gameId 'dossier', JOIN THE FIGHT. CTA standard on the painter) so a
+         finished case deploys as a feed discovery. Follow-the-money + cell
+         links ride underneath where they fit naturally. */
+      html += '<div style="background:' + PAPER + ';border:2px solid ' + RED + ';border-radius:3px;padding:18px 16px;margin:16px 0 10px;text-align:center;">'
+        + '<div style="font-size:11px;letter-spacing:4px;color:' + RED_TX + ';font-weight:900;margin-bottom:6px;">DEPLOY THIS DOSSIER</div>'
+        + '<div style="font-size:14px;color:' + MUTED + ';line-height:1.6;margin-bottom:14px;">The case is built. Now weaponize it — forge propaganda from the file, get Karl digging deeper, or blast it as a feed discovery.</div>'
+        + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
+        + '<button id="pf-dossier-forge" type="button" style="' + btnStyle(true) + '">TURN THIS INTO PROPAGANDA</button>'
+        + '<button id="pf-dossier-share" type="button" style="' + btnStyle(false) + '">SHARE THIS DOSSIER</button>'
+        + '</div>'
+        + '<div style="margin-top:14px;"><a href="' + karlQueryHref(doc) + '" style="color:' + INK + ';font-size:13px;font-weight:800;letter-spacing:2px;text-decoration:none;border-bottom:2px solid ' + RED + ';">ASK KARL ABOUT THIS CASE \u2192</a></div>'
+        + '</div>'
+        + '<div style="text-align:center;margin:4px 0 26px;font-size:13px;color:' + MUTED + ';">'
+        + '<a href="/follow-the-money" style="color:' + INK + ';font-weight:800;text-decoration:none;border-bottom:1px solid ' + MUTED + ';">FOLLOW THE MONEY \u2192</a>'
+        + '<span style="margin:0 12px;color:' + DASH + ';">|</span>'
+        + '<a href="/cells" style="color:' + INK + ';font-weight:800;text-decoration:none;border-bottom:1px solid ' + MUTED + ';">BUILD A CELL \u2192</a>'
+        + '</div>';
     }
     html += '<div style="font-size:11px;color:' + MUTED + ';text-align:center;line-height:1.6;margin-bottom:8px;">'
       + 'Sourced numbers come from the Receipt and cannot be edited here. Annotations are user content and do not reflect the movement\u2019s data.</div>'
@@ -485,9 +505,12 @@
       }
       var doc = j.dossier;
       api('receipt_dossier', { name: doc.pol_name }, function (d) {
-        host.innerHTML = renderPublished(doc, (d && d.ok && d.resolved) ? d : null, false);
+        var receipt = (d && d.ok && d.resolved) ? d : null;
+        host.innerHTML = renderPublished(doc, receipt, false);
         var btn = host.querySelector('#pf-dossier-share');
         if (btn) btn.addEventListener('click', function () { shareDossier(doc); });
+        var fg = host.querySelector('#pf-dossier-forge');
+        if (fg) fg.addEventListener('click', function () { forgePrefillDossier(doc, receipt); });
         try { window.scrollTo(0, 0); } catch (e) {}
       });
     });
@@ -624,6 +647,65 @@
           'DOSSIER: ' + doc.title + ' on ' + doc.pol_name, 'dossier');
       }
     } catch (e) { err('share failed: ' + (e && e.message)); }
+  }
+
+  /* BLOSSOM G2.1 (2026-10-10): TURN THIS INTO PROPAGANDA — hands the case
+     file to the Create suite PRELOADED. Stashes the dossier under the
+     pf_forge_prefill_v1 contract (poster-forge.js reader; Ammo Finder
+     FORGE THIS precedent in games/ammo.js) and jumps to /create. Fail-closed
+     like ammo's forgeThis: if the stash cannot be written, toast and stay
+     put — never land on /create empty-handed. Zero XP here; creation
+     downstream rides the Forge's existing legs exactly once. */
+  function forgePrefillDossier(doc, receipt) {
+    var polSlug = doc.pol_slug || slugify(doc.pol_name || '');
+    var data = {
+      kind: 'dossier',
+      slug: doc.slug || '', pol_slug: polSlug, pol_name: doc.pol_name || '',
+      title: doc.title || '', why: doc.why || '',
+      share_line: doc.share_line || '',
+      notes: doc.notes || [], callsign: doc.callsign || ''
+    };
+    /* Real figures ride along when the Receipt resolved — sourced data is
+       stamped, never edited. */
+    try {
+      if (receipt && receipt.headline) {
+        data.total_raised_display = receipt.headline.total_raised_display || '';
+        data.top_industries = (receipt.headline.top_industries || []).map(function (t) {
+          return { industry: t.industry || '', total_receipts_display: t.total_receipts_display || '' };
+        });
+      }
+    } catch (e) {}
+    var payload = {
+      v: 1,
+      plugin_id: 'dossier',
+      template_id: 'dossier-case',
+      label: doc.title || ('Dossier on ' + (doc.pol_name || 'a politician')),
+      data: data,
+      source: 'mtcstw.com/dossier/' + (doc.slug || polSlug),
+      fetched_at: Date.now(),
+      stashed_at: Date.now(),
+      /* Synergy-1 attribution hook (S-20): dossier case files are data-built
+         (no maker) — these stay empty, like the Ammo political cards. */
+      sourced_by: '', sourced_name: '', sourced_url: ''
+    };
+    var okStash = false;
+    try {
+      sessionStorage.setItem('pf_forge_prefill_v1', JSON.stringify(payload));
+      okStash = true;
+    } catch (e) {}
+    if (!okStash) { toast('Could not stage the case file — try again.'); return; }
+    try { location.href = '/create'; } catch (e) {}
+  }
+
+  /* BLOSSOM G2.1 / G4.2 (2026-10-10): ASK KARL — routes the case data into
+     /karl as a deep-link query (?q= auto-asks on the Karl page, per
+     core/karl-page.js). The case file becomes the question. */
+  function karlQueryHref(doc) {
+    var pol = doc.pol_name || '';
+    var hook = doc.share_line || doc.why || '';
+    var q = ('Who funds ' + pol + '? ' + (doc.title || '') + (hook ? ' — ' + hook : ''))
+      .replace(/\s+/g, ' ').trim().slice(0, 280);
+    return '/karl?q=' + encodeURIComponent(q);
   }
 
   /* ---------------------------------------------------------------- */

@@ -225,7 +225,7 @@
      KILL: ?pf_off=fe-widen or localStorage pf_disabled_v1='["fe-widen"]'.
      Best-effort: never throws, never breaks the mount. */
   var FE_MOUNT_IDS = [
-    'pf-v2',
+    'pf-v2', 'pf-karl-home',
     'pf-cells-page', 'pf-cell-hq',
     'pf-arcade', 'pf-create', 'pf-bank', 'pf-economy',
     'pf-warchest', 'pf-ventures', 'pf-events', 'pf-warreport',

@@ -85,6 +85,10 @@ var BUNDLES = {
     'pages/slr-roster.js',
     'pages/slr-catalog.js',
     'pages/page-mount.js',
+    /* karl-home (2026-10-10): Karl-as-homepage, self-mounting into
+       #pf-karl-home. Loads on the homepage via PAGES_V2 — zero weight
+       elsewhere (guards on DOM presence). */
+    'pages/karl-home.js',
     'games/notify.js',
     'core/06-pinups.js',
     'core/share-image.js',

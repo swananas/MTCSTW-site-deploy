@@ -4,7 +4,12 @@
   'use strict';
   if (window.PF && window.PF.v) return; /* never double-init */
   var disabled = [];
+  /* PRODUCT REDESIGN ARCHIVE (CEO 2026-10-09): bottom popups archived during
+     ground-up product redesign. Add silo IDs here to hide floating UI.
+     Remove from this list to restore. Kill: ?pf_on=silo-id to force-enable. */
+  var ARCHIVED = ['karl-companion', 'karl-defer', 'dock', 'make-shareable'];
   try { disabled = JSON.parse(localStorage.getItem('pf_disabled_v1') || '[]'); } catch (e) {}
+  disabled = disabled.concat(ARCHIVED);
   try {
     var m = location.search.match(/[?&]pf_off=([^&]+)/);
     if (m) disabled = disabled.concat(decodeURIComponent(m[1]).split(','));
@@ -13,7 +18,13 @@
   window.PF = {
     v: '1.4.2',
     disabled: disabled,
-    skip: function (silo) { return disabled.indexOf(silo) !== -1; },
+    skip: function (silo) {
+      try {
+        var on = location.search.match(/[?&]pf_on=([^&]+)/);
+        if (on && decodeURIComponent(on[1]).split(',').indexOf(silo) !== -1) return false;
+      } catch (e) {}
+      return disabled.indexOf(silo) !== -1;
+    },
     log: function (silo, msg) { try { console.log(tag(silo, msg)); } catch (e) {} },
     error: function (silo, err) {
       var msg = err && err.message ? err.message : String(err);

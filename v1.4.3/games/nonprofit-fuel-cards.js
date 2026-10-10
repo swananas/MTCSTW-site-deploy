@@ -149,7 +149,7 @@
       var url = '';
       try { url = cv.toDataURL('image/png'); } catch (e) {}
       imgHtml = url
-        ? '<img src="' + url + '" alt="Fuel card for ' + esc(nm) + '" style="width:100%;max-width:420px;display:block;margin:0 auto;border:2px solid #c1121f">'
+        ? '<img src="' + url + '" alt="Fuel card for ' + esc(nm) + '" loading="lazy" style="width:100%;max-width:420px;display:block;margin:0 auto;border:2px solid #c1121f;aspect-ratio:3/4;background:#1a1a1a">'
         : '<div class="pf-fc-note">Card engine hiccup — try again.</div>';
     } else {
       imgHtml = '<div class="pf-fc-note">Card engine unavailable.</div>';

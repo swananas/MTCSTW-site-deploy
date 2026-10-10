@@ -57,3 +57,10 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 ## Notes
 - Pillar shells are standalone (5–24KB, inline CSS/JS, zero external scripts) — deliberate perf choice; butter must ride inline, not via bundle-core.
 - Catalog deep pages (`site/<slug>/`) exist with canonical `https://www.mtcstw.com/<slug>` — the roster just doesn't link them.
+
+## PASS 3 (2026-10-10 ~06:00 CDT) — money apps, cells app, war surfaces, design review
+- **G5.1 CONFIRMED on tip:** bundle-bank.js + bundle-ventures.js — 0 /cells, 0 /create, 0 /karl links (share + JOIN THE FIGHT present); bundle-warchest.js — 1 /cells link, 0 /create. All three shells (site/bank, site/ventures, site/war-chest) load bundle-core. → P-003 scope extends to money apps: add Cells/Create CTAs in-app, not just the /money shell.
+- **Cells app (bundle-cells.js):** has /cells:1, /create:1, /karl:0 links internally — app-to-app wiring partial; mount shell unlocated (G-X1 carried).
+- **War surfaces** (site/war-report, site/war-room — 9KB shells): pillar nav only; content via bundles (not deep-audited this pass).
+- **Games sampled:** 127 game files reference callsign claim flow; 57 carry JOIN THE FIGHT; 33 use navigator.share — no systemic gap; game-level butter rides bundle-core.
+- **DESIGN REVIEW filed:** Robbery Report reimagine spec §5 APPROVED with R1–R7 (DESIGN_REVIEW_ROBBERY_REIMAGINE.md).

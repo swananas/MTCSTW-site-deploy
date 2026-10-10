@@ -13,6 +13,11 @@
     var onFactGen = path.indexOf('/fact-generator') === 0;
     var onCreate = path.indexOf('/create') === 0;
     if (!onFactGen && !onCreate) { return; }
+    /* IMP-LOOP WS-2 (2026-10-10): when the workshop shell claimed /create,
+       the Fact Generator mounts as a rail tool (workshop-create.js) — the
+       shim stands down here to avoid a double mount. It still serves the
+       /fact-generator route and the legacy stacked path (workshop killed). */
+    if (onCreate && !onFactGen && window.pfWorkshopClaimed) { return; }
     var host = document.getElementById('pf-factgen') ||
                document.getElementById('pf-create') ||
                document.getElementById('main');

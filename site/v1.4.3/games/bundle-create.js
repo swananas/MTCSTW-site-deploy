@@ -7557,6 +7557,15 @@ setInterval(function(){ try{ if(window.PF&&PF.hidden&&PF.hidden()) return; }catc
     tagline: 'Make propaganda. Download it. Plaster the internet.',
     templateId: 'pf-ov-poster', selfMount: null, kill: 'poster-forge', mount: null
   });
+  /* ---- IMP-LOOP WS-2 (2026-10-10): THE FACT GENERATOR (games/fact-generator.js
+       stages template pf-ov-factgen; bundle-factgen-mount.js is the legacy-path
+       shim). It was unreachable from the /create hub whenever the workshop
+       claimed the page — now a first-class rail door, same kill id. ---- */
+  WS.register({
+    id: 'fact-generator', title: 'THE FACT GENERATOR',
+    tagline: 'Type a claim. We find the receipts.',
+    templateId: 'pf-ov-factgen', selfMount: null, kill: 'fact-generator', mount: null
+  });
   WS.register({
     id: 'feed', title: 'PROPAGANDA FEED',
     tagline: 'Fresh ammo. Find it. Pump it. Track the spread.',

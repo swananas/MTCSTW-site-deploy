@@ -68,5 +68,39 @@ Carried: SHARE & PUMP only, zero drill/remix links (G1.3/G3.2). Verify.
 Not yet audited tonight.
 
 ---
-**Dead-end count (Pass 1):** 2 P0 (G-D1 roster→catalog, G-D2 cells CTA), 1 P0-adjacent (G-D3 create tools unreachable), 4 P2 missing cross-links.
-**Next pass:** Karl surfaces, modeling apps, games, cells app, catalog IN-paths, dashboard, standalone feed — before 11:00 CDT.
+**Dead-end count (Pass 2):** catalog IN broken (G-C1/G-D1), dossier fully isolated (G-M2), feed cards drill-less (G-F1), /karl empty-composer (G-K1).
+**Next pass:** re-verify + any new FE workstream output — before 11:00 CDT.
+
+## Pass 2 rows (2026-10-10 ~05:00 CDT)
+
+### 6. Karl (`/karl/`)
+| From (IN) | To (OUT) | Status |
+|---|---|---|
+| pillar nav, /karl/?q= bridges (all pillars), homepage | composer → karl_query (real API) + skeletons | ✅ |
+| | GO DEEPER doors (backend r.related, safeUrl'd) | ✅ (partial — depends on BE related links incl. deep pages) |
+| | MAKE SHAREABLE → UGC feed + native share | ✅ |
+| | live discovery rails on empty state | ❌ **G-K1** |
+| | answer figures → drill sheet | ❌ **G-K2** |
+
+### 7. Modeling deep pages
+| Surface | IN | OUT | Status |
+|---|---|---|---|
+| /town | nav, catalog (THEIR TOWN) | drill (6), karl (3), weave rail + ← ROBBERY REPORT (bundle-core) | ✅ minus G-M3 (no /create, figures not marked) |
+| /economy | nav | share, weave rail | ⚠️ G-M1 (no karl/drill/fig) |
+| /dossier | nav, town-report (1 link) | share, weave rail | ❌ G-M2 (most isolated) |
+| /corruption-index | nav | 14 share, sort chips, butter expand, weave rail | ⚠️ G-M1 |
+| /peoples-cpi | nav | share, tappable skeleton (honest-empty), weave rail | ⚠️ G-M1 |
+| /follow-the-money | — | redirects → /money | ✅ (redirect = wired) |
+
+### 8. Catalog deep pages (`/<slug>`)
+| From (IN) | To (OUT) | Status |
+|---|---|---|
+| roster (BROKEN — G-D1), direct URL, Karl creator-related (weak) | FUND THEIR FIGHT → /ventures?creator=, bounties → /create?for=, THEIR TOWN → /town, CREATE FEED → /create#pf-feed?creator=, pillar nav | OUT ✅ / IN ❌ **G-C1** |
+
+### 9. Propaganda Feed (`games/feed.js`)
+| From (IN) | To (OUT) | Status |
+|---|---|---|
+| /create#pf-feed?creator=, hub feed-link sections | SHARE, PUMP | ⚠️ G-F1 (no drill, no remix, no Karl) |
+
+### 10. Dashboard / arcade
+Dashboard: ✅ well wired. Arcade hub: ✅ (skeletons, kill, share CTA); game-level audit deferred.

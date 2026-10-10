@@ -1,7 +1,7 @@
 # IMPROVEMENT LOOP — Live Gap Log
 **Workstream:** ws-imp-loop-design-map-20261010 (Design Team lead) · **Directive:** dir-20261010-021948-6267
 **Audited tree:** deploy-repo integration tip `ux/feed-destinations-20261010` @ `622be7c0` (post tonight's merges: butter-fullsite, beefy-feed, weave-spine, karl-homepage, pillar rebuilds, feed-destinations)
-**Updated:** 2026-10-10 ~04:10 CDT · **Status:** PASS 1 complete (homepage + 4 pillars). Pass 2 queued: Karl surfaces, modeling apps, games, cells app, catalog, dashboard, standalone feed.
+**Updated:** 2026-10-10 ~05:00 CDT · **Status:** PASS 2 complete (Karl surfaces, modeling apps, catalog, dashboard, standalone feed, arcade). Pass 3 queued: re-verify + any new FE workstream output.
 
 Severity: **P0** = dead end / broken promise (user taps, nothing real happens). **P1** = butter-bar miss on a shipped surface. **P2** = missing Blossom cross-link (surface works but sits isolated).
 
@@ -34,6 +34,25 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 - Homepage feed → 7 destinations (expand, drill-down, share image, go deeper, related, save, methodology): **CLOSED** on homepage cards (622be7c0) — all hit real APIs, no mocks
 - WS-A butter (45-butter-sitewide + 46-drill-sheet): **CLOSED** on bundle-core pages; corridor pages (corruption-index, slr-catalog, peoples-cpi) upgraded
 - WS-C weave spine: **CLOSED** on bundle-core pages (rail + `← THE ROBBERY REPORT`)
+
+## PASS 2 (2026-10-10 ~05:00 CDT)
+
+| ID | Sev | Surface | Gap | Next logical destination that's missing | Owner |
+|---|---|---|---|---|---|
+| G-K1 | P2 | /karl page | Answers render GO DEEPER doors (backend `r.related`) + MAKE SHAREABLE ✅ (G4.1 partial) — but **no live discovery rails on the page**; a user with no question sees an empty composer. Answer figures not tappable (0 data-pf-fig). | → discovery rails (karl_feed contract); figures → drill sheet | FE homepage |
+| G-K2 | P1 | /karl page | Butter via bundle-core ✅ (ripple, skeletons, kill) — figures excluded from drill convention | data-pf-fig on answer figures | FE homepage |
+| G-M1 | P2 | /economy, /dossier, /corruption-index, /peoples-cpi | **0 karl refs, 0 drill, 0 data-pf-fig** — drill-sheet + explore infra sits unused on the page (G1.2/G4.2 carried, confirmed on tip) | figures → drill sheet (works today); Ask-Karl CTA | FE pillars-feed |
+| G-M2 | P2 | /dossier | Most isolated surface confirmed: 0 links to /create, /karl, /money, /cells, /feed (G2.1) | → "Turn into propaganda" → /create?case= | FE pillars-feed |
+| G-M3 | P2 | /town | Best-wired (drill 6, karl 3) but 0 /create (G2.2), 0 data-pf-fig | → create w/ preloaded data | FE pillars-feed |
+| G-F1 | P2 | Propaganda Feed (games/feed.js) | SHARE & PUMP only — 0 /karl, 0 drill, 0 /create (G1.3/G3.2 confirmed) | → drill + remix per card | FE pillars-feed |
+| G-C1 | P1 | Catalog pages (/<slug>) | OUT links survive (bundle-pages.js CTAs ✅); **IN broken** — roster no longer links (G-D1); no return link to /sick-left-radicals on catalog pages; no catalog↔catalog cross-links | → P-001 + P-011 | FE pillars-feed |
+| G-X1 | — | Cells app (bundle-cells.js), poster-forge | Mount surfaces not found in audited shells — FE to verify canonical routes (carried in P-002/P-005) | verify | FE |
+
+## CLOSED in Pass 2
+- Dashboard (user-dashboard.js): well wired (karl 44, /create 3, /cells 2, INTEL grids) — no gaps filed.
+- /follow-the-money → 301-style redirect to /money (canonical) — wired, not a dead end.
+- 5/6 modeling shells load bundle-core → butter engine + weave spine + drill-sheet infra present on town/economy/dossier/corruption-index/peoples-cpi.
+- /karl answers: GO DEEPER + MAKE SHAREABLE now render (G4.1 partial — was fully open at wiring-gaps audit).
 
 ## Notes
 - Pillar shells are standalone (5–24KB, inline CSS/JS, zero external scripts) — deliberate perf choice; butter must ride inline, not via bundle-core.

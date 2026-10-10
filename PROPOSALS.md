@@ -58,3 +58,32 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 
 ---
 **Handoff:** on APPROVAL, each proposal → the named FE workstream as a build directive with the Blossom IN/OUT declared above. P-001 is the P0 — recommend it goes first.
+
+## Pass 2 proposals (2026-10-10 ~05:00 CDT)
+
+## P-008 — Modeling apps: tappable figures + Ask Karl + Dossier→Create (fixes G-M1/G-M2/G-M3/G4.2)
+**Surfaces:** /town, /economy, /dossier, /corruption-index, /peoples-cpi · **For:** ws-imp-loop-pillars-feed-20261010
+**Design:**
+- (a) Mark key figures `data-pf-fig="<value>" data-pf-source="<short source>"` (+ `data-pf-why` where a why-chain exists) — drill sheet opens TODAY (display-only, fail-closed); the explore_fact backend (WS-3) upgrades it to live data later with zero FE rework. ~20 lines/app.
+- (b) One `ASK KARL ABOUT THIS ↓` button per app → `/karl/?q=<app-specific query>` (G4.2).
+- (c) Dossier Builder: `TURN THIS INTO PROPAGANDA →` → `/create?case=<dossier-id>`; /create shows a "working from dossier" chip when `?case=` present (G2.1). Town/economy/cpi: `MAKE PROPAGANDA FROM THIS ↓` → `/create` (G2.2; preloaded-data handoff is a fast-follow once /create accepts payload params).
+**Blossom:** Modeling→Create chain (check #1 both directions: IN from weave rail, OUT to create/Karl).
+**Status:** PROPOSED — recommend APPROVE.
+
+## P-009 — /karl page: discovery rails on empty state + tappable answer figures (fixes G-K1/G-K2)
+**Surface:** /karl/ · **For:** ws-imp-loop-homepage-20261010
+**Design:**
+- (a) When no `?q=` and no answer yet, render compact discovery rails reusing the `karl_feed` 9-rail contract (same card renderer as homepage, compact variant) — Karl is never an empty room.
+- (b) Mark answer figures `data-pf-fig` → drill sheet (bundle-core already on the page).
+**Blossom:** Karl→Feed→Deep→Karl chain (check #2 Karl-wired both directions).
+**Status:** PROPOSED — recommend APPROVE.
+
+## P-010 — Propaganda Feed cards: drill + remix (fixes G-F1/G1.3/G3.2)
+**Surface:** games/feed.js · **For:** ws-imp-loop-pillars-feed-20261010
+**Design:** per card add `DRILL ↓` (→ drill sheet if figure+source known, else `/karl/?q=<poster topic>`) and `REMIX` (→ `/karl/` with the poster as context, ending at MAKE SHAREABLE). Keeps SHARE & PUMP untouched.
+**Status:** PROPOSED — recommend APPROVE.
+
+## P-011 — Catalog return paths + cross-links (fixes G-C1, with P-001)
+**Surfaces:** /<slug> catalog pages · **For:** ws-imp-loop-pillars-feed-20261010
+**Design:** (a) `← ALL 62 RADICALS` return link → /sick-left-radicals on every catalog page; (b) 2–3 related-creator cross-links (same score band) per page — catalog↔catalog Blossom edge. Pages are static: implement as a build-time generation step or a shared snippet; NOT 62 hand-edits.
+**Status:** PROPOSED — recommend APPROVE (after P-001).

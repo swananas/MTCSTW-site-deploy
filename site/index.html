@@ -1359,11 +1359,15 @@ function khPaintShare(d, sizeKey, done){
     var whoTxt = who.toUpperCase();
     while(whoTxt.length > 4 && x.measureText(whoTxt).width > W-2*m){ whoTxt = whoTxt.slice(0,-2); }
     x.fillText(whoTxt, m, y);
-    y += cfg.whoGap;
+    /* advance past the WHO name's descenders (alphabetic baseline) + breathing room */
+    y += cfg.whoGap + Math.round(cfg.whoName * 0.25);
   }
 
   /* hero money figure — HOW MUCH, massive, with red punch bar */
   if(money){
+    /* hero glyphs rise ~0.75em above their baseline: pre-pad so they never
+       touch the block above, whatever font size the hero is */
+    y += Math.round(cfg.hero * 0.75);
     x.fillStyle = '#f5f0e6'; x.font = '900 '+cfg.hero+'px system-ui, -apple-system, sans-serif';
     x.fillText(money, m, y);
     x.fillStyle = '#c1121f';

@@ -84,6 +84,9 @@
       '.pf-idx-sub{color:#a89e88;font-size:14px;line-height:1.5;max-width:520px;margin:0 auto}' +
       '.pf-idx-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 4px}' +
       '.pf-idx-chip{font-size:11px;font-weight:700;letter-spacing:.06em;background:#161616;border:1px solid #333;border-radius:20px;padding:7px 13px;color:#c9bfa8}' +
+      '.pf-idx-sort{display:flex;gap:8px;justify-content:center;margin:10px 0 4px;flex-wrap:wrap}' +
+      '.pf-idx-sort .pf-idx-chip{cursor:pointer;min-height:44px;display:inline-flex;align-items:center}' +
+      '.pf-idx-sort .pf-idx-chip.on{background:#c1121f;border-color:#c1121f;color:#fff}' +
       '.pf-idx-meth{margin:12px auto 0;max-width:640px;background:#111;border:1px solid #2a2a2a;border-radius:10px}' +
       '.pf-idx-meth>summary{cursor:pointer;padding:13px 16px;font-size:13px;font-weight:800;letter-spacing:.08em;color:#e8b923;list-style:none}' +
       '.pf-idx-meth>summary::-webkit-details-marker{display:none}' +
@@ -110,8 +113,10 @@
       '.pf-idx-bar{flex:1;height:5px;border-radius:3px;background:#2a2a2a;overflow:hidden}' +
       '.pf-idx-bar i{display:block;height:100%;background:#c1121f}' +
       '.pf-idx-bar.off i{background:transparent}' +
-      '.pf-idx-detail{display:none;padding:14px 2px 6px}' +
-      '.pf-idx-row.open .pf-idx-detail{display:block}' +
+      '.pf-idx-detail{display:grid;grid-template-rows:0fr;opacity:0;' +
+      'transition:grid-template-rows 240ms cubic-bezier(.2,.9,.3,1),opacity 240ms ease-out}' +
+      '.pf-idx-row.open .pf-idx-detail{grid-template-rows:1fr;opacity:1}' +
+      '.pf-idx-d-in{overflow:hidden;min-height:0}' +
       '.pf-idx-in{border-top:1px dashed #333;padding:10px 0}' +
       '.pf-idx-in-t{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:800}' +
       '.pf-idx-in-t .w{color:#e8b923;font-weight:700;font-size:11px}' +
@@ -134,7 +139,28 @@
   }
   injectCSS();
 
-  var state = { tab: 'politicians', scores: null, meth: null, detailCache: {} };
+  var state = { tab: 'politicians', sort: 'score-desc', scores: null, meth: null, detailCache: {} };
+
+  /* ZUCK BUTTER (WS-A, WS-D B1.11): one-tap sort chips — score ↓ / score ↑ /
+     most inputs. Re-orders with the render crossfade; scroll preserved. */
+  function sortList(list) {
+    var s = (list || []).slice();
+    if (state.sort === 'score-asc') s.sort(function (a, b) { return (a.score || 0) - (b.score || 0); });
+    else if (state.sort === 'inputs') s.sort(function (a, b) { return (b.inputs_live || 0) - (a.inputs_live || 0); });
+    else s.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+    return s;
+  }
+  function sortChipsHTML() {
+    var c = [
+      ['score-desc', 'TOP SCORES'],
+      ['score-asc', 'LOWEST FIRST'],
+      ['inputs', 'MOST INPUTS']
+    ].map(function (x) {
+      return '<span class="pf-idx-chip' + (state.sort === x[0] ? ' on' : '') +
+        '" data-sort="' + x[0] + '">' + x[1] + '</span>';
+    }).join('');
+    return '<div class="pf-idx-sort" role="group" aria-label="Sort the index">' + c + '</div>';
+  }
 
   function vintageLine(w) {
     if (!w) return '';
@@ -246,6 +272,7 @@
   function render() {
     var sc = state.scores;
     var list = state.tab === 'companies' ? (sc ? sc.companies : []) : (sc ? sc.politicians : []);
+    list = sortList(list);
     var tabBtns = '<div class="pf-idx-tabs">' +
       '<div class="pf-idx-tab' + (state.tab === 'politicians' ? ' on' : '') + '" data-tab="politicians">POLITICIANS</div>' +
       '<div class="pf-idx-tab' + (state.tab === 'companies' ? ' on' : '') + '" data-tab="companies">COMPANIES</div></div>';
@@ -258,7 +285,7 @@
       '<span class="pf-idx-chip">' + (sc && sc.vintage_week ? vintageLine(sc.vintage_week) : 'WEEKLY VINTAGE') + '</span>' +
       '</div>' +
       '<details class="pf-idx-meth"><summary>METHODOLOGY — WEIGHTS, PEERS, RULES +</summary>' +
-      methodologyHTML() + '</details>' + tabBtns;
+      methodologyHTML() + '</details>' + tabBtns + sortChipsHTML();
     if (!sc) {
       html += '<div class="pf-idx-load">Loading the index…</div>';
     } else if (!list.length) {
@@ -294,6 +321,13 @@
         render();
       };
     }
+    var sortChips = host.querySelectorAll('.pf-idx-sort .pf-idx-chip');
+    for (var s = 0; s < sortChips.length; s++) {
+      sortChips[s].onclick = function () {
+        state.sort = this.getAttribute('data-sort');
+        render();
+      };
+    }
     var rows = host.querySelectorAll('.pf-idx-row');
     for (var j = 0; j < rows.length; j++) {
       rows[j].onclick = function (ev) {
@@ -326,7 +360,7 @@
     var box = row.querySelector('.pf-idx-detail');
     if (!box) return;
     if (state.detailCache[key]) {
-      box.innerHTML = detailHTML(state.detailCache[key]);
+      box.innerHTML = '<div class="pf-idx-d-in">' + detailHTML(state.detailCache[key]) + '</div>';
       wireShares(box);
       return;
     }
@@ -337,7 +371,7 @@
         return;
       }
       state.detailCache[key] = det;
-      box.innerHTML = detailHTML(det);
+      box.innerHTML = '<div class="pf-idx-d-in">' + detailHTML(det) + '</div>';
       wireShares(box);
     });
   }

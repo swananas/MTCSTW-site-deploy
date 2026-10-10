@@ -302,6 +302,28 @@
           document.addEventListener('pf-vote-live', paintVS);
         }
       } catch (e_vs) {}
+      /* ZUCK BUTTER (WS-A, dir-20261010-010215-1757): propaganda score →
+         tappable figure (WS-D A2.4) — tap opens the PF.drillSheet with the
+         Efficiency Index composition (reach 40 / fan efficiency 40 /
+         site pull 20, cold-start 0.5 neutral). Wired via the global
+         [data-pf-fig] convention; the 45-butter-sitewide MutationObserver
+         picks it up automatically. Fail-open: if drillSheet is killed the
+         score renders as plain text. */
+      try {
+        var effEl = root.querySelector('[data-eff-score] strong');
+        if (effEl && !effEl.getAttribute('data-butter-wired')) {
+          var prov = member.score_provisional ? ' · provisional (new creator, cold-start 0.5 neutral)' : '';
+          effEl.setAttribute('data-pf-fig', member.propaganda_score.toFixed(1) + '/10');
+          effEl.setAttribute('data-pf-unit', 'propaganda score' + prov);
+          effEl.setAttribute('data-pf-source', 'Efficiency Index — weekly computation');
+          effEl.setAttribute('data-pf-asOf', 'this week');
+          effEl.setAttribute('data-pf-chain',
+            'Reach — 40% of the score: audience size across every platform|' +
+            'Fan efficiency — 40%: engagement per follower, not raw follower count|' +
+            'Site pull — 20%: traffic this creator drives to mtcstw.com|' +
+            'Cold start 0.5 neutral — new creators begin at the midpoint, never penalized');
+        }
+      } catch (e_eff) {}
       /* Efficiency Index: site-pull beacon (one ping per slug per session) +
          paint the live computed score into the [data-eff-score] slot.
          P0: pageview is POST-only — use fetch, not image beacon. */

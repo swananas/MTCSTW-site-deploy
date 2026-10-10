@@ -84,5 +84,31 @@
   </div>
 </main>
 </div>
+<script>
+/* BLOSSOM G5.1 — consume ?cause= / #cause= from money surfaces and pre-fill the cell flow. */
+(function(){
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function param(name){
+    var m;
+    try{ m=location.search.match(new RegExp("[?&]"+name+"=([^&#]*)")); if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim(); }catch(e){}
+    try{ m=location.hash.match(new RegExp("[#&]"+name+"=([^&#]*)")); if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim(); }catch(e){}
+    return "";
+  }
+  var cause = param("cause");
+  if(!cause) return;
+  try{
+    var hero = document.querySelector("#cel .hero");
+    if(hero){
+      var banner = document.createElement("div");
+      banner.style.cssText = "margin:0 0 16px;padding:14px 16px;background:rgba(193,18,31,.12);border:2px solid #c1121f;border-radius:12px;color:#f5f0e6;font-size:15px;line-height:1.5;";
+      banner.innerHTML = "<b style='color:#e5383b;letter-spacing:.1em;font-size:12px;'>FORMING A CELL AROUND:</b><br><b style='font-size:19px;'>"+esc(cause)+"</b><br><span style='color:#8a8478;font-size:13px;'>Money chose the fight. Now build the crew that fights it.</span>";
+      hero.insertBefore(banner, hero.firstChild);
+    }
+    /* Pre-fill the onward step: the FIND YOUR CELL ask carries the cause. */
+    var cta = document.querySelector("#cel a.cta");
+    if(cta) cta.href = "/karl/?q=" + encodeURIComponent("How do I form a cell around this cause: " + cause);
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

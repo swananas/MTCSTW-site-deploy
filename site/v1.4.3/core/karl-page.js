@@ -253,9 +253,9 @@
       '<div class="pf-karl-title-sub">Codename // Open-Source Intelligence</div>' +
       '<p class="pf-karl-sub">This is not trivia. It is <b>ammunition</b>.</p>' +
       '<div class="pf-karl-arsenal">' +
-      '<div><div class="n">$6.4T+</div><div class="t">penalties tracked</div></div>' +
-      '<div><div class="n">954K</div><div class="t">tables of receipts</div></div>' +
-      '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
+      '<div><div class="n" id="pf-stat-wealth">$6.5T+</div><div class="t">in wealth tracked</div></div>' +
+      '<div><div class="n" id="pf-stat-rows">954K</div><div class="t">data points</div></div>' +
+      '<div><div class="n" id="pf-stat-creators">62</div><div class="t">creators armed</div></div>' +
       '</div>' +
       '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +
       '<form id="pf-karl-form" class="pf-karl-form" autocomplete="off">' +
@@ -278,6 +278,22 @@
       '</div>';
   }
 
+  /* Live hero stats — fetched from karl_stats, updates automatically as D1 grows */
+  function loadStats() {
+    try {
+      fetch('https://pf-api.mtcstw.workers.dev/?action=karl_stats')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (!d || !d.ok) return;
+          var w = document.getElementById('pf-stat-wealth');
+          var rr = document.getElementById('pf-stat-rows');
+          var cc = document.getElementById('pf-stat-creators');
+          if (w && d.wealth_display) w.textContent = d.wealth_display;
+          if (rr && d.rows_display) rr.textContent = d.rows_display;
+          if (cc && d.creators) cc.textContent = d.creators;
+        }).catch(function(){});
+    } catch(e) {}
+  }
   function wire() {
     var form = document.getElementById('pf-karl-form');
     var input = document.getElementById('pf-karl-q');
@@ -321,6 +337,7 @@
       '<div class="pf-karl-loading"><span class="lb">Karl is working the rails</span>' +
       '<span class="td"><i></i><i></i><i></i></span></div>');
     wire();
+    loadStats();
     var _btn = document.querySelector('.pf-karl-btn');
     if (_btn) { _btn.disabled = true; _btn.textContent = 'WORKING'; }
     api({ q: q }, function (r) {

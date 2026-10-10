@@ -653,6 +653,13 @@ setTimeout(function(){
    blank. Deploy counts are KILLED as public facts — new cards carry none.
    ========================================================================== */
 (function beefy(){
+/* KILL: ?pf_off=beefy-feed or localStorage pf_disabled_v1='["beefy-feed"]' */
+try{
+  var __bq = location.search.match(/[?&]pf_off=([^&]+)/);
+  var __bd = [];
+  try{ __bd = JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]'); }catch(e){}
+  if((__bq && decodeURIComponent(__bq[1]).split(',').indexOf('beefy-feed')!==-1) || __bd.indexOf('beefy-feed')!==-1) return;
+}catch(e){}
 var beefyFeed = document.getElementById('kh-beefy');
 var moreBtn = document.getElementById('kh-more');
 var quietEl = document.getElementById('kh-beefy-quiet');

@@ -277,6 +277,10 @@
        <div id="pf-karl"></div> + nav entry. Kill: ?pf_off=karl. */
     'pf-karl': {
       title: 'KARL', sub: 'Plain questions. Sourced answers. Never a guess.',
+      /* UNIFIED HERO (2026-10-09): karl-page.js renders its own full hero
+         (MTCSTW.COM kicker + full backronym + arsenal). Skip the generic
+         page-mount header so the page has ONE hero, not two. */
+      selfHero: true,
       exit: { href: '/receipt', text: 'NEXT MOVE: GET THE RECEIPT →' },
       order: [
         ['karl', null]
@@ -582,7 +586,7 @@
     if (!cfg) return 0;
     var h = document.getElementById(pageId);
     if (!h || isEditor()) return 0;
-    try { mountHeader(h, cfg); } catch (e) {}
+    if (!cfg.selfHero) { try { mountHeader(h, cfg); } catch (e) {} }
     /* DEFECT 3 (generalized 2026-10-04): every dedicated page's mount block
        goes full width — same narrow-column root cause as /economy's
        incident, now handled by the shared registry above. */

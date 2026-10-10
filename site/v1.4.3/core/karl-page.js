@@ -91,12 +91,14 @@
     '.pf-karl{background:#0a0a0a;color:#f5f0e6;font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:0 18px 64px;line-height:1.6;-webkit-font-smoothing:antialiased}',
 
     /* --- HERO --- */
-    '.pf-karl-hero{text-align:center;padding:48px 8px 24px;position:relative}',
-    '.pf-karl-hero::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:28px;background:linear-gradient(180deg,transparent,#c1121f)}',
-    '.pf-karl-kicker{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:7px;color:#c1121f;margin-bottom:14px;text-transform:uppercase}',
+    '.pf-karl-hero{text-align:center;padding:40px 8px 24px;position:relative;border-top:4px solid #c1121f;border-bottom:4px solid #c1121f;background:linear-gradient(180deg,#141414 0%,#0b0b0b 100%);margin:0 0 8px}',
+    '.pf-karl-brand{font-size:12px;letter-spacing:6px;color:#dc143c;font-weight:800;margin-bottom:10px;font-family:Arial,sans-serif}',
+    '.pf-karl-kicker{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:7px;color:#c1121f;margin:26px 0 14px;text-transform:uppercase}',
     '.pf-karl-kicker .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#c1121f;margin-right:8px;animation:pfk-pulse 2.2s infinite}',
     '@keyframes pfk-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(193,18,31,.5)}50%{opacity:.5;box-shadow:0 0 0 7px rgba(193,18,31,0)}}',
-    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:54px;letter-spacing:14px;margin:0 0 4px;color:#f5f0e6;text-indent:14px}',
+    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:54px;letter-spacing:14px;margin:0 0 6px;color:#f5f0e6;text-indent:14px}',
+    '.pf-karl-fullname{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;letter-spacing:3px;color:#e5383b;margin:0 0 10px;text-transform:uppercase;font-weight:700}',
+    '.pf-karl-rule{height:3px;width:120px;background:#c1121f;margin:0 auto 12px}',
     '.pf-karl-title-sub{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:5px;color:#5a554a;margin:0 0 14px;text-transform:uppercase}',
     '.pf-karl-sub{font-family:Georgia,serif;font-style:italic;font-size:16px;color:#a39c8b;margin:0 0 18px;line-height:1.5}',
     '.pf-karl-sub b{color:#f5f0e6;font-style:normal}',
@@ -222,8 +224,9 @@
     /* Mobile tuning */
     '@media(max-width:480px){',
     '.pf-karl{padding:0 14px 48px}',
-    '.pf-karl-hero{padding:36px 4px 22px}',
+    '.pf-karl-hero{padding:32px 4px 20px}',
     '.pf-karl-title{font-size:42px;letter-spacing:10px;text-indent:10px}',
+    '.pf-karl-fullname{font-size:11px;letter-spacing:2px}',
     '.pf-karl-sub{font-size:14.5px}',
     '.pf-karl-input{font-size:16px;padding:15px 10px 15px 8px}',
     '.pf-karl-btn{padding:0 20px;min-height:56px}',
@@ -235,24 +238,24 @@
 
   function render(html) { host.innerHTML = '<style>' + CSS.join('\n') + '</style><div class="pf-karl">' + html + '</div>'; }
 
-  var SUBS = [
-    'This is not trivia. It is <b>ammunition</b>.',
-    'The rails are <b>live</b>. Ask like you mean it.',
-    'Every number has a <b>receipt</b>. Bring it to the fight.'
-  ];
-  var _subIdx = Math.floor(Math.random() * SUBS.length);
-
   function hero(q) {
+    /* UNIFIED HERO (2026-10-09): one hero, one breath — brand kicker, title,
+       full backronym, codename, tagline, arsenal, ask indicator. The generic
+       page-mount header is skipped for pf-karl (selfHero) so this is the
+       ONLY hero on the page. */
     return '<div class="pf-karl-hero">' +
-      '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +
+      '<div class="pf-karl-brand">MTCSTW.COM</div>' +
       '<h1 class="pf-karl-title">KARL</h1>' +
+      '<div class="pf-karl-fullname">Komrade Artificial Revolutionary Laborer</div>' +
+      '<div class="pf-karl-rule"></div>' +
       '<div class="pf-karl-title-sub">Codename // Open-Source Intelligence</div>' +
-      '<p class="pf-karl-sub">' + SUBS[_subIdx] + '</p>' +
+      '<p class="pf-karl-sub">This is not trivia. It is <b>ammunition</b>.</p>' +
       '<div class="pf-karl-arsenal">' +
       '<div><div class="n">$13B+</div><div class="t">penalties tracked</div></div>' +
       '<div><div class="n">505</div><div class="t">tables of receipts</div></div>' +
       '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
       '</div>' +
+      '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +
       '<form id="pf-karl-form" class="pf-karl-form" autocomplete="off">' +
       '<div class="pf-karl-inputwrap">' +
       '<span class="pf-karl-prompt">&gt;</span>' +

@@ -67,3 +67,9 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 
 ## PASS 4 (2026-10-10 ~06:30 CDT) — onboarding
 - **G-O1 (P1): one-prompt onboarding DEAD on new IA.** 37-one-prompt.js triggers on `#pf-v2` (removed in Karl homepage rebuild; 0 matches in new site/index.html) and lives in bundle-core (not loaded on homepage + 4 pillar shells + /karl shell). First-time visitors never prompted. → P-012 (re-key + inline lite, shared pf_oneprompt_v1 flag).
+
+## PASS 5 (2026-10-10 ~06:50 CDT) — sibling coordination
+- **fe/imp-loop-homepage-robbery-20261010 @ 907adec4** (ws-imp-loop-homepage-20261010): homepage loop-1 — removed 15 fake metadata instances + fake KARL NOTICED shimmer (honesty fix); live karl_robbery layer w/ fail-soft; one-prompt card → /arcade/ enlistment (G-O1 homepage part BUILT); FOUR WAYS TO FIGHT pillar section (≥88px targets); 35,097B (100KB gate PASS).
+- **fe/imp-loop-pillars-feed-20261010 @ 87865f0e** (ws-imp-loop-pillars-feed-20261010): Karl companion interaction-gated on pillars (42KB out of early window); dead-key cleanup; deleted 41KB dead roster-static.html. Did NOT touch G-D1 (roster→catalog) — P-001 still open, no overlap.
+- **Flag divergence (lead-to-lead):** sibling one-prompt uses `pf_oneprompt_home_seen`; core uses `pf_oneprompt_v1` — recommend unification (P-012 coordination note).
+- No approval on P-001..P-012 yet — all remain PROPOSED.

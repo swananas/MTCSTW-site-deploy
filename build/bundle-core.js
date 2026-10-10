@@ -255,7 +255,17 @@ var CORE_FILES = [
      — IN CODE, not a Squarespace hand-step. Site chrome: also ships in
      bundle-footer-chrome (crossnav precedent). Last: touches only the nav
      list, no consumer deps. Kill: ?pf_off=42-mobile-nav-trim. */
-  'core/42-mobile-nav-trim.js'
+  'core/42-mobile-nav-trim.js',
+  /* feed-dest-engage (2026-10-10, CEO dir-20261010-021406-30107 WS-3):
+     Karl feed destinations 3-6 — DEPLOY (branded share image ported from
+     /karl paintKarlAnswer + native share + copy link via
+     GET /api/feed/card/:cardId/share), ASK KARL (deep-dive + follow-ups,
+     /karl?q= chains), RELATED (GET /api/karl/related rail + connections +
+     creators), TRACK (save/follow/alert POST intents, localStorage
+     fallback, UI only). Contract: data-kh-card + KH_REG (WS-1) with
+     DOM-extract fallback. Zero XP, fail-soft on all endpoints.
+     Kill: ?pf_off=feed-dest-engage. */
+  'core/45-feed-dest-engage.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

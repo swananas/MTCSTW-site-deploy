@@ -1242,74 +1242,203 @@ function drillDown(label, value){
 }
 
 /* ---------- 3. SHAREABLE IMAGE ---------- */
-function paintShareImage(d, done){
-  var c = document.createElement('canvas');
-  c.width = 1080; c.height = 1350;
-  var x = c.getContext('2d');
-  /* bg */
-  x.fillStyle = '#0a0a0a'; x.fillRect(0,0,1080,1350);
-  /* red top bar */
-  x.fillStyle = '#c1121f'; x.fillRect(0,0,1080,12);
-  /* KARL NOTICED badge */
-  x.fillStyle = '#c1121f';
-  x.font = 'bold 36px system-ui, sans-serif';
-  x.fillText(d.inference ? '🧠 KARL NOTICED' : '⚡ THE ROBBERY REPORT', 60, 100);
-  /* question */
-  x.fillStyle = '#f5f0e6';
-  x.font = 'bold 52px Georgia, serif';
-  wrapText(x, d.q, 60, 200, 960, 70);
-  /* answer — strip HTML */
-  var plain = String(d.a||'').replace(/<[^>]*>/g, '');
-  x.fillStyle = '#cccccc';
-  x.font = '36px system-ui, sans-serif';
-  wrapText(x, plain, 60, 560, 960, 52);
-  /* proof rows */
-  var y = 900;
-  x.font = 'bold 28px system-ui, sans-serif';
-  x.fillStyle = '#c1121f';
-  x.fillText('▸ EXHIBIT — VERIFIED', 60, y); y += 50;
-  x.font = '30px system-ui, sans-serif';
-  (d.rows||[]).slice(0,4).forEach(function(r){
-    x.fillStyle = '#888'; x.fillText(String(r[0]).slice(0,40), 60, y);
-    x.fillStyle = '#f5f0e6'; x.font = 'bold 30px system-ui, sans-serif';
-    x.fillText(String(r[1]).slice(0,20), 700, y);
-    x.font = '30px system-ui, sans-serif'; y += 48;
-  });
-  /* footer */
-  x.fillStyle = '#c1121f'; x.fillRect(0, 1230, 1080, 120);
-  x.fillStyle = '#ffffff'; x.font = 'bold 44px system-ui, sans-serif';
-  x.textAlign = 'center';
-  x.fillText('JOIN THE FIGHT.', 540, 1285);
-  x.font = '32px system-ui, sans-serif';
-  x.fillText('mtcstw.com', 540, 1325);
-  x.textAlign = 'left';
-  c.toBlob(function(blob){ done(blob); }, 'image/png');
-}
-function wrapText(x, text, px, py, maxW, lh){
-  var words = String(text).split(' '), line = '', y = py;
-  words.forEach(function(w){
-    var t = line + w + ' ';
-    if(x.measureText(t).width > maxW && line){ x.fillText(line, px, y); line = w + ' '; y += lh; }
-    else line = t;
-    if(y > 1150) return;
-  });
-  x.fillText(line, px, y);
-}
-function shareImage(d, btn){
-  btn.disabled = true; btn.textContent = 'PAINTING…';
-  paintShareImage(d, function(blob){
-    btn.disabled = false; btn.textContent = 'SHARE IMAGE';
-    if(!blob){ toast('Could not paint image'); return; }
-    var file = new File([blob], 'karl-discovery.png', {type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({ title:'KARL Discovery', text: d.q, files:[file] }).catch(function(){});
-    } else {
-      /* fallback: download */
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'karl-discovery.png';
-      a.click(); toast('Image downloaded');
+/* ---------- 3. SHAREABLE IMAGE ---------- */
+/* Upgraded propaganda renderer: hero money figure, verified badge, source line,
+   PFN watermark, receipt slug. Simple flow: tap -> paint -> native share -> download. */
+var KH_SHARE_SIZES = {
+  portrait: { label:'PORTRAIT', sub:'stories',  w:1080, h:1350, m:60, barH:14,
+    mast:38, mastTop:96, mastGap:42, secGap:42,
+    hero:132, heroGap:150, head:54, headLh:68, ans:34, ansLh:48,
+    proof:28, proofLh:48, proofRows:4, footH:120, footBig:44, footSmall:30, footPad:26, minTail:320 },
+  square: { label:'SQUARE', sub:'feed', w:1080, h:1080, m:60, barH:12,
+    mast:34, mastTop:84, mastGap:36, secGap:34,
+    hero:112, heroGap:128, head:48, headLh:60, ans:30, ansLh:42,
+    proof:26, proofLh:44, proofRows:3, footH:104, footBig:40, footSmall:28, footPad:22, minTail:260 },
+  wide: { label:'WIDE', sub:'x / twitter', w:1200, h:630, m:56, barH:10,
+    mast:28, mastTop:64, mastGap:28, secGap:22,
+    hero:80, heroGap:94, head:40, headLh:50, ans:26, ansLh:36,
+    proof:24, proofLh:38, proofRows:2, footH:66, footBig:32, footSmall:24, footPad:14, minTail:170 }
+};
+
+/* biggest $ figure on the card → hero number */
+function khShareMoney(d){
+  var texts = [ String(d.a||'').replace(/<[^>]*>/g,'') ];
+  (d.rows||[]).forEach(function(r){ texts.push(String(r[1]||'')); });
+  var best = '', bestV = -1;
+  texts.forEach(function(t){
+    var re = /\$[\d,]+(?:\.\d+)?\s*[KMBT]?\b/gi, m;
+    while((m = re.exec(t))){
+      var raw = m[0].replace(/\s+/g,'');
+      var num = parseFloat(raw.replace(/[$,]/g,'').replace(/[KMBT]$/i,''));
+      if(isNaN(num)) continue;
+      var suf = /([KMBT])$/i.exec(raw);
+      var mult = !suf ? 1 : ({K:1e3,M:1e6,B:1e9,T:1e12}[suf[1].toUpperCase()] || 1);
+      if(num*mult > bestV){ bestV = num*mult; best = raw; }
     }
   });
+  return best;
+}
+
+/* outlet from the card src field (e.g. "▸ RECEIPTS — WSJ, NY Post" → "WSJ, NY Post") */
+function khShareSrc(d){
+  var s = String(d.src||'');
+  var i = s.indexOf('—');
+  var outlet = (i >= 0 ? s.slice(i+1) : s).replace(/^\s*[▸►>]?\s*/,'').trim();
+  return outlet;
+}
+
+/* wrap text; returns y after last line; never draws past maxY */
+function khWrap(x, text, px, py, maxW, lh, maxY){
+  var words = String(text).split(/\s+/), line = '', y = py;
+  for(var i=0;i<words.length;i++){
+    var w = words[i]; if(!w) continue;
+    var t = line ? line+' '+w : w;
+    if(x.measureText(t).width > maxW && line){
+      if(y + lh > maxY) return y;
+      x.fillText(line, px, y); line = w; y += lh;
+    } else line = t;
+  }
+  if(line && y <= maxY){ x.fillText(line, px, y); y += lh; }
+  return y;
+}
+
+function khPaintShare(d, sizeKey, done){
+  var cfg = KH_SHARE_SIZES[sizeKey] || KH_SHARE_SIZES.portrait;
+  var W = cfg.w, H = cfg.h, m = cfg.m;
+  var c = document.createElement('canvas'); c.width = W; c.height = H;
+  var x = c.getContext('2d');
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  var money = khShareMoney(d);
+  var plain = String(d.a||'').replace(/<[^>]*>/g,'').trim();
+  var rows = (d.rows||[]).slice(0, cfg.proofRows);
+  var footTop = H - cfg.footH;
+
+  /* bg + red top bar */
+  x.fillStyle = '#0a0a0a'; x.fillRect(0,0,W,H);
+  x.fillStyle = '#c1121f'; x.fillRect(0,0,W,cfg.barH);
+
+  /* masthead */
+  var y = cfg.barH + cfg.mastTop;
+  x.fillStyle = '#c1121f'; x.font = '900 '+cfg.mast+'px system-ui, -apple-system, sans-serif';
+  x.fillText('\u26A1 THE ROBBERY REPORT', m, y);
+  y += cfg.mastGap;
+
+  /* hairline */
+  x.fillStyle = '#2a2a2a'; x.fillRect(m, y, W-2*m, 2);
+  y += cfg.secGap;
+
+  /* hero money figure */
+  if(money){
+    x.fillStyle = '#f5f0e6'; x.font = '900 '+cfg.hero+'px system-ui, -apple-system, sans-serif';
+    x.fillText(money, m, y);
+    y += cfg.heroGap;
+  }
+
+  /* headline — Georgia serif */
+  x.fillStyle = '#ffffff'; x.font = 'bold '+cfg.head+'px Georgia, "Times New Roman", serif';
+  y = khWrap(x, d.q, m, y, W-2*m, cfg.headLh, footTop - cfg.minTail);
+  y += cfg.secGap;
+
+  /* answer */
+  x.fillStyle = '#bdbdbd'; x.font = cfg.ans+'px system-ui, -apple-system, sans-serif';
+  y = khWrap(x, plain, m, y, W-2*m, cfg.ansLh, footTop - cfg.minTail);
+  y += cfg.secGap;
+
+  /* proof rows — verified badge is the credibility anchor */
+  if(rows.length && y < footTop - cfg.proofLh*2){
+    var badgePx = Math.round(cfg.proof * 1.3);
+    x.fillStyle = '#c1121f'; x.font = '900 '+badgePx+'px system-ui, -apple-system, sans-serif';
+    x.fillText('\u2713 EXHIBIT \u2014 VERIFIED', m, y);
+    x.fillStyle = '#c1121f'; x.fillRect(m, y + 8, Math.min(120, W-2*m), 4);
+    y += cfg.proofLh + 10;
+    rows.forEach(function(r){
+      if(y > footTop - 18) return;
+      x.font = cfg.proof+'px system-ui, -apple-system, sans-serif';
+      x.fillStyle = '#888888';
+      x.fillText(String(r[0]).slice(0,44), m, y);
+      x.font = '800 '+cfg.proof+'px system-ui, -apple-system, sans-serif';
+      x.fillStyle = '#f5f0e6';
+      var v = String(r[1]).slice(0,24);
+      x.fillText(v, W - m - x.measureText(v).width, y);
+      y += cfg.proofLh;
+    });
+    /* source line — who says so, and when */
+    if(y < footTop - 18){
+      var outlet = khShareSrc(d);
+      if(outlet){
+        var srcLine = 'SOURCE: ' + outlet;
+        if(d.when) srcLine += ' \u00B7 ' + (d.when === 'now' ? 'today' : String(d.when));
+        y += Math.round(cfg.proof * 0.25);
+        x.fillStyle = '#9a9a9a'; x.font = Math.round(cfg.proof * 0.85)+'px system-ui, -apple-system, sans-serif';
+        x.fillText(srcLine.slice(0,72), m, y);
+        y += Math.round(cfg.proofLh * 0.9);
+      }
+    }
+  }
+
+  /* PFN watermark — press stamp, centered, semi-transparent (uncroppable) */
+  x.save();
+  x.globalAlpha = 0.15;
+  var wmX = W/2, wmY = (footTop)/2;
+  x.strokeStyle = '#f5f0e6'; x.lineWidth = 3;
+  x.beginPath(); x.arc(wmX, wmY, 58, 0, Math.PI*2); x.stroke();
+  x.fillStyle = '#f5f0e6'; x.textAlign = 'center';
+  x.font = '900 44px system-ui, -apple-system, sans-serif';
+  x.fillText('PFN', wmX, wmY + 15);
+  x.textAlign = 'left';
+  x.restore();
+
+  /* footer — red bar */
+  x.fillStyle = '#c1121f'; x.fillRect(0, footTop, W, cfg.footH);
+  x.fillStyle = '#ffffff'; x.textAlign = 'center';
+  x.font = '900 '+cfg.footBig+'px system-ui, -apple-system, sans-serif';
+  x.fillText('JOIN THE FIGHT.', W/2, footTop + cfg.footH*0.5 - 2);
+  x.font = cfg.footSmall+'px system-ui, -apple-system, sans-serif';
+  var _slug = String(d.q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,36) || 'intel';
+  x.fillText('mtcstw.com / #' + _slug, W/2, footTop + cfg.footH - cfg.footPad);
+  x.textAlign = 'left';
+
+  /* toBlob with fallbacks — iOS Safari sometimes returns null or never resolves */
+  var doneCalled = false;
+  var deliver = function(blob){ if(!doneCalled){ doneCalled = true; done(blob || null); } };
+  try{
+    c.toBlob(function(blob){
+      if(blob && blob.size){ deliver(blob); return; }
+      try{
+        var du = c.toDataURL('image/png');
+        if(du && du.length > 100 && window.fetch){
+          fetch(du).then(function(r){ return r.blob(); }).then(
+            function(b){ deliver(b && b.size ? b : null); },
+            function(){ deliver(null); });
+        } else { deliver(null); }
+      }catch(e){ deliver(null); }
+    }, 'image/png');
+  }catch(e){ deliver(null); }
+}
+
+/* Simple share flow: tap -> paint portrait -> native share sheet -> download fallback */
+function shareImage(d, btn){
+  btn.disabled = true; btn.textContent = 'PAINTING\u2026';
+  var restore = function(){ btn.disabled = false; btn.textContent = 'SHARE IMAGE'; };
+  try{
+    khPaintShare(d, 'portrait', function(blob){
+      restore();
+      if(!blob || !blob.size){ toast('Could not paint image'); return; }
+      var file = null;
+      try{ file = new File([blob], 'robbery-report.png', {type:'image/png'}); }catch(e){}
+      if(file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({ title:'The Robbery Report', text: String(d.q||''), files:[file] }).catch(function(){});
+        toast('Image ready!');
+      } else {
+        try{
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob); a.download = 'robbery-report.png';
+          document.body.appendChild(a); a.click(); a.remove();
+          toast('Image downloaded');
+        }catch(e){ toast('Could not save image'); }
+      }
+    });
+  }catch(e){ restore(); toast('Could not paint image'); }
 }
 
 /* ---------- 4. GO DEEPER ---------- */

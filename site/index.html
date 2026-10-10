@@ -1279,6 +1279,14 @@ function khShareMoney(d){
   return best;
 }
 
+/* outlet from the card src field (e.g. "▸ RECEIPTS — WSJ, NY Post" → "WSJ, NY Post") */
+function khShareSrc(d){
+  var s = String(d.src||'');
+  var i = s.indexOf('—');
+  var outlet = (i >= 0 ? s.slice(i+1) : s).replace(/^\s*[▸►>]?\s*/,'').trim();
+  return outlet;
+}
+
 /* wrap text; returns y after last line; never draws past maxY */
 function khWrap(x, text, px, py, maxW, lh, maxY){
   var words = String(text).split(/\s+/), line = '', y = py;
@@ -1336,10 +1344,13 @@ function khPaintShare(d, sizeKey, done){
   y = khWrap(x, plain, m, y, W-2*m, cfg.ansLh, footTop - cfg.minTail);
   y += cfg.secGap;
 
-  /* proof rows */
+  /* proof rows — verified badge is the credibility anchor */
   if(rows.length && y < footTop - cfg.proofLh*2){
-    x.fillStyle = '#c1121f'; x.font = '800 '+cfg.proof+'px system-ui, -apple-system, sans-serif';
-    x.fillText('\u25B8 EXHIBIT \u2014 VERIFIED', m, y); y += cfg.proofLh;
+    var badgePx = Math.round(cfg.proof * 1.3);
+    x.fillStyle = '#c1121f'; x.font = '900 '+badgePx+'px system-ui, -apple-system, sans-serif';
+    x.fillText('\u2713 EXHIBIT \u2014 VERIFIED', m, y);
+    x.fillStyle = '#c1121f'; x.fillRect(m, y + 8, Math.min(120, W-2*m), 4);
+    y += cfg.proofLh + 10;
     rows.forEach(function(r){
       if(y > footTop - 18) return;
       x.font = cfg.proof+'px system-ui, -apple-system, sans-serif';
@@ -1351,6 +1362,18 @@ function khPaintShare(d, sizeKey, done){
       x.fillText(v, W - m - x.measureText(v).width, y);
       y += cfg.proofLh;
     });
+    /* source line — who says so, and when */
+    if(y < footTop - 18){
+      var outlet = khShareSrc(d);
+      if(outlet){
+        var srcLine = 'SOURCE: ' + outlet;
+        if(d.when) srcLine += ' \u00B7 ' + (d.when === 'now' ? 'today' : String(d.when));
+        y += Math.round(cfg.proof * 0.25);
+        x.fillStyle = '#9a9a9a'; x.font = Math.round(cfg.proof * 0.85)+'px system-ui, -apple-system, sans-serif';
+        x.fillText(srcLine.slice(0,72), m, y);
+        y += Math.round(cfg.proofLh * 0.9);
+      }
+    }
   }
 
   /* PFN watermark — press stamp, centered, semi-transparent (uncroppable) */
@@ -1371,7 +1394,7 @@ function khPaintShare(d, sizeKey, done){
   x.font = '900 '+cfg.footBig+'px system-ui, -apple-system, sans-serif';
   x.fillText('JOIN THE FIGHT.', W/2, footTop + cfg.footH*0.5 - 2);
   x.font = cfg.footSmall+'px system-ui, -apple-system, sans-serif';
-  x.fillText('mtcstw.com', W/2, footTop + cfg.footH - cfg.footPad);
+  x.fillText('mtcstw.com / #' + cellSlug(d.q).slice(0,36), W/2, footTop + cfg.footH - cfg.footPad);
   x.textAlign = 'left';
 
   c.toBlob(function(blob){ done(blob); }, 'image/png');

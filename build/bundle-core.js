@@ -255,7 +255,14 @@ var CORE_FILES = [
      — IN CODE, not a Squarespace hand-step. Site chrome: also ships in
      bundle-footer-chrome (crossnav precedent). Last: touches only the nav
      list, no consumer deps. Kill: ?pf_off=42-mobile-nav-trim. */
-  'core/42-mobile-nav-trim.js'
+  'core/42-mobile-nav-trim.js',
+  /* SPINE WEAVE (WS-C, dir-20261010-010215-1757, fe/weave-spine-20261010):
+     the Karl feed is the spine — every page connects back to it, no orphans.
+     Injects the "FROM THE FEED / RELATED ROBBERIES" rail + "<- THE ROBBERY
+     REPORT" spine link on every deep page; exposes PFWeave.cardDeepUrl for
+     the 9-rail feed contract. Last in core (mounts after all page modules).
+     Read-only, zero XP, zero network. Kill: ?pf_off=weave. */
+  'core/46-weave-spine.js'
 ];
 
 /* 2026-10-05 (fix/money-minified-rebuild): money suite lazy chunk. The 10

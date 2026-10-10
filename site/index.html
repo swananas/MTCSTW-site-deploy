@@ -260,6 +260,43 @@
   #pf-karl-home .kh-card-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); }
   #pf-karl-home .kh-act-btn{ flex:1; min-width:100px; padding:10px 8px; border:1px solid rgba(193,18,31,.5); background:rgba(193,18,31,.08); color:#f5f0e6; border-radius:10px; font-size:12px; font-weight:700; letter-spacing:.5px; cursor:pointer; text-align:center; }
   #pf-karl-home .kh-act-btn:active{ transform:scale(.96); background:rgba(193,18,31,.2); }
+  #pf-karl-home .kh-form-cell{ flex:1 1 100%; text-decoration:none; display:block; text-align:center; border-color:rgba(47,191,113,.55); background:rgba(47,191,113,.08); }
+  #pf-karl-home .kh-form-cell:active{ background:rgba(47,191,113,.2); }
+  /* ============ CELLS → HQ INTEGRATION (dir-20261010-135720-3916) ============ */
+  #pf-karl-home .kh-cell-widget{ padding:2px 14px 0; }
+  #pf-karl-home .kh-cell-card{
+    background:var(--kh-card); border:1px solid rgba(193,18,31,.4); border-radius:16px;
+    padding:16px; animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+  }
+  #pf-karl-home .kh-cell-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  #pf-karl-home .kh-cell-kicker{
+    font-family:ui-monospace,Menlo,monospace; font-size:10.5px; font-weight:700; letter-spacing:.22em;
+    color:var(--kh-red-bright);
+  }
+  #pf-karl-home .kh-cell-open{ font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--kh-dim); text-decoration:none; }
+  #pf-karl-home .kh-cell-open:active{ color:#fff; }
+  #pf-karl-home .kh-cell-title{ font-size:16px; font-weight:700; color:var(--kh-cream); margin-bottom:6px; }
+  #pf-karl-home .kh-cell-sub{ font-size:13.5px; color:var(--kh-dim); line-height:1.55; margin-bottom:12px; }
+  #pf-karl-home .kh-cell-cta{
+    display:inline-block; background:var(--kh-red); color:#fff; border:0; border-radius:999px;
+    padding:11px 26px; font-size:14px; font-weight:800; letter-spacing:.06em; text-decoration:none;
+    touch-action:manipulation;
+  }
+  #pf-karl-home .kh-cell-cta:active{ transform:scale(.96); }
+  #pf-karl-home .kh-cell-meta{ display:flex; gap:16px; margin-bottom:12px; }
+  #pf-karl-home .kh-cell-meta span{ font-size:13px; color:var(--kh-dim); }
+  #pf-karl-home .kh-cell-meta b{ color:var(--kh-cream); font-variant-numeric:tabular-nums; }
+  #pf-karl-home .kh-cell-act{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:14px;
+    padding:13px 14px; animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+  }
+  #pf-karl-home .kh-cell-act .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--kh-green); flex:0 0 auto; margin-top:6px;
+  }
+  #pf-karl-home .kh-cell-act .t{ font-size:13.5px; color:var(--kh-cream); line-height:1.5; }
+  #pf-karl-home .kh-cell-act .t b{ color:var(--kh-red-bright); }
+  #pf-karl-home .kh-cell-act .w{ font-size:11.5px; color:var(--kh-faint); margin-top:3px; }
   #pf-karl-home .kh-proof-row .v{ cursor:pointer; border-bottom:1px dotted rgba(193,18,31,.6); }
   #pf-karl-home .kh-proof-row .v:active{ color:#c1121f; }
   #pf-karl-home .kh-live-ev{ margin-top:12px; padding:12px; background:rgba(193,18,31,.06); border:1px solid rgba(193,18,31,.25); border-radius:10px; }
@@ -342,6 +379,18 @@
     <button class="kh-chip">How rich are the billionaires?</button>
   </div>
 
+  <!-- CELLS → HQ (dir-20261010-135720-3916): My Cell widget — member state swaps in via localStorage -->
+  <div class="kh-cell-widget" id="kh-cell-widget">
+    <div class="kh-cell-card">
+      <div class="kh-cell-top"><span class="kh-cell-kicker">⚑ COORDINATE</span><a class="kh-cell-open" href="/cells">OPEN CELLS →</a></div>
+      <div class="kh-cell-body" id="kh-cell-body">
+        <div class="kh-cell-title">Not in a cell yet</div>
+        <div class="kh-cell-sub">Cells are small crews that turn intel into action. Find yours, or start one.</div>
+        <a class="kh-cell-cta" href="/cells">FIND YOUR CELL</a>
+      </div>
+    </div>
+  </div>
+
   <div class="kh-feed-head">
     <h2>The Robbery Report</h2>
     <span class="kh-tick"><i></i>LIVE</span>
@@ -361,6 +410,17 @@
   <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
   <div class="kh-more-wrap" style="padding-top:0">
     <a href="/model/" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THIS DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Query the raw tables yourself — FEC, billionaires, prisons, housing, trades</span></a>
+  </div>
+
+  <!-- CELLS → HQ (dir-20261010-135720-3916): cell activity — seed data, wired to live API later -->
+  <div class="kh-feed-head" style="padding-top:6px">
+    <h2>Cell activity</h2>
+    <span class="kh-tick"><i></i>THIS WEEK</span>
+  </div>
+  <div class="kh-feed" id="kh-cell-activity" style="padding-bottom:14px">
+    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>Bayou Cell</b> formed around the Boeing $2.5B fraud story — 12 comrades coordinating drops.</div><div class="w">2h ago &middot; via /cells</div></div></div>
+    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>NOLA Mutual Aid</b> is tracking hospital ER markups in their parish — 27K hospitals in the data.</div><div class="w">6h ago &middot; via /cells</div></div></div>
+    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>3 cells</b> picked up the GEO Group private-prison intel for local FOIA pushes.</div><div class="w">1d ago &middot; via /cells</div></div></div>
   </div>
 
   <div class="kh-foot">
@@ -460,6 +520,8 @@ function showToast(msg){
 }
 function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* CELLS → HQ (dir-20261010-135720-3916): slugify a card question for the /cells?intel= founding-intel link */
+function cellSlug(q){ return String(q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60) || 'intel'; }
 
 function cardEl(d){
   var el = document.createElement('div');
@@ -480,6 +542,7 @@ function cardEl(d){
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+      '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
     '<div class="kh-related" style="display:none"><div class="kh-related-title">MORE LIKE THIS</div><div class="kh-rel-list"></div></div>'+
@@ -560,8 +623,21 @@ SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
   }).catch(function(){});
 })();
 
-/* Generic fact renderer for live karl_query results */
-function factsToCard(q, r){
+/* CELLS → HQ (dir-20261010-135720-3916): swap My Cell widget to member state if localStorage has pf_my_cell {name, members, lastActivity} */
+(function cellWidget(){
+  var body = document.getElementById('kh-cell-body');
+  if(!body) return;
+  var c = null;
+  try{ c = JSON.parse(localStorage.getItem('pf_my_cell')||'null'); }catch(e){}
+  if(!c || !c.name) return;
+  body.innerHTML =
+    '<div class="kh-cell-title">'+esc(c.name)+'</div>'+
+    '<div class="kh-cell-meta"><span><b>'+fmt(c.members||0)+'</b> members</span><span>last activity <b>'+esc(c.lastActivity||'today')+'</b></span></div>'+
+    '<div class="kh-cell-sub">Your crew is live. Coordinate the next move.</div>'+
+    '<a class="kh-cell-cta" href="/cells">OPEN MY CELL</a>';
+})();
+
+/* Generic fact renderer for live karl_query results */function factsToCard(q, r){
   var facts = r.facts||[];
   var rows = [], srcBits = [];
   facts.forEach(function(f){
@@ -877,6 +953,7 @@ function beefyCard(d){
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+      '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
     '<div class="kh-related" style="display:none"><div class="kh-related-title">MORE LIKE THIS</div><div class="kh-rel-list"></div></div>'+
@@ -886,7 +963,7 @@ function beefyCard(d){
     '</div>'+
     '<a class="kh-deeplink" href="'+esc(d.deep||R.deep)+'">DIG DEEPER \u2192</a>';
   el.addEventListener('click', function(e){
-    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink')) return;
+    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell')) return;
     el.classList.toggle('kh-open');
   });
   el.querySelectorAll('.kh-fig').forEach(function(b){

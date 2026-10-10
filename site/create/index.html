@@ -3,187 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>PFN Studio — Make Propaganda. Spread It.</title>
-<meta name="description" content="Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.">
-<meta property="og:title" content="PFN Studio — Make Propaganda. Spread It.">
-<meta property="og:description" content="Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.">
-<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
-<meta property="og:url" content="https://www.mtcstw.com/create">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PFN Studio — Make Propaganda. Spread It.">
-<meta name="twitter:description" content="Turn the numbers into posters. Your content becomes movement action — never sold, never ad inventory.">
-<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<title>Create — Turn Intel Into Propaganda.</title>
+<meta name="description" content="Take what Karl uncovers and turn it into shareable content. Memes, posters, videos.">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
-<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
-<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
-<link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
 <style>
-  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
-  #pf-boot{min-height:100vh;}
-  .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(10,10,10,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid #c1121f;box-sizing:border-box;}
-  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
-  .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
-  .pf-topbar-nav::-webkit-scrollbar{display:none;}
-  .pf-topbar-nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
-  .pf-topbar-nav a:hover{color:#e5383b;}
-  .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
-  #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid #2a2a2a;border-radius:50%;color:#f5ead6;cursor:pointer;flex:0 0 auto;padding:0;}
-  #pf-topbar-search:hover{border-color:#c1121f;color:#fff;}
-  #pf-topbar-search svg{width:18px;height:18px;display:block;}
-  #pf-topbar-user{flex:0 0 auto;min-width:0;display:flex;}
-  #pf-topbar-panel{position:absolute;top:56px;left:0;right:0;background:rgba(8,8,8,.98);border-bottom:1px solid #2a2a2a;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,.5);}
-  #pf-topbar-panel[hidden]{display:none;}
-  .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
-  .pf-skip-link:focus{left:0;}
-
-  /* Uniform PF header (4-pillar) — added 2026-10-09 */
-  .pf-topbar{
-    position:fixed;top:0;left:0;right:0;z-index:10000;
-    padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;
-    background:#0a0a0a;
-    border-bottom:1px solid #c1121f;
-    touch-action:manipulation;
-  }
-  @media (display-mode: standalone){
-    .pf-topbar{padding-top:48px;}
-  }
-  .pf-topbar-inner{
-    max-width:960px;margin:0 auto;
-    display:flex;align-items:center;gap:10px;
-  }
-  .pf-topbar-brand{
-    color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;
-    text-decoration:none;flex:0 0 auto;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:rgba(193,18,31,.3);
-    cursor:pointer;padding:8px 2px;
-  }
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
   .pf-topbar-brand span{color:#c1121f;}
-  .pf-pillars-nav{
-    display:flex;gap:6px;flex:1 1 auto;
-  }
-  .pf-pillars-nav::-webkit-scrollbar{display:none;}
-  .pf-pillar{
-    flex:1 1 0;text-align:center;text-decoration:none;
-    background:transparent;border:1px solid #333;border-radius:8px;
-    padding:10px 4px;color:#b0b0b0;
-    font-size:11px;font-weight:700;letter-spacing:.06em;
-    white-space:nowrap;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:rgba(193,18,31,.3);
-    cursor:pointer;
-  }
-  .pf-pillar:active{color:#fff;background:#1a1a1a;}
-  .pf-tagline{display:none;}
+  .pf-pillars-nav{display:flex;gap:6px;flex:1;}
+  .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .pf-pillar.on{color:#fff;border-color:#c1121f;background:rgba(193,18,31,.12);}
+  body{padding-top:calc(env(safe-area-inset-top,0px) + 110px);}
+  #crt{--bg:#0a0a0a;--card:#111;--line:#232323;--red:#c1121f;--rbright:#e5383b;--cream:#f5f0e6;--dim:#8a8478;max-width:560px;margin:0 auto;padding:0 0 60px;}
+  #crt .hero{padding:28px 20px 8px;}
+  #crt .hero h1{font-family:Georgia,serif;font-size:32px;margin:0 0 8px;line-height:1.15;}
+  #crt .hero h1 em{color:var(--rbright);font-style:normal;}
+  #crt .hero p{color:var(--dim);font-size:15px;margin:0 0 16px;line-height:1.5;}
+  #crt .tools{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
+  #crt .tool{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;animation:rise .4s ease both;text-decoration:none;color:var(--cream);display:block;}
+  #crt .tool:active{transform:scale(.98);}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  #crt .tool .t{font-weight:700;font-size:17px;margin-bottom:6px;}
+  #crt .tool .d{font-size:14px;color:var(--dim);line-height:1.5;}
+  #crt .tool .tag{display:inline-block;margin-top:10px;font-size:11px;letter-spacing:.1em;color:var(--rbright);text-transform:uppercase;}
+  #crt .feed-link{margin:24px 20px 0;}
+  #crt .feed-link h3{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin:0 0 10px;}
+  #crt .feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;text-decoration:none;display:block;color:var(--cream);}
+  #crt .feed-card .q{font-weight:600;font-size:14px;margin-bottom:6px;}
+  #crt .feed-card .a{font-size:13px;color:var(--dim);}
+  #crt .feed-card .a b{color:var(--rbright);}
 </style>
-<script>window.__PF_BUILD="20261009-0946-d469f51";</script>
-<script>(function(){
-  try{
-    var cur = window.__PF_BUILD; if(!cur) return;
-    if(sessionStorage.getItem('pf_upd_'+cur)) return; // already handled this build
-    fetch('/version.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
-      if(v && v.build && v.build!==cur){
-        sessionStorage.setItem('pf_upd_'+v.build,'1');
-        var done=function(){ location.reload(); };
-        if('serviceWorker' in navigator){
-          navigator.serviceWorker.getRegistrations().then(function(rs){
-            return Promise.all(rs.map(function(r){return r.unregister();}));
-          }).then(function(){
-            if(window.caches){ return caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){return caches.delete(k);})); }); }
-          }).then(done).catch(done);
-        } else done();
-      }
-    }).catch(function(){});
-    // Aggressive SW update check
-    if('serviceWorker' in navigator){ navigator.serviceWorker.ready.then(function(r){ try{ r.update(); }catch(e){} }); }
-  }catch(e){}
-})();</script>
 </head>
 <body>
-<a href="#main" class="pf-skip-link">Skip to main content</a>
 <div id="pf-boot">
-<header class="pf-topbar">
-  <div class="pf-topbar-inner">
-    <a href="/" class="pf-topbar-brand" onclick="window.location.href='/';return false;">MTC<span>STW</span></a>
-    <nav class="pf-pillars-nav" aria-label="Mission pillars">
-      <a class="pf-pillar" href="/create">CREATE</a>
-      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
-      <a class="pf-pillar" href="/cells">COORDINATE</a>
-      <a class="pf-pillar" href="/money">CAPITAL</a>
-    </nav>
+<header class="pf-topbar"><div class="pf-topbar-inner">
+<a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
+<nav class="pf-pillars-nav">
+<a class="pf-pillar on" href="/create">CREATE</a>
+<a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+<a class="pf-pillar" href="/cells">COORDINATE</a>
+<a class="pf-pillar" href="/money">CAPITAL</a>
+</nav></div></header>
+<main id="crt">
+  <div class="hero">
+    <h1>Turn intel into <em>propaganda.</em></h1>
+    <p>Karl finds the receipts. You make them undeniable. Every discovery from THE ROBBERY REPORT is raw material.</p>
   </div>
-  <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
-</header>
-<main id="main">
-  <div id="pf-create"></div>
+  <div class="tools">
+    <a class="tool" href="/karl/">
+      <div class="t">Deploy from Karl</div>
+      <div class="d">Ask Karl anything, then hit DEPLOY to turn the answer into a shareable image. One tap.</div>
+      <div class="tag">Start here →</div>
+    </a>
+    <a class="tool" href="/sick-left-radicals/">
+      <div class="t">Amplify creators</div>
+      <div class="d">62 vetted propagandists with 8M+ reach. Share their work, join the signal boost.</div>
+      <div class="tag">Meet the roster →</div>
+    </a>
+    <a class="tool" href="/">
+      <div class="t">Mine the feed</div>
+      <div class="d">THE ROBBERY REPORT is full of sourced facts begging to become memes, threads, and videos.</div>
+      <div class="tag">Back to the feed →</div>
+    </a>
+  </div>
+  <div class="feed-link">
+    <h3>Fresh ammunition</h3>
+    <a class="feed-card" href="/karl/?q=Which%20defense%20contractor%20stole%20the%20most">
+      <div class="q">Which defense contractor stole the most?</div>
+      <div class="a">Boeing: <b>$2.5B</b>. That's a poster waiting to happen.</div>
+    </a>
+    <a class="feed-card" href="/karl/?q=Richest%20billionaires">
+      <div class="q">How rich are the billionaires?</div>
+      <div class="a"><b>$6.45T</b> combined. Visualize that.</div>
+    </a>
+  </div>
 </main>
 </div>
-<script>
-(function(){
-  var BASE='/v1.4.3/';
-  var CORE='bundle-core-slr.js';
-  var GAMES=["games/bundle-create-h.js", "games/bundle-create.js", "games/bundle-factgen-mount.js"];
-  var PAGES='pages/bundle-pages.js';
-  var PWA='pwa/install.js';
-  var KARL='core/bundle-karl-companion.js';
-  function pfSkip(n){
-    try{
-      var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
-      var m=location.search.match(/[?&]pf_off=([^&]+)/);
-      if(m)d=d.concat(decodeURIComponent(m[1]).split(','));
-      return d.indexOf(n)!==-1;
-    }catch(e){return false;}
-  }
-  function load(src,async){
-    return new Promise(function(res,rej){
-      var s=document.createElement('script');
-      s.src=src;s.async=!!async;
-      s.onload=res;s.onerror=function(){console.error('[PF] failed: '+src);res();};
-      document.head.appendChild(s);
-    });
-  }
-  function skeleton(host){
-    if(pfSkip('butter-p0')||!host)return;
-    if(host.children.length>0)return;
-    host.insertAdjacentHTML('afterbegin',
-      '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
-      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
-    var obs=new MutationObserver(function(){
-      try{
-        var sk=host.querySelector('#pf-skeleton');
-        if(sk&&host.textContent.replace(/\s+/g,'').length>0){sk.remove();obs.disconnect();}
-      }catch(e){}
-    });
-    try{obs.observe(host,{childList:true,subtree:true});}catch(e){}
-    setTimeout(function(){try{var sk=host.querySelector('#pf-skeleton');if(sk)sk.remove();obs.disconnect();}catch(e){}},25000);
-  }
-  // Paint skeletons immediately
-  skeleton(document.getElementById("pf-create"));
-  // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
-  (async function(){
-    await load(BASE+'core/'+CORE,false);
-    load(BASE+PWA,true); // async, guarded internally
-    for(var i=0;i<GAMES.length;i++){await load(BASE+GAMES[i],false);}
-    await load(BASE+PAGES,false);
-    // Karl companion: lazy after idle
-    function goKarl(){
-      if(pfSkip('karl-companion'))return;
-      load(BASE+KARL,true);
-    }
-    if('requestIdleCallback' in window){try{requestIdleCallback(goKarl,{timeout:9000});}catch(e){setTimeout(goKarl,4000);}}
-    else{setTimeout(goKarl,4000);}
-    // Trigger mount
-    try{
-      if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}
-    }catch(e){}
-    console.log('[PF] Pages shell loaded: /create');
-  })();
-})();
-</script>
 </body>
 </html>

@@ -58,24 +58,61 @@
   .pf-note{margin-top:48px;padding:20px;border-top:1px solid #2a2a2a;color:#777;font-size:13px;line-height:1.6;}
   .pf-note strong{color:#aaa;}
   .pf-xp-zero{display:inline-block;background:#1a2a1a;border:1px solid #2d5a2d;color:#7dca7d;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:12px;}
+
+  /* Uniform PF header (4-pillar) — added 2026-10-09 */
+  .pf-topbar{
+    position:fixed;top:0;left:0;right:0;z-index:10000;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;
+    background:#0a0a0a;
+    border-bottom:1px solid #c1121f;
+    touch-action:manipulation;
+  }
+  @media (display-mode: standalone){
+    .pf-topbar{padding-top:48px;}
+  }
+  .pf-topbar-inner{
+    max-width:960px;margin:0 auto;
+    display:flex;align-items:center;gap:10px;
+  }
+  .pf-topbar-brand{
+    color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;
+    text-decoration:none;flex:0 0 auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;padding:8px 2px;
+  }
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{
+    display:flex;gap:6px;flex:1 1 auto;
+  }
+  .pf-pillars-nav::-webkit-scrollbar{display:none;}
+  .pf-pillar{
+    flex:1 1 0;text-align:center;text-decoration:none;
+    background:transparent;border:1px solid #333;border-radius:8px;
+    padding:10px 4px;color:#b0b0b0;
+    font-size:11px;font-weight:700;letter-spacing:.06em;
+    white-space:nowrap;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(193,18,31,.3);
+    cursor:pointer;
+  }
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  .pf-tagline{display:none;}
 </style>
 </head>
 <body>
 <div id="pf-boot">
 <header class="pf-topbar">
-  <a href="/" class="pf-topbar-brand">MTCSTW</a>
-  <nav class="pf-topbar-nav" aria-label="Main">
-    <a href="/arcade">ARCADE</a>
-    <a href="/cells">CELLS</a>
-    <a href="/create">CREATE</a>
-    <a href="/sick-left-radicals">RADICALS</a>
-    <a href="/money">MONEY</a>
-  </nav>
-  <div class="pf-topbar-right">
-    <button id="pf-topbar-search" type="button" aria-label="Search the site"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
-    <div id="pf-topbar-user"></div>
+  <div class="pf-topbar-inner">
+    <a href="/" class="pf-topbar-brand" onclick="window.location.href='/';return false;">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
   </div>
-  <div id="pf-topbar-panel" hidden></div>
+  <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
 </header>
   <div class="pf-wrap">
     <div class="pf-kicker">THE PROPAGANDA FACTORY</div>

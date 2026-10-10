@@ -454,7 +454,7 @@
       h += '<div class="rp-artifact">';
       if (a.artifact_kind === 'video') h += '<video src="'+esc(_aurl)+'" controls preload="metadata"></video>';
       else if (a.artifact_kind === 'text') h += '<div class="rp-caption" style="text-align:left;padding:10px">'+esc(a.artifact_text||a.caption||'')+'</div>';
-      else h += '<img src="'+esc(_aurl)+'" alt="Submission artifact">';
+      else h += '<img src="'+esc(_aurl)+'" alt="Submission artifact" loading="lazy" style="max-width:100%;height:auto;display:block;background:#1a1a1a">';
       h += '</div>';
     }
     if (a.caption && a.artifact_kind !== 'text') h += '<div class="rp-caption">'+esc(a.caption)+'</div>';

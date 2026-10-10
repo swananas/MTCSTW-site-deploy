@@ -279,7 +279,7 @@
       '<div class="pf-ke-hd"><span class="pf-ke-dot"></span><h3 class="pf-ke-title">' + esc(title).toUpperCase() + '</h3></div>' +
       '<p class="pf-ke-ctx" data-ke-ctxline>' + ctxLineHtml(readContext(el)) + '</p>' +
       '<form class="pf-ke-form" data-ke-form>' +
-      '<input class="pf-ke-input" data-ke-q type="text" maxlength="300" autocomplete="off" placeholder="' + esc(placeholder) + '" aria-label="' + esc(title) + '">' +
+      '<input class="pf-ke-input" data-ke-q type="text" maxlength="300" autocomplete="off" enterkeyhint="go" autocapitalize="sentences" placeholder="' + esc(placeholder) + '" aria-label="' + esc(title) + '">' +
       '<button class="pf-ke-btn" type="submit">ASK</button></form>' +
       '<p class="pf-ke-note">Sourced from public records. Zero XP — asking is free.</p>' +
       '<div data-ke-out></div>' +
@@ -292,11 +292,14 @@
     function runQuery(q, ctxOverride) {
       var btn = form.querySelector('.pf-ke-btn');
       btn.disabled = true;
+      var _bt = btn.textContent;
+      btn.textContent = 'ASKING\u2026';
       out.innerHTML = '<div class="pf-ke-loading">Querying the rails&hellip;</div>';
       var c = readContext(el);
       if (ctxOverride) { for (var k in ctxOverride) c[k] = ctxOverride[k]; }
       api({ q: q, context: JSON.stringify(c) }, function (r) {
         btn.disabled = false;
+        btn.textContent = _bt;
         if (!r || (r.ok === false && !r.template)) {
           out.innerHTML = '<div class="pf-ke-err">The rails didn\'t answer. Check your connection and try again.</div>';
           err('karl_query failed');

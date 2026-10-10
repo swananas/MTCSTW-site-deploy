@@ -250,9 +250,9 @@
     '.pf-kc-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(193,18,31,.45),0 4px 12px rgba(0,0,0,.5)}',
     '.pf-kc-btn:active{transform:scale(.96)}',
     '.pf-kc-btn:focus-visible,.pf-kc-chip:focus-visible{outline:2px solid #e8b33c;outline-offset:2px}',
-    /* BUTTER MOBILE (2026-10-08): compact launcher on small screens — the
-       full pill overlapped card action rows. Smaller footprint, safe margin
-       above the bottom bar, never covers interactive content. */
+    /* BUTTER MOBILE: compact launcher on small screens — the full pill
+       overlapped card action rows. Smaller footprint, safe margin above the
+       bottom bar, never covers interactive content. */
     '@media(max-width:480px){.pf-kc-btn{right:12px;bottom:88px;padding:11px 15px;font-size:12px;letter-spacing:1px;min-height:44px;gap:7px;box-shadow:0 6px 20px rgba(193,18,31,.4),0 2px 8px rgba(0,0,0,.5)}}',
     /* ZUCK LENS (fe/homepage-ux-zuck, 2026-10-08): one-prompt onboarding —
        on the homepage the floating launcher waits until the visitor scrolls
@@ -263,7 +263,7 @@
     '.pf-kc-btn .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pfkc-pulse 2s infinite}',
     '@keyframes pfkc-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.5)}50%{opacity:.4;box-shadow:0 0 0 6px rgba(255,255,255,0)}}',
     /* Panel — layered war-room comms channel. */
-    '.pf-kc-panel{position:fixed;z-index:9991;right:10px;left:10px;bottom:70px;max-height:min(66vh,560px);',
+    '.pf-kc-panel{position:fixed;z-index:9991;right:10px;left:10px;bottom:70px;max-height:min(66vh,560px);max-height:min(66dvh,560px);',
     'background:linear-gradient(180deg,#151515 0%,#0d0d0d 100%);color:#f5f0e6;border:1px solid #2e2e2e;',
     'border-radius:18px;display:none;flex-direction:column;overflow:hidden;',
     'box-shadow:0 28px 70px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.07)}',
@@ -283,7 +283,7 @@
     '.pf-kc-log::-webkit-scrollbar{width:8px}',
     '.pf-kc-log::-webkit-scrollbar-thumb{background:#333;border-radius:8px}',
     '.pf-kc-log::-webkit-scrollbar-track{background:transparent}',
-    '.pf-kc-msg{max-width:88%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;',
+    '.pf-kc-msg{max-width:88%;padding:11px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;',
     'animation:pfkc-m .24s cubic-bezier(.2,.8,.3,1.1) both;box-shadow:0 2px 10px rgba(0,0,0,.25)}',
     '@keyframes pfkc-m{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}',
     '@media(prefers-reduced-motion:reduce){.pf-kc-panel.open,.pf-kc-msg{animation:none}.pf-kc-btn .dot{animation:none}.pf-kc-btn:hover{transform:none}.pf-kc-td i{animation:none}}',
@@ -292,6 +292,9 @@
     'align-self:flex-start;border-bottom-left-radius:5px;',
     'font-family:Georgia,"Times New Roman",serif;font-size:14.5px;line-height:1.62;color:#f2ecdf}',
     '.pf-kc-msg.karl b{color:#fff}',
+    '.pf-kc-msg.karl a{color:#ff8a8a;text-decoration:underline;overflow-wrap:anywhere}',
+    '.pf-kc-msg.karl ul{margin:8px 0;padding-left:20px}',
+    '.pf-kc-msg.karl li{margin:4px 0}',
     '.pf-kc-mv-h{font-family:Georgia,serif;font-weight:700;font-size:15.5px;color:#fff;letter-spacing:.2px}',
     '.pf-kc-mv-b{font-family:Georgia,serif;font-size:14.5px;line-height:1.62}',
     '.pf-kc-msg.user{background:linear-gradient(135deg,#d61622 0%,#a50e18 100%);color:#fff;',
@@ -357,12 +360,47 @@
     return pi.chips.slice(0, 3);
   }
 
+  /* Markdown-lite: the worker answers in light markdown (**bold**, "- " lists,
+     raw URLs). Render it so Karl's voice lands with punch, not asterisks. */
+  function mdLite(t) {
+    var h = esc(String(t == null ? '' : t));
+    /* bullet lists: consecutive "- " lines become a <ul> */
+    var lines = h.split('\n'), out = [], inList = false, i, ln;
+    for (i = 0; i < lines.length; i++) {
+      ln = lines[i];
+      if (/^\s*-\s+/.test(ln)) {
+        if (!inList) { out.push('<ul>'); inList = true; }
+        out.push('<li>' + ln.replace(/^\s*-\s+/, '') + '</li>');
+      } else {
+        if (inList) { out.push('</ul>'); inList = false; }
+        out.push(ln);
+      }
+    }
+    if (inList) { out.push('</ul>'); }
+    h = out.join('\n').replace(/<ul>\n/g, '<ul>').replace(/\n<\/ul>/g, '</ul>').replace(/<\/li>\n<li>/g, '</li><li>');
+    /* bold */
+    h = h.replace(/\*\*([^\*\n]+)\*\*/g, '<b>$1</b>');
+    /* auto-link bare URLs */
+    h = h.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+    /* line breaks */
+    h = h.replace(/\n/g, '<br>');
+    return h;
+  }
+  /* Smart scroll: only yank to bottom if the user is already near it. */
+  function nearBottom() {
+    try { return (log.scrollHeight - log.scrollTop - log.clientHeight) < 140; }
+    catch (e) { return true; }
+  }
+  function scrollMaybe() {
+    if (nearBottom()) { try { log.scrollTop = log.scrollHeight; } catch (e) {} }
+  }
   function addMsg(kind, html) {
     var d = document.createElement('div');
     d.className = 'pf-kc-msg ' + kind;
     d.innerHTML = html;
+    var stick = nearBottom();
     log.appendChild(d);
-    log.scrollTop = log.scrollHeight;
+    if (stick) { try { log.scrollTop = log.scrollHeight; } catch (e) {} }
     return d;
   }
   function addChips(list) {
@@ -496,7 +534,7 @@
     tp.appendChild(think);
     tp.appendChild(dots);
     log.appendChild(tp);
-    log.scrollTop = log.scrollHeight;
+    scrollMaybe();
     var i = 0;
     var iv = setInterval(function () {
       i++;
@@ -506,9 +544,18 @@
     return { el: tp, stop: function () { clearInterval(iv); try { tp.parentNode && tp.parentNode.removeChild(tp); } catch (e) {} } };
   }
 
+  var _sending = false;
+  function setSending(on) {
+    _sending = !!on;
+    try {
+      var sb = form && form.querySelector('.pf-kc-send');
+      if (sb) { sb.disabled = _sending; sb.textContent = _sending ? '\u2026' : 'ASK'; }
+    } catch (e) {}
+  }
   function submitQ(q) {
     q = String(q || '').trim();
-    if (!q) { return; }
+    if (!q || _sending) { return; }
+    setSending(true);
     addMsg('user', esc(q));
     chipsBox.innerHTML = '';
     /* Muse: the question is a signal — feed the taste model. */
@@ -523,6 +570,7 @@
       }
       html += '<div class="sig">— Karl</div>';
       setTimeout(function () {
+        setSending(false);
         addMsg('karl', html);
         addChips(suggestionChips());
       }, 350);
@@ -546,9 +594,10 @@
     } catch (e) {}
     askWorker(q, ctx).then(function (r) {
       typing.stop();
+      setSending(false);
       if (r && r.ok && r.answer) {
-        var ansHtml = esc(String(r.answer)).replace(/\n/g, '<br>');
-        var msgEl = addMsg('karl', ansHtml);
+        var _at = String(r.answer).replace(/\s*[\u2014-]\s*Karl\s*$/, "");
+        var msgEl = addMsg('karl', mdLite(_at) + '<div class="sig">\u2014 Karl</div>');
         /* Remember the thread — next question builds on this one. */
         pushHistory(q, r.answer);
         /* Engagement sweep (retry): the follow-up used to be wiped by the
@@ -617,6 +666,7 @@
       '<div class="pf-kc-log"></div>' +
       '<div class="pf-kc-chips"></div>' +
       '<form class="pf-kc-form"><input class="pf-kc-in" type="text" maxlength="300" autocomplete="off" ' +
+      'enterkeyhint="send" autocapitalize="sentences" ' +
       'placeholder="Where is\u2026? How do I\u2026?" aria-label="Ask Karl">' +
       '<button type="submit" class="pf-kc-send">ASK</button></form>';
     log = panel.querySelector('.pf-kc-log');
@@ -634,7 +684,11 @@
           try { sessionStorage.setItem('pf_kc_greeted', '1'); } catch (e) {}
           greet();
         }
-        setTimeout(function () { try { input.focus(); } catch (e) {} }, 120);
+        /* No autofocus on touch — the iOS keyboard popping on open is jarring.
+           Desktop keeps focus for fast typing. */
+        var _coarse = false;
+        try { _coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches; } catch (e) {}
+        if (!_coarse) { setTimeout(function () { try { input.focus(); } catch (e) {} }, 120); }
       }
     }
     btn.addEventListener('click', function () { toggle(); });

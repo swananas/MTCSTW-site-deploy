@@ -55,24 +55,43 @@
 
   function api(params, cb) {
     if (!BACKEND) { cb(null); return; }
-    var fn = 'pfKarlCb' + Math.floor(Math.random() * 1e9);
-    var s = document.createElement('script'), done = false;
-    function finish(j) {
-      if (done) return; done = true;
-      try { delete window[fn]; } catch (e) {}
-      if (s.parentNode) s.parentNode.removeChild(s);
-      cb(j);
-    }
-    window[fn] = function (j) { finish(j); };
-    s.onerror = function () { finish(null); };
     var q = '?action=karl_query';
     for (var k in params) {
       if (params[k] != null && params[k] !== '') q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
     }
-    q += '&callback=' + fn;
-    s.src = BACKEND + q;
-    document.head.appendChild(s);
-    setTimeout(function () { finish(null); }, 15000);
+    var url = BACKEND + q;
+    var done = false;
+    function finish(j) {
+      if (done) return; done = true;
+      cb(j);
+    }
+    // Use fetch with CORS (PWA-safe, no JSONP script-tag fragility).
+    // Backend sends Access-Control-Allow-Origin: *.
+    try {
+      var ctrl = null;
+      var timeoutId = null;
+      if (typeof AbortController !== 'undefined') {
+        ctrl = new AbortController();
+        timeoutId = setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 15000);
+      } else {
+        timeoutId = setTimeout(function () { finish(null); }, 15000);
+      }
+      fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) {
+          if (!r || !r.ok) throw new Error('http ' + (r && r.status));
+          return r.json();
+        })
+        .then(function (j) {
+          if (timeoutId) clearTimeout(timeoutId);
+          finish(j);
+        })
+        .catch(function () {
+          if (timeoutId) clearTimeout(timeoutId);
+          finish(null);
+        });
+    } catch (e) {
+      finish(null);
+    }
   }
 
   var CSS = [
@@ -112,7 +131,10 @@
     '.pf-karl-entity .nm{font-family:Georgia,serif;font-weight:700;font-size:26px;letter-spacing:.5px}',
     '.pf-karl-entity .mt{font-size:13px;color:#5a564d;margin-top:2px}',
     '.pf-karl-fact{background:#fff;border:1px solid #e7e0d1;border-radius:12px;padding:16px 18px;margin:10px 0;',
-    'box-shadow:0 4px 16px rgba(26,26,26,.05);transition:transform .15s ease,box-shadow .15s ease}',
+    'box-shadow:0 4px 16px rgba(26,26,26,.05);transition:transform .15s ease,box-shadow .15s ease;',
+    'animation:pfk-factin .3s cubic-bezier(.2,.8,.3,1) both}',
+    '@keyframes pfk-factin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
+    '@media(prefers-reduced-motion:reduce){.pf-karl-fact{animation:none}}',
     '.pf-karl-fact:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(26,26,26,.08)}',
     '.pf-karl-fact .lb{font-size:11.5px;font-weight:700;color:#8a8478;letter-spacing:1.2px;margin-bottom:4px}',
     '.pf-karl-fact .vl{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#1a1a1a}',
@@ -137,7 +159,9 @@
     'box-shadow:0 6px 18px rgba(193,18,31,.25);transition:transform .15s ease,box-shadow .15s ease}',
     '.pf-karl-door:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(193,18,31,.35)}',
     '.pf-karl-door.alt{background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,.18)}',
-    '@media(min-width:520px){.pf-karl-form{max-width:560px;margin-left:auto;margin-right:auto}}'
+    '@media(min-width:520px){.pf-karl-form{max-width:560px;margin-left:auto;margin-right:auto}}',
+    /* BUTTER: hero title scales down gracefully on small phones */
+    '@media(max-width:380px){.pf-karl-title{font-size:36px;letter-spacing:5px}.pf-karl-input{font-size:16px;padding:13px 15px}.pf-karl-btn{padding:0 18px}}'
   ];
 
   function render(html) { host.innerHTML = '<style>' + CSS.join('\n') + '</style><div class="pf-karl">' + html + '</div>'; }
@@ -148,6 +172,7 @@
       '<p class="pf-karl-sub">Plain questions. Sourced answers. Never a guess.</p>' +
       '<form id="pf-karl-form" class="pf-karl-form">' +
       '<input id="pf-karl-q" class="pf-karl-input" type="text" maxlength="300" autocomplete="off"' +
+      ' enterkeyhint="go" autocapitalize="sentences"' +
       ' placeholder="Who funds your rep?" value="' + esc(q || '') + '" aria-label="Ask Karl">' +
       '<button class="pf-karl-btn" type="submit">ASK</button></form>' +
       '<div class="pf-karl-chips">' +
@@ -179,12 +204,28 @@
         });
       })(chips[i]);
     }
+    /* Corruption card buttons: fire the query. */
+    var ccBtns = host.querySelectorAll('[data-cc-query]');
+    for (var j = 0; j < ccBtns.length; j++) {
+      (function (b) {
+        b.addEventListener('click', function () {
+          var q = b.getAttribute('data-cc-query');
+          if (q) { input.value = q; ask(q); }
+        });
+      })(ccBtns[j]);
+    }
   }
 
+  var _asking = false;
   function ask(q) {
+    if (_asking) { return; }
+    _asking = true;
     render(hero(q) + '<div class="pf-karl-loading"><span class="lb">Querying the rails&hellip;</span><div class="sk"></div></div>');
     wire();
+    var _btn = document.querySelector('.pf-karl-btn');
+    if (_btn) { _btn.disabled = true; _btn.textContent = 'ASKING\u2026'; }
     api({ q: q }, function (r) {
+      _asking = false;
       if (!r || r.ok === false && !r.template) {
         render(hero(q) + '<div class="pf-karl-err">The rails didn\'t answer. Check your connection and try again.</div>');
         wire();
@@ -324,6 +365,15 @@
     if (r.template === 'faq' && r.faq && r.faq.length) {
       h += '<div class="pf-karl-empty"><div class="big">KARL</div>' + esc(r.faq[0].answer) + '</div>';
     }
+    if (r.template === 'prompt' && r.prompt) {
+      h += '<div class="pf-karl-empty"><div class="big">' + esc(r.prompt.heading) + '</div>' +
+        '<div class="pf-karl-disamb">' +
+        r.prompt.questions.map(function (qq) {
+          return '<button type="button" data-example="' + esc(qq.example) + '">' +
+            '<b>' + esc(qq.label) + '</b><br><span style="font-size:12.5px;color:#8a8478">' +
+            esc('Try: "' + qq.example + '"') + (qq.hint ? ' — ' + esc(qq.hint) : '') + '</span></button>';
+        }).join('') + '</div><div class="nt" style="font-size:12px;color:#8a8478;margin-top:8px">Karl never guesses — help me get it right.</div></div>';
+    }
     if (r.disambiguation && r.disambiguation.length) {
       h += '<div class="pf-karl-empty"><div class="big">More than one matched — pick one.</div>' +
         '<div class="pf-karl-disamb">' +
@@ -343,6 +393,23 @@
         (meta.length ? '<div class="mt">' + esc(meta.join(' · ')) + '</div>' : '') + '</div>';
     }
     (r.facts || []).forEach(function (f) {
+      /* Enforcement ledger: top_cases from the penalty tables. */
+      if (f.top_cases && f.top_cases.length) {
+        var _tname = String(f.table || 'enforcement').replace(/_/g, ' ');
+        h += '<div class="pf-karl-fact"><div class="lb">' + esc(_tname.toUpperCase()) + ' \u2014 TOP PENALTIES</div>';
+        f.top_cases.forEach(function (c, ci) {
+          var _pen = Number(c.penalty);
+          var _penTxt = _pen >= 1000000 ? '$' + (_pen / 1000000).toFixed(1) + 'M' :
+            _pen >= 1000 ? '$' + Math.round(_pen / 1000) + 'K' : '$' + _pen;
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:' +
+            (ci ? '9px 0 0' : '4px 0 0') + ';' + (ci ? 'border-top:1px dashed #e2ddd0;' : '') + '">' +
+            '<div><b>' + esc(c.name) + '</b><div class="nt">' + esc(c.type || '') +
+            (c.date ? ' \u00b7 ' + esc(String(c.date).slice(0, 10)) : '') + '</div></div>' +
+            '<div class="vl" style="font-size:21px;white-space:nowrap">' + _penTxt + '</div></div>';
+        });
+        h += '<div class="pf-karl-src">Sourced from public enforcement records</div></div>';
+        return;
+      }
       h += '<div class="pf-karl-fact"><div class="lb">' + esc(f.label) + '</div>' +
         '<div class="vl">' + esc(f.value_display) + '</div>' +
         (f.note ? '<div class="nt">' + esc(f.note) + '</div>' : '') +
@@ -360,6 +427,20 @@
           (s2.live ? '&#9679; ' : '&#9675; ') + esc(s2.rail) +
           (s2.live || !s2.note ? '' : ' — ' + esc(s2.note)) + '</span>';
       }).join('') + '</div>';
+    }
+    /* Corruption cards: proactive prompts for the deep cuts. */
+    if ((r.corruption_cards || []).length) {
+      h += '<div class="pf-karl-doors"><div class="hd">FOLLOW THE CORRUPTION</div>' +
+        r.corruption_cards.map(function (c, i) {
+          if (c.href) {
+            var url = safeUrl(c.href);
+            if (!url) return '';
+            return '<a class="pf-karl-door' + (i ? ' alt' : '') + '" href="' + esc(url) + '">' +
+              esc(c.label) + ' &rarr;<br><span style="font-size:11px;opacity:.8">' + esc(c.hint || '') + '</span></a>';
+          }
+          return '<button type="button" class="pf-karl-door' + (i ? ' alt' : '') + '" data-cc-query="' + esc(c.query || '') + '" style="width:100%;border:0;cursor:pointer">' +
+            esc(c.label) + '<br><span style="font-size:11px;opacity:.8">' + esc(c.hint || '') + '</span></button>';
+        }).join('') + '</div>';
     }
     /* The sticky web: every answer is a front door to the rooms. */
     if ((r.related || []).length) {
@@ -385,7 +466,13 @@
       (function (b) {
         b.addEventListener('click', function () {
           var nm = b.getAttribute('data-name');
+          var ex = b.getAttribute('data-example');
           var input = document.getElementById('pf-karl-q');
+          if (ex) {
+            // Prompt-for-accuracy button: fill the example into the input and focus
+            if (input) { input.value = ex; input.focus(); }
+            return;
+          }
           var q = 'who funds ' + nm + '?';
           if (input) input.value = q;
           api({ q: q, context: JSON.stringify({ name: nm }) }, function (r2) {

@@ -73,3 +73,16 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 - **fe/imp-loop-pillars-feed-20261010 @ 87865f0e** (ws-imp-loop-pillars-feed-20261010): Karl companion interaction-gated on pillars (42KB out of early window); dead-key cleanup; deleted 41KB dead roster-static.html. Did NOT touch G-D1 (roster→catalog) — P-001 still open, no overlap.
 - **Flag divergence (lead-to-lead):** sibling one-prompt uses `pf_oneprompt_home_seen`; core uses `pf_oneprompt_v1` — recommend unification (P-012 coordination note).
 - No approval on P-001..P-012 yet — all remain PROPOSED.
+
+## PASS 6 (2026-10-10 ~07:10 CDT) — page-weight budget
+| Surface | Size | Budget | Status |
+|---|---|---|---|
+| Homepage (tip) | 74,209B | 100KB hard gate | ✅ PASS (sibling branch slimmed to 35,097B) |
+| /karl shell | 9,353B | — | ✅ |
+| /cells, /create, /money | 5–6.4KB | — | ✅ |
+| /sick-left-radicals | 23,860B | — | ✅ |
+| /arcade, /dashboard shells | ~9KB | — | ✅ |
+| bundle-core.js | 452,993B | (waivers documented in build/) | ⚠️ cached via PWA; amortized |
+| **bundle-userdash.js** | **77,542B** | **40,000 (2026-10-07 verdict)** | ❌ **94% over** (was +1.1% on Oct 7; CEO decision on the overage still pending) → **WATCH for QC** |
+| bundle-pages.js | 158,792B | — | (catalog render; check vs budget) |
+- **PWA CACHE still 'mtcstw-pwa-v1'** on tip — karl-home FE recorded v1→v2 bump; if unmerged, clients hold stale assets → **verify for Release Eng**.

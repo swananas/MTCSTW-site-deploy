@@ -100,3 +100,10 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 **Blossom:** #4 (standard claim flow, not a new mechanism), #6 (shared once-ever flag — no re-prompt).
 **For:** ws-imp-loop-homepage-20261010 (A: 1-line core + flag unification) + ws-imp-loop-pillars-feed-20261010 (B: pillar shells).
 **Status:** PROPOSED — recommend APPROVE (P1). Homepage part already built by sibling.
+
+## P-013 — Dashboard: share the medal rack (P2)
+**Surface:** /dashboard (user-dashboard.js) · **For:** ws-imp-loop-homepage-20261010
+**Problem:** the service-medals rack (tap-to-reveal) has no share path; the share-image CTA standard already covers achievement images, but the dashboard — the natural place a user views their rack — can't share it.
+**Design:** `SHARE MY RACK →` button under the medal rack → share-image pipeline with the standard CTA ('JOIN THE FIGHT.' + MTCSTW.COM), 0 XP (viewing/sharing grants nothing — existing rule). Reuses the existing share-image module; no new CTA copy.
+**Blossom:** dashboard → feed (share), check #5 CTA standard.
+**Status:** PROPOSED — recommend APPROVE (small).

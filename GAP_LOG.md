@@ -90,3 +90,6 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 ## PASS 7 (2026-10-10 ~07:30 CDT) — 7 destinations verified
 - All 7 feed destinations on the tip homepage hit real handlers: EXPAND, DRILL DOWN (proof values → karl_query w/ shimmer + honest-empty), SHARE IMAGE, GO DEEPER (follow-ups → composer → live ask), RELATED, SAVE (localStorage), METHODOLOGY (per-source What/How/Coverage/Limitations). No dead buttons.
 - Design debt: drillDown synthesizes q from card text — conflicts with reimagine spec §4.2 (pre-written karl_drill only). → R8 in design review (prefer data-karl-q when present).
+
+## PASS 9 (2026-10-10 ~08:00 CDT) — dashboard
+- user-dashboard.js: skeletons ✅, reduced-motion ✅, pf_off ×7 ✅, ripple via bundle-core ✅, wiring clean (/create 3, /cells 2, karl 44). Gap: medal rack not shareable → P-013.

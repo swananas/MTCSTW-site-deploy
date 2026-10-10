@@ -253,7 +253,7 @@
       '<div class="pf-karl-title-sub">Codename // Open-Source Intelligence</div>' +
       '<p class="pf-karl-sub">This is not trivia. It is <b>ammunition</b>.</p>' +
       '<div class="pf-karl-arsenal">' +
-      '<div><div class="n">$13B+</div><div class="t">penalties tracked</div></div>' +
+      '<div><div class="n">$6.4T+</div><div class="t">penalties tracked</div></div>' +
       '<div><div class="n">250K</div><div class="t">tables of receipts</div></div>' +
       '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
       '</div>' +

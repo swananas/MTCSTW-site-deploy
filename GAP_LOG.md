@@ -93,3 +93,7 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 
 ## PASS 9 (2026-10-10 ~08:00 CDT) — dashboard
 - user-dashboard.js: skeletons ✅, reduced-motion ✅, pf_off ×7 ✅, ripple via bundle-core ✅, wiring clean (/create 3, /cells 2, karl 44). Gap: medal rack not shareable → P-013.
+
+## PASS 10 (2026-10-10 ~08:20 CDT) — drill convention reconciliation
+- **Two tappable-figure conventions exist:** WS-A `data-pf-fig`→drillSheet (display-only) vs WS-3 explore `data-explore`→explore sheet (live). Design ruling recorded in P-008: dataset-backed figures → data-explore; editorial/derived → data-pf-fig; one visual affordance (dotted underline).
+- Backend workstream ws-imp-loop-karl-modeling-20261010 active: 18 query templates live (7+11 new real-data). No FE branch yet.

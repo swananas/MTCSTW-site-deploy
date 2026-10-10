@@ -65,7 +65,7 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 ## P-008 — Modeling apps: tappable figures + Ask Karl + Dossier→Create (fixes G-M1/G-M2/G-M3/G4.2)
 **Surfaces:** /town, /economy, /dossier, /corruption-index, /peoples-cpi · **For:** ws-imp-loop-pillars-feed-20261010
 **Design:**
-- (a) Mark key figures `data-pf-fig="<value>" data-pf-source="<short source>"` (+ `data-pf-why` where a why-chain exists) — drill sheet opens TODAY (display-only, fail-closed); the explore_fact backend (WS-3) upgrades it to live data later with zero FE rework. ~20 lines/app.
+- (a) Mark key figures with the tappable convention — **two attributes, one visual language** (Design ruling 2026-10-10 ~08:15 CDT, reconciling WS-A `data-pf-fig` with WS-3 explore contract): figures backed by one of the 14 explore datasets → `data-explore="<dataset key>"` (opens the live explore sheet); editorial/derived figures (margin math, verdict figures) → `data-pf-fig="<value>" data-pf-source="<short source>"` (+ `data-pf-why` where a why-chain exists → drill sheet, works today, display-only). Both render the dotted-underline tappable affordance; the butter engine routes each to its sheet. No user-visible conflict.
 - (b) One `ASK KARL ABOUT THIS ↓` button per app → `/karl/?q=<app-specific query>` (G4.2).
 - (c) Dossier Builder: `TURN THIS INTO PROPAGANDA →` → `/create?case=<dossier-id>`; /create shows a "working from dossier" chip when `?case=` present (G2.1). Town/economy/cpi: `MAKE PROPAGANDA FROM THIS ↓` → `/create` (G2.2; preloaded-data handoff is a fast-follow once /create accepts payload params).
 **Blossom:** Modeling→Create chain (check #1 both directions: IN from weave rail, OUT to create/Karl).

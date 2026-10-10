@@ -88,6 +88,8 @@
 
   /* ============ WAR ROOM CSS ============ */
   var CSS = [
+    /* Kill any page-mount header above our hero */
+    '#pf-karl .pf-page-head,#pf-karl .pf-hero-top,#pf-karl header{display:none!important}',
     '.pf-karl{background:#0a0a0a;color:#f5f0e6;font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:0 18px 64px;line-height:1.6;-webkit-font-smoothing:antialiased}',
 
     /* --- HERO --- */
@@ -252,7 +254,7 @@
       '<p class="pf-karl-sub">This is not trivia. It is <b>ammunition</b>.</p>' +
       '<div class="pf-karl-arsenal">' +
       '<div><div class="n">$13B+</div><div class="t">penalties tracked</div></div>' +
-      '<div><div class="n">505</div><div class="t">tables of receipts</div></div>' +
+      '<div><div class="n">954K</div><div class="t">tables of receipts</div></div>' +
       '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
       '</div>' +
       '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +

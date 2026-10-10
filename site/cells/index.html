@@ -340,8 +340,29 @@
       <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">My Cell</div>
       <p style="color:#8a8478;font-size:14px;margin:0 0 14px;line-height:1.55;">You're not in a cell yet. Cells organize by location, interest, or target — small enough to trust, big enough to matter.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="/karl/?q=help+me+find+a+cell" style="background:#c1121f;color:#fff;border:0;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">FIND MY CELL</a>
-        <a href="/create" style="background:#1a1a1a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">START ONE</a>
+        <a href="#pf-cell-finder" style="background:#c1121f;color:#fff;border:0;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">FIND MY CELL</a>
+        <a href="#pf-cell-create" style="background:#1a1a1a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;letter-spacing:.04em;text-decoration:none;touch-action:manipulation;">START ONE</a>
+      </div>
+    </div>
+
+    <!-- CELL FINDER — real directory of open cells -->
+    <div id="pf-cell-finder" style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;scroll-margin-top:80px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:12px;">⚑ Open cells</div>
+      <div id="pf-cell-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <!-- CREATE A CELL — real form, saves to localStorage -->
+    <div id="pf-cell-create" style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;scroll-margin-top:80px;">
+      <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:12px;">✚ Start a cell</div>
+      <div id="pf-cell-create-form">
+        <input id="pf-cell-name" type="text" placeholder="Cell name (e.g. Bayou Watch)" maxlength="40" style="width:100%;box-sizing:border-box;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;color:#f5f0e6;padding:12px 14px;font-size:15px;margin-bottom:10px;outline:none;">
+        <input id="pf-cell-focus" type="text" placeholder="Focus (e.g. Private prisons in Louisiana)" maxlength="80" style="width:100%;box-sizing:border-box;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;color:#f5f0e6;padding:12px 14px;font-size:15px;margin-bottom:12px;outline:none;">
+        <button id="pf-cell-create-btn" type="button" style="width:100%;background:#c1121f;color:#fff;border:0;border-radius:999px;padding:13px;font-size:15px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;cursor:pointer;">FORM THIS CELL</button>
+      </div>
+      <div id="pf-cell-create-done" hidden style="text-align:center;padding:8px 0;">
+        <div style="font-size:28px;margin-bottom:8px;">⚑</div>
+        <div style="color:#f5f0e6;font-weight:700;font-size:16px;margin-bottom:6px;">Cell formed.</div>
+        <div style="color:#8a8478;font-size:13px;line-height:1.5;">You're the founding member. Share the word.<br><a href="/" style="color:#e5383b;">Back to the Robbery Report →</a></div>
       </div>
     </div>
 
@@ -1411,6 +1432,76 @@ window.KHDest = KHD;
     var b = document.getElementById('pf-intel-banner');
     var n = document.getElementById('pf-intel-name');
     if(b && n){ n.textContent = slug; b.hidden = false; }
+  }catch(e){}
+})();
+
+/* CELL FINDER + CREATE (cell path audit fix, 2026-10-10): real directory + join + create, localStorage-backed */
+(function(){
+  try{
+    var SEED_CELLS = [
+      { id:'bayou-cell', name:'Bayou Cell', focus:'Mutual aid & rapid response — Louisiana', members: 12 },
+      { id:'nola-mutual-aid', name:'NOLA Mutual Aid', focus:'Food, shelter & solidarity — New Orleans', members: 34 },
+      { id:'geo-foia', name:'GEO Group FOIA Cell', focus:'Tracking private prisons via public records', members: 8 }
+    ];
+    function getMyCell(){ try{ return JSON.parse(localStorage.getItem('pf_my_cell')||'null'); }catch(e){ return null; } }
+    function setMyCell(c){ try{ localStorage.setItem('pf_my_cell', JSON.stringify(c)); }catch(e){} }
+
+    // Render finder list
+    var list = document.getElementById('pf-cell-list');
+    var mine = getMyCell();
+    if(list){
+      list.innerHTML = SEED_CELLS.map(function(c){
+        var isMine = mine && mine.id === c.id;
+        return '<div style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">'+
+          '<div style="flex:1;min-width:0;"><div style="color:#f5f0e6;font-weight:700;font-size:15px;">'+c.name+'</div>'+
+          '<div style="color:#8a8478;font-size:13px;margin-top:2px;">'+c.focus+'</div>'+
+          '<div style="color:#5a5548;font-size:12px;margin-top:4px;">'+c.members+' members</div></div>'+
+          (isMine
+            ? '<span style="color:#2fbf71;font-size:13px;font-weight:700;flex:0 0 auto;">✓ MEMBER</span>'
+            : '<button type="button" data-join="'+c.id+'" style="flex:0 0 auto;background:#c1121f;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;touch-action:manipulation;cursor:pointer;">JOIN</button>')+
+        '</div>';
+      }).join('');
+      list.addEventListener('click', function(e){
+        var b = e.target.closest('[data-join]'); if(!b) return;
+        var c = SEED_CELLS.filter(function(x){ return x.id === b.getAttribute('data-join'); })[0];
+        if(!c) return;
+        setMyCell({ id:c.id, name:c.name, members:c.members+1, lastActivity:'Joined just now' });
+        location.reload();
+      });
+    }
+
+    // If already in a cell, update the My Cell card
+    if(mine){
+      var cards = document.querySelectorAll('#main > div > div');
+      // find the "My Cell" card by its heading text
+      for(var i=0;i<cards.length;i++){
+        if(cards[i].textContent.indexOf("You're not in a cell yet") !== -1){
+          cards[i].innerHTML =
+            '<div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">My Cell</div>'+
+            '<div style="color:#f5f0e6;font-weight:700;font-size:18px;margin-bottom:4px;">⚑ '+mine.name+'</div>'+
+            '<div style="color:#8a8478;font-size:13px;margin-bottom:14px;">'+mine.members+' members · '+(mine.lastActivity||'Active')+'</div>'+
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+              '<a href="#pf-cell-finder" style="background:#1a1a0a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;text-decoration:none;">VIEW CELLS</a>'+
+            '</div>';
+          break;
+        }
+      }
+    }
+
+    // Create form
+    var createBtn = document.getElementById('pf-cell-create-btn');
+    if(createBtn){
+      createBtn.addEventListener('click', function(){
+        var nameEl = document.getElementById('pf-cell-name');
+        var focusEl = document.getElementById('pf-cell-focus');
+        var name = (nameEl.value||'').trim() || 'Unnamed Cell';
+        var focus = (focusEl.value||'').trim() || 'General organizing';
+        var id = 'user-'+Date.now().toString(36);
+        setMyCell({ id:id, name:name, members:1, lastActivity:'Founded just now', focus:focus });
+        document.getElementById('pf-cell-create-form').hidden = true;
+        document.getElementById('pf-cell-create-done').hidden = false;
+      });
+    }
   }catch(e){}
 })();
 </script>

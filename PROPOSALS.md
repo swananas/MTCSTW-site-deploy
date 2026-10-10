@@ -89,3 +89,12 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 **Surfaces:** /<slug> catalog pages · **For:** ws-imp-loop-pillars-feed-20261010
 **Design:** (a) `← ALL 62 RADICALS` return link → /sick-left-radicals on every catalog page; (b) 2–3 related-creator cross-links (same score band) per page — catalog↔catalog Blossom edge. Pages are static: implement as a build-time generation step or a shared snippet; NOT 62 hand-edits.
 **Status:** PROPOSED — recommend APPROVE (after P-001).
+
+## P-012 — Restore one-prompt onboarding on the new IA (P1, conversion-critical)
+**Problem:** the standing one-prompt onboarding (37-one-prompt.js) triggers on `#pf-v2` — removed in the Karl homepage rebuild — and lives in bundle-core, which the homepage + 4 pillar shells don't load. First-time visitors are currently NEVER prompted to claim a callsign. Verified: 0 `#pf-v2` in new site/index.html; 0 claim-prompt UI on all 6 standalone surfaces.
+**Design (two parts):**
+- (A) Re-key core trigger: `#pf-v2` → `#pf-karl-home` in 37-one-prompt.js (1-line; restores the prompt on bundle-core pages).
+- (B) Inline one-prompt-lite on the 6 standalone shells (homepage + 4 pillars + /karl shell): same card copy + design tokens, ~5s delay, fires only if `!localStorage.pf_oneprompt_v1 && !hasCallsign()` (shared flag — core never double-prompts); dismiss/claim sets `pf_oneprompt_v1`. Claim CTA → `/dashboard` claim entry (dashboard loads bundle-core; FE to ensure `PF.mountClaimCTA` is prominent there for callsign-less visitors — standard mechanism, Blossom #4, no new flow). Kill `?pf_off=oneprompt-lite`. ~1.5KB inline per shell.
+**Blossom:** #4 (standard claim flow, not a new mechanism), #6 (shared once-ever flag — no re-prompt).
+**For:** ws-imp-loop-homepage-20261010 (A: 1-line core; B: homepage shell) + ws-imp-loop-pillars-feed-20261010 (B: pillar shells).
+**Status:** PROPOSED — recommend APPROVE (P1).

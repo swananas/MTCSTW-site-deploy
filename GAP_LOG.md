@@ -64,3 +64,6 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 - **War surfaces** (site/war-report, site/war-room — 9KB shells): pillar nav only; content via bundles (not deep-audited this pass).
 - **Games sampled:** 127 game files reference callsign claim flow; 57 carry JOIN THE FIGHT; 33 use navigator.share — no systemic gap; game-level butter rides bundle-core.
 - **DESIGN REVIEW filed:** Robbery Report reimagine spec §5 APPROVED with R1–R7 (DESIGN_REVIEW_ROBBERY_REIMAGINE.md).
+
+## PASS 4 (2026-10-10 ~06:30 CDT) — onboarding
+- **G-O1 (P1): one-prompt onboarding DEAD on new IA.** 37-one-prompt.js triggers on `#pf-v2` (removed in Karl homepage rebuild; 0 matches in new site/index.html) and lives in bundle-core (not loaded on homepage + 4 pillar shells + /karl shell). First-time visitors never prompted. → P-012 (re-key + inline lite, shared pf_oneprompt_v1 flag).

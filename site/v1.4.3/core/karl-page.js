@@ -161,7 +161,19 @@
     '.pf-karl-door.alt{background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,.18)}',
     '@media(min-width:520px){.pf-karl-form{max-width:560px;margin-left:auto;margin-right:auto}}',
     /* BUTTER: hero title scales down gracefully on small phones */
-    '@media(max-width:380px){.pf-karl-title{font-size:36px;letter-spacing:5px}.pf-karl-input{font-size:16px;padding:13px 15px}.pf-karl-btn{padding:0 18px}}'
+    '@media(max-width:380px){.pf-karl-title{font-size:36px;letter-spacing:5px}.pf-karl-input{font-size:16px;padding:13px 15px}.pf-karl-btn{padding:0 18px}}',
+    /* KARL FOCUS (2026-10-09): this page is an intelligence briefing, not a dashboard.
+       Hide competing floating/chrome elements that belong on other pages. */
+    '#pf-nuke-stick,#pf-commend-chip,.pf-kc-btn{display:none!important}',
+    /* MAKE SHAREABLE — proper styling (was unstyled = looked disabled) */
+    '.pf-mss-btn{background:#fff;border:2px solid #c1121f;color:#c1121f;border-radius:12px;',
+    'font:900 13px/1 Arial,sans-serif;letter-spacing:1.5px;padding:14px 28px;cursor:pointer;',
+    'transition:background .15s ease,color .15s ease,transform .15s ease;min-height:48px}',
+    '.pf-mss-btn:hover{background:#c1121f;color:#fff;transform:translateY(-1px)}',
+    '.pf-mss-btn:active{transform:scale(.97)}',
+    /* Tighter answer hierarchy: question -> answer -> sources -> share */
+    '.pf-karl-rail{margin:10px 0 2px}',
+    '.pf-karl-rail span{font-size:10.5px;padding:4px 10px}'
   ];
 
   function render(html) { host.innerHTML = '<style>' + CSS.join('\n') + '</style><div class="pf-karl">' + html + '</div>'; }

@@ -124,12 +124,16 @@
 (function(){
   var BASE='/v1.4.3/';
   var CORE='bundle-core.js';
-  var GAMES=["core/karl-page.js?v=20261009-butter"];
+  var GAMES=["core/karl-page.js?v=20261009-cleanup"];
   var PAGES='pages/bundle-pages.js';
   var PWA='pwa/install.js';
   var KARL='core/bundle-karl-companion.js';
   function pfSkip(n){
     try{
+      var ARCHIVED=['karl-companion','karl-defer','dock','make-shareable'];
+      var on=location.search.match(/[?&]pf_on=([^&]+)/);
+      if(on&&decodeURIComponent(on[1]).split(',').indexOf(n)!==-1)return false;
+      if(ARCHIVED.indexOf(n)!==-1)return true;
       var d=[];try{d=JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]');}catch(e){}
       var m=location.search.match(/[?&]pf_off=([^&]+)/);
       if(m)d=d.concat(decodeURIComponent(m[1]).split(','));

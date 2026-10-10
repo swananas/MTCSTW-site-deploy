@@ -86,3 +86,7 @@ Severity: **P0** = dead end / broken promise (user taps, nothing real happens). 
 | **bundle-userdash.js** | **77,542B** | **40,000 (2026-10-07 verdict)** | ❌ **94% over** (was +1.1% on Oct 7; CEO decision on the overage still pending) → **WATCH for QC** |
 | bundle-pages.js | 158,792B | — | (catalog render; check vs budget) |
 - **PWA CACHE still 'mtcstw-pwa-v1'** on tip — karl-home FE recorded v1→v2 bump; if unmerged, clients hold stale assets → **verify for Release Eng**.
+
+## PASS 7 (2026-10-10 ~07:30 CDT) — 7 destinations verified
+- All 7 feed destinations on the tip homepage hit real handlers: EXPAND, DRILL DOWN (proof values → karl_query w/ shimmer + honest-empty), SHARE IMAGE, GO DEEPER (follow-ups → composer → live ask), RELATED, SAVE (localStorage), METHODOLOGY (per-source What/How/Coverage/Limitations). No dead buttons.
+- Design debt: drillDown synthesizes q from card text — conflicts with reimagine spec §4.2 (pre-written karl_drill only). → R8 in design review (prefer data-karl-q when present).

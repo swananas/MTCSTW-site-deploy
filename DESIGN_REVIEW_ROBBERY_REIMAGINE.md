@@ -30,3 +30,6 @@ Checks 1–11 PASS (IN/OUT declared, Karl-wired deeply, zero XP, share CTA stand
 
 ## Handoff
 News Desk → Implementation Team: §5 is Design-signed with R1–R7. Build specs for the verdict layer must cite this review. Next: PR/Psych independent sign-offs (§7.2/7.3) per the coordinator's routing.
+
+## Addendum R8 — drillDown query synthesis (2026-10-10 ~07:30 CDT, from tip audit)
+The live homepage `drillDown(label, value)` synthesizes `q = label + ' ' + value` from card text before calling `karl_query`. This works today, but it violates §4.2's "no invented queries" rule once verdict cards ship with pre-written `karl_drill` entries. **Design rule:** drill entry points must prefer a `data-karl-q` (pre-written query) attribute when present, falling back to synthesis only for legacy cards. One attribute, no new API.

@@ -1353,6 +1353,18 @@ function khPaintShare(d, sizeKey, done){
     });
   }
 
+  /* PFN watermark — press stamp, centered, semi-transparent (uncroppable) */
+  x.save();
+  x.globalAlpha = 0.15;
+  var wmX = W/2, wmY = (footTop)/2;
+  x.strokeStyle = '#f5f0e6'; x.lineWidth = 3;
+  x.beginPath(); x.arc(wmX, wmY, 58, 0, Math.PI*2); x.stroke();
+  x.fillStyle = '#f5f0e6'; x.textAlign = 'center';
+  x.font = '900 44px system-ui, -apple-system, sans-serif';
+  x.fillText('PFN', wmX, wmY + 15);
+  x.textAlign = 'left';
+  x.restore();
+
   /* footer — red bar */
   x.fillStyle = '#c1121f'; x.fillRect(0, footTop, W, cfg.footH);
   x.fillStyle = '#ffffff'; x.textAlign = 'center';

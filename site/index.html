@@ -1394,7 +1394,8 @@ function khPaintShare(d, sizeKey, done){
   x.font = '900 '+cfg.footBig+'px system-ui, -apple-system, sans-serif';
   x.fillText('JOIN THE FIGHT.', W/2, footTop + cfg.footH*0.5 - 2);
   x.font = cfg.footSmall+'px system-ui, -apple-system, sans-serif';
-  x.fillText('mtcstw.com / #' + cellSlug(d.q).slice(0,36), W/2, footTop + cfg.footH - cfg.footPad);
+  var _slug = String(d.q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,36) || 'intel';
+  x.fillText('mtcstw.com / #' + _slug, W/2, footTop + cfg.footH - cfg.footPad);
   x.textAlign = 'left';
 
   /* toBlob with fallbacks — iOS Safari sometimes returns null or never resolves */

@@ -405,11 +405,23 @@ function cardEl(d){
   btn.addEventListener('click', function(e){
     e.stopPropagation();
     if(btn.classList.contains('kh-done')) return;
-    btn.classList.add('kh-done');
-    btn.textContent = 'DEPLOYED ✓';
-    d.deploys = (d.deploys||0)+1;
-    nEl.textContent = fmt(d.deploys);
-    showToast('Deployed — the robbery report grows');
+    /* Build share text from the card */
+    var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
+    /* Try native share, fall back to clipboard */
+    if (navigator.share) {
+      navigator.share({ title: 'KARL Discovery', text: shareText, url: 'https://mtcstw.com/' })
+        .then(function(){ markDeployed(); })
+        .catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText).then(function(){ markDeployed(); showToast('Copied — paste it anywhere'); });
+    } else { markDeployed(); }
+    function markDeployed(){
+      btn.classList.add('kh-done');
+      btn.textContent = 'DEPLOYED \u2713';
+      d.deploys = (d.deploys||0)+1;
+      nEl.textContent = fmt(d.deploys);
+      showToast('Deployed — the robbery report grows');
+    }
   });
   return el;
 }

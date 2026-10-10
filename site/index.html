@@ -1245,19 +1245,27 @@ function drillDown(label, value){
 /* ---------- 3. SHAREABLE IMAGE ---------- */
 /* Upgraded propaganda renderer: hero money figure, verified badge, source line,
    PFN watermark, receipt slug. Simple flow: tap -> paint -> native share -> download. */
+/* Zuck-tested sizes: IG/FB stories are 1080x1920. All text >= 32px (FB compresses
+   hard). Critical content stays inside the center-80% safe zone (safeEdge). */
 var KH_SHARE_SIZES = {
-  portrait: { label:'PORTRAIT', sub:'stories',  w:1080, h:1350, m:60, barH:14,
-    mast:38, mastTop:96, mastGap:42, secGap:42,
-    hero:132, heroGap:150, head:54, headLh:68, ans:34, ansLh:48,
-    proof:28, proofLh:48, proofRows:4, footH:120, footBig:44, footSmall:30, footPad:26, minTail:320 },
-  square: { label:'SQUARE', sub:'feed', w:1080, h:1080, m:60, barH:12,
-    mast:34, mastTop:84, mastGap:36, secGap:34,
-    hero:112, heroGap:128, head:48, headLh:60, ans:30, ansLh:42,
-    proof:26, proofLh:44, proofRows:3, footH:104, footBig:40, footSmall:28, footPad:22, minTail:260 },
-  wide: { label:'WIDE', sub:'x / twitter', w:1200, h:630, m:56, barH:10,
-    mast:28, mastTop:64, mastGap:28, secGap:22,
-    hero:80, heroGap:94, head:40, headLh:50, ans:26, ansLh:36,
-    proof:24, proofLh:38, proofRows:2, footH:66, footBig:32, footSmall:24, footPad:14, minTail:170 }
+  portrait: { label:'PORTRAIT', sub:'stories', w:1080, h:1920, m:100, barH:16,
+    mast:46, mastTop:150, mastGap:52, secGap:48,
+    whoLabel:34, whoName:60, whoGap:96,
+    hero:168, heroGap:200, head:66, headLh:84, ans:42, ansLh:60,
+    proof:34, proofLh:56, proofRows:5, footH:150, footBig:54, footSmall:36, footPad:32,
+    minTail:460, safeEdge:150 },
+  square: { label:'SQUARE', sub:'feed', w:1080, h:1080, m:100, barH:14,
+    mast:42, mastTop:120, mastGap:44, secGap:36,
+    whoLabel:32, whoName:52, whoGap:84,
+    hero:134, heroGap:160, head:58, headLh:74, ans:36, ansLh:52,
+    proof:32, proofLh:52, proofRows:4, footH:130, footBig:48, footSmall:34, footPad:28,
+    minTail:340, safeEdge:110 },
+  wide: { label:'WIDE', sub:'x / twitter', w:1200, h:630, m:110, barH:12,
+    mast:34, mastTop:92, mastGap:32, secGap:22,
+    whoLabel:32, whoName:44, whoGap:70,
+    hero:96, heroGap:120, head:48, headLh:60, ans:32, ansLh:44,
+    proof:32, proofLh:44, proofRows:2, footH:84, footBig:38, footSmall:32, footPad:20,
+    minTail:220, safeEdge:60 }
 };
 
 /* biggest $ figure on the card → hero number */
@@ -1287,6 +1295,20 @@ function khShareSrc(d){
   return outlet;
 }
 
+/* who is robbing you — entity from explicit field, else leading capitalized
+   phrase of the answer (articles stripped). Empty string = skip the block,
+   never print garbage. */
+function khShareWho(d){
+  if(d.who) return String(d.who).trim();
+  var t = String(d.a||'').replace(/<[^>]*>/g,'').trim().replace(/^(The|A|An)\s+/i,'');
+  var m = t.match(/^([A-Z][\w.'-]*(?:\s+(?:to|of|for|de|van|der|[A-Z][\w.'-]*)){0,3})/);
+  var who = m ? m[1].replace(/\s+(to|of|for)$/i,'').replace(/[.,;:!?]+$/,'') : '';
+  var stop = {ONE:1,TWO:1,THREE:1,FOUR:1,FIVE:1,SIX:1,SEVEN:1,EIGHT:1,NINE:1,TEN:1,
+    OVER:1,NEARLY:1,ALMOST:1,ABOUT:1,SOME:1,MANY:1,MOST:1,ALL:1,NO:1,MORE:1,AROUND:1,IT:1,THEY:1};
+  if(stop[(who.split(/\s+/)[0]||'').toUpperCase()]) return '';
+  return who;
+}
+
 /* wrap text; returns y after last line; never draws past maxY */
 function khWrap(x, text, px, py, maxW, lh, maxY){
   var words = String(text).split(/\s+/), line = '', y = py;
@@ -1309,9 +1331,10 @@ function khPaintShare(d, sizeKey, done){
   var x = c.getContext('2d');
   x.textAlign = 'left'; x.textBaseline = 'alphabetic';
   var money = khShareMoney(d);
+  var who = khShareWho(d);
   var plain = String(d.a||'').replace(/<[^>]*>/g,'').trim();
   var rows = (d.rows||[]).slice(0, cfg.proofRows);
-  var footTop = H - cfg.footH;
+  var footTop = H - cfg.safeEdge - cfg.footH;
 
   /* bg + red top bar */
   x.fillStyle = '#0a0a0a'; x.fillRect(0,0,W,H);
@@ -1327,20 +1350,34 @@ function khPaintShare(d, sizeKey, done){
   x.fillStyle = '#2a2a2a'; x.fillRect(m, y, W-2*m, 2);
   y += cfg.secGap;
 
-  /* hero money figure */
+  /* WHO — who's robbing you. Unmistakable: red label + big uppercase name. */
+  if(who){
+    x.fillStyle = '#c1121f'; x.font = '900 '+cfg.whoLabel+'px system-ui, -apple-system, sans-serif';
+    x.fillText("WHO'S ROBBING YOU", m, y);
+    y += cfg.whoLabel + 16;
+    x.fillStyle = '#f5f0e6'; x.font = '900 '+cfg.whoName+'px system-ui, -apple-system, sans-serif';
+    var whoTxt = who.toUpperCase();
+    while(whoTxt.length > 4 && x.measureText(whoTxt).width > W-2*m){ whoTxt = whoTxt.slice(0,-2); }
+    x.fillText(whoTxt, m, y);
+    y += cfg.whoGap;
+  }
+
+  /* hero money figure — HOW MUCH, massive, with red punch bar */
   if(money){
     x.fillStyle = '#f5f0e6'; x.font = '900 '+cfg.hero+'px system-ui, -apple-system, sans-serif';
     x.fillText(money, m, y);
+    x.fillStyle = '#c1121f';
+    x.fillRect(m, y + 16, Math.min(W-2*m, x.measureText(money).width), Math.max(5, Math.round(cfg.hero*0.045)));
     y += cfg.heroGap;
   }
 
-  /* headline — Georgia serif */
-  x.fillStyle = '#ffffff'; x.font = 'bold '+cfg.head+'px Georgia, "Times New Roman", serif';
+  /* headline — WHAT happened, Georgia serif, heavy */
+  x.fillStyle = '#ffffff'; x.font = '800 '+cfg.head+'px Georgia, "Times New Roman", serif';
   y = khWrap(x, d.q, m, y, W-2*m, cfg.headLh, footTop - cfg.minTail);
   y += cfg.secGap;
 
-  /* answer */
-  x.fillStyle = '#bdbdbd'; x.font = cfg.ans+'px system-ui, -apple-system, sans-serif';
+  /* answer — higher contrast for FB compression */
+  x.fillStyle = '#d4d4d4'; x.font = cfg.ans+'px system-ui, -apple-system, sans-serif';
   y = khWrap(x, plain, m, y, W-2*m, cfg.ansLh, footTop - cfg.minTail);
   y += cfg.secGap;
 
@@ -1369,22 +1406,24 @@ function khPaintShare(d, sizeKey, done){
         var srcLine = 'SOURCE: ' + outlet;
         if(d.when) srcLine += ' \u00B7 ' + (d.when === 'now' ? 'today' : String(d.when));
         y += Math.round(cfg.proof * 0.25);
-        x.fillStyle = '#9a9a9a'; x.font = Math.round(cfg.proof * 0.85)+'px system-ui, -apple-system, sans-serif';
+        var srcPx = Math.max(32, Math.round(cfg.proof * 0.85)); /* never below 32px — FB crushes small type */
+        x.fillStyle = '#9a9a9a'; x.font = srcPx+'px system-ui, -apple-system, sans-serif';
         x.fillText(srcLine.slice(0,72), m, y);
         y += Math.round(cfg.proofLh * 0.9);
       }
     }
   }
 
-  /* PFN watermark — press stamp, centered, semi-transparent (uncroppable) */
+  /* PFN watermark — press stamp at IMAGE CENTER, semi-transparent, over the
+     content. Cropping it out destroys the image. Never removed. */
   x.save();
   x.globalAlpha = 0.15;
-  var wmX = W/2, wmY = (footTop)/2;
-  x.strokeStyle = '#f5f0e6'; x.lineWidth = 3;
-  x.beginPath(); x.arc(wmX, wmY, 58, 0, Math.PI*2); x.stroke();
+  var wmX = W/2, wmY = H/2, wmR = Math.round(W * 0.09);
+  x.strokeStyle = '#f5f0e6'; x.lineWidth = Math.max(3, Math.round(W*0.004));
+  x.beginPath(); x.arc(wmX, wmY, wmR, 0, Math.PI*2); x.stroke();
   x.fillStyle = '#f5f0e6'; x.textAlign = 'center';
-  x.font = '900 44px system-ui, -apple-system, sans-serif';
-  x.fillText('PFN', wmX, wmY + 15);
+  x.font = '900 '+Math.round(W*0.066)+'px system-ui, -apple-system, sans-serif';
+  x.fillText('PFN', wmX, wmY + Math.round(W*0.023));
   x.textAlign = 'left';
   x.restore();
 

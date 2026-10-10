@@ -91,14 +91,20 @@
     '.pf-karl{background:#0a0a0a;color:#f5f0e6;font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:0 18px 64px;line-height:1.6;-webkit-font-smoothing:antialiased}',
 
     /* --- HERO --- */
-    '.pf-karl-hero{text-align:center;padding:48px 8px 28px;position:relative}',
+    '.pf-karl-hero{text-align:center;padding:48px 8px 24px;position:relative}',
     '.pf-karl-hero::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:28px;background:linear-gradient(180deg,transparent,#c1121f)}',
     '.pf-karl-kicker{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:7px;color:#c1121f;margin-bottom:14px;text-transform:uppercase}',
     '.pf-karl-kicker .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#c1121f;margin-right:8px;animation:pfk-pulse 2.2s infinite}',
     '@keyframes pfk-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(193,18,31,.5)}50%{opacity:.5;box-shadow:0 0 0 7px rgba(193,18,31,0)}}',
-    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:54px;letter-spacing:14px;margin:0 0 10px;color:#f5f0e6;text-indent:14px}',
-    '.pf-karl-sub{font-family:Georgia,serif;font-style:italic;font-size:16px;color:#a39c8b;margin:0 0 30px;line-height:1.5}',
+    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:54px;letter-spacing:14px;margin:0 0 4px;color:#f5f0e6;text-indent:14px}',
+    '.pf-karl-title-sub{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:5px;color:#5a554a;margin:0 0 14px;text-transform:uppercase}',
+    '.pf-karl-sub{font-family:Georgia,serif;font-style:italic;font-size:16px;color:#a39c8b;margin:0 0 18px;line-height:1.5}',
     '.pf-karl-sub b{color:#f5f0e6;font-style:normal}',
+    /* live data ticker — the scale of the arsenal */
+    '.pf-karl-arsenal{display:flex;justify-content:center;gap:26px;margin:0 0 30px;flex-wrap:wrap}',
+    '.pf-karl-arsenal div{text-align:center}',
+    '.pf-karl-arsenal .n{font-family:Georgia,serif;font-weight:700;font-size:21px;color:#e5383b;line-height:1.2}',
+    '.pf-karl-arsenal .t{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:9.5px;letter-spacing:2px;color:#5a554a;text-transform:uppercase;margin-top:3px}',
 
     /* --- INPUT: briefing an analyst --- */
     '.pf-karl-form{position:relative;max-width:600px;margin:0 auto 10px}',
@@ -110,9 +116,12 @@
     '.pf-karl-btn{background:linear-gradient(135deg,#d61622,#8f0c14);color:#fff;border:0;padding:0 26px;',
     'font:900 14px/1 Arial,sans-serif;letter-spacing:2px;cursor:pointer;white-space:nowrap;',
     'transition:filter .15s ease,transform .1s ease;min-height:58px}',
-    '.pf-karl-btn:hover{filter:brightness(1.12)}',
-    '.pf-karl-btn:active{transform:scale(.98)}',
+    '.pf-karl-btn:hover{filter:brightness(1.18);box-shadow:0 6px 24px rgba(193,18,31,.4)}',
+    '.pf-karl-btn:active{transform:scale(.94);filter:brightness(1.3)}',
     '.pf-karl-btn:disabled{opacity:.5;cursor:wait;filter:none;transform:none}',
+    /* trigger flash on submit */
+    '.pf-karl-inputwrap.firing{border-color:#e5383b;box-shadow:0 0 0 4px rgba(229,56,59,.28),0 8px 32px rgba(193,18,31,.3)}',
+    '.pf-karl-inputwrap.firing .pf-karl-btn{background:linear-gradient(135deg,#ff2a35,#b30d16)}',
     '.pf-karl-hint{text-align:center;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;color:#5a554a;margin:0 0 6px;letter-spacing:.5px}',
 
     /* --- EXAMPLE CHIPS: suggested intel requests --- */
@@ -152,12 +161,14 @@
     '@media(prefers-reduced-motion:reduce){.pf-karl-fact,.pf-karl-brief{animation:none}.pf-karl-kicker .pulse,.pf-karl-loading .td i{animation:none}}',
     '.pf-karl-fact::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#c1121f,transparent)}',
     '.pf-karl-fact .lb{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;font-weight:700;color:#8a8478;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}',
-    '.pf-karl-fact .vl{font-family:Georgia,serif;font-size:30px;font-weight:700;color:#fff;line-height:1.15}',
+    '.pf-karl-fact .lb::before{content:"EXHIBIT";display:inline-block;color:#c1121f;margin-right:8px}',
+    '.pf-karl-fact .vl{font-family:Georgia,serif;font-size:32px;font-weight:700;color:#fff;line-height:1.15}',
     '.pf-karl-fact .vl b{color:#fff}',
-    '.pf-karl-fact .vl .num{color:#e5383b}',
+    '.pf-karl-fact .vl .num{color:#ff2a35;text-shadow:0 0 24px rgba(229,56,59,.35)}',
     '.pf-karl-fact .nt{font-size:13.5px;color:#a39c8b;margin-top:8px;line-height:1.55}',
     '.pf-karl-fact .nt b{color:#d8d2c4}',
-    '.pf-karl-src{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:#5a554a;margin-top:12px;padding-top:10px;border-top:1px solid #1e1e1e;letter-spacing:.3px}',
+    '.pf-karl-src{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:#7a7466;margin-top:12px;padding-top:10px;border-top:1px solid #1e1e1e;letter-spacing:.3px}',
+    '.pf-karl-src::before{content:"▸ RECEIPTS — ";color:#c1121f;font-weight:700}',
     '.pf-karl-stale{color:#e8a33d;font-weight:700}',
     '.pf-karl-adj{font-size:13px;color:#8a8478;font-style:italic;text-align:center;margin:18px 0;font-family:Georgia,serif}',
 
@@ -178,6 +189,9 @@
     '.pf-karl-disamb button span{font-size:12.5px;color:#8a8478}',
 
     /* Rail badges: subtle, elegant */
+    '.pf-karl-verdict{text-align:center;margin:26px auto 4px;max-width:520px}',
+    '.pf-karl-verdict .vline{font-family:Georgia,serif;font-style:italic;font-size:15px;color:#d8d2c4;line-height:1.6}',
+    '.pf-karl-verdict .vline b{color:#ff2a35;font-style:normal}',
     '.pf-karl-rail{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 4px}',
     '.pf-karl-rail span{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;letter-spacing:1px;color:#5a554a;',
     'border:1px solid #222;border-radius:4px;padding:4px 9px;text-transform:uppercase}',
@@ -194,8 +208,8 @@
     '.pf-karl-door span{font-size:11px;opacity:.75;font-weight:400;letter-spacing:.5px}',
 
     /* MAKE SHAREABLE: natural next step */
-    '.pf-mss-wrap{text-align:center;margin:28px 0 8px;padding-top:20px;border-top:1px solid #1a1a1a}',
-    '.pf-mss-label{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:3px;color:#5a554a;margin-bottom:12px;text-transform:uppercase}',
+    '.pf-mss-wrap{text-align:center;margin:30px 0 8px;padding:22px 18px 6px;border-top:1px solid #1a1a1a;background:linear-gradient(180deg,rgba(193,18,31,.05),transparent 70%);border-radius:0 0 14px 14px}',
+    '.pf-mss-label{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:3px;color:#c1121f;margin-bottom:12px;text-transform:uppercase;font-weight:700}',
     '.pf-mss-btn{background:transparent;border:1.5px solid #c1121f;color:#e5383b;border-radius:12px;',
     'font:900 13px/1 Arial,sans-serif;letter-spacing:2px;padding:16px 36px;cursor:pointer;min-height:52px;',
     'transition:all .18s ease}',
@@ -222,9 +236,9 @@
   function render(html) { host.innerHTML = '<style>' + CSS.join('\n') + '</style><div class="pf-karl">' + html + '</div>'; }
 
   var SUBS = [
-    'Plain questions. <b>Sourced</b> answers. Never a guess.',
+    'This is not trivia. It is <b>ammunition</b>.',
     'The rails are <b>live</b>. Ask like you mean it.',
-    'Every number has a <b>receipt</b>.'
+    'Every number has a <b>receipt</b>. Bring it to the fight.'
   ];
   var _subIdx = Math.floor(Math.random() * SUBS.length);
 
@@ -232,22 +246,28 @@
     return '<div class="pf-karl-hero">' +
       '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +
       '<h1 class="pf-karl-title">KARL</h1>' +
+      '<div class="pf-karl-title-sub">Codename // Open-Source Intelligence</div>' +
       '<p class="pf-karl-sub">' + SUBS[_subIdx] + '</p>' +
+      '<div class="pf-karl-arsenal">' +
+      '<div><div class="n">$13B+</div><div class="t">penalties tracked</div></div>' +
+      '<div><div class="n">505</div><div class="t">tables of receipts</div></div>' +
+      '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
+      '</div>' +
       '<form id="pf-karl-form" class="pf-karl-form" autocomplete="off">' +
       '<div class="pf-karl-inputwrap">' +
       '<span class="pf-karl-prompt">&gt;</span>' +
       '<input id="pf-karl-q" class="pf-karl-input" type="text" maxlength="300" autocomplete="off"' +
       ' enterkeyhint="go" autocapitalize="sentences" spellcheck="false"' +
-      ' placeholder="Brief me: who funds your rep? what did Boeing do?" value="' + esc(q || '') + '" aria-label="Ask Karl">' +
+      ' placeholder="Brief me: which CEO stole the most? who owns my town?" value="' + esc(q || '') + '" aria-label="Ask Karl">' +
       '<button class="pf-karl-btn" type="submit">ASK</button>' +
       '</div></form>' +
       '<p class="pf-karl-hint">natural language — no keywords needed</p>' +
-      '<div class="pf-karl-chips-label">Suggested intel</div>' +
+      '<div class="pf-karl-chips-label">Load a round</div>' +
       '<div class="pf-karl-chips">' +
-      '<button type="button" class="pf-karl-chip" data-q="Who funds my rep?">who funds my rep?</button>' +
-      '<button type="button" class="pf-karl-chip" data-q="Who owns 70801?">who owns 70801?</button>' +
+      '<button type="button" class="pf-karl-chip" data-q="Which defense contractor paid the most in penalties?">worst defense contractor?</button>' +
+      '<button type="button" class="pf-karl-chip" data-q="Who is MTCSTW?">who is MTCSTW?</button>' +
       '<button type="button" class="pf-karl-chip" data-q="What did ExxonMobil do?">what did ExxonMobil do?</button>' +
-      '<button type="button" class="pf-karl-chip" data-q="What\'s the latest on housing?">latest on housing?</button>' +
+      '<button type="button" class="pf-karl-chip" data-q="Which for-profit college defrauded the most students?">worst for-profit college?</button>' +
       '</div>' +
       '<p class="pf-karl-note">County-level areas only. Karl answers from public records — never from memory.</p>' +
       '</div>';
@@ -287,6 +307,11 @@
   function ask(q) {
     if (_asking) { return; }
     _asking = true;
+    /* trigger flash — the round is loaded */
+    try {
+      var _iw = document.querySelector('.pf-karl-inputwrap');
+      if (_iw) { _iw.classList.add('firing'); setTimeout(function(){ _iw.classList.remove('firing'); }, 450); }
+    } catch (e) {}
     render(hero(q) +
       '<div class="pf-karl-loading"><span class="lb">Karl is working the rails</span>' +
       '<span class="td"><i></i><i></i><i></i></span></div>');
@@ -572,8 +597,12 @@
     }
     /* MAKE SHAREABLE: natural next step */
     if ((r.facts || []).length) {
-      h += '<div class="pf-mss-wrap"><div class="pf-mss-label">Spread the intel</div>' +
-        '<div data-mss-slot><button type="button" class="pf-mss-btn" data-karl-mss>MAKE SHAREABLE</button></div></div>';
+      h += '<div class="pf-mss-wrap"><div class="pf-mss-label">Deploy this intel</div>' +
+        '<div data-mss-slot><button type="button" class="pf-mss-btn" data-karl-mss>DEPLOY</button></div></div>';
+    }
+    /* verdict line — the case is built */
+    if ((r.facts || []).length) {
+      h += '<div class="pf-karl-verdict"><div class="vline">The case is <b>built</b>. The receipts are <b>in</b>.</div></div>';
     }
     h += '</div></div>';
     return h;

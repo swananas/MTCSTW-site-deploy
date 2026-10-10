@@ -254,7 +254,7 @@
       '<p class="pf-karl-sub">This is not trivia. It is <b>ammunition</b>.</p>' +
       '<div class="pf-karl-arsenal">' +
       '<div><div class="n">$6.4T+</div><div class="t">penalties tracked</div></div>' +
-      '<div><div class="n">250K</div><div class="t">tables of receipts</div></div>' +
+      '<div><div class="n">954K</div><div class="t">tables of receipts</div></div>' +
       '<div><div class="n">62</div><div class="t">creators armed</div></div>' +
       '</div>' +
       '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +

@@ -21,9 +21,9 @@ All proposals: mobile-first, zuck-butter physics (100ms tap / 220ms release / 40
 **Status:** PROPOSED — recommend APPROVE; poster-forge route needs FE verify (flagged).
 
 ## P-003 — /money gets Cells + Create CTAs (fixes G-D4/G5.1)
-**Surface:** /money · **For:** ws-imp-loop-pillars-feed-20261010
-**Problem:** money surfaces sit alone; donor can't form a cell or make propaganda.
-**Design:** two-button row under the rails: `FORM A CELL AROUND THIS →` → `/cells`; `MAKE PROPAGANDA ABOUT THIS →` → `/create`. Same `.karl-link` button pattern, second in gold. ~400B. Zero XP, no new copy standards (CTA copy is navigational, not share CTA).
+**Surface:** /money + money apps (/bank, /ventures, /war-chest) · **For:** ws-imp-loop-pillars-feed-20261010
+**Problem:** money surfaces sit alone; donor can't form a cell or make propaganda. Confirmed on tip: bundle-bank.js + bundle-ventures.js have 0 /cells, 0 /create, 0 /karl links; bundle-warchest.js has 1 /cells link.
+**Design:** two-button row under the rails: `FORM A CELL AROUND THIS →` → `/cells`; `MAKE PROPAGANDA ABOUT THIS →` → `/create`. Same `.karl-link` button pattern, second in gold. ~400B. In the money APPS: same two actions as contextual CTAs (e.g., on a venture detail: "Form a cell around this cause" / "Make propaganda about this"). Zero XP, no new copy standards (CTA copy is navigational, not share CTA).
 **Status:** PROPOSED — recommend APPROVE.
 
 ## P-004 — Pillar butter-lite: tappable figures + reduced-motion + ripple (fixes G-D5/G-D7)

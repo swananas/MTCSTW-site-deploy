@@ -212,6 +212,49 @@
   #pf-karl-home .kh-foot b{ color:var(--kh-cream); font-variant-numeric:tabular-nums; }
   #pf-karl-home .kh-powered{ text-align:center; padding:0 20px 30px; color:var(--kh-faint); font-size:11px; letter-spacing:.14em; }
   #pf-karl-home .kh-powered b{ color:var(--kh-dim); }
+  /* ---------- BEEFY FEED CARDS (fe/beefy-feed-20261010, dir-20261010-010215-1757) ---------- */
+  #pf-karl-home .kh-railrow{ display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  #pf-karl-home .kh-railbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.14em;
+    color:#e8b923; border:1px solid #4a3f1a; border-radius:999px;
+    padding:4px 11px; background:rgba(232,185,35,.06);
+  }
+  #pf-karl-home .kh-dbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.18em;
+    color:#2fbf71; border:1px solid #2fbf71; border-radius:999px;
+    padding:5px 12px; margin-bottom:10px; background:rgba(47,191,113,.08);
+  }
+  #pf-karl-home .kh-figstrip{ display:flex; gap:8px; margin:10px 0 2px; flex-wrap:wrap; }
+  #pf-karl-home .kh-fig{
+    flex:1 1 0; min-width:96px; background:var(--kh-card2); border:1px solid var(--kh-line);
+    border-radius:10px; padding:9px 10px; cursor:pointer; text-align:left;
+    transition:transform .1s ease-out, border-color .2s;
+    font-family:inherit; color:var(--kh-cream); touch-action:manipulation;
+  }
+  #pf-karl-home .kh-fig:active{ transform:scale(.96); border-color:var(--kh-red); }
+  #pf-karl-home .kh-fig .fv{ font-size:17px; font-weight:800; color:var(--kh-red-bright); font-variant-numeric:tabular-nums;
+    text-decoration:underline dotted rgba(229,56,59,.75); text-underline-offset:3px; }
+  #pf-karl-home .kh-fig .fl{ font-size:10.5px; color:var(--kh-faint); margin-top:3px; letter-spacing:.04em; }
+  #pf-karl-home .kh-deeplink{
+    display:block; margin-top:10px; font-size:12.5px; font-weight:700; letter-spacing:.08em;
+    color:#e8b923; text-decoration:none; padding:10px 2px; min-height:44px; box-sizing:border-box;
+  }
+  #pf-karl-home .kh-deeplink:active{ color:#fff; }
+  #pf-karl-home .kh-more-wrap{ text-align:center; padding:6px 20px 34px; }
+  #pf-karl-home .kh-more{
+    background:transparent; color:var(--kh-red-bright); border:1.5px solid var(--kh-red);
+    border-radius:999px; padding:13px 34px; font-size:13px; font-weight:800; letter-spacing:.16em;
+    cursor:pointer; transition:transform .1s ease-out, background .2s; touch-action:manipulation;
+    min-height:48px;
+  }
+  #pf-karl-home .kh-more:active{ transform:scale(.96); background:rgba(193,18,31,.12); }
+  #pf-karl-home .kh-more:disabled{ opacity:.4; }
+  #pf-karl-home .kh-quiet{
+    text-align:center; color:var(--kh-faint); font-size:13px; padding:18px 24px; line-height:1.6;
+  }
+  #pf-karl-home .kh-swap{ animation:kh-rise .2s ease-out both; }
 </style>
 <script>window.__PF_BUILD="20261009-0946-d469f51";</script>
 <script>(function(){
@@ -278,6 +321,16 @@
     <span class="kh-tick"><i></i>LIVE</span>
   </div>
   <div class="kh-feed" id="kh-feed"></div>
+
+  <!-- BEEFY FEED (fe/beefy-feed-20261010): richer cards from the 9 rails —
+       Karl inferences + comrade discoveries. Spine untouched (dir-20261010-011235-21553 owns it). -->
+  <div class="kh-feed-head" style="padding-top:6px">
+    <h2>More from the rails</h2>
+    <span class="kh-tick"><i></i>9 RAILS</span>
+  </div>
+  <div class="kh-feed" id="kh-beefy"></div>
+  <div class="kh-quiet" id="kh-beefy-quiet" hidden>The rails are quiet right now — tap MORE INTEL and Karl digs deeper.</div>
+  <div class="kh-more-wrap"><button class="kh-more" id="kh-more">MORE INTEL ↓</button></div>
 
   <div class="kh-foot">
     <span><b id="kh-stat-wealth">&mdash;</b> tracked</span>
@@ -580,6 +633,346 @@ function doAsk(){
     });
 }
 
+/* stagger cards on first paint */
+setTimeout(function(){
+  var cards = feed.querySelectorAll('.kh-card');
+  cards.forEach(function(c,i){ c.style.animationDelay = (i*0.06)+'s'; });
+}, 50);
+
+/* ==========================================================================
+   BEEFY HOME FEED (fe/beefy-feed-20261010, dir-20261010-010215-1757, WS-B-FE)
+   Richer cards from the 9 rails: Karl inferences + comrade discoveries.
+   Card contract: site/v1.4.3/core/beefy-feed-contract.json (v1.0.0).
+
+   HARD BOUNDARY: the Robbery Report editorial spine is owned by
+   dir-20261010-011235-21553. This module renders BELOW the existing feed
+   (MORE FROM THE RAILS) — spine order untouched, cards + presentation only.
+
+   FIGURE GOVERNANCE (News Desk audit 2026-10-10 01:40 CDT): only audited
+   figures are hardcoded; everything else binds to live karl_query or ships
+   blank. Deploy counts are KILLED as public facts — new cards carry none.
+   ========================================================================== */
+(function beefy(){
+var beefyFeed = document.getElementById('kh-beefy');
+var moreBtn = document.getElementById('kh-more');
+var quietEl = document.getElementById('kh-beefy-quiet');
+if(!beefyFeed || !moreBtn) return;
+
+var RAILS = [
+  { rail:'colleges',    icon:'\uD83C\uDF93', label:'FOR-PROFIT COLLEGES', probe:'Worst for-profit college?',            deep:'/follow-the-money' },
+  { rail:'prisons',     icon:'\u26D3\uFE0F', label:'PRIVATE PRISONS',     probe:'Biggest private prison operator?',    deep:'/dossier' },
+  { rail:'rent',        icon:'\uD83C\uDFE0', label:'RENT',                probe:'Who is driving up rent?',             deep:'/town' },
+  { rail:'bills',       icon:'\uD83E\uDDFE', label:'BILLS',               probe:'Who profits from my bills?',          deep:'/economy' },
+  { rail:'evictions',   icon:'\uD83D\uDCE6', label:'EVICTIONS',           probe:'Who is evicting people?',             deep:'/town' },
+  { rail:'billionaires',icon:'\uD83D\uDCB0', label:'BILLIONAIRES',        probe:'How rich are the billionaires?',      deep:'/follow-the-money' },
+  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who stole the most wages?',           deep:'/follow-the-money' },
+  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital price-gouging?',       deep:'/town' },
+  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor stole the most?', deep:'/corruption-index' }
+];
+function railOf(key){
+  for(var i=0;i<RAILS.length;i++) if(RAILS[i].rail===key) return RAILS[i];
+  return RAILS[8];
+}
+
+/* Anchor cards — AUDITED FIGURES ONLY. live:false. */
+var ANCHORS = [
+  { rail:'billionaires', kind:'inference',
+    q:'3,428 billionaires hold $20.1T — a separate economy.',
+    a:'The average billionaire is worth <b>$5.9B</b> — Karl\u2019s best read from the Forbes-2026 roll. That\u2019s not wealth, it\u2019s a country of its own.',
+    figures:[
+      {label:'Billionaires tracked', value:'3,428', source:'Forbes-2026', chain:['Forbes-2026 billionaire roll, published figures','Count of individuals with $1B+ net worth','Excludes hidden offshore wealth — the real number is higher']},
+      {label:'Combined net worth', value:'$20.1T', source:'Forbes-2026', chain:['Forbes-2026 valuations summed','Public holdings + disclosed assets','Private valuations are estimates, not filings']},
+      {label:'Average net worth', value:'$5.9B', source:'Karl\u2019s best read', chain:['$20.1T \u00F7 3,428 billionaires','Arithmetic on audited figures, not a filing','Averages hide the skew — the top 10 hold far more']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Forbes-2026', when:'audited', deep:'/follow-the-money' },
+  { rail:'hospitals', kind:'inference',
+    q:'Is your hospital price-gouging?',
+    a:'The average ER visit is billed at <b>$2,200</b> (CPT 99285). Karl tracks 6,000 hospitals\u2019 posted prices.',
+    figures:[
+      {label:'Avg ER billed charge', value:'$2,200', source:'CMS price transparency', chain:['CPT 99285 — high-severity ER visit','Billed charge, not what insurers pay','Posted under federal transparency rules']},
+      {label:'Hospitals tracked', value:'6,000', source:'CMS price transparency', chain:['Hospitals with machine-readable price files','Audited count, corrected from 27K','Rural hospitals under-report — coverage is partial']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 CMS hospital price transparency', when:'audited', deep:'/town' },
+  { rail:'colleges', kind:'inference',
+    q:'How many students are in the for-profit machine?',
+    a:'<b>1.1M</b> students enrolled in for-profit schools — federal aid flowing to shareholders.',
+    figures:[
+      {label:'Students enrolled', value:'1.1M', source:'Dept. of Education', chain:['For-profit enrollment, audited count','Corrected from 1.2M per News Desk audit','Includes online mega-universities']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Dept. of Education', when:'audited', deep:'/follow-the-money' },
+  { rail:'economy', kind:'inference',
+    q:'Which defense contractor stole the most?',
+    a:'Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy (DOJ, 2021) — on top of <b>$615M</b> in 2006. Total: <b>$3.1B</b>.',
+    figures:[
+      {label:'737 MAX fraud conspiracy', value:'$2.5B', source:'DOJ-2021', chain:['DOJ settlement, January 2021','Criminal fraud conspiracy — 737 MAX certification','The largest contractor penalty on record']},
+      {label:'Defense contract fraud', value:'$615M', source:'DOJ-2006', chain:['DOJ settlement, 2006','Separate fraud case, separate docket','Summed across dockets, excludes state fines']},
+      {label:'Total Boeing penalties', value:'$3.1B', source:'DOJ case files', chain:['$2.5B + $615M summed','Audited total, corrected from $3.3B','Excludes undisclosed settlements']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 DOJ case files', when:'audited', deep:'/corruption-index' },
+  { rail:'economy', kind:'discovery',
+    q:'Who\u2019s fighting back?',
+    a:'<b>62</b> sick radicals in the network — 8M+ public reach and counting. The machine has an immune system now.',
+    figures:[
+      {label:'Creators in the network', value:'62', source:'Sick Left Radicals roster', chain:['Curated affiliate roster on mtcstw.com','Each with a catalog page and propaganda score','Pure index — the roster links out, never traps']},
+      {label:'Public reach', value:'8M+', source:'Roster rollup', chain:['Stated combined reach across platforms','User-directed positioning figure','Audited per-creator counts on catalog pages']}
+    ],
+    src:'\u25B8 RECEIPTS \u2014 Sick Left Radicals roster', when:'audited', deep:'/sick-left-radicals' }
+];
+
+/* ---------- compact drill sheet (visual language from the shared .bt-* CSS
+   in bundle-styles.css; homepage ships zero core-bundle JS, so the behavior
+   rides inline. Same contract as PF.drillSheet: figure + source fail-closed. */
+var sheetState = null;
+function khSheet(cfg){
+  if(!cfg || !cfg.figure || !cfg.source) return;
+  if(sheetState) khSheetClose(true);
+  var scrim = document.createElement('div'); scrim.className = 'bt-scrim';
+  var sheet = document.createElement('div'); sheet.className = 'bt-sheet';
+  sheet.setAttribute('role','dialog'); sheet.setAttribute('aria-modal','true');
+  var chain = (cfg.chain||[]).slice(0,4).map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('');
+  sheet.innerHTML =
+    '<div class="bt-sheet-grab"></div>'+
+    '<div class="bt-sheet-head"><div>'+
+    '<div style="font-size:12px;letter-spacing:.2em;color:#e5383b;font-weight:800">WHY THIS NUMBER</div>'+
+    '<div class="bt-sheet-fig">'+esc(cfg.figure)+'</div>'+
+    '<div class="bt-sheet-unit">'+esc(cfg.label||'')+'</div></div>'+
+    '<button class="bt-sheet-x" aria-label="Close">\u00D7</button></div>'+
+    '<div class="bt-sheet-body">'+
+    (chain ? '<ul class="bt-sheet-chain">'+chain+'</ul>' : '')+
+    '<div style="font-size:11px;color:#5a554b;letter-spacing:.06em;margin:10px 0">SOURCE \u2014 '+esc(cfg.source)+'</div>'+
+    '<div class="bt-sheet-actions">'+
+    '<button class="bt-act bt-act-deploy">DEPLOY</button>'+
+    '<button class="bt-act bt-act-ask">ASK KARL</button>'+
+    '</div></div>';
+  document.body.appendChild(scrim); document.body.appendChild(sheet);
+  var prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  sheetState = { scrim:scrim, sheet:sheet, prevOverflow:prevOverflow, histPushed:false };
+  try{ history.pushState({khSheet:1},''); sheetState.histPushed = true; }catch(e){}
+  var dismissed = function(){ khSheetClose(); };
+  sheet.querySelector('.bt-sheet-x').addEventListener('click', dismissed);
+  scrim.addEventListener('click', dismissed);
+  sheetState.popstate = function(){ khSheetClose(true); };
+  window.addEventListener('popstate', sheetState.popstate);
+  var startY = null;
+  sheet.addEventListener('touchstart', function(e){ if(e.touches&&e.touches[0]) startY=e.touches[0].clientY; }, {passive:true});
+  sheet.addEventListener('touchend', function(e){
+    var dy = (startY!=null&&e.changedTouches&&e.changedTouches[0]) ? e.changedTouches[0].clientY-startY : 0;
+    startY = null;
+    if(dy>110) dismissed(); else sheet.style.transform='';
+  });
+  sheet.querySelector('.bt-act-deploy').addEventListener('click', function(){
+    var txt = cfg.figure+' — '+cfg.label+' — via KARL at mtcstw.com';
+    var done = function(){ showToast('Deployed — spread it'); khSheetClose(); };
+    if(navigator.share){ navigator.share({title:'KARL Discovery', text:txt, url:'https://mtcstw.com/'}).then(done).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(done); }
+    else done();
+  });
+  sheet.querySelector('.bt-act-ask').addEventListener('click', function(){
+    khSheetClose();
+    try{
+      var q = document.getElementById('kh-q');
+      if(q){ q.value = 'Why '+cfg.figure+'?'; q.focus(); q.scrollIntoView({behavior:'smooth', block:'center'}); }
+    }catch(e){}
+  });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    scrim.classList.add('bt-show'); sheet.classList.add('bt-show');
+  });});
+}
+function khSheetClose(fromPop){
+  if(!sheetState) return;
+  var st = sheetState; sheetState = null;
+  try{ window.removeEventListener('popstate', st.popstate); }catch(e){}
+  try{ if(st.histPushed && !fromPop && window.history) history.back(); }catch(e){}
+  st.scrim.classList.remove('bt-show'); st.sheet.classList.remove('bt-show');
+  setTimeout(function(){
+    try{ st.scrim.remove(); st.sheet.remove(); }catch(e){}
+    try{ document.body.style.overflow = st.prevOverflow||''; }catch(e){}
+  }, 300);
+}
+
+/* ---------- beefy card ---------- */
+function beefyCard(d){
+  var R = railOf(d.rail);
+  var el = document.createElement('div');
+  el.className = 'kh-card kh-swap' + (d.kind==='inference' ? ' kh-inference' : '');
+  var kindBadge = d.kind==='inference'
+    ? '<div class="kh-kbadge">\uD83E\uDDE0 KARL NOTICED</div>'
+    : '<div class="kh-dbadge">\u270A COMRADE FOUND</div>';
+  var figs = (d.figures||[]).slice(0,3).map(function(f){
+    return '<button class="kh-fig" data-fig="'+esc(f.value)+'"><span class="fv">'+esc(f.value)+
+      '</span><span class="fl">'+esc(f.label)+'</span></button>';
+  }).join('');
+  var rows = (d.figures||[]).slice(0,4).map(function(f){
+    return '<div class="kh-proof-row"><span class="k">'+esc(f.label)+'</span><span class="v">'+esc(f.value)+'</span></div>';
+  }).join('');
+  el.innerHTML =
+    '<div class="kh-railrow"><span class="kh-railbadge">'+R.icon+' '+esc(R.label)+'</span></div>'+
+    kindBadge+
+    '<div class="kh-q">'+esc(d.q)+'</div>'+
+    '<div class="kh-a">'+d.a+'</div>'+
+    (figs ? '<div class="kh-figstrip">'+figs+'</div>' : '')+
+    '<div class="kh-proof">'+
+      '<div class="kh-exhibit">\u25B8 EXHIBIT \u2014 VERIFIED</div>'+ rows +
+      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<button class="kh-deploy-btn">DEPLOY</button>'+
+    '</div>'+
+    '<div class="kh-card-meta">'+
+      '<span class="kh-src">'+esc(String(d.src).split('\u2014')[0].trim())+'</span>'+
+      '<span>'+esc(d.when||'now')+'</span>'+
+    '</div>'+
+    '<a class="kh-deeplink" href="'+esc(d.deep||R.deep)+'">DIG DEEPER \u2192</a>';
+  el.addEventListener('click', function(e){
+    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink')) return;
+    el.classList.toggle('kh-open');
+  });
+  el.querySelectorAll('.kh-fig').forEach(function(b){
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var val = b.getAttribute('data-fig');
+      var f = (d.figures||[]).filter(function(x){ return x.value===val; })[0] || {};
+      khSheet({ figure:f.value||val, label:f.label||'', source:f.source||d.src, chain:f.chain||[] });
+    });
+  });
+  var btn = el.querySelector('.kh-deploy-btn');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(btn.classList.contains('kh-done')) return;
+    var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
+    var markDeployed = function(){
+      btn.classList.add('kh-done'); btn.textContent = 'DEPLOYED \u2713';
+      showToast('Deployed — the robbery report grows');
+      recordDiscovery(d);
+    };
+    if(navigator.share){
+      navigator.share({ title:'KARL Discovery', text:shareText, url:'https://mtcstw.com/' })
+        .then(markDeployed).catch(function(){});
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText).then(function(){ markDeployed(); showToast('Copied — paste it anywhere'); });
+    } else markDeployed();
+  });
+  return el;
+}
+
+/* ---------- discoveries: what the comrade DEPLOYED re-surfaces as COMRADE FOUND ---------- */
+var FINDS_KEY = 'pf-my-finds';
+function recordDiscovery(d){
+  try{
+    var finds = JSON.parse(localStorage.getItem(FINDS_KEY)||'[]');
+    if(finds.some(function(f){ return f.q===d.q; })) return;
+    finds.unshift({ q:d.q, a:d.a, rail:d.rail, kind:'discovery',
+      figures:(d.figures||[]).slice(0,3), src:d.src, when:'your find', deep:d.deep });
+    localStorage.setItem(FINDS_KEY, JSON.stringify(finds.slice(0,12)));
+  }catch(e){}
+}
+function getDiscoveries(){
+  try{ return JSON.parse(localStorage.getItem(FINDS_KEY)||'[]'); }catch(e){ return []; }
+}
+
+/* ---------- waves: anchors first, then live rail fan-out, then discoveries ---------- */
+var liveQueue = [];
+var livePending = 0;
+var waveIdx = 0;
+var WAVE = ANCHORS.slice();
+
+function relTime(iso){
+  try{
+    var t = new Date(iso).getTime(); if(!t) return 'now';
+    var m = Math.round((Date.now()-t)/60000);
+    if(m<1) return 'just now'; if(m<60) return m+'m';
+    var h = Math.round(m/60); if(h<24) return h+'h';
+    return Math.round(h/24)+'d';
+  }catch(e){ return 'now'; }
+}
+
+/* Live fan-out: one karl_query per rail, composed into cards (composition-over-karl_query). */
+function fanOut(){
+  RAILS.forEach(function(R, i){
+    livePending++;
+    setTimeout(function(){
+      fetch(API+'karl_query&q='+encodeURIComponent(R.probe), {cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          var card = (res && res.ok!==false) ? factsToCard(R.probe, res) : null;
+          if(card){
+            var rows = (card.rows||[]).slice(0,3).map(function(r){
+              return { label:r[0], value:r[1], source:card.src, chain:[] };
+            });
+            liveQueue.push({ rail:R.rail, kind:'inference', q:card.q, a:card.a,
+              figures:rows, src:card.src, when:'live', deep:R.deep });
+          }
+        })
+        .catch(function(){})
+        .finally(function(){
+          livePending--;
+          if(!livePending && !liveQueue.length && !beefyFeed.children.length) showQuiet();
+        });
+    }, i*700); /* staggered: one rail per 700ms, no thundering herd */
+  });
+}
+
+function showQuiet(){
+  if(beefyFeed.children.length) { quietEl.hidden = true; return; }
+  quietEl.hidden = false;
+  moreBtn.disabled = true; moreBtn.textContent = 'RAILS QUIET — TRY AGAIN LATER';
+}
+
+function nextWave(){
+  /* wave order: anchors → discoveries → live results */
+  if(waveIdx < WAVE.length){
+    var batch = WAVE.slice(waveIdx, waveIdx+3); waveIdx += batch.length;
+    batch.forEach(function(d,i){
+      var el = beefyCard(d);
+      el.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el);
+    });
+    quietEl.hidden = true;
+    return;
+  }
+  var finds = getDiscoveries();
+  if(finds.length){
+    finds.slice(0,3).forEach(function(d,i){
+      var el = beefyCard(d);
+      el.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el);
+    });
+    try{ localStorage.setItem(FINDS_KEY, JSON.stringify(finds.slice(3))); }catch(e){}
+    quietEl.hidden = true;
+    return;
+  }
+  if(liveQueue.length){
+    var n = Math.min(3, liveQueue.length);
+    for(var i=0;i<n;i++){
+      var el2 = beefyCard(liveQueue.shift());
+      el2.style.animationDelay = (i*0.08)+'s';
+      beefyFeed.appendChild(el2);
+    }
+    quietEl.hidden = true;
+    return;
+  }
+  if(livePending>0){
+    moreBtn.disabled = true; moreBtn.textContent = 'KARL IS DIGGING…';
+    var iv = setInterval(function(){
+      if(livePending<=0){
+        clearInterval(iv);
+        moreBtn.disabled = false; moreBtn.textContent = 'MORE INTEL ↓';
+        nextWave();
+      }
+    }, 400);
+    return;
+  }
+  showQuiet();
+}
+
+moreBtn.addEventListener('click', function(){
+  if(moreBtn.disabled) return;
+  nextWave();
+});
+
+/* boot: first wave of anchors on load, fan-out in the background */
+setTimeout(function(){ nextWave(); }, 900);
+fanOut();
+})();
 /* stagger cards on first paint */
 setTimeout(function(){
   var cards = feed.querySelectorAll('.kh-card');

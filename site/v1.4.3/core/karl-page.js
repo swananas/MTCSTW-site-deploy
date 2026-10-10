@@ -1,20 +1,14 @@
-/* core/karl-page.js  |  PF v1.4.3 | KARL — the query layer front door.
-   CEO directive 2026-10-07 "Let it blossom" (Design Direction):
-   clean, light, the input is the hero. Fact-set cards are minimal —
-   sourced numbers, no clutter. Karl is the FRONT DOOR; the products are
-   the rooms: every answer deep-links into Receipt dossiers, town
-   reports, extraction stories, and index scores. Karl's answers are a
-   natural entry point to the whole data web, never a dead end.
+/* core/karl-page.js  |  PF v1.4.3 | KARL — the intelligence terminal.
+   REDESIGN (2026-10-09, "full butter"): Karl is an intelligence, not a search box.
+   War room aesthetic — dark, focused, premium. The answer is the hero.
+   Every interaction deliberate and smooth.
 
-   Self-mounting silo: <div id="pf-karl"></div> present (the /karl page,
-   CEO hand-step: Squarespace page + #pf-karl Code block + nav entry)
-   -> full-page shell. Rides the lazy core/bundle-karl.js chunk
-   (build/bundle-core.js KARL_FILES), loaded on demand by the footer
-   JS_GAMES routing — zero weight on other pages.
+   Self-mounting silo: <div id="pf-karl"></div> present (the /karl page)
+   -> full-page shell. Rides the lazy core/bundle-karl.js chunk.
 
    Backend: ?action=karl_query&q=<natural language>&context={zip?,name?}
-   (be/karl-query-layer). Zero XP on this frontend — querying is not an
-   action; shares route through existing share mechanics only.
+   Zero XP on this frontend — querying is not an action; shares route
+   through existing share mechanics only.
    KILL: ?pf_off=karl */
 (function () {
   'use strict';
@@ -65,8 +59,6 @@
       if (done) return; done = true;
       cb(j);
     }
-    // Use fetch with CORS (PWA-safe, no JSONP script-tag fragility).
-    // Backend sends Access-Control-Allow-Origin: *.
     try {
       var ctrl = null;
       var timeoutId = null;
@@ -94,99 +86,163 @@
     }
   }
 
+  /* ============ WAR ROOM CSS ============ */
   var CSS = [
-    '.pf-karl{background:#faf8f3;color:#1a1a1a;font-family:Arial,sans-serif;max-width:680px;margin:0 auto;padding:18px 16px 48px;line-height:1.5}',
-    '.pf-karl-hero{text-align:center;padding:34px 10px 22px}',
-    '.pf-karl-kicker{font-weight:700;font-size:12px;letter-spacing:6px;color:#c1121f;margin-bottom:10px}',
-    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:46px;letter-spacing:8px;margin:0 0 8px}',
-    '.pf-karl-sub{font-size:15px;color:#5a564d;margin:0 0 22px}',
-    '.pf-karl-form{display:flex;gap:8px;margin:0 0 12px}',
-    '.pf-karl-input{flex:1;min-width:0;font-size:17px;padding:15px 18px;border:2px solid #1a1a1a;border-radius:14px;',
-    'background:#fff;color:#1a1a1a;outline:none;box-shadow:0 6px 20px rgba(26,26,26,.08);',
-    'transition:border-color .15s ease,box-shadow .15s ease}',
-    '.pf-karl-input:focus{border-color:#c1121f;box-shadow:0 6px 20px rgba(26,26,26,.08),0 0 0 4px rgba(193,18,31,.12)}',
-    '.pf-karl-btn{background:linear-gradient(135deg,#d61622,#a50e18);color:#fff;border:0;border-radius:14px;',
-    'padding:0 24px;font-weight:900;font-size:16px;letter-spacing:1.2px;cursor:pointer;white-space:nowrap;',
-    'box-shadow:0 6px 18px rgba(193,18,31,.3);transition:transform .15s ease,box-shadow .15s ease}',
-    '.pf-karl-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(193,18,31,.4)}',
-    '.pf-karl-btn:active{transform:scale(.97)}',
-    '.pf-karl-btn:disabled{opacity:.55;cursor:wait;transform:none}',
-    '.pf-karl-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 8px}',
-    '.pf-karl-chip{background:#fff;border:1px solid #d8d2c4;border-radius:22px;padding:10px 17px;font-size:13.5px;',
-    'color:#5a564d;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}',
-    '.pf-karl-chip:hover{border-color:#c1121f;color:#1a1a1a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(193,18,31,.12)}',
-    '.pf-karl-chip:active{background:#f0ece2;transform:none}',
-    '.pf-karl-note{font-size:12px;color:#8a8478;text-align:center;margin:0 0 4px}',
-    '.pf-karl-degraded{background:#fffaf0;border:1px solid #e8b923;border-radius:10px;padding:12px 16px;font-size:13px;color:#6b5a00;margin:0 0 14px}',
-    '.pf-karl-err{background:#fdf4f4;border:0;border-left:4px solid #c1121f;border-radius:8px;',
-    'padding:13px 16px;font-size:14px;color:#8a1414;margin:0 0 14px;box-shadow:0 4px 14px rgba(193,18,31,.08)}',
-    /* Loading — a labeled skeleton, intentional rather than cheap. */
-    '.pf-karl-loading{margin:8px 0 0;text-align:center}',
-    '.pf-karl-loading .lb{font-size:13px;color:#8a8478;font-style:italic}',
-    '.pf-karl-loading .sk{height:120px;border-radius:12px;margin-top:10px;',
-    'background:linear-gradient(100deg,#efe9db 30%,#f8f4ea 50%,#efe9db 70%);background-size:200% 100%;',
-    'animation:pfk-shimmer 1.4s infinite linear}',
-    '@keyframes pfk-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}',
-    '.pf-karl-entity{text-align:center;margin:18px 0 6px}',
-    '.pf-karl-entity .nm{font-family:Georgia,serif;font-weight:700;font-size:26px;letter-spacing:.5px}',
-    '.pf-karl-entity .mt{font-size:13px;color:#5a564d;margin-top:2px}',
-    '.pf-karl-fact{background:#fff;border:1px solid #e7e0d1;border-radius:12px;padding:16px 18px;margin:10px 0;',
-    'box-shadow:0 4px 16px rgba(26,26,26,.05);transition:transform .15s ease,box-shadow .15s ease;',
-    'animation:pfk-factin .3s cubic-bezier(.2,.8,.3,1) both}',
-    '@keyframes pfk-factin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}',
-    '@media(prefers-reduced-motion:reduce){.pf-karl-fact{animation:none}}',
-    '.pf-karl-fact:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(26,26,26,.08)}',
-    '.pf-karl-fact .lb{font-size:11.5px;font-weight:700;color:#8a8478;letter-spacing:1.2px;margin-bottom:4px}',
-    '.pf-karl-fact .vl{font-family:Georgia,serif;font-size:28px;font-weight:700;color:#1a1a1a}',
-    '.pf-karl-fact .nt{font-size:12.5px;color:#8a8478;margin-top:5px}',
-    '.pf-karl-src{font-size:11.5px;color:#a09a8c;margin-top:9px;border-top:1px dashed #e2ddd0;padding-top:7px}',
-    '.pf-karl-stale{color:#b35400;font-weight:700}',
-    '.pf-karl-adj{font-size:12.5px;color:#8a8478;font-style:italic;text-align:center;margin:14px 0}',
-    '.pf-karl-empty{background:#fff;border:1px dashed #c9c2b2;border-radius:12px;padding:24px 18px;margin:12px 0;',
-    'text-align:center;font-size:15px;color:#5a564d}',
-    '.pf-karl-empty .big{font-family:Georgia,serif;font-weight:700;font-size:19px;color:#1a1a1a;margin-bottom:8px}',
-    '.pf-karl-disamb button{display:block;width:100%;text-align:left;background:#fff;border:1px solid #d8d2c4;',
-    'border-radius:10px;padding:13px 15px;margin:7px 0;font-size:14px;cursor:pointer;color:#1a1a1a;',
-    'transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}',
-    '.pf-karl-disamb button:hover{border-color:#c1121f;box-shadow:0 4px 12px rgba(193,18,31,.12);transform:translateY(-1px)}',
-    '.pf-karl-rail{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:16px 0 4px}',
-    '.pf-karl-rail span{font-size:11.5px;border-radius:14px;padding:5px 12px;background:#f0ece2;color:#8a8478}',
-    '.pf-karl-rail span.live{background:#e9f5e9;color:#2e7d32;box-shadow:0 2px 8px rgba(46,125,50,.15)}',
-    '.pf-karl-doors{margin:20px 0 4px}',
-    '.pf-karl-doors .hd{font-size:12px;font-weight:700;letter-spacing:3.5px;color:#8a8478;text-align:center;margin-bottom:10px}',
-    '.pf-karl-door{display:block;text-align:center;background:linear-gradient(135deg,#d61622,#a50e18);color:#fff!important;',
-    'font-weight:900;letter-spacing:1.5px;font-size:14px;padding:15px;border-radius:12px;text-decoration:none;margin:9px 0;',
-    'box-shadow:0 6px 18px rgba(193,18,31,.25);transition:transform .15s ease,box-shadow .15s ease}',
-    '.pf-karl-door:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(193,18,31,.35)}',
-    '.pf-karl-door.alt{background:#1a1a1a;box-shadow:0 6px 18px rgba(0,0,0,.18)}',
-    '@media(min-width:520px){.pf-karl-form{max-width:560px;margin-left:auto;margin-right:auto}}',
-    /* BUTTER: hero title scales down gracefully on small phones */
-    '@media(max-width:380px){.pf-karl-title{font-size:36px;letter-spacing:5px}.pf-karl-input{font-size:16px;padding:13px 15px}.pf-karl-btn{padding:0 18px}}',
-    /* KARL FOCUS (2026-10-09): this page is an intelligence briefing, not a dashboard.
-       Hide competing floating/chrome elements that belong on other pages. */
-    '#pf-nuke-stick,#pf-commend-chip,.pf-kc-btn{display:none!important}',
-    /* MAKE SHAREABLE — proper styling (was unstyled = looked disabled) */
-    '.pf-mss-btn{background:#fff;border:2px solid #c1121f;color:#c1121f;border-radius:12px;',
-    'font:900 13px/1 Arial,sans-serif;letter-spacing:1.5px;padding:14px 28px;cursor:pointer;',
-    'transition:background .15s ease,color .15s ease,transform .15s ease;min-height:48px}',
-    '.pf-mss-btn:hover{background:#c1121f;color:#fff;transform:translateY(-1px)}',
+    '.pf-karl{background:#0a0a0a;color:#f5f0e6;font-family:Arial,sans-serif;max-width:720px;margin:0 auto;padding:0 18px 64px;line-height:1.6;-webkit-font-smoothing:antialiased}',
+
+    /* --- HERO --- */
+    '.pf-karl-hero{text-align:center;padding:48px 8px 28px;position:relative}',
+    '.pf-karl-hero::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:28px;background:linear-gradient(180deg,transparent,#c1121f)}',
+    '.pf-karl-kicker{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;letter-spacing:7px;color:#c1121f;margin-bottom:14px;text-transform:uppercase}',
+    '.pf-karl-kicker .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#c1121f;margin-right:8px;animation:pfk-pulse 2.2s infinite}',
+    '@keyframes pfk-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(193,18,31,.5)}50%{opacity:.5;box-shadow:0 0 0 7px rgba(193,18,31,0)}}',
+    '.pf-karl-title{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:54px;letter-spacing:14px;margin:0 0 10px;color:#f5f0e6;text-indent:14px}',
+    '.pf-karl-sub{font-family:Georgia,serif;font-style:italic;font-size:16px;color:#a39c8b;margin:0 0 30px;line-height:1.5}',
+    '.pf-karl-sub b{color:#f5f0e6;font-style:normal}',
+
+    /* --- INPUT: briefing an analyst --- */
+    '.pf-karl-form{position:relative;max-width:600px;margin:0 auto 10px}',
+    '.pf-karl-inputwrap{position:relative;display:flex;align-items:stretch;background:#141414;border:1px solid #2a2a2a;border-radius:16px;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease}',
+    '.pf-karl-inputwrap:focus-within{border-color:#c1121f;box-shadow:0 0 0 3px rgba(193,18,31,.18),0 8px 32px rgba(0,0,0,.4)}',
+    '.pf-karl-prompt{font-family:"SF Mono",Menlo,Consolas,monospace;color:#c1121f;font-size:18px;padding:0 0 0 18px;display:flex;align-items:center;user-select:none}',
+    '.pf-karl-input{flex:1;min-width:0;background:transparent;border:0;color:#f5f0e6;font-size:17px;padding:17px 12px 17px 10px;outline:none;font-family:Arial,sans-serif}',
+    '.pf-karl-input::placeholder{color:#5a554a;font-style:italic}',
+    '.pf-karl-btn{background:linear-gradient(135deg,#d61622,#8f0c14);color:#fff;border:0;padding:0 26px;',
+    'font:900 14px/1 Arial,sans-serif;letter-spacing:2px;cursor:pointer;white-space:nowrap;',
+    'transition:filter .15s ease,transform .1s ease;min-height:58px}',
+    '.pf-karl-btn:hover{filter:brightness(1.12)}',
+    '.pf-karl-btn:active{transform:scale(.98)}',
+    '.pf-karl-btn:disabled{opacity:.5;cursor:wait;filter:none;transform:none}',
+    '.pf-karl-hint{text-align:center;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11px;color:#5a554a;margin:0 0 6px;letter-spacing:.5px}',
+
+    /* --- EXAMPLE CHIPS: suggested intel requests --- */
+    '.pf-karl-chips-label{text-align:center;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:3px;color:#5a554a;margin:22px 0 10px;text-transform:uppercase}',
+    '.pf-karl-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 6px}',
+    '.pf-karl-chip{background:#141414;border:1px solid #2a2a2a;border-radius:20px;padding:11px 18px;font-size:13.5px;',
+    'color:#b8b0a0;cursor:pointer;min-height:44px;transition:all .18s ease;font-family:Arial,sans-serif}',
+    '.pf-karl-chip:hover{border-color:#c1121f;color:#f5f0e6;transform:translateY(-1px);box-shadow:0 4px 16px rgba(193,18,31,.2)}',
+    '.pf-karl-chip:active{transform:scale(.97)}',
+    '.pf-karl-note{font-size:12px;color:#5a554a;text-align:center;margin:14px 0 0;font-style:italic}',
+
+    /* --- LOADING: Karl working --- */
+    '.pf-karl-loading{margin:36px auto 0;max-width:600px;text-align:center}',
+    '.pf-karl-loading .lb{font-family:Georgia,serif;font-style:italic;font-size:15px;color:#a39c8b}',
+    '.pf-karl-loading .td{display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle}',
+    '.pf-karl-loading .td i{width:7px;height:7px;border-radius:50%;background:#c1121f;animation:pfk-td 1.1s infinite ease-in-out}',
+    '.pf-karl-loading .td i:nth-child(2){animation-delay:.15s}',
+    '.pf-karl-loading .td i:nth-child(3){animation-delay:.3s}',
+    '@keyframes pfk-td{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}',
+
+    /* --- ANSWER: the intelligence briefing --- */
+    '#pf-karl-res{max-width:640px;margin:0 auto}',
+    '.pf-karl-brief{margin:32px 0 0;animation:pfk-briefin .45s cubic-bezier(.2,.8,.25,1) both}',
+    '@keyframes pfk-briefin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}',
+    '.pf-karl-brief-q{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:#5a554a;letter-spacing:1px;margin-bottom:14px}',
+    '.pf-karl-brief-q::before{content:"> ";color:#c1121f}',
+    '.pf-karl-entity{margin:0 0 18px}',
+    '.pf-karl-entity .nm{font-family:Georgia,serif;font-weight:700;font-size:30px;color:#f5f0e6;letter-spacing:.3px;line-height:1.2}',
+    '.pf-karl-entity .mt{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:#8a8478;margin-top:6px;letter-spacing:.5px}',
+
+    /* Fact cards: numbers pop, hierarchy clear */
+    '.pf-karl-fact{background:#111;border:1px solid #222;border-radius:14px;padding:20px 22px;margin:12px 0;',
+    'animation:pfk-factin .4s cubic-bezier(.2,.8,.3,1) both;position:relative;overflow:hidden}',
+    '.pf-karl-fact:nth-child(2){animation-delay:.06s}.pf-karl-fact:nth-child(3){animation-delay:.12s}',
+    '.pf-karl-fact:nth-child(4){animation-delay:.18s}.pf-karl-fact:nth-child(5){animation-delay:.24s}',
+    '@keyframes pfk-factin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}',
+    '@media(prefers-reduced-motion:reduce){.pf-karl-fact,.pf-karl-brief{animation:none}.pf-karl-kicker .pulse,.pf-karl-loading .td i{animation:none}}',
+    '.pf-karl-fact::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#c1121f,transparent)}',
+    '.pf-karl-fact .lb{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;font-weight:700;color:#8a8478;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}',
+    '.pf-karl-fact .vl{font-family:Georgia,serif;font-size:30px;font-weight:700;color:#fff;line-height:1.15}',
+    '.pf-karl-fact .vl b{color:#fff}',
+    '.pf-karl-fact .vl .num{color:#e5383b}',
+    '.pf-karl-fact .nt{font-size:13.5px;color:#a39c8b;margin-top:8px;line-height:1.55}',
+    '.pf-karl-fact .nt b{color:#d8d2c4}',
+    '.pf-karl-src{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:#5a554a;margin-top:12px;padding-top:10px;border-top:1px solid #1e1e1e;letter-spacing:.3px}',
+    '.pf-karl-stale{color:#e8a33d;font-weight:700}',
+    '.pf-karl-adj{font-size:13px;color:#8a8478;font-style:italic;text-align:center;margin:18px 0;font-family:Georgia,serif}',
+
+    /* Empty / error states */
+    '.pf-karl-empty{background:#111;border:1px dashed #333;border-radius:14px;padding:32px 22px;margin:24px 0;text-align:center}',
+    '.pf-karl-empty .big{font-family:Georgia,serif;font-weight:700;font-size:20px;color:#f5f0e6;margin-bottom:10px}',
+    '.pf-karl-empty{font-size:14.5px;color:#a39c8b;line-height:1.6}',
+    '.pf-karl-err{background:rgba(193,18,31,.08);border:1px solid rgba(193,18,31,.3);border-left:4px solid #c1121f;border-radius:10px;',
+    'padding:16px 18px;font-size:14px;color:#e8a0a0;margin:24px 0}',
+    '.pf-karl-degraded{background:rgba(232,185,35,.07);border:1px solid rgba(232,185,35,.3);border-radius:10px;padding:14px 18px;font-size:13px;color:#d8b94a;margin:24px 0}',
+
+    /* Disambiguation */
+    '.pf-karl-disamb button{display:block;width:100%;text-align:left;background:#141414;border:1px solid #2a2a2a;',
+    'border-radius:12px;padding:15px 18px;margin:8px 0;font-size:14.5px;cursor:pointer;color:#f5f0e6;min-height:56px;',
+    'transition:border-color .15s ease,transform .15s ease}',
+    '.pf-karl-disamb button:hover{border-color:#c1121f;transform:translateY(-1px)}',
+    '.pf-karl-disamb button b{color:#fff}',
+    '.pf-karl-disamb button span{font-size:12.5px;color:#8a8478}',
+
+    /* Rail badges: subtle, elegant */
+    '.pf-karl-rail{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 4px}',
+    '.pf-karl-rail span{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10px;letter-spacing:1px;color:#5a554a;',
+    'border:1px solid #222;border-radius:4px;padding:4px 9px;text-transform:uppercase}',
+    '.pf-karl-rail span.live{color:#7bc47f;border-color:rgba(123,196,127,.3)}',
+
+    /* Deep links */
+    '.pf-karl-doors{margin:26px 0 4px}',
+    '.pf-karl-doors .hd{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:4px;color:#5a554a;text-align:center;margin-bottom:12px;text-transform:uppercase}',
+    '.pf-karl-door{display:block;text-align:center;background:linear-gradient(135deg,#d61622,#8f0c14);color:#fff!important;',
+    'font-weight:900;letter-spacing:2px;font-size:13.5px;padding:16px;border-radius:12px;text-decoration:none;margin:10px 0;',
+    'transition:transform .15s ease,filter .15s ease;min-height:56px}',
+    '.pf-karl-door:hover{transform:translateY(-1px);filter:brightness(1.1)}',
+    '.pf-karl-door.alt{background:#1a1a1a;border:1px solid #2a2a2a}',
+    '.pf-karl-door span{font-size:11px;opacity:.75;font-weight:400;letter-spacing:.5px}',
+
+    /* MAKE SHAREABLE: natural next step */
+    '.pf-mss-wrap{text-align:center;margin:28px 0 8px;padding-top:20px;border-top:1px solid #1a1a1a}',
+    '.pf-mss-label{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:3px;color:#5a554a;margin-bottom:12px;text-transform:uppercase}',
+    '.pf-mss-btn{background:transparent;border:1.5px solid #c1121f;color:#e5383b;border-radius:12px;',
+    'font:900 13px/1 Arial,sans-serif;letter-spacing:2px;padding:16px 36px;cursor:pointer;min-height:52px;',
+    'transition:all .18s ease}',
+    '.pf-mss-btn:hover{background:#c1121f;color:#fff;box-shadow:0 6px 24px rgba(193,18,31,.35);transform:translateY(-1px)}',
     '.pf-mss-btn:active{transform:scale(.97)}',
-    /* Tighter answer hierarchy: question -> answer -> sources -> share */
-    '.pf-karl-rail{margin:10px 0 2px}',
-    '.pf-karl-rail span{font-size:10.5px;padding:4px 10px}'
+
+    /* Hide competing chrome on this page */
+    '#pf-nuke-stick,#pf-commend-chip,.pf-kc-btn{display:none!important}',
+
+    /* Mobile tuning */
+    '@media(max-width:480px){',
+    '.pf-karl{padding:0 14px 48px}',
+    '.pf-karl-hero{padding:36px 4px 22px}',
+    '.pf-karl-title{font-size:42px;letter-spacing:10px;text-indent:10px}',
+    '.pf-karl-sub{font-size:14.5px}',
+    '.pf-karl-input{font-size:16px;padding:15px 10px 15px 8px}',
+    '.pf-karl-btn{padding:0 20px;min-height:56px}',
+    '.pf-karl-fact{padding:18px}',
+    '.pf-karl-fact .vl{font-size:25px}',
+    '.pf-karl-entity .nm{font-size:25px}',
+    '}'
   ];
 
   function render(html) { host.innerHTML = '<style>' + CSS.join('\n') + '</style><div class="pf-karl">' + html + '</div>'; }
+
+  var SUBS = [
+    'Plain questions. <b>Sourced</b> answers. Never a guess.',
+    'The rails are <b>live</b>. Ask like you mean it.',
+    'Every number has a <b>receipt</b>.'
+  ];
+  var _subIdx = Math.floor(Math.random() * SUBS.length);
+
   function hero(q) {
     return '<div class="pf-karl-hero">' +
-      '<div class="pf-karl-kicker">ASK THE RAILS</div>' +
+      '<div class="pf-karl-kicker"><span class="pulse"></span>Ask the rails</div>' +
       '<h1 class="pf-karl-title">KARL</h1>' +
-      '<p class="pf-karl-sub">Plain questions. Sourced answers. Never a guess.</p>' +
-      '<form id="pf-karl-form" class="pf-karl-form">' +
+      '<p class="pf-karl-sub">' + SUBS[_subIdx] + '</p>' +
+      '<form id="pf-karl-form" class="pf-karl-form" autocomplete="off">' +
+      '<div class="pf-karl-inputwrap">' +
+      '<span class="pf-karl-prompt">&gt;</span>' +
       '<input id="pf-karl-q" class="pf-karl-input" type="text" maxlength="300" autocomplete="off"' +
-      ' enterkeyhint="go" autocapitalize="sentences"' +
-      ' placeholder="Who funds your rep?" value="' + esc(q || '') + '" aria-label="Ask Karl">' +
-      '<button class="pf-karl-btn" type="submit">ASK</button></form>' +
+      ' enterkeyhint="go" autocapitalize="sentences" spellcheck="false"' +
+      ' placeholder="Brief me: who funds your rep? what did Boeing do?" value="' + esc(q || '') + '" aria-label="Ask Karl">' +
+      '<button class="pf-karl-btn" type="submit">ASK</button>' +
+      '</div></form>' +
+      '<p class="pf-karl-hint">natural language — no keywords needed</p>' +
+      '<div class="pf-karl-chips-label">Suggested intel</div>' +
       '<div class="pf-karl-chips">' +
       '<button type="button" class="pf-karl-chip" data-q="Who funds my rep?">who funds my rep?</button>' +
       '<button type="button" class="pf-karl-chip" data-q="Who owns 70801?">who owns 70801?</button>' +
@@ -216,7 +272,6 @@
         });
       })(chips[i]);
     }
-    /* Corruption card buttons: fire the query. */
     var ccBtns = host.querySelectorAll('[data-cc-query]');
     for (var j = 0; j < ccBtns.length; j++) {
       (function (b) {
@@ -232,10 +287,12 @@
   function ask(q) {
     if (_asking) { return; }
     _asking = true;
-    render(hero(q) + '<div class="pf-karl-loading"><span class="lb">Querying the rails&hellip;</span><div class="sk"></div></div>');
+    render(hero(q) +
+      '<div class="pf-karl-loading"><span class="lb">Karl is working the rails</span>' +
+      '<span class="td"><i></i><i></i><i></i></span></div>');
     wire();
     var _btn = document.querySelector('.pf-karl-btn');
-    if (_btn) { _btn.disabled = true; _btn.textContent = 'ASKING\u2026'; }
+    if (_btn) { _btn.disabled = true; _btn.textContent = 'WORKING'; }
     api({ q: q }, function (r) {
       _asking = false;
       if (!r || r.ok === false && !r.template) {
@@ -266,11 +323,7 @@
     return bits.join(' &middot; ') + stale;
   }
 
-  /* MAKE SHAREABLE (fe/make-shareable-inline, 2026-10-07): inline Studio
-     creation panel on every Karl answer. The answer's own 1080x1350 painter
-     (paintKarlAnswer) renders the preview — facts + source stamps only, no
-     prose, per the Karl copy rules. One tap publishes to the UGC feed +
-     opens the native share sheet. No page navigation. Zero XP for viewing. */
+  /* MAKE SHAREABLE: canvas painter + share panel wiring (unchanged logic). */
   var lastAnswer = null;
   function hashQ(s) {
     var h = 0; s = String(s || '');
@@ -326,7 +379,6 @@
         .slice(0, 2).forEach(function (l) { x.fillText(l, W / 2, y); y += 36; });
       y += 20;
     }
-    /* share-image CTA standard: JOIN THE FIGHT. red bold above MTCSTW.COM */
     x.fillStyle = '#c1121f'; x.font = '900 52px "Arial Black",Arial,sans-serif';
     x.fillText('JOIN THE FIGHT.', W / 2, H - 210);
     x.fillStyle = '#f5ead6'; x.font = '900 40px "Arial Black",Arial,sans-serif';
@@ -369,8 +421,14 @@
     }
   }
 
+  /* Highlight big numbers in prose values: wrap $ amounts and large figures. */
+  function richNum(s) {
+    return esc(s).replace(/(\$[\d,]+(?:\.\d+)?[BMK]?)/g, '<span class="num">$1</span>');
+  }
+
   function answerHtml(q, r) {
-    var h = '<div id="pf-karl-res">';
+    var h = '<div id="pf-karl-res"><div class="pf-karl-brief">';
+    h += '<div class="pf-karl-brief-q">' + esc(q) + '</div>';
     if (r.degraded) {
       h += '<div class="pf-karl-degraded">' + esc(r.degraded_note || 'Karl is resting — static answers only.') + '</div>';
     }
@@ -382,7 +440,7 @@
         '<div class="pf-karl-disamb">' +
         r.prompt.questions.map(function (qq) {
           return '<button type="button" data-example="' + esc(qq.example) + '">' +
-            '<b>' + esc(qq.label) + '</b><br><span style="font-size:12.5px;color:#8a8478">' +
+            '<b>' + esc(qq.label) + '</b><br><span>' +
             esc('Try: "' + qq.example + '"') + (qq.hint ? ' — ' + esc(qq.hint) : '') + '</span></button>';
         }).join('') + '</div><div class="nt" style="font-size:12px;color:#8a8478;margin-top:8px">Karl never guesses — help me get it right.</div></div>';
     }
@@ -391,7 +449,7 @@
         '<div class="pf-karl-disamb">' +
         r.disambiguation.map(function (o) {
           return '<button type="button" data-name="' + esc(o.name) + '">' +
-            '<b>' + esc(o.name) + '</b><br><span style="font-size:12.5px;color:#8a8478">' +
+            '<b>' + esc(o.name) + '</b><br><span>' +
             esc([o.office, o.state, o.party].filter(Boolean).join(' · ')) + '</span></button>';
         }).join('') + '</div><div class="nt" style="font-size:12px;color:#8a8478;margin-top:8px">Karl never guesses — you choose.</div></div>';
     }
@@ -405,117 +463,119 @@
         (meta.length ? '<div class="mt">' + esc(meta.join(' · ')) + '</div>' : '') + '</div>';
     }
     (r.facts || []).forEach(function (f) {
-      /* Creator roster: slr_roster table */
+      /* Creator roster */
       if (f.creators && f.creators.length) {
         f.creators.forEach(function (c) {
-          h += '<div class="pf-karl-fact"><div class="lb">CREATOR</div>' +
-            '<div class="vl"><b>' + esc(c.name || '') + '</b></div>' +
-            '<div class="nt">Propaganda score: ' + esc(String(c.propaganda_score || '')) +
+          h += '<div class="pf-karl-fact"><div class="lb">Creator</div>' +
+            '<div class="vl">' + esc(c.name || '') + '</div>' +
+            '<div class="nt">Propaganda score <b>' + esc(String(c.propaganda_score || '')) + '</b>' +
             (c.primary_platform ? ' · ' + esc(c.primary_platform) : '') +
             (c.followers_display ? ' · ' + esc(c.followers_display) + ' followers' : '') + '</div>' +
             (c.bio ? '<div class="nt">' + esc(String(c.bio).slice(0, 300)) + '</div>' : '') +
-            '<div class="pf-karl-src">Sourced from the Sick Left Radicals roster</div></div>';
+            '<div class="pf-karl-src">Sick Left Radicals roster</div></div>';
         });
         return;
       }
       /* Insider trades */
       if (f.trades && f.trades.length) {
-        h += '<div class="pf-karl-fact"><div class="lb">INSIDER TRADES</div>';
-        f.trades.slice(0, 5).forEach(function (t) {
-          h += '<div style="padding:6px 0;border-top:1px dashed #e2ddd0"><b>' + esc(t.filer || '') + '</b>' +
+        h += '<div class="pf-karl-fact"><div class="lb">Insider trades</div>';
+        f.trades.slice(0, 5).forEach(function (t, ti) {
+          h += '<div style="padding:' + (ti ? '10px 0 0' : '4px 0 0') + ';' + (ti ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(t.filer || '') + '</b>' +
             '<div class="nt">' + esc(t.company || '') + ' · ' + esc(String(t.shares || '')) + ' shares @ $' + esc(String(t.price || '')) +
             (t.transaction_date ? ' · ' + esc(String(t.transaction_date).slice(0, 10)) : '') + '</div></div>';
         });
-        h += '<div class="pf-karl-src">Sourced from SEC Form 4 filings</div></div>';
+        h += '<div class="pf-karl-src">SEC Form 4 filings</div></div>';
         return;
       }
       /* Board interlocks */
       if (f.positions && f.positions.length) {
-        h += '<div class="pf-karl-fact"><div class="lb">BOARD POSITIONS</div>';
-        f.positions.slice(0, 8).forEach(function (p) {
-          h += '<div style="padding:6px 0;border-top:1px dashed #e2ddd0"><b>' + esc(p.person_name || p.name || '') + '</b>' +
+        h += '<div class="pf-karl-fact"><div class="lb">Board positions</div>';
+        f.positions.slice(0, 8).forEach(function (p, pi) {
+          h += '<div style="padding:' + (pi ? '10px 0 0' : '4px 0 0') + ';' + (pi ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<b style="color:#fff">' + esc(p.person_name || p.name || '') + '</b>' +
             '<div class="nt">' + esc(p.org_name || '') + (p.title ? ' — ' + esc(p.title) : '') + '</div></div>';
         });
-        h += '<div class="pf-karl-src">Sourced from LittleSis</div></div>';
+        h += '<div class="pf-karl-src">LittleSis</div></div>';
         return;
       }
       /* 13F holdings */
       if (f.holdings && f.holdings.length) {
-        h += '<div class="pf-karl-fact"><div class="lb">INSTITUTIONAL HOLDINGS</div>';
-        f.holdings.slice(0, 8).forEach(function (hh) {
+        h += '<div class="pf-karl-fact"><div class="lb">Institutional holdings</div>';
+        f.holdings.slice(0, 8).forEach(function (hh, hi) {
           var _v = Number(hh.value_usd);
           var _vTxt = _v >= 1e9 ? '$' + (_v/1e9).toFixed(1) + 'B' : _v >= 1e6 ? '$' + (_v/1e6).toFixed(1) + 'M' : '$' + _v;
-          h += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed #e2ddd0">' +
-            '<div><b>' + esc(hh.company_name || '') + '</b><div class="nt">' + esc(hh.manager_name || '') + '</div></div>' +
-            '<div class="vl">' + _vTxt + '</div></div>';
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (hi ? '10px 0 0' : '4px 0 0') + ';' + (hi ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(hh.company_name || '') + '</b><div class="nt">' + esc(hh.manager_name || '') + '</div></div>' +
+            '<div class="vl" style="font-size:22px;white-space:nowrap"><span class="num">' + _vTxt + '</span></div></div>';
         });
-        h += '<div class="pf-karl-src">Sourced from SEC 13F filings</div></div>';
+        h += '<div class="pf-karl-src">SEC 13F filings</div></div>';
         return;
       }
-      /* Enforcement ledger: top_cases from the penalty tables. */
+      /* Enforcement ledger */
       if (f.top_cases && f.top_cases.length) {
         var _tname = String(f.table || 'enforcement').replace(/_/g, ' ');
-        h += '<div class="pf-karl-fact"><div class="lb">' + esc(_tname.toUpperCase()) + ' \u2014 TOP PENALTIES</div>';
+        h += '<div class="pf-karl-fact"><div class="lb">' + esc(_tname) + ' — top penalties</div>';
         f.top_cases.forEach(function (c, ci) {
           var _pen = Number(c.penalty);
           var _penTxt = _pen >= 1000000 ? '$' + (_pen / 1000000).toFixed(1) + 'M' :
             _pen >= 1000 ? '$' + Math.round(_pen / 1000) + 'K' : '$' + _pen;
-          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:' +
-            (ci ? '9px 0 0' : '4px 0 0') + ';' + (ci ? 'border-top:1px dashed #e2ddd0;' : '') + '">' +
-            '<div><b>' + esc(c.name) + '</b><div class="nt">' + esc(c.type || '') +
-            (c.date ? ' \u00b7 ' + esc(String(c.date).slice(0, 10)) : '') + '</div></div>' +
-            '<div class="vl" style="font-size:21px;white-space:nowrap">' + _penTxt + '</div></div>';
+          h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+            (ci ? '12px 0 0' : '4px 0 0') + ';' + (ci ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+            '<div><b style="color:#fff">' + esc(c.name) + '</b><div class="nt">' + esc(c.type || '') +
+            (c.date ? ' · ' + esc(String(c.date).slice(0, 10)) : '') + '</div></div>' +
+            '<div class="vl" style="font-size:22px;white-space:nowrap"><span class="num">' + _penTxt + '</span></div></div>';
         });
-        h += '<div class="pf-karl-src">Sourced from public enforcement records</div></div>';
+        h += '<div class="pf-karl-src">Public enforcement records</div></div>';
         return;
       }
-      h += '<div class="pf-karl-fact"><div class="lb">' + esc(f.label) + '</div>' +
-        '<div class="vl">' + esc(f.value_display) + '</div>' +
+      /* Generic fact */
+      h += '<div class="pf-karl-fact"><div class="lb">' + esc(f.label || 'Finding') + '</div>' +
+        '<div class="vl">' + richNum(f.value_display || '') + '</div>' +
         (f.note ? '<div class="nt">' + esc(f.note) + '</div>' : '') +
         '<div class="pf-karl-src">' + srcLine(f.source) + '</div></div>';
     });
     if (r.adjacency_note) h += '<div class="pf-karl-adj">' + esc(r.adjacency_note) + '</div>';
     if (!(r.facts || []).length && !(r.disambiguation || []).length && !(r.faq || []).length) {
-      h += '<div class="pf-karl-empty"><div class="big">I don\'t have data on that yet.</div>' +
-        esc(r.empty_reason || 'That\'s a real answer — the rails are still building out.') + '</div>';
+      h += '<div class="pf-karl-empty"><div class="big">Nothing on the rails for that yet.</div>' +
+        esc(r.empty_reason || 'That\'s an honest answer — the rails are still being built out.') + '</div>';
     }
-    /* Rail status: what's tracked, what's not. */
+    /* Rail badges: subtle, elegant */
     if ((r.rail_status || []).length) {
       h += '<div class="pf-karl-rail">' + r.rail_status.map(function (s2) {
         return '<span class="' + (s2.live ? 'live' : '') + '">' +
-          (s2.live ? '&#9679; ' : '&#9675; ') + esc(s2.rail) +
-          (s2.live || !s2.note ? '' : ' — ' + esc(s2.note)) + '</span>';
+          esc(s2.rail) + '</span>';
       }).join('') + '</div>';
     }
-    /* Corruption cards: proactive prompts for the deep cuts. */
+    /* Deep links */
     if ((r.corruption_cards || []).length) {
-      h += '<div class="pf-karl-doors"><div class="hd">FOLLOW THE CORRUPTION</div>' +
+      h += '<div class="pf-karl-doors"><div class="hd">Follow the corruption</div>' +
         r.corruption_cards.map(function (c, i) {
           if (c.href) {
             var url = safeUrl(c.href);
             if (!url) return '';
             return '<a class="pf-karl-door' + (i ? ' alt' : '') + '" href="' + esc(url) + '">' +
-              esc(c.label) + ' &rarr;<br><span style="font-size:11px;opacity:.8">' + esc(c.hint || '') + '</span></a>';
+              esc(c.label) + ' &rarr;<br><span>' + esc(c.hint || '') + '</span></a>';
           }
           return '<button type="button" class="pf-karl-door' + (i ? ' alt' : '') + '" data-cc-query="' + esc(c.query || '') + '" style="width:100%;border:0;cursor:pointer">' +
-            esc(c.label) + '<br><span style="font-size:11px;opacity:.8">' + esc(c.hint || '') + '</span></button>';
+            esc(c.label) + '<br><span>' + esc(c.hint || '') + '</span></button>';
         }).join('') + '</div>';
     }
-    /* The sticky web: every answer is a front door to the rooms. */
     if ((r.related || []).length) {
-      h += '<div class="pf-karl-doors"><div class="hd">GO DEEPER</div>' +
+      h += '<div class="pf-karl-doors"><div class="hd">Go deeper</div>' +
         r.related.map(function (l, i) {
           var url = safeUrl(l.href);
           if (!url) return '';
           return '<a class="pf-karl-door' + (i ? ' alt' : '') + '" href="' + esc(url) + '">' + esc(l.label) + ' &rarr;</a>';
         }).join('') + '</div>';
     }
-    /* MAKE SHAREABLE: inline creation panel on every answer with facts. */
+    /* MAKE SHAREABLE: natural next step */
     if ((r.facts || []).length) {
-      h += '<div style="text-align:center;margin:16px 0 6px" data-mss-slot>' +
-        '<button type="button" class="pf-mss-btn" data-karl-mss>MAKE SHAREABLE</button></div>';
+      h += '<div class="pf-mss-wrap"><div class="pf-mss-label">Spread the intel</div>' +
+        '<div data-mss-slot><button type="button" class="pf-mss-btn" data-karl-mss>MAKE SHAREABLE</button></div></div>';
     }
-    h += '</div>';
+    h += '</div></div>';
     return h;
   }
 
@@ -528,7 +588,6 @@
           var ex = b.getAttribute('data-example');
           var input = document.getElementById('pf-karl-q');
           if (ex) {
-            // Prompt-for-accuracy button: fill the example into the input and focus
             if (input) { input.value = ex; input.focus(); }
             return;
           }
@@ -545,11 +604,8 @@
     }
   }
 
-  /* Self-mount (page-mount SELF config runs us; we also render on direct
-     presence so the page never depends on mount order). */
   render(hero(''));
   wire();
-  /* Deep-link support: /karl?q=who+funds+my+rep */
   try {
     var m = /[?&]q=([^&#]*)/.exec(window.location.search || '');
     if (m && decodeURIComponent(m[1]).trim()) {
@@ -559,6 +615,5 @@
       ask(dq);
     }
   } catch (e) {}
-  /* feWiden: full-width mount block like every dedicated page. */
   try { if (PF && PF.feWiden) PF.feWiden(host); } catch (e) {}
 })();

@@ -33,11 +33,11 @@
     touch-action:manipulation;
   }
   /* PWA standalone: extra top space for status bar (aggressive, no env dependency) */
+  body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
   @media (display-mode: standalone){
     .pf-topbar{padding-top:48px;}
     body{padding-top:158px;}
   }
-  body{padding-top:calc(env(safe-area-inset-top, 0px) + 110px);}
   .pf-topbar-inner{
     max-width:960px;margin:0 auto;
     display:flex;align-items:center;gap:10px;
@@ -152,8 +152,6 @@
     margin-top:12px; padding-top:10px; border-top:1px dashed var(--kh-line);
     font-size:12px; color:var(--kh-faint);
   }
-  #pf-karl-home .kh-deploys{ display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
-  #pf-karl-home .kh-deploys .n{ color:var(--kh-cream); font-weight:700; }
   #pf-karl-home .kh-src{ font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em; }
   #pf-karl-home .kh-proof{ display:none; margin-top:12px; border-top:1px solid var(--kh-line); padding-top:12px; }
   #pf-karl-home .kh-card.kh-open .kh-proof{ display:block; animation:kh-rise .3s ease both; }
@@ -212,6 +210,55 @@
   #pf-karl-home .kh-foot b{ color:var(--kh-cream); font-variant-numeric:tabular-nums; }
   #pf-karl-home .kh-powered{ text-align:center; padding:0 20px 30px; color:var(--kh-faint); font-size:11px; letter-spacing:.14em; }
   #pf-karl-home .kh-powered b{ color:var(--kh-dim); }
+  /* --- IMP LOOP 20261010: one-prompt, pillars, live-feed honesty --- */
+  #pf-karl-home .kh-oneprompt{
+    margin:14px 20px 0; background:rgba(193,18,31,.08); border:1px solid var(--kh-red);
+    border-radius:16px; padding:16px; text-align:center; position:relative;
+  }
+  #pf-karl-home .kh-op-copy{ font-weight:900; letter-spacing:.14em; font-size:14px; color:var(--kh-red-bright); margin-bottom:6px; }
+  #pf-karl-home .kh-op-sub{ font-size:13px; color:var(--kh-dim); margin-bottom:12px; }
+  #pf-karl-home .kh-op-btn{
+    display:inline-block; background:var(--kh-red); color:#fff; text-decoration:none;
+    font-weight:800; letter-spacing:.1em; font-size:14px; border-radius:999px; padding:12px 30px;
+    touch-action:manipulation;
+  }
+  #pf-karl-home .kh-op-btn:active{ transform:scale(.96); }
+  #pf-karl-home .kh-op-x{
+    position:absolute; top:8px; right:12px; background:none; border:0; color:var(--kh-faint);
+    font-size:18px; cursor:pointer; padding:8px; touch-action:manipulation;
+  }
+  #pf-karl-home .kh-pillars{ padding:10px 14px 6px; }
+  #pf-karl-home .kh-pillars h2{ font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--kh-dim); font-weight:700; margin:0 6px 10px; }
+  #pf-karl-home .kh-pillars h2 span{ color:var(--kh-red-bright); }
+  #pf-karl-home .kh-pillars-grid{ display:flex; flex-direction:column; gap:10px; }
+  #pf-karl-home .kh-pillar{
+    display:flex; align-items:center; gap:12px; text-decoration:none;
+    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
+    padding:16px; min-height:88px; box-sizing:border-box;
+    touch-action:manipulation; transition:border-color .2s, transform .12s;
+  }
+  #pf-karl-home .kh-pillar:active{ transform:scale(.985); border-color:var(--kh-red); }
+  #pf-karl-home .kh-pillar b{ color:var(--kh-cream); font-size:15px; letter-spacing:.08em; flex:0 0 112px; }
+  #pf-karl-home .kh-pillar span{ flex:1 1 auto; font-size:13px; color:var(--kh-dim); line-height:1.45; }
+  #pf-karl-home .kh-pillar i{ font-style:normal; color:var(--kh-red-bright); font-weight:800; font-size:13px; letter-spacing:.08em; white-space:nowrap; }
+  @media (min-width:560px){
+    #pf-karl-home .kh-pillars-grid{ display:grid; grid-template-columns:1fr 1fr; }
+    #pf-karl-home .kh-pillar{ flex-direction:column; align-items:flex-start; gap:8px; }
+    #pf-karl-home .kh-pillar b{ flex:none; }
+  }
+  #pf-karl-home .kh-empty{
+    background:var(--kh-card); border:1px dashed var(--kh-line); border-radius:16px;
+    padding:20px 16px; color:var(--kh-dim); font-size:14px; line-height:1.6;
+  }
+  #pf-karl-home .kh-empty b{ color:var(--kh-cream); }
+  #pf-karl-home .kh-rails{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  #pf-karl-home .kh-rail{
+    font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em;
+    border:1px solid var(--kh-line); border-radius:999px; padding:4px 10px; color:var(--kh-faint);
+  }
+  #pf-karl-home .kh-rail.live{ color:var(--kh-green); border-color:rgba(47,191,113,.5); }
+  #pf-karl-home .kh-read{ color:var(--kh-red-bright); font-weight:700; font-size:12px; letter-spacing:.08em; text-decoration:none; }
+  #pf-karl-home .kh-how{ font-size:12.5px; color:var(--kh-faint); font-style:italic; margin-top:10px; line-height:1.55; }
 </style>
 <script>window.__PF_BUILD="20261009-0946-d469f51";</script>
 <script>(function(){
@@ -256,12 +303,19 @@
   <div class="kh-ask">
     <h1>Who's <em>robbing</em> you?</h1>
     <div class="kh-composer">
-      <textarea id="kh-q" rows="2" placeholder="Ask anything&hellip;" enterkeyhint="go"></textarea>
+      <textarea id="kh-q" rows="2" placeholder="Ask anything&hellip;" enterkeyhint="go" aria-label="Ask Karl a question"></textarea>
       <div class="kh-composer-foot">
         <span class="kh-composer-hint" id="kh-hint">sourced answers &middot; never a guess</span>
         <button class="kh-ask-btn" id="kh-askBtn">ASK</button>
       </div>
     </div>
+  </div>
+
+  <div class="kh-oneprompt" id="kh-oneprompt" hidden>
+    <button class="kh-op-x" aria-label="Dismiss">&times;</button>
+    <div class="kh-op-copy">&#9733; CLAIM YOUR CALLSIGN &#9733;</div>
+    <div class="kh-op-sub">One tap. Your XP follows it everywhere.</div>
+    <a class="kh-op-btn" href="/arcade/">CLAIM IT &rarr;</a>
   </div>
 
   <div class="kh-chips" id="kh-chips">
@@ -275,9 +329,19 @@
 
   <div class="kh-feed-head">
     <h2>The Robbery Report</h2>
-    <span class="kh-tick"><i></i>LIVE</span>
+    <span class="kh-tick" id="kh-tick"><i></i>LIVE</span>
   </div>
   <div class="kh-feed" id="kh-feed"></div>
+
+  <section class="kh-pillars" aria-label="Four ways to fight">
+    <h2>FOUR WAYS TO FIGHT. <span>PICK YOURS.</span></h2>
+    <div class="kh-pillars-grid">
+      <a class="kh-pillar" href="/create"><b>CREATE</b><span>MAKE THE WEAPONS. Memes, posts, art &mdash; propaganda that hits.</span><i>ENTER &rarr;</i></a>
+      <a class="kh-pillar" href="/sick-left-radicals"><b>CONNECT</b><span>FIND YOUR FIGHTERS. 62 Sick Left Radicals. A cell with your name on it.</span><i>ENTER &rarr;</i></a>
+      <a class="kh-pillar" href="/cells"><b>COORDINATE</b><span>MOVE AS ONE. Daily missions, campaigns, real-world action.</span><i>ENTER &rarr;</i></a>
+      <a class="kh-pillar" href="/money"><b>CAPITAL</b><span>FUND THE FIGHT. War Bonds, the War Chest &mdash; money that never sells out.</span><i>ENTER &rarr;</i></a>
+    </div>
+  </section>
 
   <div class="kh-foot">
     <span><b id="kh-stat-wealth">&mdash;</b> tracked</span>
@@ -310,59 +374,31 @@ var SEED = [
   { q:"Which defense contractor stole the most?",
     a:"Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy — the largest penalty in the contractor ledger.",
     rows:[["737 MAX fraud conspiracy","$2.5B"],["Defense contract fraud","$615M"],["Total Boeing penalties","$3.3B"]],
-    src:"▸ RECEIPTS — DOJ, SEC filings", deploys:1284, when:"2m" },
+    src:"▸ RECEIPTS — DOJ, SEC filings" },
   { q:"Is my hospital price-gouging?",
     a:"The average ER visit is billed at <b>$2,200</b> but costs the hospital <b>$180</b> to deliver. 27K hospitals tracked.",
     rows:[["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"],["Markup","12×"]],
-    src:"▸ RECEIPTS — CMS hospital price transparency", deploys:862, when:"9m" },
+    src:"▸ RECEIPTS — CMS hospital price transparency" },
   { q:"Who funds my congressman?",
     a:"<b>176K</b> itemized FEC contributions tracked. The average House member takes <b>68%</b> of funds from outside their district.",
     rows:[["Itemized contributions","176,870"],["Avg out-of-district share","68%"],["Top donor industry","Finance"]],
-    src:"▸ RECEIPTS — FEC filings", deploys:743, when:"14m" },
+    src:"▸ RECEIPTS — FEC filings" },
   { q:"Biggest private prison operator?",
     a:"GEO Group runs <b>19</b> of 30 tracked facilities. Four disclosed contracts total <b>$330M/yr</b> — most values are hidden.",
     rows:[["GEO Group facilities","19"],["CoreCivic facilities","9"],["Disclosed contract value","$330M/yr"]],
-    src:"▸ RECEIPTS — BOP, SEC 10-K", deploys:591, when:"31m" },
+    src:"▸ RECEIPTS — BOP, SEC 10-K" },
   { q:"Worst for-profit college?",
     a:"<b>2,261</b> for-profit schools tracked. 54 flagged for fraud or enforcement action. 1.2M+ students enrolled.",
     rows:[["Schools tracked","2,261"],["Flagged for fraud","54"],["Students enrolled","1.2M"]],
-    src:"▸ RECEIPTS — Dept. of Education", deploys:428, when:"48m" },
+    src:"▸ RECEIPTS — Dept. of Education" },
   { q:"How rich are the billionaires?",
     a:"<b>1,653</b> billionaires tracked with a combined <b>$6.45T</b> — more than the GDP of Japan.",
     rows:[["Billionaires tracked","1,653"],["Combined net worth","$6.45T"],["Avg net worth","$3.9B"]],
-    src:"▸ RECEIPTS — Forbes, SEC 13F", deploys:1107, when:"1h" }
+    src:"▸ RECEIPTS — Forbes, SEC 13F" }
 ];
 
-var INFERENCES = [
-  { q:"Boeing paid $2.5B in fraud penalties — then spent $13.3M lobbying the same regulators.",
-    a:"That's a <b>188:1 return</b> on corruption. For every $1 Boeing spends lobbying, they dodge $188 in accountability. The revolving door isn't a metaphor — it's a business model.",
-    rows:[["737 MAX fraud conspiracy penalty","$2.5B"],["Boeing 2025 lobbying spend","$13.3M"],["DoD → Boeing revolving-door hires","27"]],
-    src:"▸ RECEIPTS — DOJ case files · LDA filings · LittleSis", deploys:2147, when:"just now", inference:true },
-  { q:"2,261 for-profit schools collected federal aid while only 54 were ever flagged for fraud.",
-    a:"That's <b>2.4%</b> flagged — which means the scam isn't the exception, it's the business model. 1.2M students enrolled, billions in federal dollars, almost nobody watching.",
-    rows:[["For-profit schools tracked","2,261"],["Flagged for fraud","54"],["Students enrolled","1.2M"]],
-    src:"▸ RECEIPTS — Dept. of Education", deploys:986, when:"just now", inference:true },
-  { q:"GEO Group runs 19 private prisons. Four disclosed contracts are worth $330M/yr — the other 26 are hidden.",
-    a:"If 4 contracts are worth <b>$330M</b>, the 26 they won't disclose are worth billions. Your tax dollars fund cages, and they won't even tell you the price.",
-    rows:[["GEO Group facilities","19"],["Disclosed contract value","$330M/yr"],["Undisclosed contracts","26"]],
-    src:"▸ RECEIPTS — BOP · SEC 10-K", deploys:1104, when:"just now", inference:true },
-  { q:"1,653 billionaires hold $6.45T — more than the entire GDP of Japan.",
-    a:"The average billionaire is worth <b>$3.9B</b>. A worker earning $60K would need 65,000 years to catch up. This isn't wealth — it's a separate economy.",
-    rows:[["Billionaires tracked","1,653"],["Combined net worth","$6.45T"],["Avg net worth","$3.9B"]],
-    src:"▸ RECEIPTS — Forbes · SEC 13F", deploys:1893, when:"just now", inference:true },
-  { q:"The average House member takes 68% of campaign funds from outside their district.",
-    a:"You're the audience, not the customer. <b>176,870</b> itemized contributions tracked — and the money comes from finance, not from your neighbors.",
-    rows:[["Itemized contributions","176,870"],["Avg out-of-district share","68%"],["Top donor industry","Finance"]],
-    src:"▸ RECEIPTS — FEC filings", deploys:1302, when:"just now", inference:true },
-  { q:"59,717 eviction estimates pile up while hospital ER markups hit 12×.",
-    a:"You're being robbed coming and going — displaced from your home while hospitals bill <b>$2,200</b> for care that costs <b>$180</b>. Two datasets, one story.",
-    rows:[["County eviction estimates","59,717"],["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"]],
-    src:"▸ RECEIPTS — Eviction Lab · CMS price transparency", deploys:1587, when:"just now", inference:true },
-  { q:"Defense contractors paid $5.44B in penalties across 20 cases — while insiders traded their own stock 71 times.",
-    a:"They knew. <b>20</b> misconduct cases, <b>$5.44B</b> in fines — and executives were buying and selling their own shares the whole time.",
-    rows:[["Contractor penalties","$5.44B"],["Misconduct cases","20"],["Insider trades tracked","71"]],
-    src:"▸ RECEIPTS — DOJ · SEC Form 4", deploys:1755, when:"just now", inference:true }
-];
+/* INFERENCES removed 2026-10-10 (imp-loop): static theater replaced by the live
+   karl_robbery lead (deterministic, server-side). No invented freshness. */
 
 var feed = document.getElementById('kh-feed');
 var toast = document.getElementById('kh-toast');
@@ -374,40 +410,63 @@ function showToast(msg){
   clearTimeout(toastT);
   toastT = setTimeout(function(){ toast.classList.remove('kh-show'); }, 2200);
 }
+/* Kill switch: ?pf_off=karl-home (P-5/P-7 pattern) */
+(function killSwitch(){
+  try{
+    var off = /(?:\?|&)pf_off=karl-home(?:&|$)/.test(location.search);
+    var dis = [];
+    try{ dis = JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]'); }catch(e2){}
+    if(off || dis.indexOf('karl-home')>-1){
+      var h = document.getElementById('pf-karl-home');
+      if(h) h.style.display = 'none';
+    }
+  }catch(e){}
+})();
+
 function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function liveDate(ts){
+  try{ var t = Number(ts); if(!t) return '';
+    return new Date(t).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }catch(e){ return ''; }
+}
 
+/* Card renderer. d: {q, a (trusted HTML only for in-file curated seed),
+   rows, src, badge?, curated?, fresh?, how?, href?, live?}.
+   Live rail content is ALWAYS escaped — never trusted HTML. */
 function cardEl(d){
   var el = document.createElement('div');
-  el.className = 'kh-card' + (d.inference ? ' kh-inference' : '');
+  el.className = 'kh-card' + (d.badge ? ' kh-inference' : '');
   var rowsHtml = (d.rows||[]).slice(0,4).map(function(r){
     return '<div class="kh-proof-row"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
+  var readLink = d.href ? '<div style="margin-top:10px"><a class="kh-read" href="'+esc(d.href)+'" target="_blank" rel="noopener">READ THE RECORD &rarr;</a></div>' : '';
+  var howLine = d.how ? '<div class="kh-how">'+esc(d.how)+'</div>' : '';
+  var metaLeft = d.badge
+    ? '<span class="kh-src">'+esc(d.badge)+'</span>'
+    : '<span class="kh-src">KARL\u2019S FILES &middot; CURATED</span>';
+  var metaRight = '<span class="kh-src">'+esc(String(d.src||'').split('—')[0].trim())+'</span>'+
+    (d.fresh ? ' &middot; '+esc(d.fresh) : '');
   el.innerHTML =
-    (d.inference ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>' : '')+
+    (d.badge ? '<div class="kh-kbadge">'+esc(d.badge)+'</div>' : '')+
     '<div class="kh-q">'+esc(d.q)+'</div>'+
-    '<div class="kh-a">'+d.a+'</div>'+
+    '<div class="kh-a">'+(d.live ? esc(d.a) : d.a)+'</div>'+
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">▸ EXHIBIT — VERIFIED</div>'+ rowsHtml +
-      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<div class="kh-receipts">'+esc(d.src)+'</div>'+ howLine + readLink +
       '<button class="kh-deploy-btn">DEPLOY</button>'+
     '</div>'+
-    '<div class="kh-card-meta">'+
-      '<span class="kh-deploys"><span class="n">'+fmt(d.deploys)+'</span> deployed</span>'+
-      '<span><span class="kh-src">'+esc(String(d.src).split('—')[0].trim())+'</span> &middot; '+esc(d.when)+'</span>'+
-    '</div>';
+    '<div class="kh-card-meta"><span>'+metaLeft+'</span><span>'+metaRight+'</span></div>';
   el.addEventListener('click', function(e){
-    if(e.target.classList.contains('kh-deploy-btn')) return;
+    if(e.target.classList.contains('kh-deploy-btn') || e.target.classList.contains('kh-read')) return;
     el.classList.toggle('kh-open');
   });
   var btn = el.querySelector('.kh-deploy-btn');
-  var nEl = el.querySelector('.kh-deploys .n');
   btn.addEventListener('click', function(e){
     e.stopPropagation();
     if(btn.classList.contains('kh-done')) return;
-    /* Build share text from the card */
-    var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
-    /* Try native share, fall back to clipboard */
+    /* Share-image CTA standard: every share surface carries JOIN THE FIGHT. */
+    var plain = String(d.a||'').replace(/<[^>]*>/g, '');
+    var shareText = d.q + "\n\n" + plain + "\n\nJOIN THE FIGHT. mtcstw.com";
     if (navigator.share) {
       navigator.share({ title: 'KARL Discovery', text: shareText, url: 'https://mtcstw.com/' })
         .then(function(){ markDeployed(); })
@@ -418,29 +477,89 @@ function cardEl(d){
     function markDeployed(){
       btn.classList.add('kh-done');
       btn.textContent = 'DEPLOYED \u2713';
-      d.deploys = (d.deploys||0)+1;
-      nEl.textContent = fmt(d.deploys);
-      showToast('Deployed — the robbery report grows');
+      showToast('Deployed — spread it');
     }
   });
   return el;
 }
 
-/* Seed feed */
+function railsHtml(rails){
+  rails = rails||[];
+  if(!rails.length) return '';
+  return '<div class="kh-rails">'+rails.map(function(r){
+    return '<span class="kh-rail'+(r.live?' live':'')+'">'+esc(String(r.rail||'rail').slice(0,28))+'</span>';
+  }).join('')+'</div>';
+}
+
+/* Map a karl_robbery item to a card. All rail content escaped. */
+function robberyCard(it, isLead){
+  var rows = [];
+  if(it.amount_display) rows.push(['Documented amount', String(it.amount_display)]);
+  var src = (it.source && it.source.name) ? it.source.name : (it.rail || 'Karl rails');
+  var fresh = '';
+  if(it.source && it.source.retrieved_at) fresh = 'data as of '+liveDate(it.source.retrieved_at);
+  else if(it.published_at) fresh = 'published '+liveDate(it.published_at);
+  return {
+    q: String(it.headline || it.title || 'Karl noticed something'),
+    a: String(it.detail || ''),
+    rows: rows, src: '▸ RECEIPTS — '+src,
+    badge: isLead ? '🧠 KARL NOTICED' : null,
+    how: it.computed_from || null,
+    href: it.href || null,
+    fresh: fresh, live: true
+  };
+}
+
+/* Curated evergreen seed — audited figures, no fake freshness, no fake counts */
 SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
 
-/* Karl's lead inference on every load */
-(function leadInference(){
-  var think = document.createElement('div');
-  think.className = 'kh-card kh-thinking';
-  think.innerHTML =
-    '<div class="kh-tline"><span class="kh-pulse-dot"></span>Karl is connecting the dots&hellip;</div>'+
-    '<div class="kh-shimmer"></div><div class="kh-shimmer" style="width:62%"></div>';
-  feed.insertBefore(think, feed.firstChild);
-  setTimeout(function(){
-    var pick = INFERENCES[Math.floor(Math.random()*INFERENCES.length)];
-    think.replaceWith(cardEl(pick));
-  }, 800);
+/* LIVE layer: karl_robbery (deterministic day-rotating lead + live discoveries).
+   Lights up automatically when the backend ships it; until then the curated
+   cards above stand alone. Fail-soft, never invented. */
+(function loadLiveFeed(){
+  var tick = document.getElementById('kh-tick');
+  function setTick(html){ if(tick) tick.innerHTML = html; }
+  fetch(API+'karl_robbery', {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || d.ok===false) throw 0;
+      var items = d.items||[];
+      if(d.empty_reason || (!d.lead && !items.length)){
+        var e = document.createElement('div');
+        e.className = 'kh-card';
+        e.innerHTML = '<div class="kh-empty"><b>The robbery feed is quiet.</b><br>'+
+          esc(d.empty_reason || 'The live rails are not answering right now. Nothing is shown rather than invented.')+
+          railsHtml(d.rails)+'</div>';
+        feed.insertBefore(e, feed.firstChild);
+        setTick('<i style="background:#8a8478"></i>OFFLINE');
+        return;
+      }
+      if(d.lead) feed.insertBefore(cardEl(robberyCard(d.lead, true)), feed.firstChild);
+      items.forEach(function(it){ feed.appendChild(cardEl(robberyCard(it, false))); });
+      setTick('<i></i>LIVE &middot; '+esc(liveDate(d.generated_at)||'today'));
+    })
+    .catch(function(){
+      /* Endpoint not shipped yet or rails down — curated cards stand alone. */
+      setTick('<i style="background:#8a8478"></i>KARL\u2019S FILES');
+    });
+})();
+
+/* One-prompt onboarding: one card, one action, once ever (anonymous only).
+   Routes through the EXISTING enlistment flow on /arcade/ (Daily Orders). */
+(function onePrompt(){
+  try{
+    if(localStorage.getItem('pf_oneprompt_home_seen')) return;
+    var idv = {};
+    try{ idv = JSON.parse(localStorage.getItem('pf_identity_v1')||'{}'); }catch(e2){}
+    if(idv && idv.callsign) return;
+    var box = document.getElementById('kh-oneprompt');
+    if(!box) return;
+    box.hidden = false;
+    box.querySelector('.kh-op-x').addEventListener('click', function(){
+      try{ localStorage.setItem('pf_oneprompt_home_seen','1'); }catch(e3){}
+      box.style.display = 'none';
+    });
+  }catch(e){}
 })();
 
 /* Live stats */
@@ -517,7 +636,7 @@ function factsToCard(q, r){
   return {
     q: q,
     a: '<b>'+esc(lead[1])+'</b> — '+esc(lead[0])+'. Karl pulled this from the live rails.',
-    rows: rows.slice(0,4), src: src, deploys: 0, when: "now"
+    rows: rows.slice(0,4), src: src, fresh: "just asked"
   };
 }
 
@@ -567,16 +686,16 @@ function doAsk(){
         var kws = s.q.toLowerCase().split(/\s+/).filter(function(w){return w.length>4;});
         return kws.some(function(k){ return text.toLowerCase().indexOf(k)>-1; });
       });
-      if(hit){ done(Object.assign({}, hit, {q:text, when:"now"})); return; }
+      if(hit){ done(Object.assign({}, hit, {q:text})); return; }
       done({ q:text,
         a:"Karl searched the live rails and found <b>no direct match</b> — try naming a company, person, or industry.",
         rows:[["Template", d&&d.template?d.template:"unknown"],["Rails checked","27"]],
-        src:"▸ RECEIPTS — Karl rails", deploys:0, when:"now" });
+        src:"▸ RECEIPTS — Karl rails" });
     })
     .catch(function(){
       done({ q:text,
         a:"The rails didn't answer — check your connection and try again.",
-        rows:[["Status","offline"]], src:"▸ Karl", deploys:0, when:"now" });
+        rows:[["Status","offline"]], src:"▸ Karl" });
     });
 }
 

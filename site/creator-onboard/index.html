@@ -119,23 +119,74 @@
 <main id="main">
   <div id="pf-creator-onboard" style="max-width:640px;margin:0 auto;padding:32px 16px 64px;">
 <h1 style="font-family:'Arial Black',Arial,sans-serif;color:#f5ead6;letter-spacing:2px;">JOIN THE SICK LEFT RADICALS</h1>
-<p style="color:#b8ab8e;line-height:1.6;">Creator onboarding. Bring your audience. Fill this out — it opens an email to the crew with your application.</p>
+<p style="color:#b8ab8e;line-height:1.6;">Creator onboarding. Bring your audience. Fill this out — the crew reviews every application.</p>
 <form id="pf-join-form" style="display:grid;gap:14px;margin-top:20px;">
 <label style="display:grid;gap:6px;color:#f5ead6;font-weight:700;">Name<input name="name" required style="padding:12px;background:#141414;border:2px solid #3a0d0d;color:#fff;border-radius:4px;font-size:16px;"></label>
 <label style="display:grid;gap:6px;color:#f5ead6;font-weight:700;">Email<input name="email" type="email" required style="padding:12px;background:#141414;border:2px solid #3a0d0d;color:#fff;border-radius:4px;font-size:16px;"></label>
 <label style="display:grid;gap:6px;color:#f5ead6;font-weight:700;">Platform link<input name="platform" required placeholder="https://…" style="padding:12px;background:#141414;border:2px solid #3a0d0d;color:#fff;border-radius:4px;font-size:16px;"></label>
 <label style="display:grid;gap:6px;color:#f5ead6;font-weight:700;">Follower count<input name="followers" required placeholder="e.g. 125K" style="padding:12px;background:#141414;border:2px solid #3a0d0d;color:#fff;border-radius:4px;font-size:16px;"></label>
 <label style="display:grid;gap:6px;color:#f5ead6;font-weight:700;">Short pitch<textarea name="pitch" required rows="5" placeholder="What do you make, and why should the network have you?" style="padding:12px;background:#141414;border:2px solid #3a0d0d;color:#fff;border-radius:4px;font-size:16px;"></textarea></label>
-<button type="submit" style="min-height:48px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;letter-spacing:2px;border:2px solid #fff;cursor:pointer;">SEND APPLICATION →</button>
+<button type="submit" id="pf-join-btn" style="min-height:48px;background:#c1121f;color:#fff;font-weight:800;font-size:17px;letter-spacing:2px;border:2px solid #fff;cursor:pointer;">SEND APPLICATION →</button>
 </form>
+<div id="pf-join-msg" role="status" aria-live="polite" style="display:none;margin-top:18px;padding:16px;border-radius:8px;font-size:15px;line-height:1.5;"></div>
 <script>
-document.getElementById('pf-join-form').addEventListener('submit', function(e){
-  e.preventDefault();
-  var f = e.target;
-  var v = function(n){ return (f.elements[n].value || '').trim(); };
-  var body = 'Name: ' + v('name') + '\nEmail: ' + v('email') + '\nPlatform link: ' + v('platform') + '\nFollower count: ' + v('followers') + '\n\nShort pitch:\n' + v('pitch');
-  window.location.href = 'mailto:mtcstw@gmail.com?subject=' + encodeURIComponent('Sick Left Radicals application — ' + v('name')) + '&body=' + encodeURIComponent(body);
-});
+(function(){
+  var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+  var form = document.getElementById('pf-join-form');
+  var btn = document.getElementById('pf-join-btn');
+  var msg = document.getElementById('pf-join-msg');
+  function showMsg(text, isErr){
+    msg.style.display = 'block';
+    msg.style.background = isErr ? '#2a0d0d' : '#0d2a14';
+    msg.style.border = '1px solid ' + (isErr ? '#c1121f' : '#2a7a3f');
+    msg.style.color = '#f5ead6';
+    msg.textContent = text;
+    msg.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = function(n){ return (form.elements[n].value || '').trim(); };
+    var payload = { name: v('name'), email: v('email'), platform: v('platform'), followers: v('followers'), pitch: v('pitch') };
+    if(!payload.name || !payload.email || !payload.platform || !payload.followers || !payload.pitch){
+      showMsg('Fill in every field — the crew reads all of them.', true);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'SENDING…';
+    fetch(API + 'creator_apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data && data.ok){
+        form.style.display = 'none';
+        showMsg(data.duplicate
+          ? 'Already got it — your application is in the queue. The crew will reach out.'
+          : 'Application received. The crew reviews every one — watch your inbox. Welcome to the fight.', false);
+      } else {
+        var errMap = {
+          missing_name: 'Add your name.',
+          missing_email: 'Add your email.',
+          bad_email: 'That email doesn\u2019t look right — check it.',
+          missing_platform: 'Add your platform link.',
+          missing_followers: 'Add your follower count.',
+          missing_pitch: 'Tell us your pitch.',
+          store_unavailable: 'The application box is jammed — try again in a bit.'
+        };
+        showMsg((data && errMap[data.error]) || 'Something went wrong — try again.', true);
+        btn.disabled = false;
+        btn.textContent = 'SEND APPLICATION →';
+      }
+    })
+    .catch(function(){
+      showMsg('Couldn\u2019t reach the server — check your connection and try again.', true);
+      btn.disabled = false;
+      btn.textContent = 'SEND APPLICATION →';
+    });
+  });
+})();
 </script>
 </div>
 </main>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SCAN 📷 — What's in your cart?</title>
+<meta name="description" content="Scan a barcode. We tell you who's profiting, who's been recalled, and what the CEO makes. Receipts, not rumors.">
+<meta property="og:title" content="SCAN 📷 — What's in your cart?">
+<meta property="og:description" content="Scan any product barcode. See the recalls, the violations, the CEO pay. Know what you're buying.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/scan">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@2.0.0/umd/index.min.js"></script>
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #pf-boot{min-height:100vh;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-wrap{max-width:640px;margin:0 auto;padding:calc(70px + env(safe-area-inset-top,0px)) 16px 40px;}
+  .pf-hero{text-align:center;margin-bottom:20px;}
+  .pf-hero h1{font-size:28px;font-weight:900;letter-spacing:.02em;margin:0 0 8px;}
+  .pf-hero h1 .r{color:#e5383b;}
+  .pf-hero p{font-size:14px;color:#c9c2b4;line-height:1.55;margin:0;}
+  #pf-view{position:relative;width:100%;max-width:480px;margin:0 auto;border-radius:16px;overflow:hidden;background:#000;border:2px solid #2a2a2a;}
+  #pf-view video{width:100%;display:block;}
+  #pf-view .scanline{position:absolute;left:8%;right:8%;top:50%;height:2px;background:#e5383b;box-shadow:0 0 12px #e5383b;animation:scan 2s ease-in-out infinite;}
+  @keyframes scan{0%,100%{top:20%}50%{top:80%}}
+  #pf-view.idle .scanline{display:none;}
+  .pf-scanbtns{display:flex;gap:10px;margin:16px 0;}
+  .pf-btn{flex:1;border-radius:12px;font-weight:900;font-size:14px;letter-spacing:.04em;padding:14px 8px;cursor:pointer;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border:none;}
+  .pf-btn:active{transform:scale(.97);}
+  .pf-btn.red{background:#c1121f;color:#fff;}
+  .pf-btn.ghost{background:#1a1a1a;color:#fff;border:2px solid #333;}
+  .pf-manual{display:flex;gap:8px;margin-top:12px;}
+  .pf-manual input{flex:1;background:#1a1a1a;border:2px solid #333;border-radius:12px;color:#fff;font-size:16px;padding:12px 14px;outline:none;}
+  .pf-manual input:focus{border-color:#c1121f;}
+  .pf-result{display:none;margin-top:20px;}
+  .pf-card{background:#141414;border:1px solid #2a2a2a;border-radius:16px;padding:18px;margin-bottom:12px;}
+  .pf-card h2{font-size:20px;font-weight:900;margin:0 0 4px;}
+  .pf-card .brand{font-size:14px;color:#8a8478;margin-bottom:12px;}
+  .pf-ghoul{display:flex;align-items:center;gap:12px;background:#1d0f10;border:1px solid #5a1a1e;border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  .pf-ghoul .score{font-size:28px;font-weight:900;color:#e5383b;}
+  .pf-ghoul .lbl{font-size:12px;color:#c9c2b4;line-height:1.4;}
+  .pf-recall{border-left:3px solid #d4a017;padding:8px 12px;margin:8px 0;background:#171512;border-radius:0 8px 8px 0;font-size:13px;line-height:1.5;}
+  .pf-recall .cls{font-size:11px;font-weight:800;color:#d4a017;letter-spacing:.06em;}
+  .pf-summary{margin:16px 0;background:#141414;border-left:4px solid #e5383b;border-radius:0 12px 12px 0;padding:14px 16px;font-size:14.5px;line-height:1.6;color:#e8e2d4;}
+  .pf-actions{display:flex;gap:10px;margin-top:16px;}
+  .pf-loading{text-align:center;padding:40px 0;color:#8a8478;display:none;}
+  .pf-loading .spin{font-size:32px;display:inline-block;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .pf-err{background:#1d0f10;border:1px solid #5a1a1e;border-radius:12px;padding:16px;margin-top:20px;font-size:14px;color:#e8b4b4;display:none;}
+  .pf-note{font-size:11.5px;color:#6e675c;line-height:1.5;margin-top:18px;text-align:center;}
+  details.pf-det{margin:8px 0;}
+  details.pf-det summary{cursor:pointer;font-weight:700;font-size:14px;color:#e5383b;padding:8px 0;touch-action:manipulation;}
+</style>
+</head>
+<body>
+<div id="pf-boot">
+  <header class="pf-topbar">
+    <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
+      <a class="pf-topbar-brand" href="/">MTCSTW<span>.COM</span></a>
+    </div>
+  </header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent;color:#fff}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav-overlay.open{opacity:1;pointer-events:auto}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Scan a Product</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+  </div>
+  <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+})();
+</script>
+
+  <main class="pf-wrap">
+    <div class="pf-hero">
+      <h1>SCAN <span class="r">📷</span></h1>
+      <p>Point your camera at any barcode. We tell you who's profiting, what's been recalled, and what the CEO makes off your dollar.</p>
+    </div>
+
+    <div id="pf-view" class="idle">
+      <video id="pf-video" playsinline muted></video>
+      <div class="scanline"></div>
+    </div>
+
+    <div class="pf-scanbtns">
+      <button class="pf-btn red" id="pf-start">📷 START SCANNING</button>
+      <button class="pf-btn ghost" id="pf-stop" style="display:none">⏹ STOP</button>
+    </div>
+
+    <div class="pf-manual">
+      <input id="pf-barcode" type="text" inputmode="numeric" placeholder="Or type barcode number…" maxlength="14">
+      <button class="pf-btn red" id="pf-gobarcode" style="flex:0 0 auto;padding:12px 20px">GO</button>
+    </div>
+
+    <div class="pf-err" id="pf-err"></div>
+    <div class="pf-loading" id="pf-loading"><span class="spin">🔍</span><br>Looking up…</div>
+
+    <div class="pf-result" id="pf-result"></div>
+
+    <p class="pf-note">Barcode data via Open Food Facts. Accountability data from our warehouse — FDA recalls, CPSC safety, Ghoul Index. <a href="/ghouls/" style="color:#e5383b;">See the full Ghoul Index</a>.</p>
+  </main>
+</div>
+
+<!-- PF BOTTOM NAV -->
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">🏠</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">⚒</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">🎨</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">👥</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">🧠</span>KARL</a>
+</nav>
+
+<script>
+(function(){
+  var API = 'https://pf-api.mtcstw.workers.dev';
+  var video = document.getElementById('pf-video');
+  var view = document.getElementById('pf-view');
+  var startBtn = document.getElementById('pf-start');
+  var stopBtn = document.getElementById('pf-stop');
+  var errBox = document.getElementById('pf-err');
+  var loading = document.getElementById('pf-loading');
+  var resultBox = document.getElementById('pf-result');
+  var barcodeInput = document.getElementById('pf-barcode');
+  var goBtn = document.getElementById('pf-gobarcode');
+  var reader = null;
+  var scanning = false;
+  var stream = null;
+
+  function showErr(msg){
+    errBox.textContent = msg;
+    errBox.style.display = 'block';
+    setTimeout(function(){ errBox.style.display = 'none'; }, 5000);
+  }
+
+  async function startScan(){
+    errBox.style.display = 'none';
+    if (!window.ZXing) { showErr('Scanner library failed to load. Type the barcode instead.'); return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }, audio: false
+      });
+    } catch(e) {
+      showErr('Camera blocked. Allow camera access or type the barcode below.');
+      return;
+    }
+    video.srcObject = stream;
+    await video.play().catch(function(){});
+    view.classList.remove('idle');
+    startBtn.style.display = 'none';
+    stopBtn.style.display = '';
+    scanning = true;
+    reader = new ZXing.BrowserMultiFormatReader();
+    reader.decodeFromVideoDevice(null, video, function(result, err){
+      if (!scanning) return;
+      if (result) {
+        var code = result.getText();
+        stopScan();
+        lookupBarcode(code);
+      }
+    });
+  }
+
+  function stopScan(){
+    scanning = false;
+    if (reader) { try { reader.reset(); } catch(e){} reader = null; }
+    if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+    video.srcObject = null;
+    view.classList.add('idle');
+    startBtn.style.display = '';
+    stopBtn.style.display = 'none';
+  }
+
+  function lookupBarcode(code){
+    code = String(code).replace(/\D/g,'');
+    if (!/^\d{8,14}$/.test(code)) { showErr('That doesn\u2019t look like a barcode. Try again.'); return; }
+    resultBox.style.display = 'none';
+    loading.style.display = 'block';
+    errBox.style.display = 'none';
+    var cb = 'pfcb' + Date.now();
+    window[cb] = function(data){
+      delete window[cb];
+      script.remove();
+      loading.style.display = 'none';
+      renderResult(data);
+    };
+    var script = document.createElement('script');
+    script.onerror = function(){
+      delete window[cb]; script.remove();
+      loading.style.display = 'none';
+      showErr('Lookup failed. Check your connection and try again.');
+    };
+    script.src = API + '/?action=barcode_lookup&barcode=' + encodeURIComponent(code) + '&callback=' + cb;
+    document.body.appendChild(script);
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderResult(d){
+    if (!d || !d.ok) {
+      showErr(d && d.error === 'invalid_barcode' ? 'Invalid barcode.' : 'Lookup failed. Try again.');
+      return;
+    }
+    if (d.found === false) {
+      resultBox.innerHTML = '<div class="pf-card"><h2>Not in the database</h2>' +
+        '<p class="brand">Barcode ' + esc(d.barcode) + ' isn\u2019t in Open Food Facts yet. You could add it there — then scan it here.</p></div>';
+      resultBox.style.display = 'block';
+      return;
+    }
+    var h = '<div class="pf-card"><h2>' + esc(d.product_name) + '</h2>';
+    h += '<p class="brand">' + esc(d.brand || 'Unknown brand') + '</p>';
+
+    if (d.ghoul) {
+      var g = d.ghoul;
+      h += '<div class="pf-ghoul"><div class="score">' + esc(g.rank ? '#' + g.rank : '👹') + '</div>' +
+        '<div class="lbl"><strong>' + esc(g.company) + '</strong><br>' +
+        (g.fines_total ? '$' + Number(g.fines_total).toLocaleString() + ' in fines. ' : '') +
+        (g.pay_ratio ? 'CEO makes ' + Math.round(g.pay_ratio) + '× the median worker.' : '') + '</div></div>';
+    }
+
+    if (d.fda_recalls && d.fda_recalls.length) {
+      h += '<details class="pf-det"><summary>⚠️ ' + d.fda_recalls.length + ' FDA recall' + (d.fda_recalls.length>1?'s':'') + '</summary>';
+      d.fda_recalls.forEach(function(r){
+        h += '<div class="pf-recall"><span class="cls">' + esc(r.classification || '') + '</span><br>' +
+          esc(r.product_description || '') + '<br><em>' + esc(r.reason_for_recall || '') + '</em></div>';
+      });
+      h += '</details>';
+    }
+    if (d.cpsc_recalls && d.cpsc_recalls.length) {
+      h += '<details class="pf-det"><summary>⚠️ ' + d.cpsc_recalls.length + ' CPSC safety recall' + (d.cpsc_recalls.length>1?'s':'') + '</summary>';
+      d.cpsc_recalls.forEach(function(r){
+        h += '<div class="pf-recall">' + esc(r.title || '') + '<br><em>' + esc(r.hazards || '') + '</em></div>';
+      });
+      h += '</details>';
+    }
+
+    h += '<div class="pf-summary">' + esc(d.summary || '') + '</div>';
+    h += '<div class="pf-actions">';
+    h += '<button class="pf-btn red" id="pf-share">📤 SHARE</button>';
+    h += '<a class="pf-btn ghost" href="/ghouls/">👹 GHOUL INDEX</a>';
+    h += '</div></div>';
+
+    resultBox.innerHTML = h;
+    resultBox.style.display = 'block';
+    resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    document.getElementById('pf-share').addEventListener('click', function(){
+      var text = d.product_name + ' — ' + (d.summary || 'scanned on MTCSTW.COM');
+      if (navigator.share) {
+        navigator.share({ title: 'Scanned: ' + d.product_name, text: text, url: 'https://www.mtcstw.com/scan/' })
+          .catch(function(){});
+      } else {
+        try {
+          navigator.clipboard.writeText(text + ' https://www.mtcstw.com/scan/');
+          showErr('Copied to clipboard.');
+        } catch(e){ showErr('Copy this: ' + text); }
+      }
+    });
+  }
+
+  startBtn.addEventListener('click', startScan);
+  stopBtn.addEventListener('click', stopScan);
+  goBtn.addEventListener('click', function(){ lookupBarcode(barcodeInput.value); });
+  barcodeInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') lookupBarcode(barcodeInput.value); });
+  window.addEventListener('beforeunload', stopScan);
+})();
+</script>
+</body>
+</html>

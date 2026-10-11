@@ -669,6 +669,9 @@ function cardEl(d){
 /* Seed feed */
 SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
 
+/* Init XP chip + medals on load (v1: device-local) */
+try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
+
 /* KeyVex-inspired: LIVE FROM THE DATA pulse on homepage */
 (function dataPulse(){
   var el = document.getElementById('kh-pulse-text');
@@ -1639,6 +1642,8 @@ function toggleSave(d, btn){
   else {
     saved.push({q:d.q, a:String(d.a).replace(/<[^>]*>/g,'').slice(0,200), src:d.src, when:'saved'});
     btn.textContent = '★ SAVED'; btn.classList.add('kh-saved'); toast('Saved — find it in the SAVED tab');
+    try{ var sc = (parseInt(localStorage.getItem('pf_saves')||'0',10)||0)+1; localStorage.setItem('pf_saves', String(sc)); }catch(e){}
+    pfAddXP(1); /* +1 XP per save */
   }
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); }catch(e){}
 }

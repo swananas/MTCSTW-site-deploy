@@ -1436,75 +1436,88 @@ window.KHDest = KHD;
   }catch(e){}
 })();
 
-/* CELL FINDER + CREATE (cell path audit fix, 2026-10-10): real directory + join + create, localStorage-backed */
+/* CELL FINDER + CREATE (2026-10-10 audit fix): real API-backed directory, join, create */
 (function(){
-  try{
-    var SEED_CELLS = [
-      { id:'bayou-cell', name:'Bayou Cell', focus:'Mutual aid & rapid response — Louisiana', members: 12 },
-      { id:'nola-mutual-aid', name:'NOLA Mutual Aid', focus:'Food, shelter & solidarity — New Orleans', members: 34 },
-      { id:'geo-foia', name:'GEO Group FOIA Cell', focus:'Tracking private prisons via public records', members: 8 }
-    ];
-    function getMyCell(){ try{ return JSON.parse(localStorage.getItem('pf_my_cell')||'null'); }catch(e){ return null; } }
-    function setMyCell(c){ try{ localStorage.setItem('pf_my_cell', JSON.stringify(c)); }catch(e){} }
-
-    // Render finder list
-    var list = document.getElementById('pf-cell-list');
-    var mine = getMyCell();
-    if(list){
-      list.innerHTML = SEED_CELLS.map(function(c){
-        var isMine = mine && mine.id === c.id;
-        return '<div style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">'+
-          '<div style="flex:1;min-width:0;"><div style="color:#f5f0e6;font-weight:700;font-size:15px;">'+c.name+'</div>'+
-          '<div style="color:#8a8478;font-size:13px;margin-top:2px;">'+c.focus+'</div>'+
-          '<div style="color:#5a5548;font-size:12px;margin-top:4px;">'+c.members+' members</div></div>'+
-          (isMine
-            ? '<span style="color:#2fbf71;font-size:13px;font-weight:700;flex:0 0 auto;">✓ MEMBER</span>'
-            : '<button type="button" data-join="'+c.id+'" style="flex:0 0 auto;background:#c1121f;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;touch-action:manipulation;cursor:pointer;">JOIN</button>')+
-        '</div>';
-      }).join('');
-      list.addEventListener('click', function(e){
-        var b = e.target.closest('[data-join]'); if(!b) return;
-        var c = SEED_CELLS.filter(function(x){ return x.id === b.getAttribute('data-join'); })[0];
-        if(!c) return;
-        setMyCell({ id:c.id, name:c.name, members:c.members+1, lastActivity:'Joined just now' });
-        location.reload();
-      });
-    }
-
-    // If already in a cell, update the My Cell card
-    if(mine){
-      var cards = document.querySelectorAll('#main > div > div');
-      // find the "My Cell" card by its heading text
-      for(var i=0;i<cards.length;i++){
-        if(cards[i].textContent.indexOf("You're not in a cell yet") !== -1){
-          cards[i].innerHTML =
-            '<div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">My Cell</div>'+
-            '<div style="color:#f5f0e6;font-weight:700;font-size:18px;margin-bottom:4px;">⚑ '+mine.name+'</div>'+
-            '<div style="color:#8a8478;font-size:13px;margin-bottom:14px;">'+mine.members+' members · '+(mine.lastActivity||'Active')+'</div>'+
-            '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
-              '<a href="#pf-cell-finder" style="background:#1a1a0a;color:#f5f0e6;border:1px solid #2a2a2a;border-radius:999px;padding:11px 22px;font-size:14px;font-weight:700;text-decoration:none;">VIEW CELLS</a>'+
-            '</div>';
-          break;
-        }
+  var API = 'https://pf-api.mtcstw.workers.dev';
+  function api(action, data, cb){
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', API + '/?action=' + action, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState === 4){
+        try{ cb(JSON.parse(xhr.responseText)); }
+        catch(e){ cb({ok:false, error:'parse'}); }
       }
-    }
+    };
+    xhr.send(JSON.stringify(data||{}));
+  }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    // Create form
-    var createBtn = document.getElementById('pf-cell-create-btn');
-    if(createBtn){
-      createBtn.addEventListener('click', function(){
-        var nameEl = document.getElementById('pf-cell-name');
-        var focusEl = document.getElementById('pf-cell-focus');
-        var name = (nameEl.value||'').trim() || 'Unnamed Cell';
-        var focus = (focusEl.value||'').trim() || 'General organizing';
-        var id = 'user-'+Date.now().toString(36);
-        setMyCell({ id:id, name:name, members:1, lastActivity:'Founded just now', focus:focus });
-        document.getElementById('pf-cell-create-form').hidden = true;
-        document.getElementById('pf-cell-create-done').hidden = false;
+  /* Load real cell directory */
+  var list = document.getElementById('pf-cell-list');
+  function loadCells(){
+    if(!list) return;
+    list.innerHTML = '<div style="color:#8a8478;padding:20px;text-align:center;">Loading cells…</div>';
+    api('cell_search', {limit:20}, function(r){
+      var cells = (r && r.ok && r.cells) || [];
+      if(!cells.length){
+        list.innerHTML = '<div style="color:#8a8478;padding:20px;text-align:center;">No open cells yet. Start the first one below.</div>';
+        return;
+      }
+      /* Check membership for each */
+      api('cell_mine', {}, function(m){
+        var mineId = (m && m.ok && m.cell && m.cell.id) || null;
+        list.innerHTML = cells.map(function(c){
+          var isMine = mineId && mineId === c.id;
+          return '<div style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">'+
+            '<div style="flex:1;min-width:0;"><div style="color:#f5f0e6;font-weight:700;font-size:15px;">'+esc(c.name)+'</div>'+
+            '<div style="color:#8a8478;font-size:13px;margin-top:2px;">'+esc(c.focus||'')+'</div>'+
+            '<div style="color:#5a5548;font-size:12px;margin-top:4px;">'+esc(c.member_count||0)+' members</div></div>'+
+            (isMine
+              ? '<span style="color:#2fbf71;font-size:13px;font-weight:700;flex:0 0 auto;">✓ MEMBER</span>'
+              : '<button type="button" data-join="'+esc(c.id)+'" style="flex:0 0 auto;background:#c1121f;color:#fff;border:0;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:700;touch-action:manipulation;cursor:pointer;">JOIN</button>')+
+          '</div>';
+        }).join('');
       });
-    }
-  }catch(e){}
+    });
+  }
+  if(list){
+    loadCells();
+    list.addEventListener('click', function(e){
+      var b = e.target.closest('[data-join]'); if(!b) return;
+      var cellId = b.getAttribute('data-join');
+      b.disabled = true; b.textContent = 'JOINING…';
+      api('cell_join', {cell_id: cellId}, function(r){
+        if(r && r.ok){ loadCells(); }
+        else { b.disabled = false; b.textContent = 'JOIN'; alert('Could not join: ' + ((r&&r.error)||'unknown')); }
+      });
+    });
+  }
+
+  /* Real create form */
+  var createBtn = document.getElementById('pf-cell-create-btn');
+  if(createBtn){
+    createBtn.addEventListener('click', function(){
+      var nameEl = document.getElementById('pf-cell-name');
+      var focusEl = document.getElementById('pf-cell-focus');
+      var name = (nameEl.value||'').trim();
+      var focus = (focusEl.value||'').trim() || 'General organizing';
+      if(!name){ alert('Give your cell a name.'); return; }
+      createBtn.disabled = true; createBtn.textContent = 'FORMING…';
+      api('cell_create', {name:name, focus:focus}, function(r){
+        createBtn.disabled = false; createBtn.textContent = 'FORM THIS CELL';
+        if(r && r.ok){
+          document.getElementById('pf-cell-create-form').hidden = true;
+          document.getElementById('pf-cell-create-done').hidden = false;
+          loadCells();
+        } else {
+          alert('Could not create cell: ' + ((r&&r.error)||'unknown'));
+        }
+      });
+    });
+  }
 })();
+
 </script>
 </body>
 </html>

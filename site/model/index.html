@@ -235,9 +235,36 @@
         <button id="netmap-go" type="button">MAP&nbsp;IT</button>
       </div>
       <canvas id="netmap-canvas"></canvas>
-      <div class="netmap-row" style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+      <div class="netmap-row" style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
         <button id="netmap-expand" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">SHOW ALL</button>
         <button id="netmap-reset" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">RESET VIEW</button>
+        <button id="netmap-story" type="button" hidden style="background:#c1121f;border:0;border-radius:10px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em;padding:10px 18px;cursor:pointer;touch-action:manipulation;">📖 TELL THE STORY</button>
+      </div>
+      <!-- STORY BUILDER -->
+      <div id="netmap-story-builder" hidden style="margin-top:12px;background:#111;border:1px solid #232323;border-radius:12px;padding:14px;">
+        <div style="font-size:13px;font-weight:800;color:#f5f0e6;margin-bottom:4px;letter-spacing:.04em;">BUILD YOUR STORY</div>
+        <div style="font-size:12px;color:#8a8478;margin-bottom:10px;line-height:1.5;">Tap nodes on the map in order. Each tap adds a slide. Tap a slide below to edit its caption.</div>
+        <div id="netmap-slides" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="netmap-story-play" type="button" style="flex:1;background:#c1121f;border:0;border-radius:10px;color:#fff;font-size:13px;font-weight:800;padding:12px;cursor:pointer;touch-action:manipulation;">▶ PLAY STORY</button>
+          <button id="netmap-story-clear" type="button" style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:#8a8478;font-size:13px;font-weight:700;padding:12px 16px;cursor:pointer;touch-action:manipulation;">CLEAR</button>
+          <button id="netmap-story-done" type="button" style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:#8a8478;font-size:13px;font-weight:700;padding:12px 16px;cursor:pointer;touch-action:manipulation;">DONE</button>
+        </div>
+      </div>
+      <!-- STORY PLAYBACK OVERLAY -->
+      <div id="netmap-story-player" hidden style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.96);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;">
+        <div id="netmap-story-slide-num" style="font-size:12px;color:#8a8478;letter-spacing:.1em;margin-bottom:12px;"></div>
+        <div id="netmap-story-slide-node" style="font-size:28px;font-weight:800;color:#fff;text-align:center;margin-bottom:8px;line-height:1.2;"></div>
+        <div id="netmap-story-slide-type" style="font-size:13px;color:#8a8478;margin-bottom:16px;"></div>
+        <div id="netmap-story-slide-caption" style="font-size:16px;color:#f5f0e6;text-align:center;line-height:1.6;max-width:340px;margin-bottom:24px;"></div>
+        <div style="display:flex;gap:12px;width:100%;max-width:340px;">
+          <button id="netmap-story-back" type="button" style="flex:1;background:#1a1a1a;border:1px solid #333;border-radius:12px;color:#fff;font-size:15px;font-weight:700;padding:16px;cursor:pointer;touch-action:manipulation;">← BACK</button>
+          <button id="netmap-story-next" type="button" style="flex:1;background:#c1121f;border:0;border-radius:12px;color:#fff;font-size:15px;font-weight:800;padding:16px;cursor:pointer;touch-action:manipulation;">NEXT →</button>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;max-width:340px;margin-top:12px;">
+          <button id="netmap-story-weaponize" type="button" style="flex:1;background:#2fbf71;border:0;border-radius:12px;color:#0a0a0a;font-size:14px;font-weight:800;padding:14px;cursor:pointer;touch-action:manipulation;">🎨 MAKE PROPAGANDA</button>
+          <button id="netmap-story-close" type="button" style="background:#1a1a1a;border:1px solid #333;border-radius:12px;color:#8a8478;font-size:14px;font-weight:700;padding:14px 20px;cursor:pointer;touch-action:manipulation;">✕</button>
+        </div>
       </div>
       <div class="netmap-node-info" id="netmap-info">Type a name above to see who's connected to who.</div>
       <div class="netmap-hint">2-hop corruption web from 1.1M+ LittleSis relationships. Drag to pan, pinch to zoom. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
@@ -879,11 +906,147 @@ function netSearch(){
   });
 }
 function netUpdateButtons(){
-  var exp=$id('netmap-expand'),rst=$id('netmap-reset');
+  var exp=$id('netmap-expand'),rst=$id('netmap-reset'),story=$id('netmap-story');
   var hidden=netState.nodes.length<=NET_MAX_DEFAULT;
   if(exp){exp.hidden=hidden;
     exp.textContent=netState.showAll?'SHOW TOP '+NET_MAX_DEFAULT:'SHOW ALL ('+netState.nodes.length+')';}
   if(rst){rst.hidden=!netState.nodes.length;}
+  if(story){story.hidden=!netState.nodes.length;}
+}
+/* ============ THE WEB: STORY MODE ============ */
+var netStory={active:false,slides:[],playing:false,idx:0};
+function netStoryStart(){
+  netStory.active=true;netStory.slides=[];
+  var b=$id('netmap-story-builder');if(b)b.hidden=false;
+  var sb=$id('netmap-story');if(sb)sb.hidden=true;
+  netStoryRenderSlides();
+  var info=$id('netmap-info');
+  if(info)info.innerHTML='<b style="color:#c1121f">📖 STORY MODE:</b> Tap nodes on the map in order to build your story.';
+}
+function netStoryEnd(){
+  netStory.active=false;
+  var b=$id('netmap-story-builder');if(b)b.hidden=true;
+  netUpdateButtons();
+}
+function netStoryClear(){
+  netStory.slides=[];
+  netStoryRenderSlides();
+}
+/* Auto-generate a punchy caption for a node in story context */
+function netStoryCaption(node,prevNode){
+  var map=netState.nodeMap;
+  var label=node.label||'Unknown';
+  var type=node.type||'';
+  /* Find the relationship to the previous slide's node */
+  if(prevNode){
+    for(var i=0;i<netState.edges.length;i++){
+      var e=netState.edges[i];
+      var isLink=(e.from===prevNode.id&&e.to===node.id)||(e.from===node.id&&e.to===prevNode.id);
+      if(isLink){
+        var rel=(e.label||e.category_name||'connected to').toLowerCase();
+        return prevNode.label+' → '+rel+' → '+label;
+      }
+    }
+    return 'Then there\'s '+label+(type?' ('+type.toLowerCase()+')':'')+'.';
+  }
+  /* First slide */
+  if(node.seed)return 'It starts with '+label+'.';
+  return 'Meet '+label+(type?' — '+type.toLowerCase():'')+'.';
+}
+function netStoryAddSlide(node){
+  /* Don't add duplicates in a row */
+  var slides=netStory.slides;
+  if(slides.length&&slides[slides.length-1].nodeId===node.id)return;
+  var prev=slides.length?netState.nodeMap[slides[slides.length-1].nodeId]:null;
+  slides.push({
+    nodeId:node.id,
+    label:node.label,
+    type:node.type,
+    caption:netStoryCaption(node,prev)
+  });
+  netStoryRenderSlides();
+}
+function netStoryRenderSlides(){
+  var host=$id('netmap-slides');if(!host)return;
+  var slides=netStory.slides;
+  if(!slides.length){
+    host.innerHTML='<div style="font-size:12px;color:#5a554b;text-align:center;padding:12px;">No slides yet. Tap nodes on the map above.</div>';
+    return;
+  }
+  var h='';
+  slides.forEach(function(s,i){
+    h+='<div data-slide="'+i+'" style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:10px 12px;cursor:pointer;touch-action:manipulation;">'+
+      '<div style="font-size:11px;color:#c1121f;font-weight:800;letter-spacing:.06em;margin-bottom:4px;">SLIDE '+(i+1)+'</div>'+
+      '<div style="font-size:14px;font-weight:700;color:#f5f0e6;margin-bottom:2px;">'+esc(s.label)+'</div>'+
+      '<div style="font-size:12px;color:#8a8478;line-height:1.5;">'+esc(s.caption)+'</div>'+
+      '<div style="font-size:11px;color:#5a554b;margin-top:4px;">✏️ tap to edit</div></div>';
+  });
+  host.innerHTML=h;
+  /* Wire edit taps */
+  var divs=host.querySelectorAll('[data-slide]');
+  for(var i=0;i<divs.length;i++){
+    (function(d){
+      d.addEventListener('click',function(){
+        var idx=parseInt(d.getAttribute('data-slide'),10);
+        netStoryEditCaption(idx);
+      });
+    })(divs[i]);
+  }
+}
+function netStoryEditCaption(idx){
+  var s=netStory.slides[idx];if(!s)return;
+  var newCap=prompt('Edit caption for "'+s.label+'":',s.caption);
+  if(newCap!==null&&newCap.trim()){
+    s.caption=newCap.trim().slice(0,200);
+    netStoryRenderSlides();
+  }
+}
+function netStoryPlay(){
+  if(!netStory.slides.length)return;
+  netStory.playing=true;netStory.idx=0;
+  var p=$id('netmap-story-player');if(p)p.hidden=false;
+  document.body.style.overflow='hidden';
+  netStoryRenderPlayer();
+}
+function netStoryRenderPlayer(){
+  var s=netStory.slides[netStory.idx];if(!s)return;
+  var total=netStory.slides.length;
+  $id('netmap-story-slide-num').textContent='SLIDE '+(netStory.idx+1)+' OF '+total;
+  $id('netmap-story-slide-node').textContent=s.label;
+  $id('netmap-story-slide-type').textContent=s.type||'';
+  $id('netmap-story-slide-caption').textContent=s.caption;
+  $id('netmap-story-back').style.opacity=netStory.idx===0?'0.3':'1';
+  $id('netmap-story-next').textContent=netStory.idx===total-1?'FINISH ✓':'NEXT →';
+}
+function netStoryNav(dir){
+  var total=netStory.slides.length;
+  var ni=netStory.idx+dir;
+  if(ni<0)ni=0;
+  if(ni>=total){netStoryClosePlayer();return;}
+  netStory.idx=ni;
+  netStoryRenderPlayer();
+}
+function netStoryClosePlayer(){
+  netStory.playing=false;
+  var p=$id('netmap-story-player');if(p)p.hidden=true;
+  document.body.style.overflow='';
+}
+function netStoryWeaponize(){
+  /* Export story to /create via deep-link */
+  var slides=netStory.slides;
+  if(!slides.length)return;
+  var headlines=slides.map(function(s){return s.label;}).join(' → ');
+  var captions=slides.map(function(s,i){return (i+1)+'. '+s.caption;}).join('\n');
+  var first=slides[0];
+  var params=new URLSearchParams();
+  params.set('mode','strike');
+  params.set('headline',headlines.slice(0,120));
+  params.set('stat',slides.length+' NODES');
+  params.set('stat_label','in this corruption web');
+  params.set('source','THE WEB · LittleSis');
+  params.set('story',captions.slice(0,500));
+  netStoryClosePlayer();
+  window.location.href='/create/?'+params.toString();
 }
 /* tap / pan / pinch on canvas */
 (function(){
@@ -984,7 +1147,11 @@ function netTap(sx,sy){
     var d=Math.sqrt((n.x-w[0])*(n.x-w[0])+(n.y-w[1])*(n.y-w[1]));
     if(d<bd){bd=d;best=n;}
   });
-  if(best){netState.selected=best.id;netDraw();netInfo(best);}
+  if(best){
+    /* STORY MODE: tap adds a slide instead of just selecting */
+    if(netStory.active){netStoryAddSlide(best);}
+    netState.selected=best.id;netDraw();netInfo(best);
+  }
 }
 /* wire search + buttons */
 (function(){
@@ -1001,6 +1168,23 @@ function netTap(sx,sy){
   });
   var rst=$id('netmap-reset');
   if(rst)rst.addEventListener('click',netResetView);
+  /* STORY MODE wiring */
+  var storyBtn=$id('netmap-story');
+  if(storyBtn)storyBtn.addEventListener('click',netStoryStart);
+  var storyDone=$id('netmap-story-done');
+  if(storyDone)storyDone.addEventListener('click',netStoryEnd);
+  var storyClear=$id('netmap-story-clear');
+  if(storyClear)storyClear.addEventListener('click',netStoryClear);
+  var storyPlay=$id('netmap-story-play');
+  if(storyPlay)storyPlay.addEventListener('click',netStoryPlay);
+  var storyBack=$id('netmap-story-back');
+  if(storyBack)storyBack.addEventListener('click',function(){netStoryNav(-1);});
+  var storyNext=$id('netmap-story-next');
+  if(storyNext)storyNext.addEventListener('click',function(){netStoryNav(1);});
+  var storyClose=$id('netmap-story-close');
+  if(storyClose)storyClose.addEventListener('click',netStoryClosePlayer);
+  var storyWep=$id('netmap-story-weaponize');
+  if(storyWep)storyWep.addEventListener('click',netStoryWeaponize);
   /* initial draw */
   setTimeout(netDraw,500);
   var rsz=null;

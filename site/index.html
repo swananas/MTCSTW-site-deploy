@@ -145,14 +145,14 @@
   }
   #pf-karl-home .kh-feed-head h2{ font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--kh-dim); font-weight:700; margin:0; }
   #pf-karl-home .kh-feed-head .kh-tick{ font-size:11px; color:var(--kh-faint); display:flex; align-items:center; gap:6px; }
-  #pf-karl-home .kh-feed-head .kh-tick i{ width:6px; height:6px; border-radius:50%; background:var(--kh-green); display:inline-block; animation:kh-blink 2.2s infinite; }
+  #pf-karl-home .kh-feed-head .kh-tick i{ width:6px; height:6px; border-radius:50%; background:var(--kh-green); display:inline-block; animation:none;opacity:1; }
   @keyframes kh-blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
   #pf-karl-home .kh-feed{ padding:10px 14px 30px; display:flex; flex-direction:column; gap:12px; }
   #pf-karl-home .kh-card{
     background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
     padding:16px 16px 13px; cursor:pointer;
     transition:transform .12s, border-color .2s;
-    animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+    animation:none;
   }
   #pf-karl-home .kh-card:active{ transform:scale(.985); }
   @keyframes kh-rise{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
@@ -168,7 +168,7 @@
   #pf-karl-home .kh-deploys .n{ color:var(--kh-cream); font-weight:700; }
   #pf-karl-home .kh-src{ font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em; }
   #pf-karl-home .kh-proof{ display:none; margin-top:12px; border-top:1px solid var(--kh-line); padding-top:12px; }
-  #pf-karl-home .kh-card.kh-open .kh-proof{ display:block; animation:kh-rise .3s ease both; }
+  #pf-karl-home .kh-card.kh-open .kh-proof{ display:block; animation:none; }
   #pf-karl-home .kh-card.kh-inference{ border-color:rgba(193,18,31,.55); box-shadow:0 0 0 1px rgba(193,18,31,.25), 0 6px 24px rgba(193,18,31,.12); }
   #pf-karl-home .kh-kbadge{
     display:inline-flex; align-items:center; gap:6px;
@@ -183,7 +183,7 @@
   }
   #pf-karl-home .kh-thinking .kh-pulse-dot{
     width:8px; height:8px; border-radius:50%; background:var(--kh-red-bright);
-    animation:kh-blink 1s infinite;
+    animation:none;opacity:1;
   }
   #pf-karl-home .kh-proof .kh-exhibit{
     font-size:10.5px; letter-spacing:.22em; color:var(--kh-red-bright); font-weight:700; margin-bottom:10px;
@@ -266,7 +266,7 @@
   #pf-karl-home .kh-quiet{
     text-align:center; color:var(--kh-faint); font-size:13px; padding:18px 24px; line-height:1.6;
   }
-  #pf-karl-home .kh-swap{ animation:kh-rise .2s ease-out both; }
+  #pf-karl-home .kh-swap{ animation:none; }
 
   /* ============ FEED DESTINATIONS (ux/feed-destinations-20261010) ============ */
   #pf-karl-home .kh-card-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); }
@@ -278,7 +278,7 @@
   #pf-karl-home .kh-cell-widget{ padding:2px 14px 0; }
   #pf-karl-home .kh-cell-card{
     background:var(--kh-card); border:1px solid rgba(193,18,31,.4); border-radius:16px;
-    padding:16px; animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+    padding:16px; animation:none;
   }
   #pf-karl-home .kh-cell-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
   #pf-karl-home .kh-cell-kicker{
@@ -301,7 +301,7 @@
   #pf-karl-home .kh-cell-act{
     display:flex; gap:12px; align-items:flex-start;
     background:var(--kh-card); border:1px solid var(--kh-line); border-radius:14px;
-    padding:13px 14px; animation:kh-rise .45s cubic-bezier(.2,.9,.3,1.15) both;
+    padding:13px 14px; animation:none;
   }
   #pf-karl-home .kh-cell-act .dot{
     width:8px; height:8px; border-radius:50%; background:var(--kh-green); flex:0 0 auto; margin-top:6px;

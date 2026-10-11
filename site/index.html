@@ -192,6 +192,44 @@
   }
   #pf-karl-home .kh-card:active{ transform:scale(.985); }
   @keyframes kh-rise{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+  /* ---- feed interleave: ask / tool / creator cards (fixed positions, unscored) ---- */
+  #pf-karl-home .kh-inter{
+    background:#101014; border:1px solid #2b2b33; border-radius:16px;
+    padding:16px; margin:0 0 12px; animation:none;
+  }
+  #pf-karl-home .kh-inter-kicker{
+    font-size:11px; font-weight:800; letter-spacing:.12em; color:var(--kh-red-bright);
+    margin-bottom:10px;
+  }
+  #pf-karl-home .kh-inter-sub{ font-size:13.5px; color:var(--kh-dim); line-height:1.5; margin-bottom:12px; }
+  #pf-karl-home .kh-inter-askrow{ display:flex; gap:8px; }
+  #pf-karl-home .kh-inter-input{
+    flex:1; min-width:0; background:#0a0a0a; border:1px solid var(--kh-line); border-radius:10px;
+    color:var(--kh-cream); padding:12px 13px; font-size:14.5px; outline:none;
+  }
+  #pf-karl-home .kh-inter-input:focus{ border-color:var(--kh-red); }
+  #pf-karl-home .kh-inter-btn{
+    background:var(--kh-red); border:0; border-radius:10px; color:#fff;
+    font-weight:800; font-size:13px; letter-spacing:.06em; padding:0 18px; cursor:pointer;
+    touch-action:manipulation; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+    min-height:44px;
+  }
+  #pf-karl-home .kh-inter-btn:active{ transform:scale(.96); }
+  #pf-karl-home .kh-inter-ghost{ background:transparent; border:1px solid var(--kh-line); color:var(--kh-cream); }
+  #pf-karl-home .kh-inter-crow{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+  #pf-karl-home .kh-inter-avatar{
+    width:48px; height:48px; border-radius:50%; flex:0 0 auto;
+    background:linear-gradient(135deg,#c1121f,#6e0a12);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:800; color:#fff;
+  }
+  #pf-karl-home .kh-inter-name{ font-size:15.5px; font-weight:700; color:var(--kh-cream); }
+  #pf-karl-home .kh-inter-score{
+    background:rgba(193,18,31,.15); border:1px solid var(--kh-red); color:var(--kh-red-bright);
+    font-weight:800; font-size:12px; border-radius:999px; padding:2px 8px; margin-left:6px;
+  }
+  #pf-karl-home .kh-inter-btnrow{ display:flex; gap:8px; }
+  #pf-karl-home .kh-inter-btnrow .kh-inter-btn{ flex:1; }
   #pf-karl-home .kh-card .kh-q{ font-size:15px; font-weight:600; margin-bottom:8px; color:var(--kh-cream); }
   #pf-karl-home .kh-card .kh-a{ font-size:14px; color:var(--kh-dim); line-height:1.55; }
   #pf-karl-home .kh-card .kh-a b{ color:var(--kh-red-bright); font-weight:700; }
@@ -1728,6 +1766,7 @@ function fmLoadBatch(retry){
       try{
         feed.appendChild(fmRenderCard(item, i));
         fmAfterRender(item);
+        fmInterleave();
       }catch(e){ if(FM_DEBUG) console.log('[FM] render error for card:', e.message); }
     });
     if(fmAllExhausted()) fmEnd();
@@ -1758,6 +1797,108 @@ function fmScrollFallback(){
 }
 var fmObserver = null;
 var fmScrollBound = false;
+
+/* ==========================================================================
+   FEED INTERLEAVE (ux/feed-destinations-20261010)
+   Fixed-position ask / tool / creator cards inside the infinite feed.
+   Positions 6/12/18/24 (mod 24) bypass scoring — deterministic, unscored.
+   Class kh-inter (NOT kh-card) so tab filters, saved stash, and the watchdog
+   treat them as feed furniture, not feed content.
+   ========================================================================== */
+var fmCardCount = 0; /* feed cards rendered; interleave cards don't count */
+var fmAskIdx = 0, fmToolIdx = 0, fmCreatorIdx = 0;
+var FM_ASK_PROMPTS = [
+  "Who\u2019s robbing you?",
+  "What do you want to know?",
+  "Ask about your hospital, bank, or rep."
+];
+var FM_TOOLS = [
+  {k:"\u2692 MODEL THIS DATA", s:"Got a question the feed didn\u2019t answer? Query 15+ corruption datasets yourself.", b:"OPEN THE MODEL \u2192", href:"/model/"},
+  {k:"\uD83C\uDFAF GUESS THE MARKUP", s:"Think you know how bad hospital markups are? Take the challenge.", b:"PLAY \u2192", act:"guess"},
+  {k:"\uD83D\uDD78\uFE0F THE WEB", s:"See who\u2019s connected to who. Map the corruption web.", b:"MAP IT \u2192", href:"/model/#netmap-sec"},
+  {k:"\uD83C\uDFA8 MAKE PROPAGANDA", s:"Turn intel into a weapon. Fire a receipt.", b:"CREATE \u2192", href:"/create"}
+];
+/* Real SLR roster data (site/sick-left-radicals). Rotates with no repeat
+   until all 6 shown. UGC cards take this slot when ?action=ugc_feed ships. */
+var FM_CREATORS = [
+  {name:"SlayTheGOP", score:"8.2", followers:562878, platform:"Instagram"},
+  {name:"Dr. Taylor Andrew", score:"9.4", followers:357900, platform:"TikTok"},
+  {name:"Radically Sunny", score:"9.7", followers:300000, platform:"Facebook"},
+  {name:"Joman", score:"9.6", followers:289410, platform:"Facebook"},
+  {name:"Sex Drugs Rock n Roll", score:"9.8", followers:258708, platform:"Facebook"},
+  {name:"Bona Bones", score:"8.8", followers:158500, platform:"TikTok"}
+];
+function fmFmtN(n){ return n>=1e6 ? (n/1e6).toFixed(1)+"M" : n>=1e3 ? Math.round(n/1e3)+"K" : ""+n; }
+function fmInterCard(cls, inner){
+  var el = document.createElement("div");
+  el.className = "kh-inter " + cls;
+  el.innerHTML = inner;
+  return el;
+}
+function fmAskCard(){
+  var p = FM_ASK_PROMPTS[fmAskIdx % FM_ASK_PROMPTS.length]; fmAskIdx++;
+  var el = fmInterCard("kh-inter-ask",
+    '<div class="kh-inter-kicker">\u26A1 WHO\u2019S ROBBING YOU?</div>'+
+    '<div class="kh-inter-askrow">'+
+    '<input class="kh-inter-input" placeholder="'+esc(p)+'" enterkeyhint="go" autocomplete="off" aria-label="Ask Karl">'+
+    '<button class="kh-inter-btn" type="button">ASK</button></div>');
+  var inp = el.querySelector("input"), btn = el.querySelector("button");
+  var go = function(){
+    var t = inp.value.trim(); if(!t){ inp.focus(); return; }
+    qInput.value = t;
+    qInput.scrollIntoView({behavior:"auto", block:"center"});
+    doAsk(); /* reuses the hero ask flow: answer card lands at feed top */
+  };
+  btn.addEventListener("click", go);
+  inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+  return el;
+}
+function fmToolCard(){
+  var t = FM_TOOLS[fmToolIdx % FM_TOOLS.length]; fmToolIdx++;
+  var el = fmInterCard("kh-inter-tool",
+    '<div class="kh-inter-kicker">'+esc(t.k)+"</div>"+
+    '<div class="kh-inter-sub">'+esc(t.s)+"</div>"+
+    (t.href
+      ? '<a class="kh-inter-btn" href="'+esc(t.href)+'">'+esc(t.b)+"</a>"
+      : '<button class="kh-inter-btn" type="button" data-act="'+esc(t.act)+'">'+esc(t.b)+"</button>"));
+  var g = el.querySelector('[data-act="guess"]');
+  if(g) g.addEventListener("click", function(){
+    var c = document.getElementById("pf-carousel");
+    if(c) c.scrollIntoView({behavior:"auto", block:"center"});
+  });
+  return el;
+}
+function fmUgcSlotCard(){
+  /* UGC takes the creator slot when ?action=ugc_feed ships.
+     Stubbed: creator profiles fill it until then. */
+  return null;
+}
+function fmCreatorCard(){
+  var u = fmUgcSlotCard();
+  if(u) return u;
+  var c = FM_CREATORS[fmCreatorIdx % FM_CREATORS.length]; fmCreatorIdx++;
+  var el = fmInterCard("kh-inter-creator",
+    '<div class="kh-inter-kicker">\u270A COMRADE SPOTLIGHT</div>'+
+    '<div class="kh-inter-crow">'+
+      '<div class="kh-inter-avatar">'+esc(c.name.charAt(0).toUpperCase())+"</div>"+
+      '<div><div class="kh-inter-name">'+esc(c.name)+
+      ' <span class="kh-inter-score">'+esc(c.score)+"</span></div>"+
+      '<div class="kh-inter-sub" style="margin:2px 0 0;">'+fmFmtN(c.followers)+" followers \u00B7 "+esc(c.platform)+"</div></div>"+
+    "</div>"+
+    '<div class="kh-inter-btnrow">'+
+      '<a class="kh-inter-btn" href="/sick-left-radicals">VIEW ROSTER \u2192</a>'+
+      '<a class="kh-inter-btn kh-inter-ghost" href="/create">REMIX \u2192</a>'+
+    "</div>");
+  return el;
+}
+function fmInterleave(){
+  fmCardCount++;
+  var m = fmCardCount % 24, el = null;
+  if(m === 6 || m === 0) el = fmAskCard();       /* 6, 24, 30, 48 … */
+  else if(m === 12) el = fmToolCard();           /* 12, 36, 60 … */
+  else if(m === 18) el = fmCreatorCard();        /* 18, 42, 66 … */
+  if(el) feed.appendChild(el);
+}
 function fmObserve(){
   var sentinel = document.getElementById('kh-feed-sentinel');
   if(!sentinel || !('IntersectionObserver' in window)){ fmLoadBatch(); return; }
@@ -1848,6 +1989,7 @@ fmNextBatch(2, true).then(function(cards){
     try{
       feed.appendChild(fmRenderCard(item, i));
       fmAfterRender(item);
+      fmInterleave();
     }catch(e){ if(FM_DEBUG) console.log('[FM] boot render error:', e.message); }
   });
   fmObserve();

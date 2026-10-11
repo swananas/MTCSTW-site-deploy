@@ -83,7 +83,7 @@
   #main{min-height:60vh;}
   /* Karl floating chat button (bottom-right, PWA safe-area aware) */
   .pf-karl-fab{
-    position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom, 0px) + 16px);z-index:9000;
+    position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom, 0px) + 76px);z-index:9000;
     transform:translateZ(0); /* own compositor layer — no repaint jank while scrolling on iOS */
     width:56px;height:56px;border-radius:50%;
     background:#c1121f;color:#fff;
@@ -427,7 +427,7 @@
     </div>
   </div>
   <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
-  <p class="pf-promise" style="text-align:center;margin:6px 0 0;">Discover your power — everything free.</p>
+  <p class="pf-promise" style="text-align:center;margin:6px 0 0;">Discover your power.</p>
 </header>
 <main id="main">
 <div id="pf-karl-home">
@@ -1454,15 +1454,38 @@ function fmLoadBatch(){
   var gen = fmGen;
   fmSkeletons(3);
   fmNextBatch(5).then(function(batch){
-    if(gen !== fmGen) return; /* tab changed mid-flight - drop stale batch */
     fmClearSkeletons();
-    fmLoading = false;
+    fmLoading = false; /* reset FIRST - stale gen must not wedge the loader */
+    if(gen !== fmGen) return; /* tab changed mid-flight - drop stale batch */
     if(!batch.length){ fmEnd(); return; }
     batch.forEach(function(item, i){ feed.appendChild(fmRenderCard(item, i)); });
     if(fmAllExhausted()) fmEnd();
+    else fmNudge(); /* sentinel may already be in view - don't wait for scroll */
+  }).catch(function(){
+    fmClearSkeletons();
+    fmLoading = false; /* network failure must not wedge the loader */
   });
 }
+/* If the sentinel is already visible (short feed), trigger another batch
+   without waiting for a scroll event. */
+function fmNudge(){
+  if(fmLoading || fmEnded) return;
+  var s = document.getElementById('kh-feed-sentinel');
+  if(!s) return;
+  var r = s.getBoundingClientRect();
+  if(r.top < window.innerHeight + 700) fmLoadBatch();
+}
+/* Scroll fallback: some webviews are flaky with IntersectionObserver.
+   Throttled check keeps infinite scroll alive regardless. */
+var fmScrollT = 0;
+function fmScrollFallback(){
+  var now = Date.now();
+  if(now - fmScrollT < 250) return;
+  fmScrollT = now;
+  fmNudge();
+}
 var fmObserver = null;
+var fmScrollBound = false;
 function fmObserve(){
   var sentinel = document.getElementById('kh-feed-sentinel');
   if(!sentinel || !('IntersectionObserver' in window)){ fmLoadBatch(); return; }
@@ -1471,6 +1494,12 @@ function fmObserve(){
     if(entries[0] && entries[0].isIntersecting) fmLoadBatch();
   }, {rootMargin: '700px'}); /* prefetch before the user hits bottom */
   fmObserver.observe(sentinel);
+  /* scroll fallback for flaky webviews */
+  if(!fmScrollBound){
+    fmScrollBound = true;
+    window.addEventListener('scroll', fmScrollFallback, {passive: true});
+    window.addEventListener('resize', fmScrollFallback, {passive: true});
+  }
 }
 
 /* ---- tabs: ALL | ROBBERY REPORT | KARL NOTICED | COMRADE FOUND | SAVED ---- */
@@ -2355,6 +2384,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 else boot();
 })();
 
+</script>
+
+<!-- PF BOTTOM NAV (site-wide hard nav) -->
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a:active{opacity:.7;}
+body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>
+</nav>
+<script>
+(function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
 </script>
 </body>
 </html>

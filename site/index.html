@@ -506,7 +506,7 @@
 
   <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
   <div class="kh-more-wrap" style="padding-top:0">
-    <a href="/model/" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THIS DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Query the raw tables yourself — FEC, billionaires, prisons, housing, trades</span></a>
+    <a href="/model/?table=cms_hospital_prices" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THIS DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Query the raw tables yourself — FEC, billionaires, prisons, housing, trades</span></a>
   </div>
 
   <!-- CELLS → HQ (dir-20261010-135720-3916): cell activity — seed data, wired to live API later -->
@@ -1966,9 +1966,12 @@ function renderBody(){
 function out(html){var o=$id('pf-cq-out');if(o)o.innerHTML=html;}
 function loading(m){out('<div class="pf-cq-loading"><span class="pf-cq-dot"></span>'+esc(m||'Checking the rails…')+'</div>');}
 function srcLine(s){return '<div class="pf-cq-src">SOURCE: '+esc(s)+'</div>';}
-function actions(){
+function modelUrlFor(params){
+  return '/model/'+(params?'?'+params:'');
+}
+function actions(modelParams){
   return '<div class="pf-cq-actions">'+
-    '<a class="pf-cq-act" href="/model">MODEL IT →</a>'+
+    '<a class="pf-cq-act" href="'+modelUrlFor(modelParams)+'">MODEL IT →</a>'+
     '<a class="pf-cq-act" href="/cells">FIND A CELL →</a>'+
     '<a class="pf-cq-act" href="/create">MAKE IT A WEAPON →</a></div>';
 }
@@ -2009,7 +2012,7 @@ function qHospital(raw){
     /* COMPARISON: proximity proves malice */
     if(rows.length>1&&wmk-bmk>=1)
       html+='<div class="pf-cq-compare">📍 '+esc(best.hospital_name||'Another hospital')+' nearby: <b>'+bmk.toFixed(1)+'×</b>. Same region. Different greed.</div>';
-    html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions();
+    html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions('table=cms_hospital_prices&filter='+encodeURIComponent('zip:starts:'+zip));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -2030,7 +2033,7 @@ function qBank(raw){
     if(top&&top.company!==r.company)
       html+='<div class="pf-cq-compare">📍 Worst in America: '+esc(top.company)+' — '+num(top.total_complaints)+' complaints. The system isn\'t broken; it\'s working as designed.</div>';
     else html+='<div class="pf-cq-compare">📍 That is the most-complained-about company in America.</div>';
-    html+=srcLine('CFPB Consumer Complaint Database via MTCSTW rails')+actions();
+    html+=srcLine('CFPB Consumer Complaint Database via MTCSTW rails')+actions('table=dim_cfpb_company&filter='+encodeURIComponent('company:contains:'+name));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -2050,7 +2053,7 @@ function qState(raw){
     if(ev)html+='<div class="pf-cq-line"><b>'+esc(ev.county_name)+'</b>: ~<b>'+num(ev.filings_estimate)+'</b> eviction filings'+(ev.year?' ('+esc(String(ev.year))+')':'')+' — the hardest-hit county in your state.</div>';
     if(prs.length)html+='<div class="pf-cq-line"><b>'+prs.length+'</b> private prison contract'+(prs.length===1?'':'s')+' worth <b>'+money(pv)+'</b> extracted from your state.</div>';
     html+='<div class="pf-cq-line dim">This is what the data says about where you live.</div>';
-    html+=srcLine('Eviction Lab estimates + contract records via MTCSTW rails')+actions();
+    html+=srcLine('Eviction Lab estimates + contract records via MTCSTW rails')+actions('table=eviction_county_estimates&filter='+encodeURIComponent('state:eq:'+st));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }

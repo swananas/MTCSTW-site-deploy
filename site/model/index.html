@@ -184,6 +184,10 @@
   <div class="sec">
     <h2>1 · Pick a table</h2>
     <input id="tbl-search" type="search" placeholder="Search tables…" autocomplete="off" aria-label="Search tables">
+    <div id="recent-sec" hidden style="margin-bottom:10px;">
+      <div style="font-size:11px;letter-spacing:.18em;color:var(--faint);font-weight:800;text-transform:uppercase;margin:0 2px 8px;">Recent</div>
+      <div id="recent-tables" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+    </div>
     <div id="tbl-list"></div>
   </div>
 
@@ -315,7 +319,7 @@ function renderLookupYou(){
       });
       if(nameCol){
         var v=prompt(p.q+'\n\nType a name to search:');
-        if(v){ state.filters=[{col:nameCol,op:'like',value:v}]; renderFilters(); }
+        if(v){ state.filters=[{col:nameCol,op:'contains',value:v}]; renderFilters(); }
       }
       $id('tbl-detail-sec').scrollIntoView({behavior:'smooth',block:'start'});
     });
@@ -370,6 +374,85 @@ function selectTable(name){
   var ss=$id('sort-sel');ss.innerHTML='<option value="">(none)</option>';
   t.columns.forEach(function(c){var o=document.createElement('option');o.value=c.name;o.textContent=c.name;ss.appendChild(o);});
   status('Table: '+t.label+' — '+t.rows.toLocaleString('en-US')+' rows. Tap columns off to narrow, add filters, hit RUN.');
+  recordRecent(name);
+  /* keep URL in sync so refresh / share preserves the table (no dead ends) */
+  try{history.replaceState(null,'','/model/?table='+encodeURIComponent(name));}catch(e){}
+}
+/* ===== DEEP-LINKING: ?table= ?q= ?filter= — no dead ends ===== */
+function readDeepLink(){
+  var q={};
+  try{
+    var sp=new URLSearchParams(window.location.search);
+    sp.forEach(function(v,k){q[k]=v;});
+  }catch(e){}
+  return q;
+}
+function parseFilterParam(s,t){
+  var parts=String(s).split(':'),col,op,val;
+  if(parts.length>=3){col=parts[0];op=parts[1];val=parts.slice(2).join(':');}
+  else if(parts.length===2){col=parts[0];op='contains';val=parts[1];}
+  else return null;
+  var colOk=false;(t.columns||[]).forEach(function(c){if(c.name===col)colOk=true;});
+  if(!colOk)return null;
+  var opOk=false;OPS.forEach(function(o){if(o[0]===op)opOk=true;});
+  if(!opOk)op='contains';
+  if(!String(val).trim())return null;
+  return {col:col,op:op,value:val};
+}
+function applyDeepLink(){
+  var q=readDeepLink();
+  if(q.table){
+    var t=tableByName(q.table);
+    if(t&&t.available){
+      selectTable(q.table);
+      if(q.filter){
+        var f=parseFilterParam(q.filter,t);
+        if(f){state.filters=[f];renderFilters();}
+      }
+      var bs=$id('builder-sec');
+      if(bs&&bs.scrollIntoView){try{bs.scrollIntoView();}catch(e){}}
+      /* land on a working query, not an empty page */
+      if(state.filters.length){setTimeout(runQuery,500);}
+      return true;
+    }
+    status('Table "'+q.table+'" isn\u2019t in the rails. Pick one below.',true);
+    return false;
+  }
+  if(q.q){
+    var si=$id('tbl-search');
+    if(si){si.value=q.q;renderTables(q.q);}
+  }
+  return false;
+}
+/* ===== RECENT TABLES (localStorage) ===== */
+var RECENT_KEY='pf_model_recent_v1';
+function getRecent(){
+  try{
+    var r=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');
+    return Array.isArray(r)?r.slice(0,5):[];
+  }catch(e){return [];}
+}
+function recordRecent(name){
+  try{
+    var r=getRecent().filter(function(n){return n!==name;});
+    r.unshift(name);r=r.slice(0,5);
+    localStorage.setItem(RECENT_KEY,JSON.stringify(r));
+    renderRecent();
+  }catch(e){}
+}
+function renderRecent(){
+  var sec=$id('recent-sec'),host=$id('recent-tables');
+  if(!sec||!host)return;
+  var r=getRecent().filter(function(n){var t=tableByName(n);return t&&t.available;});
+  if(!r.length){sec.hidden=true;host.innerHTML='';return;}
+  sec.hidden=false;host.innerHTML='';
+  r.forEach(function(n){
+    var t=tableByName(n);
+    var b=document.createElement('button');
+    b.type='button';b.className='preset';b.textContent='↻ '+t.label;
+    b.addEventListener('click',function(){selectTable(n);});
+    host.appendChild(b);
+  });
 }
 function renderCols(){
   var host=$id('col-chips');host.innerHTML='';
@@ -720,7 +803,10 @@ apiGet('model_tables',{}).then(function(d){
   var total=0;(d.tables||[]).forEach(function(t){if(t.available)total+=t.rows;});
   $id('msl-rows').textContent=total.toLocaleString('en-US');
   renderPresets();renderLookupYou();renderTables('');
-  status(catalog.filter(function(t){return t.available;}).length+' live tables · '+total.toLocaleString('en-US')+' rows. Pick one to start modeling.');
+  renderRecent();
+  if(!applyDeepLink()){
+    status(catalog.filter(function(t){return t.available;}).length+' live tables · '+total.toLocaleString('en-US')+' rows. Pick one to start modeling.');
+  }
 }).catch(function(){status('Catalog failed to load — check your connection.',true);});
 })();
 </script>

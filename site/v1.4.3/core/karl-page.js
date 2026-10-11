@@ -220,6 +220,26 @@
     '.pf-mss-btn:hover{background:#c1121f;color:#fff;box-shadow:0 6px 24px rgba(193,18,31,.35);transform:translateY(-1px)}',
     '.pf-mss-btn:active{transform:scale(.97)}',
 
+    /* --- WEAVE 3: CALL YOUR REP (2026-10-11) — mobile-first --- */
+    '.pf-karl-callrep{margin:26px 0 8px;padding:22px 20px;background:linear-gradient(180deg,rgba(193,18,31,.10),rgba(193,18,31,.02));border:1px solid #2a2a2a;border-radius:16px;text-align:center}',
+    '.pf-karl-callrep-cta{font-size:14.5px;color:#d8d2c4;line-height:1.6;margin-bottom:14px}',
+    '.pf-karl-callrep-cta b{color:#fff}',
+    '.pf-karl-callrep-btn{display:block;width:100%;background:linear-gradient(135deg,#d61622,#8f0c14);color:#fff;border:0;border-radius:14px;',
+    'font:900 17px/1 Arial,sans-serif;letter-spacing:2px;padding:20px 16px;cursor:pointer;min-height:60px;',
+    'box-shadow:0 6px 28px rgba(193,18,31,.35);transition:filter .15s ease,transform .1s ease}',
+    '.pf-karl-callrep-btn:hover{filter:brightness(1.15)}',
+    '.pf-karl-callrep-btn:active{transform:scale(.97)}',
+    '.pf-karl-callrep-panel{margin-top:16px;text-align:left;background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:18px}',
+    '.pf-karl-callrep-panel .nm{font-family:Georgia,serif;font-weight:700;font-size:24px;color:#fff}',
+    '.pf-karl-callrep-panel .mt{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:#8a8478;margin:6px 0 14px;letter-spacing:.5px}',
+    '.pf-karl-callrep-tel{display:block;text-align:center;background:#1a1a1a;border:1.5px solid #c1121f;color:#fff;border-radius:12px;',
+    'font:900 22px/1 Arial,sans-serif;letter-spacing:1px;padding:18px 12px;text-decoration:none;min-height:60px}',
+    '.pf-karl-callrep-tel:active{background:#c1121f}',
+    '.pf-karl-callrep-script{margin-top:16px}',
+    '.pf-karl-callrep-script .sl{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;letter-spacing:2px;color:#c1121f;font-weight:700;text-transform:uppercase;margin-bottom:8px}',
+    '.pf-karl-callrep-script p{font-size:15px;color:#e8e2d4;line-height:1.65;margin:0;font-style:italic}',
+    '.pf-karl-callrep-src{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:10.5px;color:#5a554a;margin-top:14px}',
+
     /* Hide competing chrome on this page */
     '#pf-nuke-stick,#pf-commend-chip,.pf-kc-btn{display:none!important}',
 
@@ -351,6 +371,7 @@
       wire();
       wireMakeShareable(q, r);
       bindDisamb(q);
+      bindCallRep();
       try { document.getElementById('pf-karl-res').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
     });
   }
@@ -712,6 +733,26 @@
         '<div class="pf-karl-src">' + srcLine(f.source) + '</div></div>';
     });
     if (r.adjacency_note) h += '<div class="pf-karl-adj">' + esc(r.adjacency_note) + '</div>';
+    /* WEAVE 3: CALL YOUR REP — one-tap call your rep + 2-sentence script.
+       Rendered only when the backend ships a call_rep payload with a real
+       DB office number (never invented). Tapping expands the panel. */
+    if (r.call_rep && r.call_rep.phone_tel && /^tel:/.test(String(r.call_rep.phone_tel))) {
+      (function (cr) {
+        var meta = [cr.chamber, cr.district ? 'District ' + cr.district : '',
+          cr.state ? String(cr.state).toUpperCase() : '', cr.party ? '(' + cr.party + ')' : '']
+          .filter(function (x) { return !!x; }).join(' · ');
+        h += '<div class="pf-karl-callrep">' +
+          '<div class="pf-karl-callrep-cta">' + esc(cr.cta_line || 'Want to do something about it? Call your rep.') + '</div>' +
+          '<button type="button" class="pf-karl-callrep-btn" data-callrep-toggle aria-expanded="false">📞 CALL YOUR REP</button>' +
+          '<div class="pf-karl-callrep-panel" hidden>' +
+          '<div class="nm">' + esc(cr.name || '') + '</div>' +
+          (meta ? '<div class="mt">' + esc(meta) + '</div>' : '') +
+          '<a class="pf-karl-callrep-tel" href="' + esc(cr.phone_tel) + '">📞 ' + esc(cr.phone_display || 'Call now') + '</a>' +
+          (cr.script ? '<div class="pf-karl-callrep-script"><div class="sl">What to say</div><p>' + esc(cr.script) + '</p></div>' : '') +
+          '<div class="pf-karl-callrep-src">Number: public office line on file — never a personal line.</div>' +
+          '</div></div>';
+      })(r.call_rep);
+    }
     if (!(r.facts || []).length && !(r.disambiguation || []).length && !(r.faq || []).length) {
       h += '<div class="pf-karl-empty"><div class="big">Nothing on the rails for that yet.</div>' +
         esc(r.empty_reason || 'That\'s an honest answer — the rails are still being built out.') + '</div>';
@@ -758,6 +799,24 @@
     return h;
   }
 
+  /* WEAVE 3: CALL YOUR REP toggle — tap expands the rep panel */
+  function bindCallRep() {
+    var btns = host.querySelectorAll('[data-callrep-toggle]');
+    for (var i = 0; i < btns.length; i++) {
+      (function (b) {
+        b.addEventListener('click', function () {
+          var panel = b.parentNode ? b.parentNode.querySelector('.pf-karl-callrep-panel') : null;
+          if (!panel) return;
+          var open = panel.hasAttribute('hidden');
+          if (open) { panel.removeAttribute('hidden'); }
+          else { panel.setAttribute('hidden', ''); }
+          b.setAttribute('aria-expanded', open ? 'true' : 'false');
+          b.textContent = open ? '✕ CLOSE' : '📞 CALL YOUR REP';
+        });
+      })(btns[i]);
+    }
+  }
+
   function bindDisamb() {
     var btns = host.querySelectorAll('.pf-karl-disamb button');
     for (var i = 0; i < btns.length; i++) {
@@ -777,6 +836,7 @@
             render(hero(q) + answerHtml(q, r2));
             wire();
             wireMakeShareable(q, r2);
+            bindCallRep();
           });
         });
       })(btns[i]);

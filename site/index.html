@@ -150,6 +150,11 @@
   #pf-karl-home .kh-feed-head .kh-tick i{ width:6px; height:6px; border-radius:50%; background:var(--kh-green); display:inline-block; animation:none;opacity:1; }
   @keyframes kh-blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
   #pf-karl-home .kh-feed{ padding:10px 14px 30px; display:flex; flex-direction:column; gap:12px; }
+  /* INFINITE FEED: sentinel + skeletons + end state */
+  #kh-feed-sentinel{ height:2px; }
+  #pf-karl-home .kh-skeleton{ min-height:132px; }
+  #pf-karl-home .kh-feed-end{ text-align:center; color:#5a554b; font-size:13px; padding:28px 16px 10px; line-height:1.6; }
+  #pf-karl-home .kh-feed-end span{ font-size:12px; color:#3a372f; }
   #pf-karl-home .kh-card{
     background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
     padding:16px 16px 13px; cursor:pointer;
@@ -493,16 +498,9 @@
     <span id="kh-pulse-text" style="margin-left:8px;">Reading the rails…</span>
   </div>
   <div class="kh-feed" id="kh-feed"></div>
-
-  <!-- BEEFY FEED (fe/beefy-feed-20261010): richer cards from the 9 rails —
-       Karl inferences + comrade discoveries. Spine untouched (dir-20261010-011235-21553 owns it). -->
-  <div class="kh-feed-head" style="padding-top:6px">
-    <h2>More from the rails</h2>
-    <span class="kh-tick"><i></i>9 RAILS</span>
-  </div>
-  <div class="kh-feed" id="kh-beefy"></div>
-  <div class="kh-quiet" id="kh-beefy-quiet" hidden>The rails are quiet right now — tap MORE INTEL and Karl digs deeper.</div>
-  <div class="kh-more-wrap"><button class="kh-more" id="kh-more">MORE INTEL ↓</button></div>
+  <!-- INFINITE FEED (ux/feed-destinations-20261010): unified queue — feed_cards API,
+       Karl rails, anchors, seeds, discoveries, UGC. Sentinel triggers next batch. -->
+  <div id="kh-feed-sentinel" aria-hidden="true"></div>
 
   <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
   <div class="kh-more-wrap" style="padding-top:0">
@@ -722,13 +720,20 @@ function modelUrlForCard(d){
 function cardEl(d){
   var el = document.createElement('div');
   el.className = 'kh-card' + (d.inference ? ' kh-inference' : '');
-  /* OMNI FEED taxonomy: robbery = SEED items, karl = inferences */
-  el.setAttribute('data-tag', d.inference ? 'karl' : 'robbery');
+  /* OMNI FEED taxonomy: robbery = SEED items, karl = inferences, comrade = community/UGC.
+     _tag override lets the infinite FeedManager assign provenance explicitly. */
+  var ftag = d._tag || (d.inference ? 'karl' : 'robbery');
+  el.setAttribute('data-tag', ftag);
   var rowsHtml = (d.rows||[]).slice(0,4).map(function(r){
     return '<div class="kh-proof-row"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
+  var badge = ftag === 'comrade'
+    ? '<div class="kh-dbadge">✊ COMRADE FOUND</div>'
+    : (ftag === 'karl'
+      ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>'
+      : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>');
   el.innerHTML =
-    (d.inference ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>' : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>')+
+    badge+
     '<div class="kh-q">'+esc(d.q)+'</div>'+
     '<div class="kh-a">'+d.a+'</div>'+
     '<div class="kh-proof">'+
@@ -791,8 +796,9 @@ function cardEl(d){
   return el;
 }
 
-/* Seed feed */
-SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
+/* Seed feed — REMOVED (infinite FeedManager owns initial render now).
+   Old: SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
+   The FeedManager boots 2 sync cards above the fold, then lazy-loads the rest. */
 
 /* Init XP chip + medals on load (v1: device-local) */
 try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
@@ -814,22 +820,9 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
     .catch(function(){el.textContent='Stats unavailable right now.';});
 })();
 
-/* Karl's lead inference on every load */
-(function leadInference(){
-  var think = document.createElement('div');
-  think.className = 'kh-card kh-thinking';
-  think.innerHTML =
-    '<div class="kh-tline"><span class="kh-pulse-dot"></span>Karl is connecting the dots&hellip;</div>'+
-    '<div class="kh-shimmer"></div><div class="kh-shimmer" style="width:62%"></div>';
-  feed.insertBefore(think, feed.firstChild);
-  var pick = INFERENCES[Math.floor(Math.random()*INFERENCES.length)];
-  setTimeout(function(){
-    var y = window.scrollY || 0;
-    think.replaceWith(cardEl(pick));
-    /* keep the user's scroll position — the swap must not yank the feed */
-    if((window.scrollY || 0) !== y){ try{ window.scrollTo(0, y); }catch(e){} }
-  }, 800);
-})();
+/* Karl's lead inference — REMOVED (infinite FeedManager interleaves INFERENCES
+   into the queue now; the 800ms thinking-card swap yanked scroll on mobile).
+   Old: (function leadInference(){ ... think.replaceWith(cardEl(pick)) ... })(); */
 
 /* Live stats */
 (function loadStats(){
@@ -981,11 +974,7 @@ function doAsk(){
     });
 }
 
-/* stagger cards on first paint */
-setTimeout(function(){
-  var cards = feed.querySelectorAll('.kh-card');
-  cards.forEach(function(c,i){ c.style.animationDelay = (i*0.06)+'s'; });
-}, 50);
+/* stagger cards on first paint — REMOVED (FeedManager sets animationDelay per batch) */
 
 /* ==========================================================================
    BEEFY HOME FEED (fe/beefy-feed-20261010, dir-20261010-010215-1757, WS-B-FE)
@@ -1001,17 +990,18 @@ setTimeout(function(){
    blank. Deploy counts are KILLED as public facts — new cards carry none.
    ========================================================================== */
 (function beefy(){
-/* KILL: ?pf_off=beefy-feed or localStorage pf_disabled_v1='["beefy-feed"]' */
+/* KILL: ?pf_off=beefy-feed or localStorage pf_disabled_v1='["beefy-feed"]'
+   In the infinite-feed world this only disables the rail + anchor sources —
+   the FeedManager still boots with seeds/discoveries. */
+var beefyKilled = false;
 try{
   var __bq = location.search.match(/[?&]pf_off=([^&]+)/);
   var __bd = [];
   try{ __bd = JSON.parse(localStorage.getItem('pf_disabled_v1')||'[]'); }catch(e){}
-  if((__bq && decodeURIComponent(__bq[1]).split(',').indexOf('beefy-feed')!==-1) || __bd.indexOf('beefy-feed')!==-1) return;
+  if((__bq && decodeURIComponent(__bq[1]).split(',').indexOf('beefy-feed')!==-1) || __bd.indexOf('beefy-feed')!==-1) beefyKilled = true;
 }catch(e){}
-var beefyFeed = document.getElementById('kh-beefy');
-var moreBtn = document.getElementById('kh-more');
-var quietEl = document.getElementById('kh-beefy-quiet');
-if(!beefyFeed || !moreBtn) return;
+/* NOTE: kh-beefy / kh-more / kh-beefy-quiet DOM removed (infinite scroll).
+   RAILS, ANCHORS, beefyCard, getDiscoveries below are consumed by FeedManager. */
 
 var RAILS = [
   { rail:'colleges',    icon:'\uD83C\uDF93', label:'FOR-PROFIT COLLEGES', probe:'Worst for-profit college?',            deep:'/follow-the-money' },
@@ -1247,115 +1237,319 @@ function getDiscoveries(){
   try{ return JSON.parse(localStorage.getItem(FINDS_KEY)||'[]'); }catch(e){ return []; }
 }
 
-/* ---------- waves: anchors first, then live rail fan-out, then discoveries ---------- */
-var liveQueue = [];
-var livePending = 0;
-var waveIdx = 0;
-var WAVE = ANCHORS.slice();
+/* ==========================================================================
+   INFINITE FEED - FeedManager
+   Unified card queue: feed_cards API -> Karl rails -> anchors -> seeds ->
+   discoveries -> UGC. Above the fold renders 2 sync cards instantly; the
+   rest lazy-loads in batches of 5 via IntersectionObserver. Rails fetch on
+   demand as the queue needs them (no 9-call thundering herd on load), with
+   prefetch of the next rail. UGCSource is stubbed - when ?action=ugc_feed
+   ships, swap its loadMore.
+   ========================================================================== */
 
-function relTime(iso){
-  try{
-    var t = new Date(iso).getTime(); if(!t) return 'now';
-    var m = Math.round((Date.now()-t)/60000);
-    if(m<1) return 'just now'; if(m<60) return m+'m';
-    var h = Math.round(m/60); if(h<24) return h+'h';
-    return Math.round(h/24)+'d';
-  }catch(e){ return 'now'; }
+/* ---- source: feed_cards API (Karl-promoted + News Desk). Fail-open. ---- */
+function apiCardToData(c){
+  var tag = c.provenance === 'user_submitted' ? 'comrade'
+    : (c.provenance === 'karl_inference' ? 'karl' : 'robbery');
+  return {
+    q: c.headline || '', a: c.what || '',
+    rows: [[c.stat_label || 'Figure', c.stat_value || '']],
+    src: '\u25B8 RECEIPTS \u2014 ' + (c.source_name || 'Karl rails'),
+    source_url: c.source_url || '', who: c.who || '',
+    provenance: c.provenance || '', _tag: tag,
+    deploys: 0, when: 'now'
+  };
+}
+function FeedCardsSource(){
+  var buf = [], fetched = false, idx = 0;
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    return fetch(API + 'feed_cards&limit=50', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ buf = ((d && d.ok && d.cards) || []).map(apiCardToData); })
+      .catch(function(){ buf = []; }); /* fail-open: table may not exist yet */
+  }
+  return {
+    name: 'feedCards',
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'spine'}; });
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
 }
 
-/* Live fan-out: one karl_query per rail, composed into cards (composition-over-karl_query). */
-function fanOut(){
-  RAILS.forEach(function(R, i){
-    livePending++;
-    setTimeout(function(){
-      fetch(API+'karl_query&q='+encodeURIComponent(R.probe), {cache:'no-store'})
-        .then(function(r){ return r.json(); })
-        .then(function(res){
-          var card = (res && res.ok!==false) ? factsToCard(R.probe, res) : null;
-          if(card){
-            var rows = (card.rows||[]).slice(0,3).map(function(r){
-              return { label:r[0], value:r[1], source:card.src, chain:[] };
-            });
-            liveQueue.push({ rail:R.rail, kind:'inference', q:card.q, a:card.a,
-              figures:rows, src:card.src, when:'live', deep:R.deep });
-          }
-        })
-        .catch(function(){})
-        .finally(function(){
-          livePending--;
-          if(!livePending && !liveQueue.length && !beefyFeed.children.length) showQuiet();
-        });
-    }, i*700); /* staggered: one rail per 700ms, no thundering herd */
+/* ---- source: live Karl rails (lazy, staggered by scroll demand) ---- */
+function KarlRailSource(){
+  var idx = 0;
+  var cache = {}, inflight = {};
+  var rails = beefyKilled ? [] : RAILS;
+  function fetchRail(i){
+    var key = rails[i].rail;
+    if(cache.hasOwnProperty(key)) return Promise.resolve(cache[key]);
+    if(inflight[key]) return inflight[key];
+    var R = rails[i];
+    var p = fetch(API + 'karl_query&q=' + encodeURIComponent(R.probe), {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        var card = (res && res.ok !== false) ? factsToCard(R.probe, res) : null;
+        var out = null;
+        if(card){
+          var rows = (card.rows || []).slice(0, 3).map(function(r){
+            return {label: r[0], value: r[1], source: card.src, chain: []};
+          });
+          out = {d: {rail: R.rail, kind: 'inference', q: card.q, a: card.a,
+            figures: rows, src: card.src, when: 'live', deep: R.deep}, kind: 'beefy'};
+        }
+        cache[key] = out;
+        delete inflight[key];
+        if(i + 1 < rails.length) fetchRail(i + 1); /* prefetch next rail */
+        return out;
+      })
+      .catch(function(){ cache[key] = null; delete inflight[key]; return null; });
+    inflight[key] = p;
+    return p;
+  }
+  return {
+    name: 'karlRail',
+    loadMore: function(n){
+      var ps = [];
+      for(var k = 0; k < n && idx < rails.length; k++, idx++) ps.push(fetchRail(idx));
+      return Promise.all(ps).then(function(rs){ return rs.filter(function(r){ return !!r; }); });
+    },
+    exhausted: function(){ return idx >= rails.length; }
+  };
+}
+
+/* ---- source: audited anchors (sync, premium) ---- */
+function AnchorSource(){
+  var list = beefyKilled ? [] : ANCHORS;
+  var idx = 0;
+  return {
+    name: 'anchor',
+    loadMore: function(n){
+      var out = list.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'beefy'}; });
+      idx += out.length;
+      return Promise.resolve(out);
+    },
+    exhausted: function(){ return idx >= list.length; }
+  };
+}
+
+/* ---- source: hardcoded seeds - 2 SEED, 1 INFERENCE repeating (sync) ---- */
+function SeedSource(){
+  var seq = [], si = 0, ii = 0;
+  while(si < SEED.length || ii < INFERENCES.length){
+    for(var k = 0; k < 2 && si < SEED.length; k++) seq.push(SEED[si++]);
+    if(ii < INFERENCES.length) seq.push(INFERENCES[ii++]);
+  }
+  var idx = 0;
+  return {
+    name: 'seed',
+    loadMore: function(n){
+      var out = seq.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'spine'}; });
+      idx += out.length;
+      return Promise.resolve(out);
+    },
+    exhausted: function(){ return idx >= seq.length; }
+  };
+}
+
+/* ---- source: comrade discoveries (device-local deploys) ---- */
+function DiscoverySource(){
+  var list = [];
+  try{ list = getDiscoveries(); }catch(e){}
+  var idx = 0;
+  return {
+    name: 'discovery',
+    loadMore: function(n){
+      var out = list.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'beefy'}; });
+      idx += out.length;
+      return Promise.resolve(out);
+    },
+    exhausted: function(){ return idx >= list.length; }
+  };
+}
+
+/* ---- source: UGC (stub - returns [] until ?action=ugc_feed ships) ---- */
+function UGCSource(){
+  return {
+    name: 'ugc',
+    /* UGC-ready: when ?action=ugc_feed ships, fetch approved community
+       content here and map each to {d:{q,a,rows,src,_tag:'comrade',
+       provenance:'user_submitted'}, kind:'beefy'}. cardEl/beefyCard already
+       render the COMRADE FOUND badge for _tag:'comrade'. */
+    loadMore: function(n){ return Promise.resolve([]); },
+    exhausted: function(){ return true; }
+  };
+}
+
+var FM_SOURCES = {
+  feedCards: FeedCardsSource(),
+  karlRail: KarlRailSource(),
+  anchor: AnchorSource(),
+  seed: SeedSource(),
+  discovery: DiscoverySource(),
+  ugc: UGCSource()
+};
+/* interleave: 2 API, 1 rail, 1 anchor, 1 seed, 1 discovery, 1 UGC - repeat.
+   Empty/exhausted sources are skipped. */
+var FM_ORDER = ['feedCards','feedCards','karlRail','anchor','seed','discovery','ugc'];
+var fmRot = 0;
+var fmLoading = false, fmEnded = false, fmGen = 0;
+var fmActiveTab = 'all';
+
+function fmAllExhausted(){
+  return Object.keys(FM_SOURCES).every(function(k){ return FM_SOURCES[k].exhausted(); });
+}
+function fmNextBatch(n){
+  var batch = [], guard = 0;
+  function step(){
+    if(batch.length >= n || guard++ > 60) return Promise.resolve(batch);
+    var src = FM_SOURCES[FM_ORDER[fmRot % FM_ORDER.length]]; fmRot++;
+    if(!src || src.exhausted()) return step();
+    return src.loadMore(1).then(function(cards){
+      cards.forEach(function(c){ batch.push(c); });
+      return step();
+    });
+  }
+  return step();
+}
+function fmRenderCard(item, animIdx){
+  var el = item.kind === 'beefy' ? beefyCard(item.d) : cardEl(item.d);
+  if(typeof animIdx === 'number') el.style.animationDelay = (animIdx * 0.06) + 's';
+  if(fmActiveTab !== 'all' && fmActiveTab !== 'saved'){
+    if(el.getAttribute('data-tag') !== fmActiveTab) el.style.display = 'none';
+  }
+  return el;
+}
+function fmSkeletons(n){
+  for(var i = 0; i < n; i++){
+    var s = document.createElement('div');
+    s.className = 'kh-card kh-skeleton';
+    s.setAttribute('data-skel', '1');
+    s.innerHTML = '<div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div><div class="kh-shimmer" style="width:45%"></div>';
+    feed.appendChild(s);
+  }
+}
+function fmClearSkeletons(){
+  Array.prototype.forEach.call(feed.querySelectorAll('[data-skel]'), function(s){ s.remove(); });
+}
+function fmEnd(){
+  fmEnded = true;
+  try{ fmObserver.disconnect(); }catch(e){}
+  if(feed.querySelector('.kh-feed-end')) return;
+  var end = document.createElement('div');
+  end.className = 'kh-feed-end';
+  end.innerHTML = 'You\u2019ve reached the end \u2014 for now.<br><span>New intel lands as Karl digs.</span>';
+  feed.appendChild(end);
+}
+function fmLoadBatch(){
+  if(fmLoading || fmEnded || fmActiveTab === 'saved') return;
+  fmLoading = true;
+  var gen = fmGen;
+  fmSkeletons(3);
+  fmNextBatch(5).then(function(batch){
+    if(gen !== fmGen) return; /* tab changed mid-flight - drop stale batch */
+    fmClearSkeletons();
+    fmLoading = false;
+    if(!batch.length){ fmEnd(); return; }
+    batch.forEach(function(item, i){ feed.appendChild(fmRenderCard(item, i)); });
+    if(fmAllExhausted()) fmEnd();
   });
 }
-
-function showQuiet(){
-  if(beefyFeed.children.length) { quietEl.hidden = true; return; }
-  quietEl.hidden = false;
-  moreBtn.disabled = true; moreBtn.textContent = 'RAILS QUIET — TRY AGAIN LATER';
+var fmObserver = null;
+function fmObserve(){
+  var sentinel = document.getElementById('kh-feed-sentinel');
+  if(!sentinel || !('IntersectionObserver' in window)){ fmLoadBatch(); return; }
+  if(fmObserver) try{ fmObserver.disconnect(); }catch(e){}
+  fmObserver = new IntersectionObserver(function(entries){
+    if(entries[0] && entries[0].isIntersecting) fmLoadBatch();
+  }, {rootMargin: '700px'}); /* prefetch before the user hits bottom */
+  fmObserver.observe(sentinel);
 }
 
-function nextWave(){
-  /* wave order: anchors → discoveries → live results */
-  if(waveIdx < WAVE.length){
-    var batch = WAVE.slice(waveIdx, waveIdx+3); waveIdx += batch.length;
-    batch.forEach(function(d,i){
-      var el = beefyCard(d);
-      el.style.animationDelay = (i*0.08)+'s';
-      beefyFeed.appendChild(el);
-    });
-    quietEl.hidden = true;
-    return;
-  }
-  var finds = getDiscoveries();
-  if(finds.length){
-    finds.slice(0,3).forEach(function(d,i){
-      var el = beefyCard(d);
-      el.style.animationDelay = (i*0.08)+'s';
-      beefyFeed.appendChild(el);
-    });
-    try{ localStorage.setItem(FINDS_KEY, JSON.stringify(finds.slice(3))); }catch(e){}
-    quietEl.hidden = true;
-    return;
-  }
-  if(liveQueue.length){
-    var n = Math.min(3, liveQueue.length);
-    for(var i=0;i<n;i++){
-      var el2 = beefyCard(liveQueue.shift());
-      el2.style.animationDelay = (i*0.08)+'s';
-      beefyFeed.appendChild(el2);
+/* ---- tabs: ALL | ROBBERY REPORT | KARL NOTICED | COMRADE FOUND | SAVED ---- */
+var fmSavedStash = null;
+function fmBuildTabs(){
+  var tabs = document.createElement('div');
+  tabs.className = 'kh-feed-tabs';
+  tabs.id = 'kh-feed-tabs';
+  tabs.innerHTML = '<button class="kh-tab kh-active" data-tab="all">ALL</button>'+
+    '<button class="kh-tab" data-tab="robbery">\u26A1 ROBBERY REPORT</button>'+
+    '<button class="kh-tab" data-tab="karl">\uD83E\uDDE0 KARL NOTICED</button>'+
+    '<button class="kh-tab" data-tab="comrade">\u270A COMRADE FOUND</button>'+
+    '<button class="kh-tab" data-tab="saved">\u2605 SAVED</button>';
+  feed.parentNode.insertBefore(tabs, feed);
+  tabs.addEventListener('click', function(e){
+    var t = e.target.closest('.kh-tab'); if(!t) return;
+    tabs.querySelectorAll('.kh-tab').forEach(function(x){ x.classList.remove('kh-active'); });
+    t.classList.add('kh-active');
+    fmSetTab(t.getAttribute('data-tab'));
+  });
+}
+function fmSetTab(tab){
+  fmGen++; /* cancel in-flight batch */
+  fmActiveTab = tab;
+  var sentinel = document.getElementById('kh-feed-sentinel');
+  if(tab === 'saved'){
+    try{ if(fmObserver) fmObserver.disconnect(); }catch(e){}
+    fmSavedStash = Array.prototype.slice.call(feed.children);
+    feed.innerHTML = '';
+    var saved = [];
+    try{ saved = JSON.parse(localStorage.getItem('kh_saved_v1') || '[]'); }catch(e){}
+    if(!saved.length){
+      var empty = document.createElement('div');
+      empty.className = 'kh-card';
+      empty.style.textAlign = 'center'; empty.style.color = '#666';
+      empty.innerHTML = '<div style="padding:24px">No saved discoveries yet.<br>Tap a card, hit \u2606 SAVE.</div>';
+      feed.appendChild(empty);
+    } else {
+      saved.forEach(function(sd){
+        feed.appendChild(cardEl({q: sd.q, a: sd.a, rows: [], src: sd.src || '\u25B8 Saved', deploys: 0, when: 'saved'}));
+      });
     }
-    quietEl.hidden = true;
+    if(sentinel) sentinel.style.display = 'none';
     return;
   }
-  if(livePending>0){
-    moreBtn.disabled = true; moreBtn.textContent = 'KARL IS DIGGING…';
-    var iv = setInterval(function(){
-      if(livePending<=0){
-        clearInterval(iv);
-        moreBtn.disabled = false; moreBtn.textContent = 'MORE INTEL ↓';
-        nextWave();
-      }
-    }, 400);
-    return;
+  /* restore stashed cards only when coming back FROM the saved tab;
+     other tab switches just re-filter the cards already loaded */
+  var wasSaved = !!fmSavedStash;
+  if(wasSaved){
+    feed.innerHTML = '';
+    fmSavedStash.forEach(function(c){ feed.appendChild(c); });
+    fmSavedStash = null;
   }
-  showQuiet();
+  var endEl = feed.querySelector('.kh-feed-end');
+  if(endEl) endEl.remove();
+  fmEnded = false;
+  Array.prototype.forEach.call(feed.querySelectorAll('.kh-card'), function(c){
+    if(tab === 'all'){ c.style.display = ''; return; }
+    c.style.display = (c.getAttribute('data-tag') === tab) ? '' : 'none';
+  });
+  if(sentinel) sentinel.style.display = '';
+  fmObserve();
+  if(feed.querySelectorAll('.kh-card:not([style*="none"])').length < 3 && !fmAllExhausted()) fmLoadBatch();
 }
 
-moreBtn.addEventListener('click', function(){
-  if(moreBtn.disabled) return;
-  nextWave();
-});
+/* ---- boot: 2 sync cards above the fold, then lazy ---- */
+fmBuildTabs();
+Promise.resolve()
+  .then(function(){ return FM_SOURCES.anchor.loadMore(2); })
+  .then(function(cards){
+    if(cards.length < 2) return FM_SOURCES.seed.loadMore(2 - cards.length).then(function(m){ return cards.concat(m); });
+    return cards;
+  })
+  .then(function(cards){
+    cards.forEach(function(item, i){ feed.appendChild(fmRenderCard(item, i)); });
+    fmObserve();
+  });
 
-/* boot: first wave of anchors on load, fan-out in the background */
-setTimeout(function(){ nextWave(); }, 900);
-fanOut();
-})();
-/* stagger cards on first paint */
-setTimeout(function(){
-  var cards = feed.querySelectorAll('.kh-card');
-  cards.forEach(function(c,i){ c.style.animationDelay = (i*0.06)+'s'; });
-}, 50);
+/* feed boot moved into beefy IIFE tail (FeedManager) */
 })();
 
 /* ==========================================================================
@@ -1894,57 +2088,10 @@ var KHD = {
 window.KHDest = KHD;
 
 /* ---------- OMNI FEED tabs: ALL | ROBBERY REPORT | KARL NOTICED | COMRADE FOUND | SAVED ---------- */
-(function savedTab(){
-  var feedEl = $id('kh-feed');
-  var beefyEl = $id('kh-beefy');
-  if(!feedEl || !feedEl.parentNode) return;
-  var tabs = document.createElement('div');
-  tabs.className = 'kh-feed-tabs';
-  tabs.innerHTML = '<button class="kh-tab kh-active" data-tab="all">ALL</button>'+
-    '<button class="kh-tab" data-tab="robbery">⚡ ROBBERY REPORT</button>'+
-    '<button class="kh-tab" data-tab="karl">🧠 KARL NOTICED</button>'+
-    '<button class="kh-tab" data-tab="comrade">✊ COMRADE FOUND</button>'+
-    '<button class="kh-tab" data-tab="saved">★ SAVED</button>';
-  feedEl.parentNode.insertBefore(tabs, feedEl);
-  var savedCards = [];
-  function allCards(){
-    var cards = Array.prototype.slice.call(feedEl.querySelectorAll('.kh-card'));
-    if(beefyEl) cards = cards.concat(Array.prototype.slice.call(beefyEl.querySelectorAll('.kh-card')));
-    return cards;
-  }
-  tabs.addEventListener('click', function(e){
-    var t = e.target.closest('.kh-tab'); if(!t) return;
-    tabs.querySelectorAll('.kh-tab').forEach(function(x){ x.classList.remove('kh-active'); });
-    t.classList.add('kh-active');
-    var tab = t.dataset.tab;
-    /* clear any saved placeholders first */
-    savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
-    if(tab === 'saved'){
-      /* hide all, show saved */
-      allCards().forEach(function(c){ c.style.display = 'none'; });
-      var saved = getSaved();
-      if(!saved.length){
-        var empty = document.createElement('div');
-        empty.className = 'kh-card'; empty.style.textAlign = 'center'; empty.style.color = '#666';
-        empty.innerHTML = '<div style="padding:24px">No saved discoveries yet.<br>Tap a card, hit ☆ SAVE.</div>';
-        feedEl.appendChild(empty); savedCards.push(empty);
-      } else {
-        saved.forEach(function(sd){
-          var card = {q: sd.q, a: escH(sd.a), rows: [], src: sd.src||'▸ Saved', deploys: 0, when: 'saved'};
-          if(typeof cardEl === 'function'){ var el = cardEl(card); feedEl.appendChild(el); savedCards.push(el); }
-        });
-      }
-    } else if(tab === 'all'){
-      allCards().forEach(function(c){ c.style.display = ''; });
-    } else {
-      /* filter by data-tag across both feeds */
-      allCards().forEach(function(c){
-        c.style.display = (c.getAttribute('data-tag') === tab) ? '' : 'none';
-      });
-    }
-  });
-})();
-})();
+/* savedTab - RETIRED (infinite FeedManager owns tabs now: fmBuildTabs/fmSetTab).
+   The old version also had a scope bug (cardEl undefined in this IIFE). */
+})(); /* close FEED DESTINATIONS IIFE */
+})(); /* close KARL HOMEPAGE IIFE */
 
 </script>
 

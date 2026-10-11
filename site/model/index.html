@@ -113,9 +113,18 @@
   /* Methodology footer */
   .methodo{margin:20px 16px 0;padding:14px 16px;border:1px dashed #333;border-radius:12px;font-size:12px;color:var(--dim);line-height:1.6;}
   .methodo b{color:var(--cream);}
-  .loading{display:flex;align-items:center;gap:10px;padding:24px 16px;color:var(--dim);font-size:14px;}
-  .loading .spin{width:20px;height:20px;border:2px solid var(--line);border-top-color:var(--rbright);border-radius:50%;animation:sp 0.8s linear infinite;}
-  @keyframes sp{to{transform:rotate(360deg);}}
+  /* Network map (LittleSis corruption web) */
+  .netmap{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .netmap-search{display:flex;gap:8px;margin-bottom:10px;}
+  .netmap-search input{flex:1;background:#0a0a0a;border:1px solid var(--line);border-radius:10px;color:var(--cream);padding:13px 14px;font-size:15px;outline:none;}
+  .netmap-search input:focus{border-color:var(--red);}
+  .netmap-search button{background:var(--red);border:none;border-radius:10px;color:#fff;font-weight:800;font-size:13px;letter-spacing:.06em;padding:0 18px;cursor:pointer;touch-action:manipulation;}
+  .netmap-search button:active{transform:scale(.96);}
+  #netmap-canvas{width:100%;height:380px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;touch-action:pan-x pan-y;display:block;}
+  .netmap-hint{font-size:12px;color:var(--faint);margin-top:8px;line-height:1.5;}
+  .netmap-node-info{font-size:13px;color:var(--dim);margin-top:8px;padding:10px 12px;background:#0d0d0d;border-radius:8px;line-height:1.5;min-height:20px;}
+  .netmap-node-info b{color:var(--cream);}
+  .netmap-node-info .rel{color:var(--rbright);}
 </style>
 </head>
 <body>
@@ -200,6 +209,20 @@
     <a class="xlink" href="/create"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
     <a class="xlink" href="/cells"><span>👥</span>FIND YOUR CELL</a>
     <a class="xlink" href="/coordinate"><span>🎯</span>COORDINATE<br>ACTION</a>
+  </div>
+
+  <!-- 7. FOLLOW THE MONEY: LittleSis network map -->
+  <div class=\"sec\" id=\"netmap-sec\">
+    <h2>🕸️ Follow the money</h2>
+    <div class=\"netmap\">
+      <div class=\"netmap-search\">
+        <input id=\"netmap-q\" type=\"search\" placeholder=\"Search a name — politician, company, lobbyist…\" autocomplete=\"off\" aria-label=\"Search corruption network\">
+        <button id=\"netmap-go\" type=\"button\">MAP&nbsp;IT</button>
+      </div>
+      <canvas id=\"netmap-canvas\"></canvas>
+      <div class=\"netmap-node-info\" id=\"netmap-info\">Type a name above to see who's connected to who.</div>
+      <div class=\"netmap-hint\">2-hop corruption web from 1.1M+ LittleSis relationships. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
+    </div>
   </div>
 
   <!-- 6. METHODOLOGY TRANSPARENCY -->
@@ -545,6 +568,136 @@ function renderTableDetail(t){
     })(btns[i]);
   }
 }
+
+/* ============ FOLLOW THE MONEY: LittleSis network map ============ */
+var netState={nodes:[],edges:[],selected:null};
+function netColor(t,seed){
+  if(seed) return '#e5383b';
+  if(t==='Person') return '#d4a017';
+  return '#4a90d9';
+}
+function netLayout(nodes,edges,W,H){
+  /* Simple radial layout: seed center, hop1 ring, hop2 outer */
+  var seed=nodes.find(function(n){return n.seed;})||nodes[0];
+  if(!seed) return;
+  var cx=W/2, cy=H/2;
+  seed.x=cx; seed.y=cy;
+  /* Find hop1 = directly connected to seed */
+  var seedEdges=edges.filter(function(e){return e.from===seed.id||e.to===seed.id;});
+  var hop1Ids={};
+  seedEdges.forEach(function(e){hop1Ids[e.from===seed.id?e.to:e.from]=1;});
+  var hop1=nodes.filter(function(n){return hop1Ids[n.id]&&!n.seed;});
+  var hop2=nodes.filter(function(n){return !hop1Ids[n.id]&&!n.seed;});
+  var r1=Math.min(W,H)*0.28, r2=Math.min(W,H)*0.44;
+  hop1.forEach(function(n,i){
+    var a=(i/hop1.length)*Math.PI*2-Math.PI/2;
+    n.x=cx+Math.cos(a)*r1; n.y=cy+Math.sin(a)*r1;
+  });
+  hop2.forEach(function(n,i){
+    var a=(i/Math.max(hop2.length,1))*Math.PI*2-Math.PI/2+0.3;
+    n.x=cx+Math.cos(a)*r2; n.y=cy+Math.sin(a)*r2;
+    /* clamp to canvas */
+    n.x=Math.max(30,Math.min(W-30,n.x)); n.y=Math.max(30,Math.min(H-30,n.y));
+  });
+}
+function netDraw(){
+  var cv=$id('netmap-canvas'); if(!cv) return;
+  var dpr=window.devicePixelRatio||1;
+  var W=cv.clientWidth, H=380;
+  cv.width=W*dpr; cv.height=H*dpr;
+  var ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
+  var nodes=netState.nodes, edges=netState.edges;
+  if(!nodes.length){
+    ctx.fillStyle='#5a554b'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Search above to map the corruption web.',W/2,H/2);
+    return;
+  }
+  netLayout(nodes,edges,W,H);
+  /* edges */
+  edges.forEach(function(e){
+    var a=nodes.find(function(n){return n.id===e.from;});
+    var b=nodes.find(function(n){return n.id===e.to;});
+    if(!a||!b||a.x===undefined||b.x===undefined) return;
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  });
+  /* nodes */
+  nodes.forEach(function(n){
+    if(n.x===undefined) return;
+    var sel=netState.selected===n.id;
+    ctx.beginPath(); ctx.arc(n.x,n.y,sel?14:(n.seed?12:8),0,Math.PI*2);
+    ctx.fillStyle=netColor(n.type,n.seed); ctx.fill();
+    if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+    /* label */
+    ctx.fillStyle=n.seed?'#fff':'#8a8478'; ctx.font=(n.seed?'bold 11px':'10px')+' sans-serif';
+    ctx.textAlign='center';
+    var lbl=n.label.length>18?n.label.slice(0,17)+'…':n.label;
+    ctx.fillText(lbl,n.x,n.y+(n.seed?24:20));
+  });
+}
+function netInfo(n){
+  var info=$id('netmap-info'); if(!info) return;
+  if(!n){info.innerHTML='Type a name above to see who\'s connected to who.';return;}
+  var rels=netState.edges.filter(function(e){return e.from===n.id||e.to===n.id;});
+  var h='<b>'+esc(n.label)+'</b> <span style="color:#5a554b">('+(n.type||'Unknown')+')</span>';
+  if(n.blurb) h+='<br>'+esc(n.blurb);
+  h+='<br><span class="rel">'+rels.length+' connection'+(rels.length===1?'':'s')+'</span>';
+  var shown=rels.slice(0,5);
+  shown.forEach(function(e){
+    var other=netState.nodes.find(function(x){return x.id===(e.from===n.id?e.to:e.from);});
+    if(other) h+='<br>→ '+esc(other.label)+' <span style="color:#5a554b">· '+esc(e.label)+'</span>';
+  });
+  if(rels.length>5) h+='<br><span style="color:#5a554b">+'+(rels.length-5)+' more</span>';
+  info.innerHTML=h;
+}
+function netSearch(){
+  var q=$id('netmap-q').value.trim();
+  if(!q){$id('netmap-info').textContent='Type a name first.';return;}
+  $id('netmap-info').textContent='Mapping the web…';
+  $id('netmap-go').textContent='…';
+  apiGet('network_map',{entity:q}).then(function(d){
+    $id('netmap-go').innerHTML='MAP&nbsp;IT';
+    if(!d||d.ok!==true){$id('netmap-info').textContent='Search failed — try again.';return;}
+    if(!d.nodes||!d.nodes.length){
+      $id('netmap-info').textContent='No entities found for "'+q+'". Try a different spelling.';
+      netState={nodes:[],edges:[],selected:null}; netDraw(); return;
+    }
+    netState={nodes:d.nodes,edges:d.edges||[],selected:null};
+    netDraw();
+    var seed=d.nodes.find(function(n){return n.seed;})||d.nodes[0];
+    netInfo(seed);
+    if(d.alternatives&&d.alternatives.length){
+      $id('netmap-info').innerHTML+='<br><span style="color:#5a554b">Also found: '+d.alternatives.map(function(a){return esc(a.name);}).join(', ')+'</span>';
+    }
+  }).catch(function(){
+    $id('netmap-go').innerHTML='MAP&nbsp;IT';
+    $id('netmap-info').textContent='Network error — check your connection.';
+  });
+}
+/* tap a node to inspect */
+document.addEventListener('click',function(ev){
+  var cv=$id('netmap-canvas');
+  if(!cv||ev.target!==cv) return;
+  var rect=cv.getBoundingClientRect();
+  var mx=ev.clientX-rect.left, my=ev.clientY-rect.top;
+  var best=null,bd=25;
+  netState.nodes.forEach(function(n){
+    if(n.x===undefined) return;
+    var d=Math.sqrt((n.x-mx)*(n.x-mx)+(n.y-my)*(n.y-my));
+    if(d<bd){bd=d;best=n;}
+  });
+  if(best){netState.selected=best.id;netDraw();netInfo(best);}
+});
+/* wire search */
+(function(){
+  var go=$id('netmap-go'), inp=$id('netmap-q');
+  if(go) go.addEventListener('click',netSearch);
+  if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter')netSearch();});
+  /* initial draw */
+  setTimeout(netDraw,500);
+  window.addEventListener('resize',function(){netDraw();});
+})();
 
 /* boot: load the live catalog + data pulse */
 status('Loading the live catalog…');

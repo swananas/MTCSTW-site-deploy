@@ -126,16 +126,8 @@
     <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
     <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
     <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
-    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>
   </div>
-  <div class="pf-snav-group">
-    <span class="pf-snav-kicker">LEGAL</span>
-    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>
-    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>
-    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>
-    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>
-  </div>
-  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>
+  <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
 </nav>
 <script>
 (function(){
@@ -338,5 +330,86 @@ document.getElementById('lookup-form').addEventListener('submit', function(e){
 <script>
 (function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
 </script>
+<!-- PF_FIRSTCLAIM_V1 -->
+<style>
+#pf-fc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:99999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:92vw}
+#pf-fc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#pf-fc-card{background:#12060a;border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
+#pf-fc-emoji{font-size:34px;line-height:1}
+#pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
+#pf-fc-label{color:#f5f0e8;font-size:13px;margin-top:4px}
+#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+</style>
+<div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
+<div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>
+<div id="pf-fc-label"></div><div id="pf-fc-xp"></div>
+</div></div>
+<script>
+(function(){
+if(window.__pfFcV1)return;window.__pfFcV1=1;
+function showToast(emoji,title,label,xp){
+  try{
+    var t=document.getElementById('pf-fc-toast');if(!t)return;
+    document.getElementById('pf-fc-emoji').textContent=emoji;
+    document.getElementById('pf-fc-title').textContent=title;
+    document.getElementById('pf-fc-label').textContent=label||'';
+    document.getElementById('pf-fc-xp').textContent=xp?('+'+xp+' XP'):'';
+    t.classList.add('show');
+    setTimeout(function(){t.classList.remove('show');},4200);
+  }catch(e){}
+}
+function scan(obj){
+  if(!obj||typeof obj!=='object')return;
+  try{
+    if(obj.first_claim&&obj.first_claim.bonus_xp){
+      showToast('🥇','FIRST CLAIM!',obj.first_claim.label||'Pioneer bonus',obj.first_claim.bonus_xp);
+    }
+    if(obj.first_up&&obj.first_up.bonus_xp){
+      var s=obj.first_up.streak>1?(' Day '+obj.first_up.streak+' streak!'):'';
+      showToast('🌅','FIRST UP!','You\u2019re the first one here today.'+s,obj.first_up.bonus_xp);
+    }
+  }catch(e){}
+  for(var k in obj){if(obj.hasOwnProperty(k))scan(obj[k]);}
+}
+/* Wrap fetch: inspect JSON POST responses for first_claim / first_up. */
+try{
+  var _fetch=window.fetch;
+  window.fetch=function(url,opts){
+    return _fetch.apply(this,arguments).then(function(res){
+      try{
+        var ct=res.headers.get('content-type')||'';
+        if(ct.indexOf('json')>=0){
+          res.clone().json().then(scan).catch(function(){});
+        }
+      }catch(e){}
+      return res;
+    });
+  };
+}catch(e){}
+/* FIRST UP: claim on app open (once per page load) for users with a callsign. */
+try{
+  var cs=null;
+  try{cs=localStorage.getItem('pf_callsign')||localStorage.getItem('callsign');}catch(e){}
+  var dev=null;
+  try{dev=localStorage.getItem('pf_device')||'';}catch(e2){}
+  if(cs){
+    var apiBase='';
+    try{
+      var m=document.querySelector('meta[name="pf-api"]');
+      if(m)apiBase=m.getAttribute('content')||'';
+    }catch(e3){}
+    if(!apiBase)apiBase='https://pf-api.mtcstw.workers.dev';
+    _fetch(apiBase+'/?action=firstup_claim',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'firstup_claim',callsign:cs,device:dev})})
+      .then(function(r){return r.json();}).then(function(j){
+        if(j&&j.first_up)scan(j);
+      }).catch(function(){});
+  }
+}catch(e4){}
+})();
+</script>
+<!-- /PF_FIRSTCLAIM_V1 -->
+
 </body>
 </html>

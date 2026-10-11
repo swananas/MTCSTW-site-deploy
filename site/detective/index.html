@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PRICE DETECTIVE 🔍 — Follow your money</title>
+<meta name="description" content="See a high price? We trace it backwards through every hand that touched it — from your wallet to the commodity, the CEO, the PAC, the politician. Receipts, not rumors.">
+<meta property="og:title" content="PRICE DETECTIVE 🔍 — Follow your money">
+<meta property="og:description" content="Trace any price backwards through every hand that touched it. Reveal, don't accuse — every step has a receipt.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/detective">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PRICE DETECTIVE 🔍 — Follow your money">
+<meta name="twitter:description" content="Trace any price backwards through every hand that touched it.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  #pf-boot{min-height:100vh;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top, 0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(193,18,31,.3);cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-wrap{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 76px) 16px 40px;box-sizing:border-box;}
+  .pf-hero{margin:6px 0 18px;}
+  .pf-hero h1{font-size:26px;font-weight:900;letter-spacing:.02em;margin:0 0 6px;line-height:1.15;}
+  .pf-hero h1 .r{color:#e5383b;}
+  .pf-hero p{color:#b8b0a0;font-size:14px;line-height:1.5;margin:0;}
+  .pf-items{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+  .pf-item{border:2px solid #2a2a2a;background:#141414;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .15s,transform .1s;}
+  .pf-item:active{transform:scale(.97);}
+  .pf-item.on{border-color:#e5383b;background:#1d0f10;}
+  .pf-item .ic{font-size:28px;display:block;margin-bottom:6px;}
+  .pf-item .lb{font-weight:800;font-size:13px;letter-spacing:.04em;}
+  .pf-fields{margin:4px 0 14px;}
+  .pf-field{margin-bottom:10px;}
+  .pf-field label{display:block;font-size:12px;font-weight:700;color:#8a8478;letter-spacing:.06em;margin-bottom:5px;}
+  .pf-field input{width:100%;box-sizing:border-box;background:#141414;border:2px solid #2a2a2a;border-radius:10px;color:#fff;font-size:17px;padding:13px 14px;font-family:inherit;}
+  .pf-field input:focus{outline:none;border-color:#e5383b;}
+  .pf-trace{display:block;width:100%;box-sizing:border-box;background:#c1121f;border:none;border-radius:12px;color:#fff;font-weight:900;font-size:17px;letter-spacing:.05em;padding:16px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .pf-trace:active{transform:scale(.98);background:#e5383b;}
+  .pf-trace:disabled{opacity:.5;}
+  /* timeline */
+  .pf-result{margin-top:22px;display:none;}
+  .pf-rtitle{font-size:20px;font-weight:900;letter-spacing:.02em;margin:0 0 4px;}
+  .pf-rsub{color:#8a8478;font-size:12px;margin:0 0 16px;}
+  .pf-chain{position:relative;padding-left:30px;}
+  .pf-chain:before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:#2a2a2a;}
+  .pf-step{position:relative;margin-bottom:18px;}
+  .pf-step:before{content:'';position:absolute;left:-26px;top:20px;width:14px;height:14px;border-radius:50%;background:#0a0a0a;border:3px solid #e5383b;box-sizing:border-box;}
+  .pf-step.you:before{background:#e5383b;}
+  .pf-card{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:14px;}
+  .pf-step.you .pf-card{border-color:#e5383b;}
+  .pf-kind{font-size:10px;font-weight:800;letter-spacing:.12em;color:#e5383b;margin-bottom:4px;}
+  .pf-step.you .pf-kind{color:#fff;}
+  .pf-val{font-size:21px;font-weight:900;margin:2px 0 6px;line-height:1.25;}
+  .pf-det{font-size:13.5px;color:#c9c2b4;line-height:1.55;margin:0 0 8px;}
+  .pf-src{display:inline-block;font-size:11px;font-weight:700;color:#8a8478;background:#1f1f1f;border:1px solid #333;border-radius:20px;padding:4px 10px;text-decoration:none;}
+  a.pf-src{color:#e5383b;border-color:#5a1a1e;}
+  .pf-calc-tag{font-size:10px;font-weight:800;color:#d4a017;letter-spacing:.08em;}
+  .pf-summary{margin:20px 0;background:#141414;border-left:4px solid #e5383b;border-radius:0 12px 12px 0;padding:14px 16px;font-size:14.5px;line-height:1.6;color:#e8e2d4;}
+  .pf-actions{display:flex;gap:10px;margin-top:16px;}
+  .pf-btn{flex:1;border-radius:12px;font-weight:900;font-size:14px;letter-spacing:.04em;padding:14px 8px;cursor:pointer;text-align:center;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border:none;}
+  .pf-btn:active{transform:scale(.97);}
+  .pf-btn.red{background:#c1121f;color:#fff;}
+  .pf-btn.ghost{background:#1a1a1a;color:#fff;border:2px solid #333;}
+  .pf-loading{text-align:center;padding:40px 0;color:#8a8478;}
+  .pf-loading .spin{font-size:32px;display:inline-block;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .pf-err{background:#1d0f10;border:1px solid #5a1a1e;border-radius:12px;padding:16px;margin-top:20px;font-size:14px;color:#e8b4b4;display:none;}
+  .pf-note{font-size:11.5px;color:#6e675c;line-height:1.5;margin-top:18px;text-align:center;}
+</style>
+</head>
+<body>
+<div id="pf-boot">
+  <header class="pf-topbar">
+    <div class="pf-topbar-inner">
+      <a class="pf-topbar-brand" href="/">MTCSTW<span>.COM</span></a>
+    </div>
+  </header>
+
+  <main class="pf-wrap">
+    <div class="pf-hero">
+      <h1>PRICE <span class="r">DETECTIVE</span> 🔍</h1>
+      <p>See a high price? We trace it backwards through every hand that touched it — your wallet, the commodity, the corner office, the PAC, the politician. Receipts, not rumors.</p>
+    </div>
+
+    <div class="pf-items" id="pf-items" role="radiogroup" aria-label="What are you overpaying for?">
+      <div class="pf-item on" data-item="gas" role="radio" aria-checked="true" tabindex="0"><span class="ic">⛽</span><span class="lb">GAS</span></div>
+      <div class="pf-item" data-item="eggs" role="radio" aria-checked="false" tabindex="0"><span class="ic">🥚</span><span class="lb">EGGS / GROCERIES</span></div>
+      <div class="pf-item" data-item="rent" role="radio" aria-checked="false" tabindex="0"><span class="ic">🏠</span><span class="lb">RENT</span></div>
+      <div class="pf-item" data-item="healthcare" role="radio" aria-checked="false" tabindex="0"><span class="ic">🏥</span><span class="lb">MEDICAL BILL</span></div>
+    </div>
+
+    <div class="pf-fields" id="pf-fields"></div>
+    <button class="pf-trace" id="pf-trace">🔍 TRACE IT</button>
+
+    <div class="pf-err" id="pf-err"></div>
+
+    <div class="pf-result" id="pf-result">
+      <h2 class="pf-rtitle" id="pf-rtitle"></h2>
+      <p class="pf-rsub" id="pf-rsub"></p>
+      <div class="pf-chain" id="pf-chain"></div>
+      <div class="pf-summary" id="pf-summary"></div>
+      <div class="pf-actions">
+        <button class="pf-btn ghost" id="pf-save">🗂️ SAVE TO DOSSIER</button>
+        <a class="pf-btn red" id="pf-make" href="/create/">🎨 MAKE PROPAGANDA</a>
+      </div>
+    </div>
+
+    <p class="pf-note">Every step is a cited public record or a labeled calculation. We reveal — you decide what it means. <a href="/model/" style="color:#e5383b;">Dig deeper in /model</a>.</p>
+  </main>
+</div>
+
+<!-- PF BOTTOM NAV (site-wide hard nav) -->
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a:active{opacity:.7;}
+body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">🏠</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">⚒</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">🎨</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">👥</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">🧠</span>KARL</a>
+</nav>
+<script>
+(function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
+</script>
+<!-- PF PANIC BUTTON (site-wide) -->
+<style>
+.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1px solid #333;color:#8a8478;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
+.pf-panic:active{opacity:1;transform:scale(.92);}
+</style>
+<button class="pf-panic" id="pf-panic" aria-label="Panic button: wipe all local data">&#x1F6A8;</button>
+<script>
+(function(){
+  var b=document.getElementById('pf-panic');
+  if(!b||b.dataset.pfPanic) return;
+  b.dataset.pfPanic='1';
+  b.addEventListener('click',function(){
+    if(!confirm('Wipe all local data? Nobody saw anything. 🫡')) return;
+    try{localStorage.clear();}catch(e){}
+    try{sessionStorage.clear();}catch(e){}
+    try{
+      if(window.indexedDB&&indexedDB.databases){
+        indexedDB.databases().then(function(dbs){
+          (dbs||[]).forEach(function(db){try{indexedDB.deleteDatabase(db.name);}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(window.caches&&caches.keys){
+        caches.keys().then(function(names){
+          (names||[]).forEach(function(n){caches.delete(n);});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          (regs||[]).forEach(function(r){try{r.unregister();}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    setTimeout(function(){window.location.replace('https://weather.com');},800);
+  });
+})();
+</script>
+
+<script>
+/* --- PFDossier: IndexedDB helper (schema shared with sibling pages) --- */
+var PFDossier = (function(){
+  var DB='pf_dossier_v1', STORE='items';
+  function open(){ return new Promise(function(res,rej){
+    try{
+      var r = indexedDB.open(DB,1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore(STORE,{keyPath:'id'}); };
+      r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); };
+    }catch(e){ rej(e); }
+  });}
+  function add(item){ return open().then(function(db){ return new Promise(function(res,rej){
+    var tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(item);
+    tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);};
+  });});}
+  return {add:add};
+})();
+
+/* ===== PRICE DETECTIVE page logic ===== */
+(function(){
+  'use strict';
+  var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+  var curItem = 'gas';
+  var lastTrace = null;
+
+  var FIELDS = {
+    gas: [
+      {k:'price', label:'PRICE PER GALLON ($)', ph:'e.g. 4.50', inputmode:'decimal'}
+    ],
+    eggs: [
+      {k:'price', label:'PRICE YOU PAID ($)', ph:'e.g. 6.99 per dozen', inputmode:'decimal'},
+      {k:'item', label:'ITEM (optional)', ph:'eggs, milk, bread…', inputmode:'text'}
+    ],
+    rent: [
+      {k:'price', label:'MONTHLY RENT ($)', ph:'e.g. 1800', inputmode:'decimal'},
+      {k:'zip', label:'ZIP CODE (for violation lookup)', ph:'e.g. 10001', inputmode:'numeric'},
+      {k:'state', label:'STATE (2 letters, for HUD benchmark)', ph:'e.g. NY', inputmode:'text'}
+    ],
+    healthcare: [
+      {k:'charged', label:'AMOUNT YOU WERE CHARGED ($)', ph:'e.g. 47000', inputmode:'decimal'},
+      {k:'procedure', label:'PROCEDURE (optional)', ph:'e.g. hip replacement', inputmode:'text'}
+    ]
+  };
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function renderFields(){
+    var box = document.getElementById('pf-fields');
+    var html = '';
+    (FIELDS[curItem]||[]).forEach(function(f){
+      html += '<div class="pf-field"><label>'+esc(f.label)+'</label>' +
+        '<input id="pf-f-'+f.k+'" placeholder="'+esc(f.ph)+'" inputmode="'+esc(f.inputmode)+'"></div>';
+    });
+    box.innerHTML = html;
+  }
+
+  function selectItem(el){
+    var items = document.querySelectorAll('.pf-item');
+    for(var i=0;i<items.length;i++){ items[i].classList.remove('on'); items[i].setAttribute('aria-checked','false'); }
+    el.classList.add('on'); el.setAttribute('aria-checked','true');
+    curItem = el.getAttribute('data-item');
+    renderFields();
+    document.getElementById('pf-result').style.display='none';
+    document.getElementById('pf-err').style.display='none';
+  }
+
+  var items = document.querySelectorAll('.pf-item');
+  for(var i=0;i<items.length;i++){
+    (function(el){
+      el.addEventListener('click',function(){selectItem(el);});
+      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();selectItem(el);}});
+    })(items[i]);
+  }
+  renderFields();
+
+  function showErr(msg){
+    var e = document.getElementById('pf-err');
+    e.textContent = msg; e.style.display='block';
+    document.getElementById('pf-result').style.display='none';
+  }
+
+  function stepHtml(s){
+    var tag = s.kind==='calculated' ? ' <span class="pf-calc-tag">◈ ESTIMATED</span>' : '';
+    var src = '';
+    if(s.source_url && s.source){
+      src = '<a class="pf-src" href="'+esc(s.source_url)+'" target="_blank" rel="noopener">📄 '+esc(s.source)+'</a>';
+    } else if(s.source){
+      src = '<span class="pf-src">'+esc(s.source)+'</span>';
+    }
+    return '<div class="pf-step'+(s.kind==='you'?' you':'')+'"><div class="pf-card">' +
+      '<div class="pf-kind">'+esc(s.label)+tag+'</div>' +
+      '<div class="pf-val">'+esc(s.value)+'</div>' +
+      (s.detail ? '<p class="pf-det">'+esc(s.detail)+'</p>' : '') +
+      src + '</div></div>';
+  }
+
+  document.getElementById('pf-trace').addEventListener('click',function(){
+    var btn = this;
+    var params = {action:'price_detective', item:curItem};
+    (FIELDS[curItem]||[]).forEach(function(f){
+      var inp = document.getElementById('pf-f-'+f.k);
+      if(inp && inp.value.trim()) params[f.k==='item'&&curItem==='eggs' ? 'item' : f.k] = inp.value.trim();
+    });
+    /* eggs: keep item=eggs unless user typed a different grocery */
+    if(curItem==='eggs'){
+      var itInp = document.getElementById('pf-f-item');
+      if(itInp && itInp.value.trim()) params.item = itInp.value.trim().toLowerCase();
+      else params.item = 'eggs';
+    }
+
+    btn.disabled = true;
+    btn.textContent = '🔍 TRACING…';
+    document.getElementById('pf-err').style.display='none';
+    var res = document.getElementById('pf-result');
+    res.style.display='block';
+    document.getElementById('pf-chain').innerHTML =
+      '<div class="pf-loading"><span class="spin">🔍</span><br>Following the money…</div>';
+    document.getElementById('pf-rtitle').textContent = '';
+    document.getElementById('pf-rsub').textContent = '';
+    document.getElementById('pf-summary').textContent = '';
+
+    var qs = Object.keys(params).filter(function(k){ return k!=='action'; }).map(function(k){
+      return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
+    }).join('&');
+
+    fetch(API + 'price_detective' + (qs ? '&' + qs : ''), {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        btn.disabled = false;
+        btn.textContent = '🔍 TRACE IT';
+        if(!d || !d.ok){ showErr('The trail went cold. Try again — the data might be catching up.'); return; }
+        lastTrace = d;
+        document.getElementById('pf-rtitle').textContent = d.title || 'THE MONEY TRAIL';
+        document.getElementById('pf-rsub').textContent =
+          (d.steps?d.steps.length:0) + ' hands touched your dollar · ' +
+          new Date(d.generated_at||Date.now()).toLocaleString();
+        document.getElementById('pf-chain').innerHTML =
+          (d.steps||[]).map(stepHtml).join('');
+        document.getElementById('pf-summary').textContent = d.summary || '';
+        var mk = document.getElementById('pf-make');
+        if(d.cta && d.cta.url) mk.href = d.cta.url;
+        res.scrollIntoView({behavior:'smooth',block:'start'});
+      })
+      .catch(function(){
+        btn.disabled = false;
+        btn.textContent = '🔍 TRACE IT';
+        showErr('The trail went cold — network hiccup. Try again.');
+      });
+  });
+
+  document.getElementById('pf-save').addEventListener('click',function(){
+    if(!lastTrace){ return; }
+    var item = {
+      id: 'detective-' + Date.now(),
+      type: 'detective',
+      title: lastTrace.title || 'Price trace',
+      body: lastTrace.summary || '',
+      steps: (lastTrace.steps||[]).length,
+      item_kind: lastTrace.item,
+      created_at: Date.now()
+    };
+    PFDossier.add(item).then(function(){
+      var b = document.getElementById('pf-save');
+      b.textContent = '✅ SAVED TO DOSSIER';
+      setTimeout(function(){ b.textContent = '🗂️ SAVE TO DOSSIER'; }, 2200);
+    }).catch(function(){
+      var b2 = document.getElementById('pf-save');
+      b2.textContent = '⚠️ SAVE FAILED — TRY AGAIN';
+      setTimeout(function(){ b2.textContent = '🗂️ SAVE TO DOSSIER'; }, 2200);
+    });
+  });
+
+  /* deep-link: /detective/?item=gas&price=4.50 */
+  try{
+    var q = new URLSearchParams(location.search);
+    var qi = q.get('item');
+    if(qi){
+      var els = document.querySelectorAll('.pf-item');
+      for(var j=0;j<els.length;j++){
+        if(els[j].getAttribute('data-item')===qi){ selectItem(els[j]); break; }
+      }
+      var qp = q.get('price')||q.get('charged');
+      if(qp){ var pi = document.getElementById('pf-f-price')||document.getElementById('pf-f-charged'); if(pi) pi.value = qp; }
+      var qz = q.get('zip'); if(qz){ var zi = document.getElementById('pf-f-zip'); if(zi) zi.value = qz; }
+      if(qp) document.getElementById('pf-trace').click();
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

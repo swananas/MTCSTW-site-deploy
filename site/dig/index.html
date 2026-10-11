@@ -189,6 +189,7 @@
     <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
     <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
     <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>
   </div>
   <div class="pf-snav-group">
     <span class="pf-snav-kicker">ACT</span>
@@ -259,6 +260,392 @@
       <p>The investigation board couldn&#x2019;t load. Check your connection and try again.</p>
       <button id="dig-retry" type="button">RETRY</button>
     </div>
+
+    <!-- 📸 PRICE BOUNTIES — WANTED posters for regional price data (2026-10-11) -->
+    <section class="pb-sec" id="pb-sec" aria-label="Price bounties">
+      <p class="pb-kicker">WANTED: YOUR RECEIPTS</p>
+      <h2 class="pb-title">PRICE <span class="pb-red">BOUNTIES</span> &#x1F4F8;</h2>
+      <p class="pb-sub">Photograph prices in your area. Confirmed sightings feed the regional price database Karl queries — and pay XP.</p>
+      <div class="pb-list" id="pb-list">
+        <div class="dig-skel"></div>
+        <div class="dig-skel"></div>
+      </div>
+      <p class="pb-err" id="pb-err" hidden>Price bounties couldn&#x2019;t load. <button type="button" id="pb-retry">RETRY</button></p>
+    </section>
+<style>
+/* WANTED poster cards — western aged-paper aesthetic */
+.pb-sec{margin-top:34px;}
+.pb-kicker{font-size:11px;font-weight:800;letter-spacing:.28em;color:#e5383b;margin:0 0 10px;text-align:center;}
+.pb-title{font-size:32px;font-weight:900;letter-spacing:.02em;margin:0 0 10px;text-align:center;color:#fff;}
+.pb-title .pb-red{color:#c1121f;}
+.pb-sub{font-size:14px;line-height:1.55;color:#b9b9b9;margin:0 auto 18px;max-width:440px;text-align:center;}
+.pb-list{display:flex;flex-direction:column;gap:18px;}
+.pb-err{text-align:center;color:#8a8478;font-size:13px;}
+.pb-err button{background:transparent;border:1px solid #c1121f;border-radius:10px;color:#e5383b;font-weight:800;font-size:12px;padding:8px 16px;cursor:pointer;}
+.poster{background:linear-gradient(160deg,#efe0b8 0%,#e6d09a 45%,#dfc48c 100%);border-radius:6px;overflow:hidden;color:#2b1d0e;box-shadow:0 6px 24px rgba(0,0,0,.5), inset 0 0 60px rgba(120,72,20,.25);position:relative;border:1px solid #8a6d3b;}
+.poster::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(120,72,20,.04) 3px 4px);}
+.poster-frame{margin:10px;border:3px solid #3e2723;padding:14px 14px 16px;position:relative;}
+.poster-wanted{font-family:Georgia,'Times New Roman',serif;font-weight:900;font-size:42px;letter-spacing:.18em;text-align:center;color:#3e2723;margin:2px 0 0;line-height:1;}
+.poster-sub{font-family:Georgia,serif;font-size:12px;letter-spacing:.32em;text-align:center;color:#5d4037;margin:6px 0 10px;font-weight:700;}
+.poster-rule{border:0;border-top:2px solid #3e2723;margin:8px 0;}
+.poster-emoji{font-size:64px;text-align:center;line-height:1.2;margin:6px 0;}
+.poster-item{font-family:Georgia,serif;font-weight:900;font-size:22px;text-align:center;color:#3e2723;margin:0 0 4px;line-height:1.25;}
+.poster-detail{font-size:13px;line-height:1.5;text-align:center;color:#4e342e;margin:0 0 10px;padding:0 6px;}
+.poster-reward{display:flex;justify-content:center;align-items:center;gap:8px;margin:8px 0;}
+.poster-reward .rw-label{font-family:Georgia,serif;font-size:13px;font-weight:700;letter-spacing:.22em;color:#5d4037;}
+.poster-reward .rw-xp{font-family:Georgia,serif;font-size:26px;font-weight:900;color:#b71c1c;}
+.poster-region{font-size:12px;text-align:center;color:#5d4037;margin:0 0 8px;min-height:18px;}
+.poster-region b{color:#3e2723;}
+.poster-btns{display:flex;gap:10px;margin-top:10px;}
+.poster-btn{flex:1;border:2px solid #3e2723;background:#3e2723;color:#efe0b8;font-weight:800;font-size:13px;letter-spacing:.08em;padding:12px 8px;border-radius:6px;cursor:pointer;touch-action:manipulation;min-height:48px;}
+.poster-btn.ghost{background:transparent;color:#3e2723;}
+.poster-btn:active{transform:scale(.97);}
+.poster-btn:disabled{opacity:.5;}
+.poster-claim{display:none;margin-top:12px;border-top:2px dashed #8a6d3b;padding-top:14px;}
+.poster.open .poster-claim{display:block;}
+.pb-field{margin:0 0 10px;}
+.pb-field label{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;color:#5d4037;margin-bottom:5px;}
+.pb-field input,.pb-field select{width:100%;box-sizing:border-box;background:#fffdf4;border:2px solid #8a6d3b;border-radius:8px;padding:12px;font-size:16px;color:#2b1d0e;min-height:48px;}
+.pb-field input[type=file]{padding:10px;font-size:14px;}
+.pb-photo-prev{max-width:100%;border-radius:8px;margin-top:8px;display:none;border:2px solid #8a6d3b;}
+.pb-safety{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:#4e342e;margin:0 0 12px;}
+.pb-safety input{width:22px;height:22px;flex:0 0 auto;margin-top:2px;}
+.pb-msg{font-size:13px;font-weight:700;text-align:center;margin:8px 0 0;min-height:20px;color:#4e342e;}
+.pb-msg.ok{color:#2e7d32;}
+.pb-msg.err{color:#b71c1c;}
+.pb-claims{margin-top:10px;font-size:12px;color:#5d4037;}
+.pb-claim{border-top:1px dashed #b99c62;padding:8px 0;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.pb-confirm{background:transparent;border:1px solid #3e2723;color:#3e2723;border-radius:8px;font-size:11px;font-weight:800;padding:8px 12px;cursor:pointer;min-height:40px;}
+</style>
+<script>
+(function(){
+if(window.__pbV1) return; window.__pbV1 = true;
+var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+var EMOJI = { milk:'\uD83E\uDD5B', eggs:'\uD83E\uDD5A', bread:'\uD83C\uDF5E', butter:'\uD83E\uDDC8', cheddar:'\uD83E\uDDC0', 'ground-beef':'\uD83E\uDD69', 'chicken-breast':'\uD83C\uDF57', bacon:'\uD83E\uDD53', coffee:'\u2615', bananas:'\uD83C\uDF4C', rice:'\uD83C\uDF5A', 'peanut-butter':'\uD83E\uDD5C', 'toilet-paper':'\uD83E\uDDFB', diapers:'\uD83D\uDC76', 'gas-regular':'\u26FD' };
+var STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function slugOf(b){ var p = String(b.target_key||'').split(':'); return p[1] || ''; }
+function emojiFor(b){ return EMOJI[slugOf(b)] || '\uD83D\uDCF8'; }
+function getCs(){ try{ return localStorage.getItem('pf_callsign')||localStorage.getItem('callsign')||''; }catch(e){ return ''; } }
+function getDev(){ try{ var d = localStorage.getItem('pf_device'); if(!d){ d = 'd_'+Math.random().toString(36).slice(2,10); localStorage.setItem('pf_device', d); } return d; }catch(e){ return 'd_'+Math.random().toString(36).slice(2,10); } }
+function getAuthSecret(){ try{ return localStorage.getItem('pf_auth_secret')||''; }catch(e){ return ''; } }
+/* POST helper for the typed dispatch rail: body carries {type, <actionKey>}
+   (index.js routes on d.type/d.pb_action/d.db_action). Attaches auth_secret
+   like PF.postAction (core/03-global.js) so the authGate binds the callsign
+   on databounty_claim / databounty_confirm. */
+function pbPost(body){
+  var b = {}; for(var k in body){ if(body.hasOwnProperty(k)) b[k] = body[k]; }
+  var s = getAuthSecret();
+  if(s) b.auth_secret = s;
+  return fetch('https://pf-api.mtcstw.workers.dev', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(b)
+  }).then(function(r){ return r.json(); });
+}
+
+function loadPriceBounties(){
+  var errEl = document.getElementById('pb-err');
+  fetch(API + 'databounty_list', {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); })
+    .then(function(d){
+      var all = (d && d.bounties) || [];
+      var prices = all.filter(function(b){ return b.kind === 'photo_evidence' && String(b.target_key||'').indexOf('price_tag:') === 0; });
+      if(!prices.length){ throw new Error('empty'); }
+      renderPosters(prices);
+      prices.forEach(loadRegional);
+    })
+    .catch(function(){ if(errEl) errEl.hidden = false; document.getElementById('pb-list').innerHTML=''; });
+}
+
+function loadRegional(b){
+  var slug = slugOf(b); if(!slug) return;
+  fetch(API + 'regional_prices&product=' + encodeURIComponent(slug), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var el = document.getElementById('pb-reg-' + b.id);
+      if(!el) return;
+      if(d && d.ok && d.states && d.states.length){
+        var top = d.states.slice(0,3).map(function(s){ return '<b>'+esc(s.state)+'</b> $'+Number(s.avg_price).toFixed(2); }).join(' \u00B7 ');
+        el.innerHTML = '\uD83D\uDCCD ' + top + (d.states.length > 3 ? ' \u00B7 +' + (d.states.length-3) + ' more' : '');
+      } else {
+        el.innerHTML = '\uD83D\uDCCD No confirmed prices yet — be the first.';
+      }
+    })
+    .catch(function(){});
+}
+
+function renderPosters(list){
+  var wrap = document.getElementById('pb-list');
+  var cs = getCs();
+  var html = list.map(function(b, i){
+    var rules = {}; try{ rules = JSON.parse(b.rules || '{}'); }catch(e){}
+    var slug = slugOf(b);
+    return '' +
+    '<article class="poster" id="poster-' + esc(b.id) + '">' +
+      '<div class="poster-frame">' +
+        '<div class="poster-wanted">WANTED</div>' +
+        '<div class="poster-sub">FOR INFORMATION LEADING TO</div>' +
+        '<hr class="poster-rule">' +
+        '<div class="poster-emoji">' + emojiFor(b) + '</div>' +
+        '<h3 class="poster-item">' + esc(b.title.replace(/^\uD83D\uDCF8\s*PRICE WATCH:\s*/i, '')) + '</h3>' +
+        '<p class="poster-detail">' + esc(b.detail).slice(0, 220) + '</p>' +
+        '<div class="poster-reward"><span class="rw-label">REWARD</span><span class="rw-xp">' + (b.xp_reward||10) + ' XP</span>' +
+        (b.surge && b.surge > 1 ? '<span class="rw-label" style="color:#b71c1c">\u00D7' + Number(b.surge).toFixed(1) + ' SURGE</span>' : '') + '</div>' +
+        '<p class="poster-region" id="pb-reg-' + esc(b.id) + '">\uD83D\uDCCD Checking regional prices\u2026</p>' +
+        '<div class="poster-btns">' +
+          '<button type="button" class="poster-btn" data-act="claim" data-i="' + i + '">\uD83D\uDCF8 SUBMIT PHOTO</button>' +
+          '<button type="button" class="poster-btn ghost" data-act="share" data-i="' + i + '">\uD83D\uDCE4 SHARE</button>' +
+        '</div>' +
+        '<div class="poster-claim" id="claim-' + esc(b.id) + '">' +
+          '<div class="pb-field"><label>PHOTO OF THE PRICE TAG</label>' +
+            '<input type="file" accept="image/*" capture="environment" id="f-photo-' + esc(b.id) + '">' +
+            '<img class="pb-photo-prev" id="f-prev-' + esc(b.id) + '" alt="photo preview"></div>' +
+          '<div class="pb-field"><label>PRICE ($)</label><input type="number" inputmode="decimal" step="0.01" min="0" id="f-price-' + esc(b.id) + '" placeholder="' + (rules.price_min!=null ? rules.price_min.toFixed(2)+' – '+rules.price_max.toFixed(2) : '0.00') + '"></div>' +
+          '<div class="pb-field"><label>STORE NAME</label><input type="text" id="f-store-' + esc(b.id) + '" placeholder="Walmart, Kroger\u2026" maxlength="80"></div>' +
+          '<div class="pb-field"><label>ZIP CODE</label><input type="text" inputmode="numeric" id="f-zip-' + esc(b.id) + '" placeholder="70802" maxlength="5"></div>' +
+          '<div class="pb-field"><label>STATE</label><select id="f-state-' + esc(b.id) + '">' +
+            STATES.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('') + '</select></div>' +
+          '<div class="pb-field"><label>YOUR CALLSIGN</label><input type="text" id="f-cs-' + esc(b.id) + '" value="' + esc(cs) + '" placeholder="your_callsign" maxlength="20"></div>' +
+          '<label class="pb-safety"><input type="checkbox" id="f-safe-' + esc(b.id) + '"><span>Photo taken by me in a public place. No trespassing, no identifiable faces of private people.</span></label>' +
+          '<button type="button" class="poster-btn" data-act="send" data-i="' + i + '" id="btn-send-' + esc(b.id) + '">SUBMIT FOR ' + (b.xp_reward||10) + ' XP</button>' +
+          '<p class="pb-msg" id="msg-' + esc(b.id) + '"></p>' +
+          (b.claims && b.claims.length ? '<div class="pb-claims"><b>'+b.claims.length+' pending sighting'+(b.claims.length>1?'s':'')+'</b> — confirm a sighting to earn 3 XP:' +
+            b.claims.slice(0,3).map(function(c){
+              var pl = {}; try{ pl = JSON.parse(c.payload||'{}'); }catch(e){}
+              return '<div class="pb-claim"><span>'+esc(c.callsign)+' — $'+esc(pl.price||'?')+' @ '+esc(pl.store_name||'?')+' ('+esc(pl.zip||'?')+')</span>' +
+                '<button type="button" class="pb-confirm" data-act="confirm" data-b="'+esc(b.id)+'" data-c="'+c.id+'">CONFIRM</button></div>';
+            }).join('') + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+  wrap.innerHTML = html;
+  wrap._bounties = list;
+  wrap.addEventListener('click', onPosterClick);
+  wrap.addEventListener('change', onPosterChange);
+}
+
+function onPosterChange(e){
+  var t = e.target;
+  if(t && t.type === 'file' && t.id.indexOf('f-photo-') === 0){
+    var bid = t.id.replace('f-photo-','');
+    var prev = document.getElementById('f-prev-' + bid);
+    var f = t.files && t.files[0];
+    if(f && prev){
+      var rd = new FileReader();
+      rd.onload = function(){ prev.src = rd.result; prev.style.display = 'block'; };
+      rd.readAsDataURL(f);
+    }
+  }
+}
+
+function onPosterClick(e){
+  var btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  var wrap = document.getElementById('pb-list');
+  var b = wrap._bounties[Number(btn.getAttribute('data-i'))];
+  if(!b) return;
+  var act = btn.getAttribute('data-act');
+  if(act === 'claim'){
+    document.getElementById('poster-' + b.id).classList.toggle('open');
+  } else if(act === 'share'){
+    shareWantedPoster(b, btn);
+  } else if(act === 'send'){
+    submitPriceClaim(b, btn);
+  } else if(act === 'confirm'){
+    confirmClaim(btn.getAttribute('data-b'), btn.getAttribute('data-c'), btn);
+  }
+}
+
+function msg(bid, text, cls){
+  var el = document.getElementById('msg-' + bid);
+  if(el){ el.textContent = text; el.className = 'pb-msg ' + (cls||''); }
+}
+
+function readFileAsBase64(file){
+  return new Promise(function(res, rej){
+    var rd = new FileReader();
+    rd.onload = function(){ res(String(rd.result||'')); };
+    rd.onerror = function(){ rej(new Error('read fail')); };
+    rd.readAsDataURL(file);
+  });
+}
+
+function submitPriceClaim(b, btn){
+  var bid = b.id;
+  var f = function(id){ var el = document.getElementById(id + '-' + bid); return el ? el.value : ''; };
+  var price = parseFloat(f('f-price'));
+  var store = f('f-store').trim();
+  var zip = f('f-zip').replace(/\D/g,'');
+  var state = f('f-state');
+  var cs = f('f-cs').trim().toLowerCase();
+  var safe = document.getElementById('f-safe-' + bid);
+  var fileInput = document.getElementById('f-photo-' + bid);
+  var file = fileInput && fileInput.files && fileInput.files[0];
+  if(!file){ msg(bid, 'Add a photo of the price tag first.', 'err'); return; }
+  if(!isFinite(price) || price <= 0){ msg(bid, 'Enter the price you photographed.', 'err'); return; }
+  if(zip.length !== 5){ msg(bid, 'Enter your 5-digit ZIP.', 'err'); return; }
+  if(!/^[a-z0-9_]{3,20}$/.test(cs)){ msg(bid, 'Enter your callsign.', 'err'); return; }
+  if(!safe || !safe.checked){ msg(bid, 'Confirm the safety rules first.', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'UPLOADING PHOTO\u2026';
+  msg(bid, '');
+  readFileAsBase64(file).then(function(dataUrl){
+    var parts = dataUrl.split(',');
+    var mime = 'image/jpeg';
+    var m = /^data:(image\/\w+);base64/.exec(dataUrl);
+    if(m) mime = m[1];
+    return pbPost({ type:'pricebounty', pb_action:'pricebounty_upload',
+      callsign: cs, photo_base64: parts[1] || '', mime: mime });
+  }).then(function(up){
+    if(!up || !up.ok || !up.photo_url) throw new Error((up && up.err) || 'upload failed');
+    btn.textContent = 'SUBMITTING SIGHTING\u2026';
+    return pbPost({ type:'databounty', db_action:'databounty_claim',
+      bounty_id: bid, callsign: cs, device: getDev(),
+      payload: { photo_url: up.photo_url, price: Math.round(price*100)/100,
+        store_name: store, zip: zip, state: state,
+        safety_ok: true, observed_at: Date.now() } });
+  }).then(function(d){
+    btn.disabled = false; btn.textContent = 'SUBMIT FOR ' + (b.xp_reward||10) + ' XP';
+    if(d && d.ok){
+      msg(bid, '\u2705 Sighting submitted! ' + (b.quorum||2) + ' confirmations unlock your XP.', 'ok');
+      try{ if(cs) localStorage.setItem('pf_callsign', cs); }catch(e){}
+    } else {
+      msg(bid, (d && (d.err || d.error)) || 'Submission failed.', 'err');
+    }
+  }).catch(function(err){
+    btn.disabled = false; btn.textContent = 'SUBMIT FOR ' + (b.xp_reward||10) + ' XP';
+    msg(bid, (err && err.message) || 'Something broke. Try again.', 'err');
+  });
+}
+
+function confirmClaim(bid, claimId, btn){
+  var cs = getCs();
+  if(!/^[a-z0-9_]{3,20}$/.test(cs)){ msg(bid, 'Set your callsign to confirm sightings.', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'CONFIRMING\u2026';
+  pbPost({ type:'databounty', db_action:'databounty_confirm',
+    bounty_id: bid, claim_id: Number(claimId), callsign: cs, device: getDev() })
+  .then(function(d){
+    if(d && d.ok){
+      btn.textContent = d.filled ? '\u2705 CONFIRMED — BOUNTY FILLED' : '\u2705 CONFIRMED (' + (d.confirmations||1) + ')';
+      msg(bid, d.filled ? 'Quorum reached! The reporter earned their XP.' : 'Confirmation recorded (+3 XP).', 'ok');
+    } else {
+      btn.disabled = false; btn.textContent = 'CONFIRM';
+      msg(bid, (d && (d.err||d.error)) || 'Confirm failed.', 'err');
+    }
+  }).catch(function(){
+    btn.disabled = false; btn.textContent = 'CONFIRM';
+    msg(bid, 'Network error.', 'err');
+  });
+}
+
+/* ---------- WANTED poster share image (canvas) ---------- */
+var W_EMOJI = EMOJI;
+function wantedPoster(b, done){
+  var W = 1080, H = 1350;
+  var c = document.createElement('canvas'); c.width = W; c.height = H;
+  var x = c.getContext('2d');
+  /* aged paper */
+  var g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#efe0b8'); g.addColorStop(.5, '#e6d09a'); g.addColorStop(1, '#dcbf85');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  /* paper speckle */
+  x.fillStyle = 'rgba(120,72,20,.08)';
+  for(var i = 0; i < 900; i++){
+    x.fillRect(Math.random()*W, Math.random()*H, 2, 2);
+  }
+  /* vignette */
+  var vg = x.createRadialGradient(W/2, H/2, H*0.35, W/2, H/2, H*0.75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(90,50,10,.35)');
+  x.fillStyle = vg; x.fillRect(0, 0, W, H);
+  /* double border */
+  x.strokeStyle = '#3e2723'; x.lineWidth = 14; x.strokeRect(28, 28, W-56, H-56);
+  x.lineWidth = 4; x.strokeRect(58, 58, W-116, H-116);
+  var cx = W/2, y = 150;
+  x.fillStyle = '#3e2723'; x.textAlign = 'center';
+  x.font = '900 120px Georgia, "Times New Roman", serif';
+  x.fillText('WANTED', cx, y); y += 44;
+  x.font = '700 30px Georgia, serif';
+  x.fillStyle = '#5d4037';
+  x.fillText('F O R   I N F O R M A T I O N   L E A D I N G   T O', cx, y); y += 60;
+  x.strokeStyle = '#3e2723'; x.lineWidth = 3;
+  x.beginPath(); x.moveTo(140, y); x.lineTo(W-140, y); x.stroke(); y += 90;
+  /* item emoji */
+  x.font = '200px serif';
+  x.fillText(W_EMOJI[slugOf(b)] || '\uD83D\uDCF8', cx, y + 130); y += 300;
+  /* item name */
+  x.fillStyle = '#3e2723';
+  x.font = '900 56px Georgia, serif';
+  var name = String(b.title || '').replace(/^\uD83D\uDCF8\s*PRICE WATCH:\s*/i, '');
+  wrapText(x, name.toUpperCase(), cx, y, W-240, 68); y += 130;
+  /* detail */
+  x.fillStyle = '#4e342e'; x.font = '34px Georgia, serif';
+  wrapText(x, String(b.detail||'').slice(0, 160), cx, y, W-260, 48); y += 170;
+  /* reward */
+  x.font = '700 34px Georgia, serif'; x.fillStyle = '#5d4037';
+  x.fillText('R E W A R D', cx, y); y += 70;
+  x.font = '900 92px Georgia, serif'; x.fillStyle = '#b71c1c';
+  x.fillText((b.xp_reward||10) + ' XP', cx, y); y += 110;
+  /* footer — share-image CTA standard */
+  x.strokeStyle = '#3e2723'; x.lineWidth = 3;
+  x.beginPath(); x.moveTo(140, y); x.lineTo(W-140, y); x.stroke(); y += 70;
+  x.font = '900 54px Georgia, serif'; x.fillStyle = '#b71c1c';
+  x.fillText('JOIN THE FIGHT.', cx, y); y += 56;
+  x.font = '700 36px Georgia, serif'; x.fillStyle = '#3e2723';
+  x.fillText('MTCSTW.COM', cx, y);
+  done(c);
+}
+function wrapText(x, text, cx, y, maxW, lh){
+  var words = String(text).split(/\s+/), lines = [], line = '';
+  for(var i = 0; i < words.length; i++){
+    var t = line ? line + ' ' + words[i] : words[i];
+    if(x.measureText(t).width > maxW && line){ lines.push(line); line = words[i]; }
+    else line = t;
+    if(lines.length >= 2 && i < words.length - 1){ line += '\u2026'; break; }
+  }
+  lines.push(line);
+  for(var j = 0; j < lines.length; j++) x.fillText(lines[j], cx, y + j*lh);
+}
+function shareWantedPoster(b, btn){
+  var label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'PAINTING\u2026';
+  try{
+    wantedPoster(b, function(canvas){
+      var done2 = function(){ btn.disabled = false; btn.textContent = label; };
+      var fire = function(blob){
+        done2();
+        if(!blob || !blob.size){ return; }
+        var file = null;
+        try{ file = new File([blob], 'wanted-' + slugOf(b) + '.png', {type:'image/png'}); }catch(e){}
+        if(file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({ title:'WANTED: ' + b.title, text:String(b.detail||'').slice(0,120), files:[file] }).catch(function(){});
+        } else {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob); a.download = 'wanted-' + slugOf(b) + '.png';
+          document.body.appendChild(a); a.click(); a.remove();
+        }
+      };
+      try{
+        canvas.toBlob(function(bl){
+          if(bl && bl.size){ fire(bl); return; }
+          try{
+            var du = canvas.toDataURL('image/png');
+            fetch(du).then(function(r){ return r.blob(); }).then(fire, function(){ done2(); });
+          }catch(e){ done2(); }
+        }, 'image/png');
+      }catch(e){ done2(); }
+    });
+  }catch(e){ btn.disabled = false; btn.textContent = label; }
+}
+
+document.getElementById('pb-retry').addEventListener('click', function(){
+  document.getElementById('pb-err').hidden = true;
+  document.getElementById('pb-list').innerHTML = '<div class="dig-skel"></div><div class="dig-skel"></div>';
+  loadPriceBounties();
+});
+loadPriceBounties();
+})();
+</script>
+<!-- /📸 PRICE BOUNTIES -->
 
     <div class="dig-done" id="dig-done" role="status">
       <div class="stamp">&#x1F4BC;</div>

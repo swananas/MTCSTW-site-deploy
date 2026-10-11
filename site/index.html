@@ -241,6 +241,26 @@
   #pf-karl-home .kh-deploys{ display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
   #pf-karl-home .kh-deploys .n{ color:var(--kh-cream); font-weight:700; }
   #pf-karl-home .kh-src{ font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em; }
+  /* ---- crowdsourced fact-checking (CEO 2026-10-11): up/down vote cards ---- */
+  #pf-karl-home .kh-factvote{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin-top:10px; padding-top:10px; border-top:1px dashed var(--kh-line);
+    font-size:12px; color:var(--kh-faint);
+  }
+  #pf-karl-home .kh-fv-btn{
+    background:transparent; border:1px solid var(--kh-line); color:var(--kh-dim);
+    border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600;
+    cursor:pointer; touch-action:manipulation; transition:all .15s;
+  }
+  #pf-karl-home .kh-fv-btn:active{ transform:scale(.95); }
+  #pf-karl-home .kh-fv-btn.kh-fv-on-acc{ border-color:#2fbf71; color:#2fbf71; background:rgba(47,191,113,.08); }
+  #pf-karl-home .kh-fv-btn.kh-fv-on-inacc{ border-color:#e5383b; color:#e5383b; background:rgba(229,56,59,.08); }
+  #pf-karl-home .kh-fv-counts{ font-size:11.5px; color:var(--kh-faint); font-variant-numeric:tabular-nums; }
+  #pf-karl-home .kh-fv-disputed{
+    display:inline-block; background:rgba(229,56,59,.12); border:1px solid #e5383b;
+    color:#e5383b; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:800;
+    letter-spacing:.04em; margin-bottom:8px;
+  }
   #pf-karl-home .kh-proof{ display:none; margin-top:12px; border-top:1px solid var(--kh-line); padding-top:12px; }
   #pf-karl-home .kh-card.kh-open .kh-proof{ display:block; animation:none; }
   #pf-karl-home .kh-card.kh-inference{ border-color:rgba(193,18,31,.55); box-shadow:0 0 0 1px rgba(193,18,31,.25), 0 6px 24px rgba(193,18,31,.12); }
@@ -822,9 +842,18 @@ function cardEl(d){
     '<div class="kh-card-meta">'+
       '<span class="kh-deploys"><span class="n">'+fmt(d.deploys)+'</span> deployed</span>'+
       '<span><span class="kh-src">'+esc(String(d.src).split('—')[0].trim())+'</span> &middot; '+esc(d.when)+'</span>'+
+    '</div>'+
+    /* crowdsourced fact-checking: up/down vote as accurate/inaccurate */
+    '<div class="kh-factvote" data-fvid="'+fmHash(d.q)+'"'+
+      (d.card_id ? ' data-cardid="'+d.card_id+'"' : '')+
+      ' data-fvtext="'+esc(String(d.q).slice(0,200))+'">'+
+      '<button class="kh-fv-btn kh-fv-acc" type="button">✓ Accurate</button>'+
+      '<button class="kh-fv-btn kh-fv-inacc" type="button">✗ Inaccurate</button>'+
+      '<span class="kh-fv-counts"></span>'+
     '</div>';
   el.addEventListener('click', function(e){
     if(e.target.classList.contains('kh-deploy-btn')) return;
+    if(e.target.closest('.kh-factvote')) return;
     if(e.target.closest('.kh-card-actions')) return;
     if(e.target.closest('.kh-related')) return;
     if(e.target.closest('.kh-live-ev')) return;
@@ -1258,9 +1287,17 @@ function beefyCard(d){
       '<span class="kh-src">'+esc(String(d.src).split('\u2014')[0].trim())+'</span>'+
       '<span>'+esc(d.when||'now')+'</span>'+
     '</div>'+
+    /* crowdsourced fact-checking: up/down vote as accurate/inaccurate */
+    '<div class="kh-factvote" data-fvid="'+fmHash(d.q)+'"'+
+      (d.card_id ? ' data-cardid="'+d.card_id+'"' : '')+
+      ' data-fvtext="'+esc(String(d.q).slice(0,200))+'">'+
+      '<button class="kh-fv-btn kh-fv-acc" type="button">✓ Accurate</button>'+
+      '<button class="kh-fv-btn kh-fv-inacc" type="button">✗ Inaccurate</button>'+
+      '<span class="kh-fv-counts"></span>'+
+    '</div>'+
     '<a class="kh-deeplink" href="'+esc(d.deep||R.deep)+'">DIG DEEPER \u2192</a>';
   el.addEventListener('click', function(e){
-    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell')) return;
+    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell') || e.target.closest('.kh-factvote')) return;
     el.classList.toggle('kh-open');
     if(el.classList.contains('kh-open')) fmTrackTap(el);
   });
@@ -1328,6 +1365,7 @@ function apiCardToData(c){
     src: '\u25B8 RECEIPTS \u2014 ' + (c.source_name || 'Karl rails'),
     source_url: c.source_url || '', who: c.who || '',
     provenance: c.provenance || '', _tag: tag,
+    card_id: c.id || null,
     deploys: 0, when: 'now'
   };
 }
@@ -1954,6 +1992,141 @@ function fmAfterRender(item){
   fmTrail.push({ src: item._src, tag: fmTagOf(item) });
   if(fmTrail.length > 12) fmTrail.shift();
 }
+
+/* ==========================================================================
+   CROWDSOURCED FACT-CHECKING (CEO 2026-10-11)
+   Up/down vote feed cards as accurate/inaccurate. Local cache in
+   pf_factvotes_v1, backend counts via ?action=fact_vote_counts (batched).
+   Dispute threshold (backend): inaccurate >= 3 AND inaccurate > accurate*2
+   -> card flagged disputed, removed from feed, sent to QC.
+   ========================================================================== */
+function pfDeviceId(){
+  try{
+    var k = 'pf_device_v1', v = localStorage.getItem(k);
+    if(!v){ v = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem(k, v); }
+    return v;
+  }catch(e){ return 'anon'; }
+}
+function pfGetVotes(){
+  try{ return JSON.parse(localStorage.getItem('pf_factvotes_v1') || '{}'); }
+  catch(e){ return {}; }
+}
+function pfSetVote(factId, vote){
+  try{
+    var v = pfGetVotes(); v[factId] = vote;
+    localStorage.setItem('pf_factvotes_v1', JSON.stringify(v));
+  }catch(e){}
+}
+/* Paint vote state on a .kh-factvote element */
+function fvPaint(fvEl, myVote, counts){
+  if(!fvEl) return;
+  var accBtn = fvEl.querySelector('.kh-fv-acc');
+  var inaccBtn = fvEl.querySelector('.kh-fv-inacc');
+  var countsEl = fvEl.querySelector('.kh-fv-counts');
+  if(accBtn) accBtn.classList.toggle('kh-fv-on-acc', myVote === 'accurate');
+  if(inaccBtn) inaccBtn.classList.toggle('kh-fv-on-inacc', myVote === 'inaccurate');
+  if(countsEl && counts){
+    var a = counts.accurate || 0, i = counts.inaccurate || 0;
+    if(a > 0 || i > 0){
+      countsEl.textContent = a + ' accurate · ' + i + ' inaccurate';
+    } else {
+      countsEl.textContent = '';
+    }
+    /* disputed badge */
+    var card = fvEl.closest('.kh-card');
+    var existing = card ? card.querySelector('.kh-fv-disputed') : null;
+    if(counts.disputed){
+      if(!existing && card){
+        var badge = document.createElement('div');
+        badge.className = 'kh-fv-disputed';
+        badge.textContent = '⚠️ DISPUTED — under review';
+        card.insertBefore(badge, card.firstChild);
+      }
+    } else if(existing){
+      existing.remove();
+    }
+  }
+}
+/* Batch-fetch counts for all visible vote widgets, paint results */
+var fvCountsInflight = false;
+function fvRefreshCounts(){
+  if(fvCountsInflight) return;
+  var els = document.querySelectorAll('.kh-factvote[data-fvid]:not([data-fv-loaded])');
+  if(!els.length) return;
+  fvCountsInflight = true;
+  var ids = [];
+  for(var i = 0; i < els.length; i++){
+    var fid = els[i].getAttribute('data-fvid');
+    if(fid && ids.indexOf(fid) === -1) ids.push(fid);
+    els[i].setAttribute('data-fv-loaded', '1');
+  }
+  var myVotes = pfGetVotes();
+  /* paint local votes immediately */
+  for(var j = 0; j < els.length; j++){
+    fvPaint(els[j], myVotes[els[j].getAttribute('data-fvid')] || null, null);
+  }
+  if(!ids.length){ fvCountsInflight = false; return; }
+  fetch(API + 'fact_vote_counts&fact_ids=' + encodeURIComponent(ids.join(',')),
+    {cache: 'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      fvCountsInflight = false;
+      if(!d || !d.ok || !d.counts) return;
+      for(var k = 0; k < els.length; k++){
+        var f = els[k].getAttribute('data-fvid');
+        if(d.counts[f]) fvPaint(els[k], myVotes[f] || null, d.counts[f]);
+      }
+    })
+    .catch(function(){ fvCountsInflight = false; });
+}
+/* Submit a vote */
+function fvVote(fvEl, vote){
+  var factId = fvEl.getAttribute('data-fvid');
+  if(!factId) return;
+  var myVotes = pfGetVotes();
+  if(myVotes[factId] === vote){
+    /* tapping same vote again = unvote (local only; backend has no delete) */
+    try{ var v = pfGetVotes(); delete v[factId];
+      localStorage.setItem('pf_factvotes_v1', JSON.stringify(v)); }catch(e){}
+    fvPaint(fvEl, null, null);
+    fvEl.removeAttribute('data-fv-loaded');
+    fvRefreshCounts();
+    return;
+  }
+  /* optimistic paint */
+  pfSetVote(factId, vote);
+  fvPaint(fvEl, vote, null);
+  var body = 'action=fact_vote&fact_id=' + encodeURIComponent(factId) +
+    '&vote=' + encodeURIComponent(vote) +
+    '&device_id=' + encodeURIComponent(pfDeviceId()) +
+    '&fact_text=' + encodeURIComponent(fvEl.getAttribute('data-fvtext') || '') +
+    '&card_id=' + encodeURIComponent(fvEl.getAttribute('data-cardid') || '');
+  fetch(API.replace('?action=', ''), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d && d.ok){
+      fvEl.removeAttribute('data-fv-loaded');
+      fvRefreshCounts();
+      if(d.disputed) showToast('Flagged as disputed — sent for review');
+    }
+  })
+  .catch(function(){ /* fail silent, local vote stands */ });
+}
+/* Delegate vote button clicks (works for dynamically added cards) */
+document.addEventListener('click', function(e){
+  var btn = e.target.closest ? e.target.closest('.kh-fv-btn') : null;
+  if(!btn) return;
+  e.stopPropagation();
+  e.preventDefault();
+  var fvEl = btn.closest('.kh-factvote');
+  if(!fvEl) return;
+  fvVote(fvEl, btn.classList.contains('kh-fv-acc') ? 'accurate' : 'inaccurate');
+}, true);
 function fmAllExhausted(){
   if(fmBuffer.length) return false;
   return Object.keys(FM_SOURCES).every(function(k){ return FM_SOURCES[k].exhausted(); });
@@ -2064,6 +2237,7 @@ function fmLoadBatch(retry){
         fmInterleave();
       }catch(e){ if(FM_DEBUG) console.log('[FM] render error for card:', e.message); }
     });
+    fvRefreshCounts(); /* crowdsourced fact-checking: batch-fetch vote counts */
     if(fmAllExhausted()) fmEnd();
     else fmNudge(); /* sentinel may already be in view - don't wait for scroll */
   }).catch(function(e){
@@ -2289,6 +2463,7 @@ fmNextBatch(2, true).then(function(cards){
   });
   fmObserve();
   fmNudge(); /* observer may not fire in flaky webviews — nudge forces first check */
+  fvRefreshCounts(); /* crowdsourced fact-checking: fetch vote counts for boot cards */
   /* watchdog: if nothing rendered in 5s, force a batch (iOS PWA safety net) */
   setTimeout(function(){
     if(!feed.querySelector('.kh-card') && !fmEnded){ if(FM_DEBUG) console.log('[FM] watchdog: no cards, forcing batch'); fmLoadBatch(); }

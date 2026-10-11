@@ -506,7 +506,7 @@
 
   <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
   <div class="kh-more-wrap" style="padding-top:0">
-    <a href="/model/?table=cms_hospital_prices" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THIS DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Query the raw tables yourself — FEC, billionaires, prisons, housing, trades</span></a>
+    <a href="/model/" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THE DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Hospitals, banks, FEC, prisons, housing — query it all yourself</span></a>
   </div>
 
   <!-- CELLS → HQ (dir-20261010-135720-3916): cell activity — seed data, wired to live API later -->
@@ -698,6 +698,26 @@ function cardUrlFor(d){
   var src=String(d.src||'').replace(/^▸ RECEIPTS — /,'').slice(0,80);
   return pfCreateUrl({tpl:'robbery',headline:d.q,sub:sub,stat:stat,stat_label:statLabel,source:src});
 }
+/* Map card source text to a /model table for the MODEL THIS DATA button */
+function cardTableFor(d){
+  var s=String(d.src||d.table||'').toLowerCase();
+  if(s.indexOf('cms')>-1||s.indexOf('hospital')>-1) return 'cms_hospital_prices';
+  if(s.indexOf('cfpb')>-1||s.indexOf('complaint')>-1) return 'dim_cfpb_company';
+  if(s.indexOf('keyvex')>-1||s.indexOf('enforcement')>-1) return 'fact_keyvex_enforcement';
+  if(s.indexOf('fec')>-1||s.indexOf('donation')>-1||s.indexOf('campaign')>-1) return 'fec_itemized';
+  if(s.indexOf('littlesis')>-1) return 'littlesis_entities';
+  if(s.indexOf('eviction')>-1) return 'eviction_county_estimates';
+  if(s.indexOf('prison')>-1) return 'private_prisons';
+  if(s.indexOf('billionaire')>-1) return 'billionaires';
+  if(s.indexOf('contract')>-1||s.indexOf('usaspending')>-1) return 'usaspending_contracts';
+  if(s.indexOf('trade')>-1||s.indexOf('stock')>-1) return 'stock_trades';
+  return '';
+}
+function modelUrlForCard(d){
+  var t=cardTableFor(d);
+  if(!t) return '/model/';
+  return '/model/?table='+t;
+}
 
 function cardEl(d){
   var el = document.createElement('div');
@@ -721,6 +741,7 @@ function cardEl(d){
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
       '<a class="kh-act-btn kh-weaponize" href="'+cardUrlFor(d)+'">🎨 MAKE PROPAGANDA</a>'+
+      '<a class="kh-act-btn kh-model-btn" href="'+modelUrlForCard(d)+'">⚒ MODEL THIS DATA</a>'+
       '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
@@ -788,7 +809,7 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
       if(d.enforcement_total)parts.push('<b style="color:#f5f0e6">'+Number(d.enforcement_total).toLocaleString()+'</b> enforcement actions');
       if(d.enforcement_30d)parts.push('<b style="color:#e5383b">'+Number(d.enforcement_30d).toLocaleString()+'</b> in last 30 days');
       if(d.cfpb_total_complaints)parts.push('<b style="color:#f5f0e6">'+Number(d.cfpb_total_complaints).toLocaleString()+'</b> consumer complaints');
-      el.innerHTML=parts.join(' · ')+' — <a href="/model" style="color:#e5383b">query the data →</a>';
+      el.innerHTML=parts.join(' · ')+' — <a href="/model/?table=fact_keyvex_enforcement" style="color:#e5383b">query the data →</a>';
     })
     .catch(function(){el.textContent='Stats unavailable right now.';});
 })();
@@ -1169,6 +1190,7 @@ function beefyCard(d){
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
       '<a class="kh-act-btn kh-weaponize" href="'+cardUrlFor(d)+'">🎨 MAKE PROPAGANDA</a>'+
+      '<a class="kh-act-btn kh-model-btn" href="'+modelUrlForCard(d)+'">⚒ MODEL THIS DATA</a>'+
       '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+

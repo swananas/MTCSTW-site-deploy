@@ -256,7 +256,7 @@
 
   <!-- 5. CROSS-LINKING: data → action -->
   <div class="xlinks">
-    <a class="xlink" id="xlink-weaponize" href="/create"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
+    <a class="xlink" id="xlink-weaponize" href="/create" style="display:none"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
     <a class="xlink" href="/cells"><span>👥</span>FIND YOUR CELL</a>
     <a class="xlink" href="/coordinate"><span>🎯</span>COORDINATE<br>ACTION</a>
   </div>
@@ -739,7 +739,7 @@ function renderResults(t,d,cols,filters,limit,sort,dir){
   });
   /* keep the static cross-link honest: carry the data too */
   var xl=$id('xlink-weaponize');
-  if(xl) xl.href=weaponizeUrl(t,d,cols,filters);
+  if(xl && d && d.count > 0){ xl.href=weaponizeUrl(t,d,cols,filters); xl.style.display=''; }
   $id('save-query').addEventListener('click',function(){
     var def=t.label+(filters.length?' — '+filters.map(function(f){return f.col+' '+f.op+' '+f.value;}).join(', '):' — all rows');
     var name=null;

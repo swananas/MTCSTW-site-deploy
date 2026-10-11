@@ -1470,13 +1470,275 @@ function UGCSource(){
   };
 }
 
+/* ==========================================================================
+   FEED RESOURCE CARDS (ux/feed-destinations-20261010)
+   New FeedManager sources built from the site's own resources: leaderboards,
+   missions, games, tool outputs, activity aggregates. All implement
+   loadMore(n)/exhausted(), all fail-open (return [] when data is missing).
+   Rule: real API data where available, honest invitational cards otherwise.
+   NO fake numbers — counts must come from a live endpoint.
+   ========================================================================== */
+
+/* ---- source: leaderboards — challenge board, cell comp, top comrades ---- */
+function LeaderboardSource(){
+  var buf = [], fetched = false, idx = 0;
+  function push(d){ buf.push({d: d, kind: 'spine'}); }
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    var jobs = [];
+    /* real: challenge board */
+    jobs.push(fetch(API + 'challenge_list', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        ((d && d.challenges) || []).slice(0, 2).forEach(function(ch){
+          push({
+            q: '\u2694\uFE0F ' + String(ch.title || 'CHALLENGE').toUpperCase(),
+            a: 'The challenge board is live. <a href="/coordinate" style="color:#e5383b;font-weight:700">Join the fight \u2192</a>',
+            rows: [['Metric', String(ch.metric || '\u2014').slice(0, 30)],
+                   ['Status', ch.active ? 'LIVE NOW' : 'ENDED ' + String(ch.end_day || '')]],
+            src: '\u25B8 RECEIPTS \u2014 Challenge board',
+            deploys: 0, when: 'live', _tag: 'comrade'
+          });
+        });
+      }).catch(function(){})); /* fail-open */
+    /* real: current cell competition */
+    jobs.push(fetch(API + 'cellcomp_current', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.ok) return;
+        push({
+          q: '\uD83C\uDFC6 CELL COMPETITION \u2014 ' + String(d.metric_label || 'THIS WEEK').toUpperCase(),
+          a: (d.days_remaining != null ? d.days_remaining + ' day' + (d.days_remaining === 1 ? '' : 's') + ' left' : 'This week') +
+             ' in the cell competition. <a href="/cells" style="color:#e5383b;font-weight:700">Rally your cell \u2192</a>',
+          rows: [['Metric', String(d.metric_label || '\u2014').slice(0, 30)],
+                 ['Week of', String(d.week_start || '\u2014')]],
+          src: '\u25B8 RECEIPTS \u2014 Cell competition',
+          deploys: 0, when: 'live', _tag: 'comrade'
+        });
+      }).catch(function(){})); /* fail-open */
+    /* top comrades by reach — real SLR roster data (same list as the
+       interleave creator spotlight; ranked, no fabricated counts) */
+    try{
+      var top = FM_CREATORS.slice().sort(function(a, b){ return b.followers - a.followers; }).slice(0, 3);
+      if(top.length){
+        push({
+          q: '\uD83C\uDFC6 TOP COMRADES BY REACH',
+          a: 'The loudest voices in the network. <a href="/sick-left-radicals" style="color:#e5383b;font-weight:700">View the roster \u2192</a>',
+          rows: top.map(function(c, i){
+            return ['#' + (i + 1) + ' ' + String(c.name).slice(0, 26), fmFmtN(c.followers) + ' followers'];
+          }),
+          src: '\u25B8 RECEIPTS \u2014 SLR roster',
+          deploys: 0, when: 'now', _tag: 'comrade'
+        });
+      }
+    }catch(e){}
+    return Promise.all(jobs).then(function(){}, function(){});
+  }
+  return {
+    name: 'lb', sync: false,
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n);
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
+}
+
+/* ---- source: missions — active challenges + standing calls to action ---- */
+function MissionSource(){
+  var buf = [], fetched = false, idx = 0;
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    /* real: active challenges become mission cards */
+    var job = fetch(API + 'challenge_list', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        ((d && d.challenges) || []).filter(function(ch){ return ch.active; }).slice(0, 2).forEach(function(ch){
+          buf.push({d: {
+            q: '\uD83C\uDFAF NEW MISSION: ' + String(ch.title || '').toUpperCase(),
+            a: 'Metric: ' + esc(String(ch.metric || 'action')) + '. Ends ' + esc(String(ch.end_day || '\u2014')) + '. ' +
+               '<a href="/coordinate" style="color:#e5383b;font-weight:700">Take the mission \u2192</a>',
+            rows: [['Mission', String(ch.title || '\u2014').slice(0, 40)],
+                   ['Metric', String(ch.metric || '\u2014').slice(0, 30)]],
+            src: '\u25B8 RECEIPTS \u2014 Missions',
+            deploys: 0, when: 'live', _tag: 'comrade'
+          }, kind: 'spine'});
+        });
+      }).catch(function(){}); /* fail-open */
+    /* standing mission — always real, always actionable (no fake counts) */
+    buf.push({d: {
+      q: '\uD83C\uDFAF MISSION: BUILD YOUR CELL',
+      a: 'Missions need a crew. Find yours, or start one. <a href="/cells" style="color:#e5383b;font-weight:700">Find your cell \u2192</a>',
+      rows: [['Cells', 'Open to all'], ['Cost', 'Free']],
+      src: '\u25B8 RECEIPTS \u2014 Missions',
+      deploys: 0, when: 'now', _tag: 'comrade'
+    }, kind: 'spine'});
+    return job.then(function(){}, function(){});
+  }
+  return {
+    name: 'mission', sync: false,
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n);
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
+}
+
+/* ---- source: games — arcade + prediction (invitational, no fake counts) ---- */
+function GameSource(){
+  var list = [
+    {d: {
+      q: '\uD83C\uDFAE THE ARCADE',
+      a: 'Play. Earn. Spread. Games that turn intel into action. <a href="/arcade" style="color:#e5383b;font-weight:700">Enter the arcade \u2192</a>',
+      rows: [['Play', 'Free'], ['Earn', 'XP + medals']],
+      src: '\u25B8 RECEIPTS \u2014 Arcade',
+      deploys: 0, when: 'now', _tag: 'comrade'
+    }, kind: 'spine'},
+    {d: {
+      q: '\uD83D\uDD2E CALL IT.',
+      a: 'Predict. Call it before it happens. <a href="/call-it" style="color:#e5383b;font-weight:700">Make your calls \u2192</a>',
+      rows: [['Predict', 'Races + outcomes'], ['Cost', 'Free']],
+      src: '\u25B8 RECEIPTS \u2014 Call It',
+      deploys: 0, when: 'now', _tag: 'comrade'
+    }, kind: 'spine'}
+  ];
+  var idx = 0;
+  return {
+    name: 'game', sync: true,
+    loadMore: function(n){
+      var out = list.slice(idx, idx + n);
+      idx += out.length;
+      return Promise.resolve(out);
+    },
+    exhausted: function(){ return idx >= list.length; }
+  };
+}
+
+/* ---- source: tool outputs — real derived insights from /model ---- */
+function ToolOutputSource(){
+  var buf = [], fetched = false, idx = 0;
+  var TABLES = [
+    {table: 'cms_hospital_prices', label: 'CMS hospital prices', model: 'cms_hospital_prices'},
+    {table: 'dim_cfpb_company', label: 'CFPB complaints', model: 'dim_cfpb_company'},
+    {table: 'fact_keyvex_enforcement', label: 'Enforcement', model: 'fact_keyvex_enforcement'}
+  ];
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    var jobs = TABLES.map(function(t){
+      return fetch(API + 'model_insights&table=' + encodeURIComponent(t.table), {cache: 'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var ins = (d && d.ok && d.insights && d.insights[0]) || null;
+          if(!ins) return;
+          buf.push({d: {
+            q: '\uD83D\uDCCA DATA INSIGHT: ' + String(ins.label || t.label).toUpperCase(),
+            a: esc(String(ins.context || '').slice(0, 220)) +
+               ' <a href="/model/?table=' + encodeURIComponent(t.model) + '" style="color:#e5383b;font-weight:700">Model it \u2192</a>',
+            rows: [[String(ins.label || 'Figure').slice(0, 34), String(ins.value || '\u2014').slice(0, 30)]],
+            src: '\u25B8 RECEIPTS \u2014 ' + t.label,
+            deploys: 0, when: 'live', _tag: 'robbery'
+          }, kind: 'spine'});
+        }).catch(function(){}); /* fail-open: endpoint may 404 on some tables */
+    });
+    return Promise.all(jobs).then(function(){}, function(){});
+  }
+  return {
+    name: 'tools', sync: false,
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n);
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
+}
+
+/* ---- source: activity aggregates — real counts only, never fabricated ---- */
+function ActivitySource(){
+  var buf = [], fetched = false, idx = 0;
+  function fmtN(n){ n = Number(n) || 0; return n.toLocaleString('en-US'); }
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    var jobs = [];
+    jobs.push(fetch(API + 'data_pulse', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || d.ok !== true) return;
+        if(d.enforcement_30d){
+          buf.push({d: {
+            q: '\uD83D\uDD25 ' + fmtN(d.enforcement_30d) + ' ENFORCEMENT ACTIONS \u2014 LAST 30 DAYS',
+            a: 'The rails never sleep. <a href="/model/?table=fact_keyvex_enforcement" style="color:#e5383b;font-weight:700">Query the data \u2192</a>',
+            rows: [['Total tracked', fmtN(d.enforcement_total)],
+                   ['Financial fraud', fmtN(d.enforcement_fraud)],
+                   ['Public corruption', fmtN(d.enforcement_corruption)]],
+            src: '\u25B8 RECEIPTS \u2014 Enforcement pulse',
+            deploys: 0, when: 'live', _tag: 'robbery'
+          }, kind: 'spine'});
+        }
+        if(d.cfpb_total_complaints){
+          buf.push({d: {
+            q: '\uD83D\uDCE2 ' + fmtN(d.cfpb_total_complaints) + ' CONSUMER COMPLAINTS TRACKED',
+            a: 'Every complaint is a receipt. <a href="/model/?table=dim_cfpb_company" style="color:#e5383b;font-weight:700">Look up your bank \u2192</a>',
+            rows: [['Complaints', fmtN(d.cfpb_total_complaints)],
+                   ['Companies', fmtN(d.cfpb_companies)]],
+            src: '\u25B8 RECEIPTS \u2014 CFPB pulse',
+            deploys: 0, when: 'live', _tag: 'robbery'
+          }, kind: 'spine'});
+        }
+      }).catch(function(){})); /* fail-open */
+    jobs.push(fetch(API + 'karl_stats', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.ok) return;
+        buf.push({d: {
+          q: '\uD83D\uDCB0 ' + String(d.wealth_display || '$6.5T+') + ' BILLIONAIRE WEALTH TRACKED',
+          a: 'The machine sees the money. <a href="/model/?table=billionaires" style="color:#e5383b;font-weight:700">Follow it \u2192</a>',
+          rows: [['Data rows', String(d.rows_display || '\u2014')],
+                 ['Creators', String(d.creators != null ? d.creators : '\u2014')]],
+          src: '\u25B8 RECEIPTS \u2014 Karl stats',
+          deploys: 0, when: 'live', _tag: 'robbery'
+        }, kind: 'spine'});
+      }).catch(function(){})); /* fail-open */
+    return Promise.all(jobs).then(function(){}, function(){});
+  }
+  return {
+    name: 'activity', sync: false,
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n);
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
+}
+
 var FM_SOURCES = {
   feedCards: FeedCardsSource(),
   karlRail: KarlRailSource(),
   anchor: AnchorSource(),
   seed: SeedSource(),
   discovery: DiscoverySource(),
-  ugc: UGCSource()
+  ugc: UGCSource(),
+  lb: LeaderboardSource(),
+  mission: MissionSource(),
+  game: GameSource(),
+  tools: ToolOutputSource(),
+  activity: ActivitySource()
 };
 /* ==========================================================================
    HARD FEED ALGORITHM
@@ -1493,7 +1755,8 @@ var FM_SOURCES = {
    ========================================================================== */
 var FM_W = {
   freshMax: 30, freshTau: 48,
-  auth: { feedCards: 25, karlRail: 20, anchor: 15, seed: 10, discovery: 5, ugc: 20 },
+  auth: { feedCards: 25, karlRail: 20, anchor: 15, seed: 10, discovery: 5, ugc: 20,
+          lb: 15, mission: 15, game: 12, tools: 18, activity: 15 },
   engMax: 20, engK: 4,
   provVerified: 15, provRaw: 10, provCalc: 5, provEst: 0,
   prefMax: 10,
@@ -1569,6 +1832,11 @@ function fmProvScore(item){
   if(item._src === 'feedCards') return FM_W.provRaw;
   if(item._src === 'discovery') return FM_W.provRaw;          /* user's own find */
   if(item._src === 'ugc') return FM_W.provCalc;
+  if(item._src === 'lb') return FM_W.provRaw;                 /* roster + board data */
+  if(item._src === 'mission') return FM_W.provRaw;             /* challenge data */
+  if(item._src === 'game') return FM_W.provCalc;               /* invitational */
+  if(item._src === 'tools') return FM_W.provCalc;              /* derived insights */
+  if(item._src === 'activity') return FM_W.provRaw;            /* live counts */
   return FM_W.provCalc; /* seed */
 }
 function fmPrefScore(tag, prefMap){

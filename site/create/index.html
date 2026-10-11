@@ -3,42 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Create — Turn Intel Into Propaganda.</title>
-<meta name="description" content="Take what Karl uncovers and turn it into shareable content. Memes, posters, videos.">
+<title>Create — Propaganda Engine</title>
+<meta name="description" content="Strike breaking intel or build your own receipt. Turn corruption into propaganda in seconds.">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
 <style>
   html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
-  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;transform:translateZ(0);}
   .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
   .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
   .pf-topbar-brand span{color:#c1121f;}
   .pf-pillars-nav{display:flex;gap:6px;flex:1;}
   .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;}
   .pf-pillar.on{color:#fff;border-color:#c1121f;background:rgba(193,18,31,.12);}
+  .pf-xp-chip{color:#ffd166;font-size:12px;font-weight:800;white-space:nowrap;}
   body{padding-top:calc(env(safe-area-inset-top,0px) + 110px);}
-  #crt{--bg:#0a0a0a;--card:#111;--line:#232323;--red:#c1121f;--rbright:#e5383b;--cream:#f5f0e6;--dim:#8a8478;max-width:560px;margin:0 auto;padding:0 0 60px;}
-  #crt .hero{padding:28px 20px 8px;}
-  #crt .hero h1{font-family:Georgia,serif;font-size:32px;margin:0 0 8px;line-height:1.15;}
+  #crt{--bg:#0a0a0a;--card:#111;--line:#232323;--red:#c1121f;--rbright:#e5383b;--cream:#f5f0e6;--dim:#8a8478;--gold:#ffd166;--green:#2a9d48;max-width:640px;margin:0 auto;padding:0 0 80px;}
+  #crt .hero{padding:24px 20px 4px;}
+  #crt .hero h1{font-family:Georgia,serif;font-size:30px;margin:0 0 6px;line-height:1.15;}
   #crt .hero h1 em{color:var(--rbright);font-style:normal;}
-  #crt .hero p{color:var(--dim);font-size:15px;margin:0 0 16px;line-height:1.5;}
-  #crt .tools{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
-  #crt .tool{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;animation:rise .4s ease both;text-decoration:none;color:var(--cream);display:block;}
-  #crt .tool:active{transform:scale(.98);}
-  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  #crt .tool .t{font-weight:700;font-size:17px;margin-bottom:6px;}
-  #crt .tool .d{font-size:14px;color:var(--dim);line-height:1.5;}
-  #crt .tool .tag{display:inline-block;margin-top:10px;font-size:11px;letter-spacing:.1em;color:var(--rbright);text-transform:uppercase;}
-  #crt .feed-link{margin:24px 20px 0;}
-  #crt .feed-link h3{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin:0 0 10px;}
-  #crt .feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;text-decoration:none;display:block;color:var(--cream);}
-  #crt .feed-card .q{font-weight:600;font-size:14px;margin-bottom:6px;}
-  #crt .feed-card .a{font-size:13px;color:var(--dim);}
-  #crt .feed-card .a b{color:var(--rbright);}
+  #crt .hero p{color:var(--dim);font-size:14px;margin:0;line-height:1.5;}
+  /* impact ticker */
+  #crt .ticker{background:#0d0d0d;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 16px;margin:14px 0 0;font-size:13px;color:var(--dim);display:flex;gap:14px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
+  #crt .ticker b{color:var(--cream);}
+  #crt .ticker .tk-red{color:var(--rbright);font-weight:800;}
+  /* cost of inaction */
+  #crt .coi{margin:12px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--dim);}
+  #crt .coi b{color:var(--cream);}
+  #crt .coi .vs{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  #crt .coi .bar{flex:1;height:10px;border-radius:6px;background:#222;overflow:hidden;position:relative;}
+  #crt .coi .bar i{position:absolute;top:0;bottom:0;left:0;background:var(--red);border-radius:6px;}
+  /* mode tabs */
+  #crt .modes{display:flex;gap:10px;padding:16px 16px 4px;}
+  #crt .mode{flex:1;padding:16px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);cursor:pointer;touch-action:manipulation;text-align:center;}
+  #crt .mode.on{border-color:var(--red);background:rgba(193,18,31,.1);}
+  #crt .mode:active{transform:scale(.97);}
+  #crt .mode .mi{font-size:26px;margin-bottom:6px;}
+  #crt .mode .mn{font-weight:900;font-size:15px;letter-spacing:.06em;margin-bottom:4px;}
+  #crt .mode .md{font-size:12px;color:var(--dim);line-height:1.4;}
+  #crt .pane{display:none;padding:12px 16px;}
+  #crt .pane.on{display:block;}
+  #crt .sec-h{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin:18px 0 10px;}
+  #crt .hint{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:12px;}
+  /* strike cards */
+  #crt .strike-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--red);}
+  #crt .strike-card.gun{border-left-color:var(--gold);border-color:rgba(255,209,102,.4);}
+  #crt .gun-tag{display:inline-block;font-size:10px;letter-spacing:.14em;color:#111;background:var(--gold);border-radius:6px;padding:3px 8px;margin-bottom:8px;font-weight:900;}
+  #crt .strike-card .sq{font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.35;}
+  #crt .strike-card .sa{font-size:13px;color:var(--dim);margin-bottom:10px;line-height:1.5;}
+  #crt .strike-card .sa b{color:var(--rbright);}
+  #crt .strike-card .row{display:flex;gap:8px;}
+  #crt .strike-card .row .btn{margin-bottom:0;font-size:13px;padding:11px;}
+  /* bounty */
+  #crt .bounty{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  #crt .bounty .bn{font-weight:800;font-size:14px;margin-bottom:6px;}
+  #crt .bounty .bar{height:12px;border-radius:7px;background:#222;overflow:hidden;margin:8px 0 6px;position:relative;}
+  #crt .bounty .bar i{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,#c1121f,#e5383b);border-radius:7px;}
+  #crt .bounty .bc{font-size:12px;color:var(--dim);}
+  #crt .bounty .bc b{color:var(--gold);}
+  /* caption box */
+  #crt .caption{background:#0d0d0d;border:1px dashed #444;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.55;color:var(--dim);margin-bottom:10px;white-space:pre-wrap;}
+  /* buttons */
+  #crt .btn{display:block;width:100%;box-sizing:border-box;padding:15px;border-radius:12px;border:none;font-size:15px;font-weight:800;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;margin-bottom:10px;}
+  #crt .btn:active{transform:scale(.98);}
+  #crt .btn.primary{background:var(--red);color:#fff;}
+  #crt .btn.ghost{background:var(--card);color:var(--cream);border:1px solid var(--line);}
+  #crt .btn.gold{background:var(--gold);color:#111;}
+  #crt .btn:disabled{opacity:.45;}
+  /* fields */
+  #crt .field{margin-bottom:10px;}
+  #crt .field label{display:block;font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+  #crt .field input,#crt .field textarea{width:100%;box-sizing:border-box;background:#0d0d0d;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:15px;padding:12px;font-family:inherit;}
+  #crt .field textarea{min-height:70px;resize:vertical;}
+  #crt .field input:focus,#crt .field textarea:focus{outline:none;border-color:var(--red);}
+  /* template picker */
+  #crt .tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  #crt .tpl{border:2px solid var(--line);border-radius:12px;padding:14px 12px;background:var(--card);cursor:pointer;touch-action:manipulation;}
+  #crt .tpl.on{border-color:var(--red);background:rgba(193,18,31,.1);}
+  #crt .tpl:active{transform:scale(.97);}
+  #crt .tpl .ti{font-size:22px;margin-bottom:6px;}
+  #crt .tpl .tn{font-weight:800;font-size:13px;margin-bottom:4px;}
+  #crt .tpl .td{font-size:11px;color:var(--dim);line-height:1.4;}
+  /* theme toggle */
+  #crt .theme-row{display:flex;gap:8px;margin-bottom:12px;}
+  #crt .theme-btn{flex:1;padding:12px 8px;border-radius:10px;border:2px solid var(--line);background:var(--card);cursor:pointer;touch-action:manipulation;text-align:center;}
+  #crt .theme-btn.on{border-color:var(--red);}
+  #crt .theme-btn .tm{font-weight:800;font-size:12px;margin-top:4px;}
+  #crt .theme-btn .tsw{height:26px;border-radius:6px;margin-bottom:2px;}
+  /* dossier */
+  #crt .dossier{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+  #crt .dossier .dn{font-weight:800;font-size:14px;margin-bottom:6px;}
+  #crt .dossier .bar{height:10px;border-radius:6px;background:#222;overflow:hidden;margin:6px 0;position:relative;}
+  #crt .dossier .bar i{position:absolute;top:0;bottom:0;left:0;background:var(--gold);border-radius:6px;}
+  #crt .dossier .dc{font-size:12px;color:var(--dim);}
+  /* search */
+  #crt .search-row{display:flex;gap:8px;margin-bottom:12px;}
+  #crt .search-row input{flex:1;background:#0d0d0d;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:15px;padding:12px;font-family:inherit;}
+  #crt .search-row input:focus{outline:none;border-color:var(--red);}
+  #crt .search-row button{background:var(--red);color:#fff;border:none;border-radius:10px;padding:0 20px;font-weight:800;font-size:14px;cursor:pointer;touch-action:manipulation;}
+  /* preview */
+  #crt .preview-wrap{background:#000;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;text-align:center;}
+  #crt .preview-wrap canvas{max-width:100%;height:auto;border-radius:8px;}
+  #crt .size-row{display:flex;gap:8px;margin-bottom:12px;}
+  #crt .size-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);font-size:12px;font-weight:800;cursor:pointer;touch-action:manipulation;}
+  #crt .size-btn.on{border-color:var(--red);color:#fff;background:rgba(193,18,31,.12);}
+  #crt .fmt-row{display:flex;gap:8px;margin-bottom:12px;}
+  #crt .fmt-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation;}
+  #crt .fmt-btn.on{border-color:var(--gold);color:var(--gold);}
+  #crt-toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--red);color:var(--cream);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20000;max-width:90vw;text-align:center;}
+  #crt-toast.show{opacity:1;}
 </style>
 </head>
 <body>
-<div id="pf-boot">
 <header class="pf-topbar"><div class="pf-topbar-inner">
 <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
 <nav class="pf-pillars-nav">
@@ -46,67 +122,1020 @@
 <a class="pf-pillar" href="/cells">CONNECT</a>
 <a class="pf-pillar" href="/coordinate">COORDINATE</a>
 <a class="pf-pillar" href="/money">CAPITAL</a>
-</nav></div></header>
+</nav><span class="pf-xp-chip" id="crt-xp">⚡ 0 XP</span></div></header>
 <main id="crt">
   <div class="hero">
-    <h1>Turn intel into <em>propaganda.</em></h1>
-    <p>Karl finds the receipts. You make them undeniable. Every discovery from THE ROBBERY REPORT is raw material.</p>
+    <h1>Propaganda <em>Engine.</em></h1>
+    <p>Stop waiting for the government to fix itself. <b style="color:#e5383b">Discover your power.</b></p>
   </div>
-  <div class="tools">
-    <a class="tool" href="/karl/">
-      <div class="t">Deploy from Karl</div>
-      <div class="d">Ask Karl anything, then hit DEPLOY to turn the answer into a shareable image. One tap.</div>
-      <div class="tag">Start here →</div>
-    </a>
-    <a class="tool" href="/sick-left-radicals/">
-      <div class="t">Amplify creators</div>
-      <div class="d">62 vetted propagandists with 8M+ reach. Share their work, join the signal boost.</div>
-      <div class="tag">Meet the roster →</div>
-    </a>
-    <a class="tool" href="/">
-      <div class="t">Mine the feed</div>
-      <div class="d">THE ROBBERY REPORT is full of sourced facts begging to become memes, threads, and videos.</div>
-      <div class="tag">Back to the feed →</div>
-    </a>
+
+  <div class="ticker" id="crt-ticker"><span>Loading live impact…</span></div>
+
+  <div class="coi" id="crt-coi" style="display:none">
+    <b>Cost of inaction.</b> <span id="coi-text"></span>
+    <div class="vs"><span style="font-size:11px">THEIR PR</span><div class="bar"><i id="coi-theirs" style="width:100%"></i></div></div>
+    <div class="vs"><span style="font-size:11px">OUR FIRE</span><div class="bar"><i id="coi-ours" style="width:2%"></i></div></div>
   </div>
-  <div class="feed-link">
-    <h3>Fresh ammunition</h3>
-    <a class="feed-card" href="/karl/?q=Which%20defense%20contractor%20stole%20the%20most">
-      <div class="q">Which defense contractor stole the most?</div>
-      <div class="a">Boeing: <b>$2.5B</b>. That's a poster waiting to happen.</div>
-    </a>
-    <a class="feed-card" href="/karl/?q=Richest%20billionaires">
-      <div class="q">How rich are the billionaires?</div>
-      <div class="a"><b>$6.45T</b> combined. Visualize that.</div>
-    </a>
+
+  <div class="modes">
+    <div class="mode on" data-mode="strike" role="button" tabindex="0">
+      <div class="mi">⚡</div><div class="mn">STRIKE</div>
+      <div class="md">Breaking intel. Tap to generate assets and attack.</div>
+    </div>
+    <div class="mode" data-mode="custom" role="button" tabindex="0">
+      <div class="mi">🎯</div><div class="mn">CUSTOM</div>
+      <div class="md">Search any company or agency. Build your own receipt.</div>
+    </div>
+  </div>
+
+  <!-- ============ STRIKE ============ -->
+  <div class="pane on" id="pane-strike">
+    <div class="sec-h">Targeted bounties</div>
+    <div id="strike-bounties"></div>
+    <div class="sec-h">Breaking — last 24 hours</div>
+    <p class="hint">Fresh intel off the rails. One tap builds the asset. Fire it everywhere.</p>
+    <div id="strike-list"><p class="hint">Loading breaking intel…</p></div>
+    <div class="sec-h">Batch export</div>
+    <p class="hint">Pick any strike above, then fire all three formats at once — 9:16 Stories, 1:1 Square, 16:9 Wide.</p>
+    <button class="btn gold" id="strike-everywhere" type="button" disabled>🚀 FIRE ALL FORMATS</button>
+    <div class="sec-h">Caption</div>
+    <div class="caption" id="strike-caption" style="display:none"></div>
+    <button class="btn ghost" id="strike-copy-caption" type="button" style="display:none">📋 COPY CAPTION</button>
+  </div>
+
+  <!-- ============ CUSTOM ============ -->
+  <div class="pane" id="pane-custom">
+    <div class="sec-h">Find your target</div>
+    <div class="search-row">
+      <input id="cu-search" type="text" placeholder="Company, billionaire, agency…" maxlength="80" enterkeyhint="search">
+      <button id="cu-go" type="button">DIG</button>
+    </div>
+    <div class="dossier" id="cu-dossier" style="display:none">
+      <div class="dn">📁 Dossier: <span id="cu-dossier-name"></span></div>
+      <div class="bar"><i id="cu-dossier-bar" style="width:0%"></i></div>
+      <div class="dc" id="cu-dossier-text"></div>
+    </div>
+    <div class="sec-h">Pick a template</div>
+    <div class="tpl-grid" id="cu-tpls">
+      <div class="tpl on" data-tpl="robbery" role="button" tabindex="0">
+        <div class="ti">⚡</div><div class="tn">Robbery Report</div><div class="td">WHO / HOW MUCH / WHAT / source. The classic receipt.</div>
+      </div>
+      <div class="tpl" data-tpl="web" role="button" tabindex="0">
+        <div class="ti">🕸️</div><div class="tn">THE WEB</div><div class="td">Linear money flow: [A] →$→ [B] →$→ [C]. Max 4 nodes.</div>
+      </div>
+      <div class="tpl" data-tpl="quote" role="button" tabindex="0">
+        <div class="ti">💬</div><div class="tn">Quote Bomb</div><div class="td">One devastating quote. Big serif. Nowhere to hide.</div>
+      </div>
+      <div class="tpl" data-tpl="beforeafter" role="button" tabindex="0">
+        <div class="ti">⚖️</div><div class="tn">Before / After</div><div class="td">Two numbers side by side. The gap is the story.</div>
+      </div>
+      <div class="tpl" data-tpl="statbomb" role="button" tabindex="0">
+        <div class="ti">💥</div><div class="tn">Stat Bomb</div><div class="td">One massive number. One line of context. Devastating.</div>
+      </div>
+    </div>
+    <div class="sec-h">Theme</div>
+    <div class="theme-row" id="cu-themes">
+      <div class="theme-btn on" data-theme="brutalist" role="button" tabindex="0">
+        <div class="tsw" style="background:linear-gradient(135deg,#0a0a0a 60%,#c1121f 60%)"></div><div class="tm">BRUTALIST</div>
+      </div>
+      <div class="theme-btn" data-theme="corporate" role="button" tabindex="0">
+        <div class="tsw" style="background:linear-gradient(135deg,#f4f6f8 60%,#1a3a5c 60%)"></div><div class="tm" style="color:#f5f0e6">CORP SATIRE</div>
+      </div>
+      <div class="theme-btn" data-theme="agitprop" role="button" tabindex="0">
+        <div class="tsw" style="background:linear-gradient(135deg,#141414 50%,#d62828 50%,#d62828 75%,#f77f00 75%)"></div><div class="tm">AGITPROP</div>
+      </div>
+    </div>
+    <div id="cu-fields"></div>
+    <div class="sec-h">Format</div>
+    <div class="fmt-row" id="cu-fmts">
+      <button class="fmt-btn on" data-size="portrait" type="button">9:16<br>STORY</button>
+      <button class="fmt-btn" data-size="square" type="button">1:1<br>SQUARE</button>
+      <button class="fmt-btn" data-size="wide" type="button">16:9<br>WIDE</button>
+    </div>
+    <div class="sec-h">Preview</div>
+    <div class="preview-wrap"><canvas id="cu-canvas"></canvas></div>
+    <button class="btn primary" id="cu-fire" type="button">🔥 FIRE RECEIPT</button>
+    <button class="btn ghost" id="cu-copyimg" type="button" disabled>📋 COPY IMAGE</button>
   </div>
 </main>
-</div>
+<div id="crt-toast"></div>
 <script>
-/* BLOSSOM G5.1 — consume ?topic= from money surfaces and preload the create flow. */
+/* ============================================================
+   CREATE — STRIKE + CUSTOM propaganda engine
+   ============================================================ */
 (function(){
-  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-  function param(name){
-    try{
-      var m = location.search.match(new RegExp("[?&]"+name+"=([^&#]*)"));
-      if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim();
-    }catch(e){}
-    return "";
-  }
-  var topic = param("topic") || param("for") || param("cause");
-  if(!topic) return;
+"use strict";
+
+/* ---------- utils ---------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function param(name){
   try{
-    var hero = document.querySelector("#crt .hero");
-    if(hero){
-      var banner = document.createElement("div");
-      banner.style.cssText = "margin:0 0 16px;padding:14px 16px;background:rgba(193,18,31,.12);border:2px solid #c1121f;border-radius:12px;color:#f5f0e6;font-size:15px;line-height:1.5;";
-      banner.innerHTML = "<b style='color:#e5383b;letter-spacing:.1em;font-size:12px;'>RAW MATERIAL LOADED:</b><br><b style='font-size:19px;'>"+esc(topic)+"</b><br><span style='color:#8a8478;font-size:13px;'>This money story is your brief. Pick a tool and make it undeniable.</span>";
-      hero.insertBefore(banner, hero.firstChild);
-    }
-    /* Route the first tool straight at the topic. */
-    var deploy = document.querySelector('#crt .tool[href="/karl/"]');
-    if(deploy) deploy.href = "/karl/?q=" + encodeURIComponent("Make propaganda about this: " + topic);
+    var m = location.search.match(new RegExp("[?&]"+name+"=([^&#]*)"));
+    if(m) return decodeURIComponent(m[1].replace(/\+/g," ")).trim();
   }catch(e){}
+  return "";
+}
+function b64decode(s){
+  try{
+    s = String(s).replace(/-/g,'+').replace(/_/g,'/');
+    while(s.length % 4) s += '=';
+    return JSON.parse(decodeURIComponent(escape(atob(s))));
+  }catch(e){ return null; }
+}
+var toastEl = $('crt-toast'), toastT = null;
+function toast(m){
+  if(!toastEl) return;
+  toastEl.textContent = m; toastEl.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(function(){ toastEl.classList.remove('show'); }, 2400);
+}
+function cardSlug(q){ return String(q||'intel').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'intel'; }
+
+/* ---------- XP + share attribution (device-local v1, same keys as homepage) ---------- */
+var XP_KEY='pf_xp_local_v1', SHARES_KEY='pf_shares_v1', MEDALS_KEY='pf_medals_v1';
+function pfGetXP(){ try{ return parseInt(localStorage.getItem(XP_KEY)||'0',10)||0; }catch(e){ return 0; } }
+function pfUpdateXPChip(){ var c=$('crt-xp'); if(c) c.textContent = '⚡ '+pfGetXP().toLocaleString()+' XP'; }
+function pfAddXP(n){
+  try{
+    var v = pfGetXP()+n; localStorage.setItem(XP_KEY, String(v)); pfUpdateXPChip();
+    var shares = pfGetShares(), total = 0;
+    for(var k in shares) total += shares[k];
+    var medals = []; try{ medals = JSON.parse(localStorage.getItem(MEDALS_KEY)||'[]'); }catch(e){}
+    var defs = [
+      {id:'first-share', name:'📢 Amplifier', need:function(){ return total>=1; }},
+      {id:'propagandist', name:'🔥 Propagandist', need:function(){ return total>=10; }}
+    ];
+    defs.forEach(function(dfn){
+      if(dfn.need() && medals.indexOf(dfn.id)<0){
+        medals.push(dfn.id);
+        try{ localStorage.setItem(MEDALS_KEY, JSON.stringify(medals)); }catch(e){}
+        toast('🏅 Medal earned: '+dfn.name);
+      }
+    });
+  }catch(e){}
+}
+function pfGetShares(){ try{ return JSON.parse(localStorage.getItem(SHARES_KEY)||'{}'); }catch(e){ return {}; } }
+function pfRecordShare(slug){
+  try{
+    var s = pfGetShares(); s[slug] = (s[slug]||0)+1;
+    localStorage.setItem(SHARES_KEY, JSON.stringify(s));
+    pfAddXP(5); return s[slug];
+  }catch(e){ return 1; }
+}
+/* impact ticker: assets deployed today (device-local count + seed) */
+var DEPLOY_KEY='pf_deploys_today_v1';
+function pfDeploysToday(){
+  try{
+    var d = JSON.parse(localStorage.getItem(DEPLOY_KEY)||'{"day":"","n":0}');
+    var today = new Date().toISOString().slice(0,10);
+    if(d.day !== today) return 0;
+    return d.n||0;
+  }catch(e){ return 0; }
+}
+function pfBumpDeploys(){
+  try{
+    var today = new Date().toISOString().slice(0,10);
+    var d = JSON.parse(localStorage.getItem(DEPLOY_KEY)||'{"day":"","n":0}');
+    if(d.day !== today) d = {day:today, n:0};
+    d.n++; localStorage.setItem(DEPLOY_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+
+/* ---------- themes ---------- */
+var THEMES = {
+  brutalist: {
+    bg:'#0a0a0a', accent:'#c1121f', bright:'#e5383b', text:'#f5f0e6', dim:'#8a8478',
+    mast:'⚡ THE ROBBERY REPORT', footer:'JOIN THE FIGHT.', sysFont:'system-ui,-apple-system,sans-serif', headFont:'Georgia,"Times New Roman",serif'
+  },
+  corporate: {
+    bg:'#f4f6f8', accent:'#1a3a5c', bright:'#2b6cb0', text:'#1a202c', dim:'#718096',
+    mast:'MEMORANDUM — FOR PUBLIC RELEASE', footer:'A PUBLIC SERVICE ANNOUNCEMENT.', sysFont:'system-ui,-apple-system,sans-serif', headFont:'Georgia,"Times New Roman",serif'
+  },
+  agitprop: {
+    bg:'#141414', accent:'#d62828', bright:'#f77f00', text:'#f5f0e6', dim:'#a89f91',
+    mast:'★ THE PEOPLE\'S RECEIPT ★', footer:'WORKERS OF THE WORLD, SHARE.', sysFont:'Arial Black,system-ui,sans-serif', headFont:'Arial Black,system-ui,sans-serif'
+  }
+};
+
+/* ---------- share sizes ---------- */
+var CRT_SIZES = {
+  portrait: { w:1080, h:1920, m:100, barH:16, mast:44, mastTop:150, mastGap:52, secGap:48,
+    whoLabel:34, whoName:60, whoGap:96, hero:168, heroGap:200, head:66, headLh:84,
+    ans:42, ansLh:60, proof:34, proofLh:56, proofRows:5, footH:150, footBig:54, footSmall:36,
+    footPad:32, minTail:480 },
+  square: { w:1080, h:1080, m:100, barH:14, mast:40, mastTop:120, mastGap:44, secGap:36,
+    whoLabel:32, whoName:52, whoGap:84, hero:134, heroGap:160, head:58, headLh:74,
+    ans:36, ansLh:52, proof:32, proofLh:52, proofRows:4, footH:130, footBig:48, footSmall:34,
+    footPad:28, minTail:360 },
+  wide: { w:1200, h:630, m:110, barH:12, mast:32, mastTop:92, mastGap:32, secGap:22,
+    whoLabel:30, whoName:44, whoGap:70, hero:96, heroGap:120, head:48, headLh:60,
+    ans:32, ansLh:44, proof:30, proofLh:44, proofRows:2, footH:84, footBig:38, footSmall:30,
+    footPad:20, minTail:230 }
+};
+
+/* ---------- data helpers ---------- */
+function crtMoney(d){
+  var texts = [ String(d.a||'').replace(/<[^>]*>/g,'') ];
+  (d.rows||[]).forEach(function(r){ texts.push(String(r[1]||'')); });
+  if(d.stat) texts.push(String(d.stat));
+  var best='', bestV=-1;
+  texts.forEach(function(t){
+    var re = /\$[\d,]+(?:\.\d+)?\s*[KMBT]?\b/gi, m;
+    while((m = re.exec(t))){
+      var raw = m[0].replace(/\s+/g,'');
+      var num = parseFloat(raw.replace(/[$,]/g,'').replace(/[KMBT]$/i,''));
+      if(isNaN(num)) continue;
+      var suf = /([KMBT])$/i.exec(raw);
+      var mult = !suf ? 1 : ({K:1e3,M:1e6,B:1e9,T:1e12}[suf[1].toUpperCase()] || 1);
+      if(num*mult > bestV){ bestV = num*mult; best = raw; }
+    }
+  });
+  return best;
+}
+function crtSrc(d){
+  var s = String(d.src||'');
+  var i = s.indexOf('—');
+  return (i>=0 ? s.slice(i+1) : s).replace(/^\s*[▸►>]?\s*/,'').trim();
+}
+function crtWho(d){
+  if(d.who) return String(d.who).trim();
+  var t = String(d.a||d.headline||'').replace(/<[^>]*>/g,'').trim().replace(/^(The|A|An)\s+/i,'');
+  var m = t.match(/^([A-Z][\w.'-]*(?:\s+(?:to|of|for|de|van|der|[A-Z][\w.'-]*)){0,3})/);
+  var who = m ? m[1].replace(/\s+(to|of|for)$/i,'').replace(/[.,;:!?]+$/,'') : '';
+  var stop = {ONE:1,TWO:1,THREE:1,FOUR:1,FIVE:1,OVER:1,NEARLY:1,ALMOST:1,ABOUT:1,SOME:1,MANY:1,MOST:1,ALL:1,NO:1,MORE:1,AROUND:1,IT:1,THEY:1};
+  if(stop[(who.split(/\s+/)[0]||'').toUpperCase()]) return '';
+  return who;
+}
+function crtWrap(x, text, px, py, maxW, lh, maxY){
+  var words = String(text).split(/\s+/), line='', y=py;
+  for(var i=0;i<words.length;i++){
+    var w=words[i]; if(!w) continue;
+    var t = line ? line+' '+w : w;
+    if(x.measureText(t).width > maxW && line){
+      if(y+lh > maxY) return y;
+      x.fillText(line, px, y); line=w; y+=lh;
+    } else line=t;
+  }
+  if(line && y<=maxY){ x.fillText(line, px, y); y+=lh; }
+  return y;
+}
+/* source barcode: credibility + viral loop. Encodes the receipt slug as bars. */
+function crtBarcode(x, slug, px, py, maxW, h, color){
+  var s = String(slug||'intel');
+  var seed = 0;
+  for(var i=0;i<s.length;i++) seed = (seed*31 + s.charCodeAt(i)) >>> 0;
+  x.fillStyle = color;
+  var bx = px, bw = maxW;
+  var n = Math.max(24, Math.min(48, s.length*3));
+  var unit = bw / n;
+  var r = seed;
+  for(var j=0;j<n;j++){
+    r = (r*1103515245 + 12345) & 0x7fffffff;
+    var wdt = unit * (0.3 + (r % 100)/100 * 0.9);
+    if(r % 3 !== 0) x.fillRect(bx, py, Math.max(1,wdt*0.6), h);
+    bx += wdt;
+    if(bx > px+bw) break;
+  }
+}
+function crtWatermark(x, W, H, theme){
+  x.save(); x.globalAlpha=0.15;
+  var wmX=W/2, wmY=H/2, wmR=Math.round(W*0.09);
+  x.strokeStyle=theme.text; x.lineWidth=Math.max(3,Math.round(W*0.004));
+  x.beginPath(); x.arc(wmX,wmY,wmR,0,Math.PI*2); x.stroke();
+  x.fillStyle=theme.text; x.textAlign='center';
+  x.font='900 '+Math.round(W*0.066)+'px '+theme.sysFont;
+  x.fillText('PFN', wmX, wmY+Math.round(W*0.023));
+  x.textAlign='left'; x.restore();
+}
+function crtFooter(x, W, H, cfg, theme, slug){
+  var footTop = H - cfg.footH;
+  x.fillStyle=theme.accent; x.fillRect(0, footTop, W, cfg.footH);
+  x.fillStyle='#ffffff'; x.textAlign='center';
+  x.font='900 '+cfg.footBig+'px '+theme.sysFont;
+  x.fillText(theme.footer, W/2, footTop + cfg.footH*0.44);
+  x.font=cfg.footSmall+'px '+theme.sysFont;
+  var urlLine = 'mtcstw.com / #'+slug;
+  x.fillText(urlLine, W/2, footTop + cfg.footH - cfg.footPad - cfg.proofLh*0.4);
+  /* barcode above the url line */
+  crtBarcode(x, slug, W/2 - 130, footTop + cfg.footH - cfg.footPad - cfg.proofLh*1.15, 260, Math.round(cfg.proofLh*0.55), '#ffffff');
+  x.textAlign='left';
+  return footTop;
+}
+function crtMasthead(x, W, H, cfg, theme, m){
+  x.fillStyle=theme.bg; x.fillRect(0,0,W,H);
+  x.fillStyle=theme.accent; x.fillRect(0,0,W,cfg.barH);
+  var y = cfg.barH + cfg.mastTop;
+  x.fillStyle=theme.accent; x.font='900 '+cfg.mast+'px '+theme.sysFont;
+  var label = theme.mast;
+  while(label.length>4 && x.measureText(label).width > W-2*m) label = label.slice(0,-2);
+  x.fillText(label, m, y); y += cfg.mastGap;
+  x.fillStyle=theme.dim; x.globalAlpha=0.5; x.fillRect(m, y, W-2*m, 2); x.globalAlpha=1; y += cfg.secGap;
+  return y;
+}
+
+/* ---------- template painters ---------- */
+/* Each painter: (x, W, H, cfg, theme, d, m) -> void. Draws body between masthead and footer. */
+
+function paintRobbery(x, W, H, cfg, theme, d, m){
+  var slug = cardSlug(d.q||d.headline);
+  var y = crtMasthead(x, W, H, cfg, theme, m);
+  var footTop = H - cfg.footH;
+  var money = d.stat || crtMoney(d);
+  var who = d.who || crtWho(d);
+  var headline = d.headline || d.q || '';
+  var plain = String(d.a||d.sub||'').replace(/<[^>]*>/g,'').trim();
+  var rows = (d.rows||[]).slice(0, cfg.proofRows);
+
+  if(who){
+    x.fillStyle=theme.accent; x.font='900 '+cfg.whoLabel+'px '+theme.sysFont;
+    x.fillText("WHO'S ROBBING YOU", m, y); y += cfg.whoLabel + 16;
+    x.fillStyle=theme.text; x.font='900 '+cfg.whoName+'px '+theme.sysFont;
+    var whoTxt = who.toUpperCase();
+    while(whoTxt.length>4 && x.measureText(whoTxt).width > W-2*m) whoTxt = whoTxt.slice(0,-2);
+    x.fillText(whoTxt, m, y);
+    y += cfg.whoGap + Math.round(cfg.whoName*0.25);
+  }
+  if(money){
+    y += Math.round(cfg.hero*0.75);
+    x.fillStyle=theme.text; x.font='900 '+cfg.hero+'px '+theme.sysFont;
+    x.fillText(money, m, y);
+    x.fillStyle=theme.accent;
+    x.fillRect(m, y+16, Math.min(W-2*m, x.measureText(money).width), Math.max(5, Math.round(cfg.hero*0.045)));
+    y += cfg.heroGap;
+  }
+  x.fillStyle=theme.text; x.font='800 '+cfg.head+'px '+theme.headFont;
+  y = crtWrap(x, headline, m, y, W-2*m, cfg.headLh, footTop - cfg.minTail);
+  y += cfg.secGap;
+  if(plain){
+    x.fillStyle=theme.dim; x.font=cfg.ans+'px '+theme.sysFont;
+    y = crtWrap(x, plain, m, y, W-2*m, cfg.ansLh, footTop - cfg.minTail);
+    y += cfg.secGap;
+  }
+  if(rows.length && y < footTop - cfg.proofLh*2){
+    var badgePx = Math.round(cfg.proof*1.3);
+    x.fillStyle=theme.accent; x.font='900 '+badgePx+'px '+theme.sysFont;
+    x.fillText('✓ EXHIBIT — VERIFIED', m, y);
+    x.fillRect(m, y+8, Math.min(120, W-2*m), 4);
+    y += cfg.proofLh + 10;
+    rows.forEach(function(r){
+      if(y > footTop - 18) return;
+      x.font=cfg.proof+'px '+theme.sysFont; x.fillStyle=theme.dim;
+      x.fillText(String(r[0]).slice(0,44), m, y);
+      x.font='800 '+cfg.proof+'px '+theme.sysFont; x.fillStyle=theme.text;
+      var v = String(r[1]).slice(0,24);
+      x.fillText(v, W-m-x.measureText(v).width, y);
+      y += cfg.proofLh;
+    });
+    if(y < footTop - 18){
+      var outlet = crtSrc(d);
+      if(outlet){
+        var srcLine = 'SOURCE: '+outlet;
+        if(d.when) srcLine += ' · '+(d.when==='now'?'today':String(d.when));
+        y += Math.round(cfg.proof*0.25);
+        var srcPx = Math.max(32, Math.round(cfg.proof*0.85));
+        x.fillStyle=theme.dim; x.font=srcPx+'px '+theme.sysFont;
+        x.fillText(srcLine.slice(0,72), m, y);
+      }
+    }
+  }
+  crtWatermark(x, W, H, theme);
+  crtFooter(x, W, H, cfg, theme, slug);
+}
+
+/* THE WEB — linear money flow: [A] →$→ [B] →$→ [C]. Max 4 nodes, mobile-first. */
+function paintWeb(x, W, H, cfg, theme, d, m){
+  var slug = cardSlug(d.headline||d.q||'the-web');
+  var y = crtMasthead(x, W, H, cfg, theme, m);
+  var footTop = H - cfg.footH;
+  var nodes = (d.nodes||[]).slice(0,4);
+  if(!nodes.length){
+    /* fallback: derive from who/stat */
+    nodes = [{label:d.who||crtWho(d)||'TARGET', sub:d.stat||crtMoney(d)||''}];
+  }
+  var title = d.headline || 'FOLLOW THE MONEY';
+  x.fillStyle=theme.text; x.font='900 '+cfg.head+'px '+theme.headFont;
+  y = crtWrap(x, title, m, y, W-2*m, cfg.headLh, y+cfg.headLh*3);
+  y += cfg.secGap;
+
+  var boxH = Math.round(cfg.hero*0.9);
+  var arrowH = Math.round(cfg.head*1.1);
+  nodes.forEach(function(nd, i){
+    if(y + boxH > footTop - 40) return;
+    /* node box */
+    x.fillStyle = i===0 ? theme.accent : theme.bg;
+    x.strokeStyle = theme.accent; x.lineWidth = 4;
+    var bw = W-2*m;
+    if(i===0){ x.fillRect(m, y, bw, boxH); }
+    else { x.strokeRect(m, y, bw, boxH); }
+    x.fillStyle = i===0 ? '#ffffff' : theme.text;
+    x.font='900 '+Math.round(cfg.whoName*0.85)+'px '+theme.sysFont;
+    x.textAlign='center';
+    var lbl = String(nd.label||'').toUpperCase();
+    while(lbl.length>4 && x.measureText(lbl).width > bw-60) lbl = lbl.slice(0,-2);
+    x.fillText(lbl, W/2, y + boxH/2 - 6);
+    if(nd.sub){
+      x.font=Math.round(cfg.proof*1.1)+'px '+theme.sysFont;
+      x.fillStyle = i===0 ? '#ffffff' : theme.bright;
+      x.fillText(String(nd.sub).slice(0,40), W/2, y + boxH/2 + Math.round(cfg.proof*1.3));
+    }
+    x.textAlign='left';
+    y += boxH + 14;
+    /* arrow with $ amount */
+    if(i < nodes.length-1 && y + arrowH < footTop - 20){
+      x.fillStyle=theme.bright; x.font='900 '+arrowH+'px '+theme.sysFont;
+      x.textAlign='center';
+      var amt = nd.amount ? '  '+nd.amount+'  ' : '';
+      x.fillText('▼'+amt, W/2, y + arrowH - 14);
+      x.textAlign='left';
+      y += arrowH;
+    }
+  });
+  if(d.sub){
+    x.fillStyle=theme.dim; x.font=cfg.ans+'px '+theme.sysFont;
+    crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y, W-2*m, cfg.ansLh, footTop-30);
+  }
+  crtWatermark(x, W, H, theme);
+  crtFooter(x, W, H, cfg, theme, slug);
+}
+
+function paintQuote(x, W, H, cfg, theme, d, m){
+  var slug = cardSlug(d.headline||d.quote);
+  var y = crtMasthead(x, W, H, cfg, theme, m);
+  var footTop = H - cfg.footH;
+  var quote = d.quote || d.headline || d.q || '';
+  var attr = d.attribution || d.who || crtWho(d) || '';
+  /* big quote mark */
+  x.fillStyle=theme.accent; x.font='900 '+Math.round(cfg.hero*1.4)+'px '+theme.headFont;
+  x.fillText('“', m, y + Math.round(cfg.hero*0.9));
+  y += Math.round(cfg.hero*0.9) + cfg.secGap;
+  x.fillStyle=theme.text; x.font='800 '+cfg.head+'px '+theme.headFont;
+  y = crtWrap(x, '“'+quote+'”', m, y, W-2*m, Math.round(cfg.headLh*1.15), footTop - cfg.minTail*0.6);
+  y += cfg.secGap;
+  if(attr){
+    x.fillStyle=theme.accent; x.fillRect(m, y, 80, 6); y += 34;
+    x.fillStyle=theme.text; x.font='900 '+cfg.ans+'px '+theme.sysFont;
+    x.fillText('— '+attr.toUpperCase().slice(0,48), m, y);
+    y += cfg.ansLh;
+  }
+  if(d.sub){
+    x.fillStyle=theme.dim; x.font=Math.round(cfg.ans*0.85)+'px '+theme.sysFont;
+    crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y+10, W-2*m, Math.round(cfg.ansLh*0.9), footTop-30);
+  }
+  crtWatermark(x, W, H, theme);
+  crtFooter(x, W, H, cfg, theme, slug);
+}
+
+function paintBeforeAfter(x, W, H, cfg, theme, d, m){
+  var slug = cardSlug(d.headline||'before-after');
+  var y = crtMasthead(x, W, H, cfg, theme, m);
+  var footTop = H - cfg.footH;
+  var title = d.headline || 'THE GAP IS THE STORY';
+  x.fillStyle=theme.text; x.font='900 '+Math.round(cfg.head*0.9)+'px '+theme.headFont;
+  y = crtWrap(x, title, m, y, W-2*m, cfg.headLh, y+cfg.headLh*3);
+  y += cfg.secGap;
+  var halfH = Math.round((footTop - y - 60)/2);
+  var items = [
+    {label:d.beforeLabel||'BEFORE', val:d.before||'', dim:true},
+    {label:d.afterLabel||'AFTER', val:d.after||'', dim:false}
+  ];
+  items.forEach(function(it, i){
+    if(y + halfH > footTop - 20) return;
+    x.fillStyle = it.dim ? theme.bg : theme.accent;
+    x.strokeStyle = theme.accent; x.lineWidth = 4;
+    var bw = W-2*m;
+    if(it.dim){ x.strokeRect(m, y, bw, halfH); }
+    else { x.fillRect(m, y, bw, halfH); }
+    x.fillStyle = it.dim ? theme.dim : '#ffffff';
+    x.font='900 '+cfg.whoLabel+'px '+theme.sysFont;
+    x.textAlign='center';
+    x.fillText(it.label.toUpperCase(), W/2, y + Math.round(cfg.whoLabel*2.2));
+    x.fillStyle = it.dim ? theme.text : '#ffffff';
+    x.font='900 '+Math.round(cfg.hero*0.8)+'px '+theme.sysFont;
+    var v = String(it.val).slice(0,24);
+    while(v.length>2 && x.measureText(v).width > bw-80) v = v.slice(0,-1);
+    x.fillText(v, W/2, y + halfH - Math.round(cfg.hero*0.35));
+    x.textAlign='left';
+    y += halfH + 16;
+  });
+  if(d.sub){
+    x.fillStyle=theme.dim; x.font=Math.round(cfg.ans*0.85)+'px '+theme.sysFont;
+    crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y, W-2*m, Math.round(cfg.ansLh*0.9), footTop-30);
+  }
+  crtWatermark(x, W, H, theme);
+  crtFooter(x, W, H, cfg, theme, slug);
+}
+
+function paintStatbomb(x, W, H, cfg, theme, d, m){
+  var slug = cardSlug(d.headline||d.stat);
+  var y = crtMasthead(x, W, H, cfg, theme, m);
+  var footTop = H - cfg.footH;
+  var stat = d.stat || crtMoney(d) || '';
+  var context = d.headline || d.q || '';
+  var sub = d.sub || d.a || '';
+  /* center the bomb vertically in available space */
+  var availTop = y, availBot = footTop - 60;
+  var cy = availTop + (availBot-availTop)*0.42;
+  x.textAlign='center';
+  x.fillStyle=theme.bright; x.font='900 '+Math.round(cfg.hero*1.25)+'px '+theme.sysFont;
+  var sv = String(stat).slice(0,28);
+  while(sv.length>2 && x.measureText(sv).width > W-2*m) sv = sv.slice(0,-1);
+  x.fillText(sv, W/2, cy);
+  x.fillStyle=theme.accent;
+  var sw = Math.min(W-2*m, x.measureText(sv).width);
+  x.fillRect(W/2 - sw/2, cy+24, sw, Math.max(6, Math.round(cfg.hero*0.05)));
+  x.fillStyle=theme.text; x.font='800 '+cfg.head+'px '+theme.headFont;
+  var ty = cy + Math.round(cfg.hero*0.35) + cfg.headLh;
+  /* wrap centered manually */
+  var words = String(context).split(/\s+/), line='', yy=ty;
+  var lines=[];
+  words.forEach(function(w){
+    var t = line?line+' '+w:w;
+    if(x.measureText(t).width > W-2*m-80 && line){ lines.push(line); line=w; } else line=t;
+  });
+  if(line) lines.push(line);
+  lines.slice(0,4).forEach(function(ln){ x.fillText(ln, W/2, yy); yy += cfg.headLh; });
+  if(sub){
+    x.fillStyle=theme.dim; x.font=Math.round(cfg.ans*0.9)+'px '+theme.sysFont;
+    x.fillText(String(sub).replace(/<[^>]*>/g,'').slice(0,64), W/2, yy+20);
+  }
+  x.textAlign='left';
+  crtWatermark(x, W, H, theme);
+  crtFooter(x, W, H, cfg, theme, slug);
+}
+
+var PAINTERS = { robbery:paintRobbery, web:paintWeb, quote:paintQuote, beforeafter:paintBeforeAfter, statbomb:paintStatbomb };
+
+/* unified render: returns canvas via done() */
+function crtRender(tpl, data, sizeKey, themeKey, done){
+  var cfg = CRT_SIZES[sizeKey] || CRT_SIZES.portrait;
+  var theme = THEMES[themeKey] || THEMES.brutalist;
+  var painter = PAINTERS[tpl] || PAINTERS.robbery;
+  var c = document.createElement('canvas');
+  c.width = cfg.w; c.height = cfg.h;
+  var x = c.getContext('2d');
+  x.textAlign='left'; x.textBaseline='alphabetic';
+  try{ painter(x, cfg.w, cfg.h, cfg, theme, data, cfg.m); }
+  catch(e){ done(null); return; }
+  done(c);
+}
+function crtBlobFrom(canvas, done){
+  var doneCalled=false;
+  var deliver=function(b){ if(!doneCalled){ doneCalled=true; done(b||null); } };
+  try{
+    canvas.toBlob(function(blob){
+      if(blob && blob.size){ deliver(blob); return; }
+      try{
+        var du=canvas.toDataURL('image/png');
+        if(du && du.length>100 && window.fetch){
+          fetch(du).then(function(r){return r.blob();}).then(
+            function(b){ deliver(b&&b.size?b:null); },
+            function(){ deliver(null); });
+        } else deliver(null);
+      }catch(e){ deliver(null); }
+    },'image/png');
+  }catch(e){ deliver(null); }
+}
+
+/* fire: share via Web Share API, fallback download. Records share + XP. */
+function crtFire(canvas, data, btn, btnLabel){
+  var restore = function(){ if(btn){ btn.disabled=false; btn.textContent=btnLabel||'🔥 FIRE RECEIPT'; } };
+  crtBlobFrom(canvas, function(blob){
+    restore();
+    if(!blob || !blob.size){ toast('Could not paint image'); return; }
+    var slug = cardSlug(data.q||data.headline);
+    var file = null;
+    try{ file = new File([blob], 'receipt-'+slug+'.png', {type:'image/png'}); }catch(e){}
+    if(file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({ title:'The Robbery Report', text:String(data.headline||data.q||''), files:[file] }).catch(function(){});
+      var n = pfRecordShare(slug); pfBumpDeploys();
+      toast('Deployed! Strike #'+n+' for this intel. +5 XP');
+    } else {
+      try{
+        var a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='receipt-'+slug+'.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        var n2 = pfRecordShare(slug); pfBumpDeploys();
+        toast('Receipt saved (strike #'+n2+'). +5 XP');
+      }catch(e){ toast('Could not save image'); }
+    }
+  });
+}
+/* copy image to clipboard (iOS 15+) */
+function crtCopyImage(canvas, btn){
+  btn.disabled=true; btn.textContent='COPYING…';
+  var restore=function(){ btn.disabled=false; btn.textContent='📋 COPY IMAGE'; };
+  crtBlobFrom(canvas, function(blob){
+    restore();
+    if(!blob){ toast('Could not paint image'); return; }
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(
+          function(){ toast('Image copied — paste it anywhere'); pfAddXP(2); },
+          function(){ toast('Copy blocked by browser'); });
+      } else toast('Clipboard not supported here');
+    }catch(e){ toast('Copy failed'); }
+  });
+}
+
+/* ---------- mode switching ---------- */
+function showMode(mode){
+  if(mode!=='strike' && mode!=='custom') mode='strike';
+  ['strike','custom'].forEach(function(m){
+    var p=$('pane-'+m); if(p) p.classList.toggle('on', m===mode);
+  });
+  document.querySelectorAll('#crt .mode').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-mode')===mode);
+  });
+  if(mode==='strike') loadStrike();
+  try{
+    var u=new URL(location.href); u.searchParams.set('mode', mode);
+    history.replaceState(null,'',u.toString());
+  }catch(e){}
+}
+document.querySelectorAll('#crt .mode').forEach(function(b){
+  b.addEventListener('click', function(){ showMode(b.getAttribute('data-mode')); });
+});
+
+/* ---------- impact ticker + cost of inaction ---------- */
+var API_BASE = 'https://pf-api.mtcstw.workers.dev/?action=';
+function loadTicker(){
+  fetch(API_BASE+'data_pulse',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+    if(!d) throw 0;
+    var dep = pfDeploysToday();
+    var parts = [];
+    if(d.enforcement_total) parts.push('<b>'+Number(d.enforcement_total).toLocaleString()+'</b> enforcement actions tracked');
+    if(d.enforcement_30d) parts.push('<span class="tk-red">'+Number(d.enforcement_30d).toLocaleString()+'</span> in 30 days');
+    parts.push('<b>'+dep+'</b> assets deployed by you today');
+    $('crt-ticker').innerHTML = parts.join('<span>·</span>');
+    /* cost of inaction: corporate PR spend estimate vs people's counter */
+    var pr = 48000000; /* ~$48M/day est. corporate PR+lobbying spend */
+    var ours = dep;
+    var pct = Math.max(2, Math.min(100, Math.round(ours/50*100)));
+    $('coi-text').innerHTML = 'Corporate PR &amp; lobbying: <b>~$48M today</b>. People\'s counter: <b>'+ours+' assets</b>. Every receipt you fire closes the gap.';
+    $('crt-coi').style.display='block';
+    $('coi-ours').style.width = pct+'%';
+  }).catch(function(){
+    $('crt-ticker').innerHTML = '<span>Live impact loading…</span>';
+  });
+}
+
+/* ---------- STRIKE ---------- */
+var STRIKE_PROBES = [
+  'Which defense contractor stole the most?',
+  'Is my hospital price-gouging?',
+  'Who is the most corrupt billionaire?',
+  'Biggest bank fraud enforcement this year?',
+  'Which pharma company price-gouged the worst?'
+];
+/* variable reward: ~1 in 8 items is a SMOKING GUN (stable per item) */
+function isSmokingGun(q){
+  var h=0, s=String(q);
+  for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  return h%8===0;
+}
+var strikeItems = [];
+var strikeSelected = null;
+function loadStrike(){
+  loadTicker();
+  renderBounties();
+  var host = $('strike-list');
+  host.innerHTML = '<p class="hint">Loading breaking intel…</p>';
+  strikeItems = [];
+  var done = 0;
+  STRIKE_PROBES.forEach(function(probe, i){
+    setTimeout(function(){
+      fetch(API_BASE+'karl_query&q='+encodeURIComponent(probe),{cache:'no-store'})
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if(res && res.ok!==false && res.a){
+            var rows = ((res.rows||[]).slice(0,3)).map(function(r){ return [r[0], r[1]]; });
+            strikeItems.push({ q:probe, a:String(res.a).replace(/<[^>]*>/g,''), rows:rows, src:res.src||'', when:'breaking', gun:isSmokingGun(probe) });
+          }
+        }).catch(function(){})
+        .finally(function(){ done++; if(done>=STRIKE_PROBES.length) renderStrike(); });
+    }, i*400);
+  });
+  /* fallback if API is down */
+  setTimeout(function(){ if(!strikeItems.length && done<STRIKE_PROBES.length){ renderStrikeFallback(); } }, 9000);
+}
+function renderStrike(){
+  var host = $('strike-list');
+  if(!strikeItems.length){ renderStrikeFallback(); return; }
+  host.innerHTML = '';
+  strikeItems.forEach(function(it, idx){
+    var el = document.createElement('div');
+    el.className = 'strike-card'+(it.gun?' gun':'');
+    el.innerHTML =
+      (it.gun?'<span class="gun-tag">🔫 SMOKING GUN</span>':'')+
+      '<div class="sq">'+esc(it.q)+'</div>'+
+      '<div class="sa">'+esc(it.a).slice(0,220)+'…</div>'+
+      '<div class="row">'+
+        '<button class="btn primary" data-i="'+idx+'" type="button">⚡ DEPLOY STRIKE</button>'+
+      '</div>';
+    host.appendChild(el);
+  });
+  host.querySelectorAll('button[data-i]').forEach(function(b){
+    b.addEventListener('click', function(){ deployStrike(strikeItems[+b.getAttribute('data-i')], b); });
+  });
+}
+function renderStrikeFallback(){
+  var host = $('strike-list');
+  var fallbacks = [
+    {q:'Which defense contractor stole the most?', a:'Boeing: $2.5B in penalties. That is a poster waiting to happen.', rows:[['Boeing penalties','$2.5B']], src:'DOJ enforcement records', when:'breaking', gun:true},
+    {q:'Hospital ER markups hit 12x', a:'59,717 eviction estimates pile up while hospital ER markups hit 12x.', rows:[['ER markup','12x'],['Evictions','59,717']], src:'CMS + Census data', when:'breaking', gun:false}
+  ];
+  strikeItems = fallbacks;
+  renderStrike();
+}
+function strikeDataFor(it){
+  return { q:it.q, a:it.a, rows:it.rows, src:it.src, when:it.when, who:crtWho(it), stat:crtMoney(it), headline:it.q };
+}
+function deployStrike(it, btn){
+  strikeSelected = it;
+  var d = strikeDataFor(it);
+  btn.disabled=true; btn.textContent='PAINTING…';
+  crtRender('robbery', d, 'portrait', 'brutalist', function(canvas){
+    btn.disabled=false; btn.textContent='⚡ DEPLOY STRIKE';
+    if(!canvas){ toast('Could not paint'); return; }
+    /* show caption */
+    var cap = buildCaption(d);
+    $('strike-caption').textContent = cap;
+    $('strike-caption').style.display='block';
+    $('strike-copy-caption').style.display='block';
+    $('strike-everywhere').disabled=false;
+    crtFire(canvas, d, null, '🔥 FIRE RECEIPT');
+  });
+}
+function buildCaption(d){
+  var stat = d.stat || crtMoney(d);
+  var who = d.who || crtWho(d);
+  var src = crtSrc(d);
+  var lines = [];
+  lines.push((who?who.toUpperCase()+': ':'')+(d.headline||d.q));
+  if(stat) lines.push('The number: '+stat+'.');
+  if(src) lines.push('Source: '+src+'.');
+  lines.push('');
+  lines.push('Stop waiting for the government to fix itself. Discover your power.');
+  lines.push('mtcstw.com #robberyreport');
+  return lines.join('\n');
+}
+$('strike-copy-caption').addEventListener('click', function(){
+  var t = $('strike-caption').textContent;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ toast('Caption copied'); }, function(){ toast('Copy failed'); });
+  } else toast('Clipboard not available');
+});
+/* batch export: all 3 formats */
+$('strike-everywhere').addEventListener('click', function(){
+  if(!strikeSelected){ toast('Pick a strike first'); return; }
+  var d = strikeDataFor(strikeSelected);
+  var sizes = ['portrait','square','wide'];
+  var btn = $('strike-everywhere');
+  btn.disabled=true; btn.textContent='FIRING…';
+  var i=0;
+  function next(){
+    if(i>=sizes.length){
+      btn.disabled=false; btn.textContent='🚀 FIRE ALL FORMATS';
+      toast('All 3 formats deployed. +15 XP'); pfAddXP(10);
+      return;
+    }
+    var sz = sizes[i++];
+    crtRender('robbery', d, sz, 'brutalist', function(canvas){
+      if(canvas) crtFire(canvas, d, null, '🔥 FIRE RECEIPT');
+      setTimeout(next, 1200);
+    });
+  }
+  next();
+});
+
+/* ---------- bounties + swarm barometer (device-local v1) ---------- */
+var BOUNTY_KEY='pf_bounties_v1';
+var BOUNTIES = [
+  {id:'hospital', name:'🏥 Hospital Price Week', target:200, desc:'Deploy hospital price-gouging receipts'},
+  {id:'defense', name:'🛡️ Defense Contractor Week', target:150, desc:'Deploy defense fraud receipts'},
+  {id:'bank', name:'🏦 Bank Fraud Week', target:150, desc:'Deploy bank enforcement receipts'}
+];
+function getBounties(){
+  try{ return JSON.parse(localStorage.getItem(BOUNTY_KEY)||'{}'); }catch(e){ return {}; }
+}
+function renderBounties(){
+  var host = $('strike-bounties');
+  var counts = getBounties();
+  host.innerHTML='';
+  BOUNTIES.forEach(function(b){
+    var n = counts[b.id]||0;
+    var pct = Math.min(100, Math.round(n/b.target*100));
+    var el = document.createElement('div');
+    el.className='bounty';
+    el.innerHTML = '<div class="bn">'+esc(b.name)+'</div>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="bc"><b>'+n+'</b> / '+b.target+' reports deployed — '+esc(b.desc)+'</div>';
+    host.appendChild(el);
+  });
+}
+function bumpBountyFor(d){
+  var t = ((d.q||'')+' '+(d.a||'')).toLowerCase();
+  var id = null;
+  if(/hospital|health|er |clinic/.test(t)) id='hospital';
+  else if(/boeing|defense|contractor|lockheed|raytheon/.test(t)) id='defense';
+  else if(/bank|fraud|jpmorgan|wells/.test(t)) id='bank';
+  if(!id) return;
+  try{
+    var c = getBounties(); c[id]=(c[id]||0)+1;
+    localStorage.setItem(BOUNTY_KEY, JSON.stringify(c));
+  }catch(e){}
+}
+
+/* ---------- CUSTOM ---------- */
+var cuTpl='robbery', cuTheme='brutalist', cuSize='portrait';
+var cuData = { headline:'', sub:'', stat:'', who:'', src:'', quote:'', attribution:'', before:'', after:'', beforeLabel:'BEFORE', afterLabel:'AFTER', nodes:[] };
+
+document.querySelectorAll('#cu-tpls .tpl').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('#cu-tpls .tpl').forEach(function(x){ x.classList.remove('on'); });
+    t.classList.add('on'); cuTpl = t.getAttribute('data-tpl');
+    renderCuFields(); previewCustom();
+  });
+});
+document.querySelectorAll('#cu-themes .theme-btn').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('#cu-themes .theme-btn').forEach(function(x){ x.classList.remove('on'); });
+    t.classList.add('on'); cuTheme = t.getAttribute('data-theme');
+    previewCustom();
+  });
+});
+document.querySelectorAll('#cu-fmts .fmt-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#cu-fmts .fmt-btn').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on'); cuSize = b.getAttribute('data-size');
+    previewCustom();
+  });
+});
+
+var TPL_FIELDS = {
+  robbery: [['headline','Headline','What happened?'],['sub','Details','One or two sentences…'],['stat','Hero stat','$2.5B'],['who','Who','Boeing'],['src','Source','WSJ, Oct 2026']],
+  web: [['headline','Title','Follow the money'],['sub','Context','One line on what the web shows']],
+  quote: [['quote','Quote','The devastating quote…'],['attribution','Said by','Name or outlet'],['sub','Context','Why it matters']],
+  beforeafter: [['headline','Title','The gap is the story'],['before','Before value','$12'],['beforeLabel','Before label','What they paid'],['after','After value','$144'],['afterLabel','After label','What you paid'],['sub','Context','']],
+  statbomb: [['stat','The number','$6.45T'],['headline','Context line','Combined billionaire wealth'],['sub','Sub-line','']]
+};
+function renderCuFields(){
+  var host = $('cu-fields');
+  var defs = TPL_FIELDS[cuTpl] || TPL_FIELDS.robbery;
+  var html = '<div class="sec-h">Your intel</div>';
+  defs.forEach(function(f){
+    var key=f[0], label=f[1], ph=f[2];
+    var val = cuData[key]||'';
+    if(key==='sub'||key==='quote'){
+      html += '<div class="field"><label>'+esc(label)+'</label><textarea data-k="'+key+'" placeholder="'+esc(ph)+'">'+esc(val)+'</textarea></div>';
+    } else {
+      html += '<div class="field"><label>'+esc(label)+'</label><input data-k="'+key+'" type="text" value="'+esc(val)+'" placeholder="'+esc(ph)+'" maxlength="140"></div>';
+    }
+  });
+  if(cuTpl==='web'){
+    html += '<div class="field"><label>Money flow (up to 4 nodes: Label | sub | $amount, one per line)</label>'+
+      '<textarea data-k="webnodes" placeholder="Boeing | Defense contractor | $2.5B&#10;Lobbyists | K Street | $120M&#10;Congress | Armed Services | $0"></textarea></div>';
+  }
+  host.innerHTML = html;
+  host.querySelectorAll('[data-k]').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var k = inp.getAttribute('data-k');
+      if(k==='webnodes'){
+        cuData.nodes = inp.value.split('\n').map(function(line){
+          var p = line.split('|').map(function(s){ return s.trim(); });
+          return {label:p[0]||'', sub:p[1]||'', amount:p[2]||''};
+        }).filter(function(n){ return n.label; }).slice(0,4);
+      } else {
+        cuData[k] = inp.value;
+      }
+      previewCustom();
+    });
+  });
+}
+
+/* dossier: researching a target fills in their web over time */
+var DOSSIER_KEY='pf_dossier_v1';
+function getDossier(){
+  try{ return JSON.parse(localStorage.getItem(DOSSIER_KEY)||'{}'); }catch(e){ return {}; }
+}
+function renderDossier(name){
+  var dz = getDossier();
+  var key = cardSlug(name);
+  var entry = dz[key];
+  var box = $('cu-dossier');
+  if(!entry){ box.style.display='none'; return; }
+  box.style.display='block';
+  $('cu-dossier-name').textContent = name;
+  var pct = Math.min(100, Math.round(entry.facts/10*100));
+  $('cu-dossier-bar').style.width = pct+'%';
+  $('cu-dossier-text').textContent = entry.facts+' / 10 facts unlocked'+(entry.web&&entry.web.length?' · '+entry.web.length+' web connections mapped':'');
+}
+function bumpDossier(name, webNodes){
+  try{
+    var dz = getDossier();
+    var key = cardSlug(name);
+    var e = dz[key]||{facts:0, web:[]};
+    e.facts++;
+    if(webNodes && webNodes.length){
+      webNodes.forEach(function(n){
+        if(e.web.indexOf(n.label)<0 && n.label) e.web.push(n.label);
+      });
+      e.web = e.web.slice(0,12);
+    }
+    dz[key]=e;
+    localStorage.setItem(DOSSIER_KEY, JSON.stringify(dz));
+    renderDossier(name);
+  }catch(e){}
+}
+
+$('cu-go').addEventListener('click', doCustomSearch);
+$('cu-search').addEventListener('keydown', function(e){ if(e.key==='Enter') doCustomSearch(); });
+function doCustomSearch(){
+  var q = $('cu-search').value.trim();
+  if(!q){ toast('Type a company, billionaire, or agency'); return; }
+  var btn = $('cu-go'); btn.disabled=true; btn.textContent='…';
+  fetch(API_BASE+'karl_query&q='+encodeURIComponent(q),{cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled=false; btn.textContent='DIG';
+      if(res && res.ok!==false && res.a){
+        var plain = String(res.a).replace(/<[^>]*>/g,'');
+        cuData.headline = q;
+        cuData.sub = plain.slice(0,280);
+        cuData.stat = crtMoney({a:plain, rows:res.rows||[]});
+        cuData.who = crtWho({a:plain}) || q;
+        cuData.src = crtSrc({src:res.src}) || 'Karl data rails';
+        cuData.rows = (res.rows||[]).slice(0,5);
+        /* try to pull a web from the answer */
+        renderCuFields(); renderDossier(q); bumpDossier(q, []);
+        previewCustom();
+        toast('Intel loaded — build your receipt');
+        pfAddXP(2);
+      } else {
+        toast('No intel found — fill the fields manually');
+        cuData.headline = q; renderCuFields(); previewCustom();
+      }
+    })
+    .catch(function(){
+      btn.disabled=false; btn.textContent='DIG';
+      toast('Rails quiet — fill the fields manually');
+      cuData.headline = q; renderCuFields(); previewCustom();
+    });
+}
+
+var cuCanvas = null;
+function previewCustom(){
+  crtRender(cuTpl, cuData, cuSize, cuTheme, function(canvas){
+    var host = $('cu-canvas');
+    if(!canvas){ return; }
+    cuCanvas = canvas;
+    host.width = canvas.width; host.height = canvas.height;
+    var x = host.getContext('2d');
+    x.drawImage(canvas, 0, 0);
+    $('cu-copyimg').disabled = false;
+  });
+}
+$('cu-fire').addEventListener('click', function(){
+  if(!cuCanvas){ toast('Generate first'); return; }
+  var btn = $('cu-fire'); btn.disabled=true; btn.textContent='FIRING…';
+  crtFire(cuCanvas, {q:cuData.headline||cuData.quote, headline:cuData.headline||cuData.quote}, btn, '🔥 FIRE RECEIPT');
+  bumpBountyFor({q:cuData.headline, a:cuData.sub});
+});
+$('cu-copyimg').addEventListener('click', function(){
+  if(!cuCanvas) return;
+  crtCopyImage(cuCanvas, $('cu-copyimg'));
+});
+
+/* ---------- init ---------- */
+function init(){
+  pfUpdateXPChip();
+  var mode = param('mode') || 'strike';
+  /* deep links */
+  var studioB64 = param('studio') || param('intel');
+  if(studioB64){
+    var payload = b64decode(studioB64);
+    if(payload){
+      cuData.headline = payload.q||payload.headline||'';
+      cuData.sub = String(payload.a||payload.sub||'').replace(/<[^>]*>/g,'').slice(0,280);
+      cuData.stat = payload.stat || crtMoney(payload);
+      cuData.who = payload.who || crtWho(payload);
+      cuData.src = payload.src||'';
+      cuData.rows = payload.rows||[];
+      mode = 'custom';
+    }
+  }
+  var topic = param('topic') || param('for') || param('cause');
+  if(topic && !studioB64){
+    cuData.headline = topic;
+    mode = 'custom';
+  }
+  renderCuFields();
+  showMode(mode);
+  previewCustom();
+  if(topic && !studioB64){ $('cu-search').value = topic; doCustomSearch(); }
+}
+init();
+
 })();
 </script>
 </body>

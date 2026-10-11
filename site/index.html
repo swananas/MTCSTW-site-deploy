@@ -768,7 +768,7 @@ function cardEl(d){
     if(acts) acts.style.display = isOpen ? 'flex' : 'none';
     if(liveEv) liveEv.style.display = isOpen ? 'block' : 'none';
     if(rel) rel.style.display = isOpen ? 'block' : 'none';
-    if(isOpen && window.KHDest) window.KHDest.onExpand(el, d);
+    if(isOpen){ fmTrackTap(el); if(window.KHDest) window.KHDest.onExpand(el, d); }
   });
   var btn = el.querySelector('.kh-deploy-btn');
   var nEl = el.querySelector('.kh-deploys .n');
@@ -791,6 +791,7 @@ function cardEl(d){
       d.deploys = (d.deploys||0)+1;
       nEl.textContent = fmt(d.deploys);
       showToast('Deployed — the robbery report grows');
+      fmTrackByQ(d.q, 'share');
     }
   });
   return el;
@@ -1193,6 +1194,7 @@ function beefyCard(d){
   el.addEventListener('click', function(e){
     if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell')) return;
     el.classList.toggle('kh-open');
+    if(el.classList.contains('kh-open')) fmTrackTap(el);
   });
   el.querySelectorAll('.kh-fig').forEach(function(b){
     b.addEventListener('click', function(e){
@@ -1211,6 +1213,7 @@ function beefyCard(d){
       btn.classList.add('kh-done'); btn.textContent = 'DEPLOYED \u2713';
       showToast('Deployed — the robbery report grows');
       recordDiscovery(d);
+      fmTrackByQ(d.q, 'share');
     };
     if(navigator.share){
       navigator.share({ title:'KARL Discovery', text:shareText, url:'https://mtcstw.com/' })
@@ -1271,7 +1274,7 @@ function FeedCardsSource(){
       .catch(function(){ buf = []; }); /* fail-open: table may not exist yet */
   }
   return {
-    name: 'feedCards',
+    name: 'feedCards', sync: false,
     loadMore: function(n){
       return ensure().then(function(){
         var out = buf.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'spine'}; });
@@ -1315,7 +1318,7 @@ function KarlRailSource(){
     return p;
   }
   return {
-    name: 'karlRail',
+    name: 'karlRail', sync: false,
     loadMore: function(n){
       var ps = [];
       for(var k = 0; k < n && idx < rails.length; k++, idx++) ps.push(fetchRail(idx));
@@ -1330,7 +1333,7 @@ function AnchorSource(){
   var list = beefyKilled ? [] : ANCHORS;
   var idx = 0;
   return {
-    name: 'anchor',
+    name: 'anchor', sync: true,
     loadMore: function(n){
       var out = list.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'beefy'}; });
       idx += out.length;
@@ -1349,7 +1352,7 @@ function SeedSource(){
   }
   var idx = 0;
   return {
-    name: 'seed',
+    name: 'seed', sync: true,
     loadMore: function(n){
       var out = seq.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'spine'}; });
       idx += out.length;
@@ -1365,7 +1368,7 @@ function DiscoverySource(){
   try{ list = getDiscoveries(); }catch(e){}
   var idx = 0;
   return {
-    name: 'discovery',
+    name: 'discovery', sync: true,
     loadMore: function(n){
       var out = list.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'beefy'}; });
       idx += out.length;
@@ -1378,7 +1381,7 @@ function DiscoverySource(){
 /* ---- source: UGC (stub - returns [] until ?action=ugc_feed ships) ---- */
 function UGCSource(){
   return {
-    name: 'ugc',
+    name: 'ugc', sync: true,
     /* UGC-ready: when ?action=ugc_feed ships, fetch approved community
        content here and map each to {d:{q,a,rows,src,_tag:'comrade',
        provenance:'user_submitted'}, kind:'beefy'}. cardEl/beefyCard already
@@ -1396,34 +1399,228 @@ var FM_SOURCES = {
   discovery: DiscoverySource(),
   ugc: UGCSource()
 };
-/* interleave: 2 API, 1 rail, 1 anchor, 1 seed, 1 discovery, 1 UGC - repeat.
-   Empty/exhausted sources are skipped. */
-var FM_ORDER = ['feedCards','feedCards','karlRail','anchor','seed','discovery','ugc'];
-var fmRot = 0;
+/* ==========================================================================
+   HARD FEED ALGORITHM
+   Every card is scored from weighted signals; each batch is the top-N by
+   score. Deterministic (same inputs = same order), fast, transparent
+   (?pf_debug=feed prints the breakdown on each card), tunable (FM_W below).
+   Signals:
+     freshness  0-30: 30 * exp(-ageHours/48)
+     authority  0-25: per source (FM_W.auth)
+     engagement 0-20: device-local taps/saves/shares per impression
+     provenance 0-15: verified=15 raw=10 calculated=5 estimate=0
+     preference 0-10: boost for tags the user taps most
+     diversity   -10: same source or same tag 3x in a row
+   ========================================================================== */
+var FM_W = {
+  freshMax: 30, freshTau: 48,
+  auth: { feedCards: 25, karlRail: 20, anchor: 15, seed: 10, discovery: 5, ugc: 20 },
+  engMax: 20, engK: 4,
+  provVerified: 15, provRaw: 10, provCalc: 5, provEst: 0,
+  prefMax: 10,
+  divPenalty: 10, divStreak: 3,
+  refillPerSource: 3
+};
+var FM_DEBUG = /[?&]pf_debug=feed/.test(location.search);
+var FM_ENG_KEY = 'pf_engagement_v1';
+var FM_PREF_KEY = 'pf_tagpref_v1';
 var fmLoading = false, fmEnded = false, fmGen = 0;
 var fmActiveTab = 'all';
+var fmBuffer = [];       /* pulled but not yet shown */
+var fmBufIds = {};       /* id -> 1 while in buffer */
+var fmShownIds = {};     /* id -> 1 once rendered (never show twice) */
+var fmBorn = {};         /* id -> first-seen timestamp (freshness clock) */
+var fmTrail = [];        /* last rendered {src, tag} for diversity */
 
-function fmAllExhausted(){
-  return Object.keys(FM_SOURCES).every(function(k){ return FM_SOURCES[k].exhausted(); });
+/* stable card id from headline text */
+function fmHash(str){
+  str = String(str || '');
+  var h = 0;
+  for(var i = 0; i < str.length; i++){ h = ((h * 31) + str.charCodeAt(i)) | 0; }
+  return 'c' + (h >>> 0).toString(36);
 }
-function fmNextBatch(n){
-  var batch = [], guard = 0;
-  function step(){
-    if(batch.length >= n || guard++ > 60) return Promise.resolve(batch);
-    var src = FM_SOURCES[FM_ORDER[fmRot % FM_ORDER.length]]; fmRot++;
-    if(!src || src.exhausted()) return step();
-    return src.loadMore(1).then(function(cards){
-      cards.forEach(function(c){ batch.push(c); });
-      return step();
+function fmCardId(item){ return fmHash((item.d || {}).q); }
+/* mirror of cardEl/beefyCard data-tag logic (scoring runs pre-render) */
+function fmTagOf(item){
+  var d = item.d || {};
+  if(item.kind === 'beefy') return d.kind === 'inference' ? 'karl' : 'comrade';
+  return d._tag || (d.inference ? 'karl' : 'robbery');
+}
+
+/* ---- engagement store (device-local learning) ---- */
+function fmEngMap(){
+  try{ return JSON.parse(localStorage.getItem(FM_ENG_KEY) || '{}'); }catch(e){ return {}; }
+}
+function fmTrack(id, type){
+  if(!id) return;
+  try{
+    var m = fmEngMap();
+    var r = m[id] || { impressions: 0, taps: 0, saves: 0, shares: 0, last: 0 };
+    if(type === 'impression') r.impressions++;
+    else if(type === 'tap') r.taps++;
+    else if(type === 'save') r.saves++;
+    else if(type === 'share') r.shares++;
+    r.last = Date.now();
+    m[id] = r;
+    localStorage.setItem(FM_ENG_KEY, JSON.stringify(m));
+  }catch(e){}
+}
+function fmTrackByQ(q, type){ fmTrack(fmHash(q), type); }
+function fmTrackTap(el){
+  if(!el) return;
+  fmTrack(el.getAttribute('data-fmid'), 'tap');
+  var tag = el.getAttribute('data-tag');
+  if(tag){
+    try{
+      var p = JSON.parse(localStorage.getItem(FM_PREF_KEY) || '{}');
+      p[tag] = (p[tag] || 0) + 1;
+      localStorage.setItem(FM_PREF_KEY, JSON.stringify(p));
+    }catch(e){}
+  }
+}
+
+/* ---- scoring ---- */
+function fmProvScore(item){
+  var d = item.d || {};
+  if(item._src === 'anchor') return FM_W.provVerified;       /* audited figures */
+  if(d.provenance === 'news_desk') return FM_W.provRaw;
+  if(d.provenance === 'karl_inference') return FM_W.provRaw;  /* data-backed */
+  if(d.provenance === 'user_submitted') return FM_W.provCalc;
+  if(item._src === 'karlRail') return FM_W.provRaw;           /* live data */
+  if(item._src === 'feedCards') return FM_W.provRaw;
+  if(item._src === 'discovery') return FM_W.provRaw;          /* user's own find */
+  if(item._src === 'ugc') return FM_W.provCalc;
+  return FM_W.provCalc; /* seed */
+}
+function fmPrefScore(tag, prefMap){
+  var mx = 1;
+  ['robbery', 'karl', 'comrade'].forEach(function(t){ if((prefMap[t] || 0) > mx) mx = prefMap[t]; });
+  return FM_W.prefMax * ((prefMap[tag] || 0) / mx);
+}
+function fmScoreCard(item, engMap, prefMap, now){
+  var id = fmCardId(item);
+  if(!fmBorn[id]) fmBorn[id] = now;
+  var ageH = Math.max(0, (now - fmBorn[id]) / 3600000);
+  var fresh = FM_W.freshMax * Math.exp(-ageH / FM_W.freshTau);
+  var auth = FM_W.auth[item._src] || 10;
+  var r = engMap[id], eng = 0;
+  if(r && r.impressions > 0){
+    eng = Math.min(FM_W.engMax, FM_W.engK * (r.taps * 2 + r.saves * 5 + r.shares * 10) / r.impressions);
+  }
+  var prov = fmProvScore(item);
+  var pref = fmPrefScore(fmTagOf(item), prefMap);
+  return { id: id, score: fresh + auth + eng + prov + pref,
+    parts: { fresh: fresh, auth: auth, eng: eng, prov: prov, pref: pref } };
+}
+function fmDivPenalty(item, trail){
+  var n = FM_W.divStreak - 1;
+  var t = trail.slice(-n);
+  if(t.length < n) return 0;
+  var tag = fmTagOf(item);
+  var sameSrc = t.every(function(x){ return x.src === item._src; });
+  var sameTag = t.every(function(x){ return x.tag === tag; });
+  return (sameSrc || sameTag) ? FM_W.divPenalty : 0;
+}
+/* greedy pick: repeatedly take the highest (score - diversity penalty) card.
+   Deterministic: ties break by card id. */
+function fmPick(scored, n){
+  var picked = [], rest = scored.slice();
+  while(picked.length < n && rest.length){
+    var best = 0, bestTot = -Infinity;
+    for(var i = 0; i < rest.length; i++){
+      var trail = fmTrail.concat(picked.map(function(p){ return p.trail; }));
+      var tot = rest[i].score - fmDivPenalty(rest[i].item, trail);
+      if(tot > bestTot || (tot === bestTot && rest[i].id < rest[best].id)){
+        best = i; bestTot = tot;
+      }
+    }
+    var s = rest.splice(best, 1)[0];
+    var trailNow = fmTrail.concat(picked.map(function(p){ return p.trail; }));
+    s.penalty = fmDivPenalty(s.item, trailNow);
+    s.total = s.score - s.penalty;
+    s.trail = { src: s.item._src, tag: fmTagOf(s.item) };
+    picked.push(s);
+  }
+  return picked;
+}
+
+/* ---- pool: refill buffer from sources, rank, take top N ---- */
+function fmRefill(syncOnly){
+  var keys = Object.keys(FM_SOURCES).filter(function(k){
+    var s = FM_SOURCES[k];
+    if(!s || s.exhausted()) return false;
+    if(syncOnly && !s.sync) return false;
+    return true;
+  });
+  var pulls = keys.map(function(k){
+    return FM_SOURCES[k].loadMore(FM_W.refillPerSource).then(function(cards){
+      (cards || []).forEach(function(c){
+        c._src = k;
+        var id = fmCardId(c);
+        if(!fmShownIds[id] && !fmBufIds[id]){ fmBufIds[id] = 1; fmBuffer.push(c); }
+      });
+    }).catch(function(){});
+  });
+  return Promise.all(pulls);
+}
+function fmRank(n, tab){
+  var now = Date.now();
+  var engMap = fmEngMap(), prefMap = {};
+  try{ prefMap = JSON.parse(localStorage.getItem(FM_PREF_KEY) || '{}'); }catch(e){}
+  var pool = fmBuffer.filter(function(c){
+    if(tab && tab !== 'all' && tab !== 'saved') return fmTagOf(c) === tab;
+    return true;
+  });
+  var scored = pool.map(function(c){
+    var s = fmScoreCard(c, engMap, prefMap, now);
+    return { item: c, id: s.id, score: s.score, parts: s.parts };
+  });
+  scored.sort(function(a, b){ return (b.score - a.score) || (a.id < b.id ? -1 : 1); });
+  var picked = fmPick(scored, n);
+  var pickedIds = {};
+  picked.forEach(function(s){ pickedIds[s.id] = 1; });
+  fmBuffer = fmBuffer.filter(function(c){ return !pickedIds[fmCardId(c)]; });
+  Object.keys(pickedIds).forEach(function(id){ delete fmBufIds[id]; });
+  if(FM_DEBUG){
+    picked.forEach(function(s){
+      var p = s.parts, r2 = function(x){ return Math.round(x * 10) / 10; };
+      s.item._dbg = 'Score ' + r2(s.total) +
+        ' (fresh:' + r2(p.fresh) + ' auth:' + r2(p.auth) +
+        ' eng:' + r2(p.eng) + ' prov:' + r2(p.prov) +
+        ' pref:' + r2(p.pref) + ' div:-' + r2(s.penalty) + ')';
     });
   }
-  return step();
+  return picked;
+}
+function fmAfterRender(item){
+  var id = fmCardId(item);
+  fmShownIds[id] = 1;
+  fmTrack(id, 'impression');
+  fmTrail.push({ src: item._src, tag: fmTagOf(item) });
+  if(fmTrail.length > 12) fmTrail.shift();
+}
+function fmAllExhausted(){
+  if(fmBuffer.length) return false;
+  return Object.keys(FM_SOURCES).every(function(k){ return FM_SOURCES[k].exhausted(); });
+}
+function fmNextBatch(n, syncOnly){
+  return fmRefill(syncOnly).then(function(){
+    var tab = (fmActiveTab === 'saved') ? 'all' : fmActiveTab;
+    return fmRank(n, tab).map(function(s){ return s.item; });
+  });
 }
 function fmRenderCard(item, animIdx){
   var el = item.kind === 'beefy' ? beefyCard(item.d) : cardEl(item.d);
+  el.setAttribute('data-fmid', fmCardId(item));
   if(typeof animIdx === 'number') el.style.animationDelay = (animIdx * 0.06) + 's';
   if(fmActiveTab !== 'all' && fmActiveTab !== 'saved'){
     if(el.getAttribute('data-tag') !== fmActiveTab) el.style.display = 'none';
+  }
+  if(FM_DEBUG && item._dbg){
+    var dbg = document.createElement('div');
+    dbg.style.cssText = 'font:11px/1.4 monospace;color:#0f0;background:#0a0a0a;padding:6px 8px;border-top:1px solid #2a2a2a;';
+    dbg.textContent = item._dbg;
+    el.appendChild(dbg);
   }
   return el;
 }
@@ -1448,7 +1645,7 @@ function fmEnd(){
   end.innerHTML = 'You\u2019ve reached the end \u2014 for now.<br><span>New intel lands as Karl digs.</span>';
   feed.appendChild(end);
 }
-function fmLoadBatch(){
+function fmLoadBatch(retry){
   if(fmLoading || fmEnded || fmActiveTab === 'saved') return;
   fmLoading = true;
   var gen = fmGen;
@@ -1457,8 +1654,15 @@ function fmLoadBatch(){
     fmClearSkeletons();
     fmLoading = false; /* reset FIRST - stale gen must not wedge the loader */
     if(gen !== fmGen) return; /* tab changed mid-flight - drop stale batch */
-    if(!batch.length){ fmEnd(); return; }
-    batch.forEach(function(item, i){ feed.appendChild(fmRenderCard(item, i)); });
+    if(!batch.length){
+      /* empty batch but pool may still be filling (tab filter) - one retry */
+      if(!retry && !fmAllExhausted()){ fmLoadBatch(true); return; }
+      fmEnd(); return;
+    }
+    batch.forEach(function(item, i){
+      feed.appendChild(fmRenderCard(item, i));
+      fmAfterRender(item);
+    });
     if(fmAllExhausted()) fmEnd();
     else fmNudge(); /* sentinel may already be in view - don't wait for scroll */
   }).catch(function(){
@@ -1565,18 +1769,15 @@ function fmSetTab(tab){
   if(feed.querySelectorAll('.kh-card:not([style*="none"])').length < 3 && !fmAllExhausted()) fmLoadBatch();
 }
 
-/* ---- boot: 2 sync cards above the fold, then lazy ---- */
+/* ---- boot: rank the sync pool for 2 above-the-fold cards, then lazy ---- */
 fmBuildTabs();
-Promise.resolve()
-  .then(function(){ return FM_SOURCES.anchor.loadMore(2); })
-  .then(function(cards){
-    if(cards.length < 2) return FM_SOURCES.seed.loadMore(2 - cards.length).then(function(m){ return cards.concat(m); });
-    return cards;
-  })
-  .then(function(cards){
-    cards.forEach(function(item, i){ feed.appendChild(fmRenderCard(item, i)); });
-    fmObserve();
+fmNextBatch(2, true).then(function(cards){
+  cards.forEach(function(item, i){
+    feed.appendChild(fmRenderCard(item, i));
+    fmAfterRender(item);
   });
+  fmObserve();
+});
 
 /* feed boot moved into beefy IIFE tail (FeedManager) */
 })();
@@ -2008,6 +2209,7 @@ function toggleSave(d, btn){
   else {
     saved.push({q:d.q, a:String(d.a).replace(/<[^>]*>/g,'').slice(0,200), src:d.src, when:'saved'});
     btn.textContent = '★ SAVED'; btn.classList.add('kh-saved'); toast('Saved — find it in the SAVED tab');
+    fmTrackByQ(d.q, 'save');
     try{ var sc = (parseInt(localStorage.getItem('pf_saves')||'0',10)||0)+1; localStorage.setItem('pf_saves', String(sc)); }catch(e){}
     pfAddXP(1); /* +1 XP per save */
   }
@@ -2087,7 +2289,7 @@ var KHD = {
       });
       /* 3. SHARE IMAGE */
       var si = el.querySelector('.kh-share-img');
-      if(si) si.addEventListener('click', function(e){ e.stopPropagation(); shareImage(d, si); });
+      if(si) si.addEventListener('click', function(e){ e.stopPropagation(); fmTrackByQ(d.q, 'share'); shareImage(d, si); });
       /* 6. SAVE */
       var sv = el.querySelector('.kh-save-btn');
       if(sv){

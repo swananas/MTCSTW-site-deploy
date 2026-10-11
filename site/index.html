@@ -238,6 +238,13 @@
     color:#2fbf71; border:1px solid #2fbf71; border-radius:999px;
     padding:5px 12px; margin-bottom:10px; background:rgba(47,191,113,.08);
   }
+  /* OMNI FEED: ROBBERY REPORT tag — gold/amber, distinct from Karl red and comrade green */
+  #pf-karl-home .kh-rbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.18em;
+    color:#e8b32a; border:1px solid #e8b32a; border-radius:999px;
+    padding:5px 12px; margin-bottom:10px; background:rgba(232,179,42,.08);
+  }
   #pf-karl-home .kh-figstrip{ display:flex; gap:8px; margin:10px 0 2px; flex-wrap:wrap; }
   #pf-karl-home .kh-fig{
     flex:1 1 0; min-width:96px; background:var(--kh-card2); border:1px solid var(--kh-line);
@@ -409,7 +416,7 @@
   </div>
 
   <div class="kh-feed-head">
-    <h2>The Robbery Report</h2>
+    <h2>Omni Feed</h2>
     <span class="kh-tick"><i></i>LIVE</span>
   </div>
   <!-- KeyVex-inspired: LIVE FROM THE DATA — real numbers from D1 -->
@@ -606,11 +613,13 @@ function cellSlug(q){ return String(q||'').toLowerCase().replace(/[^a-z0-9]+/g,'
 function cardEl(d){
   var el = document.createElement('div');
   el.className = 'kh-card' + (d.inference ? ' kh-inference' : '');
+  /* OMNI FEED taxonomy: robbery = SEED items, karl = inferences */
+  el.setAttribute('data-tag', d.inference ? 'karl' : 'robbery');
   var rowsHtml = (d.rows||[]).slice(0,4).map(function(r){
     return '<div class="kh-proof-row"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
   el.innerHTML =
-    (d.inference ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>' : '')+
+    (d.inference ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>' : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>')+
     '<div class="kh-q">'+esc(d.q)+'</div>'+
     '<div class="kh-a">'+d.a+'</div>'+
     '<div class="kh-proof">'+
@@ -1028,6 +1037,8 @@ function beefyCard(d){
   var R = railOf(d.rail);
   var el = document.createElement('div');
   el.className = 'kh-card kh-swap' + (d.kind==='inference' ? ' kh-inference' : '');
+  /* OMNI FEED taxonomy */
+  el.setAttribute('data-tag', d.kind==='inference' ? 'karl' : 'comrade');
   var kindBadge = d.kind==='inference'
     ? '<div class="kh-kbadge">\uD83E\uDDE0 KARL NOTICED</div>'
     : '<div class="kh-dbadge">\u270A COMRADE FOUND</div>';
@@ -1755,24 +1766,35 @@ var KHD = {
 };
 window.KHDest = KHD;
 
-/* ---------- saved tab ---------- */
+/* ---------- OMNI FEED tabs: ALL | ROBBERY REPORT | KARL NOTICED | COMRADE FOUND | SAVED ---------- */
 (function savedTab(){
   var feedEl = $id('kh-feed');
+  var beefyEl = $id('kh-beefy');
   if(!feedEl || !feedEl.parentNode) return;
   var tabs = document.createElement('div');
   tabs.className = 'kh-feed-tabs';
-  tabs.innerHTML = '<button class="kh-tab kh-active" data-tab="all">ALL INTEL</button><button class="kh-tab" data-tab="saved">★ SAVED</button>';
+  tabs.innerHTML = '<button class="kh-tab kh-active" data-tab="all">ALL</button>'+
+    '<button class="kh-tab" data-tab="robbery">⚡ ROBBERY REPORT</button>'+
+    '<button class="kh-tab" data-tab="karl">🧠 KARL NOTICED</button>'+
+    '<button class="kh-tab" data-tab="comrade">✊ COMRADE FOUND</button>'+
+    '<button class="kh-tab" data-tab="saved">★ SAVED</button>';
   feedEl.parentNode.insertBefore(tabs, feedEl);
   var savedCards = [];
+  function allCards(){
+    var cards = Array.prototype.slice.call(feedEl.querySelectorAll('.kh-card'));
+    if(beefyEl) cards = cards.concat(Array.prototype.slice.call(beefyEl.querySelectorAll('.kh-card')));
+    return cards;
+  }
   tabs.addEventListener('click', function(e){
     var t = e.target.closest('.kh-tab'); if(!t) return;
     tabs.querySelectorAll('.kh-tab').forEach(function(x){ x.classList.remove('kh-active'); });
     t.classList.add('kh-active');
-    if(t.dataset.tab === 'saved'){
+    var tab = t.dataset.tab;
+    /* clear any saved placeholders first */
+    savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
+    if(tab === 'saved'){
       /* hide all, show saved */
-      var all = feedEl.querySelectorAll('.kh-card');
-      all.forEach(function(c){ c.style.display = 'none'; });
-      savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
+      allCards().forEach(function(c){ c.style.display = 'none'; });
       var saved = getSaved();
       if(!saved.length){
         var empty = document.createElement('div');
@@ -1785,9 +1807,13 @@ window.KHDest = KHD;
           if(typeof cardEl === 'function'){ var el = cardEl(card); feedEl.appendChild(el); savedCards.push(el); }
         });
       }
+    } else if(tab === 'all'){
+      allCards().forEach(function(c){ c.style.display = ''; });
     } else {
-      savedCards.forEach(function(c){ c.remove(); }); savedCards = [];
-      feedEl.querySelectorAll('.kh-card').forEach(function(c){ c.style.display = ''; });
+      /* filter by data-tag across both feeds */
+      allCards().forEach(function(c){
+        c.style.display = (c.getAttribute('data-tag') === tab) ? '' : 'none';
+      });
     }
   });
 })();

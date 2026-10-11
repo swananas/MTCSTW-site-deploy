@@ -125,6 +125,12 @@
   .netmap-node-info{font-size:13px;color:var(--dim);margin-top:8px;padding:10px 12px;background:#0d0d0d;border-radius:8px;line-height:1.5;min-height:20px;}
   .netmap-node-info b{color:var(--cream);}
   .netmap-node-info .rel{color:var(--rbright);}
+
+  /* CURIOSITY v2: contradiction strip */
+  .pf-contra-strip{margin:0 0 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-left:3px solid #e5383b;border-radius:12px;padding:12px 14px;font-size:13px;color:#8a8478;line-height:1.55;}
+  .pf-contra-strip b{color:#e5383b;}
+  .pf-contra-strip .src{display:block;margin-top:6px;font-size:10px;letter-spacing:.08em;color:#5a554b;}
+
 </style>
 </head>
 <body>
@@ -144,6 +150,11 @@
     <p class="pf-mission">Query the data. <strong>Discover your power.</strong></p>
   </div>
 
+
+  <!-- CURIOSITY v2: rhetorical contradiction (live, hides on failure) -->
+  <div class="sec" id="pf-mcontra-sec" hidden>
+    <div class="pf-contra-strip" id="pf-mcontra"></div>
+  </div>
   <!-- COMPETITOR STEAL: ProPublica's "look up yourself first" — personal relevance as hook -->
   <div class="sec" id="lookup-you-sec">
     <h2>🔍 Look up <em style="color:var(--rbright);font-style:normal;">YOUR</em> world</h2>
@@ -712,6 +723,33 @@ apiGet('model_tables',{}).then(function(d){
   status(catalog.filter(function(t){return t.available;}).length+' live tables · '+total.toLocaleString('en-US')+' rows. Pick one to start modeling.');
 }).catch(function(){status('Catalog failed to load — check your connection.',true);});
 })();
+</script>
+<script>
+
+/* CURIOSITY v2: model header contradiction */
+(function(){
+'use strict';
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function num(n){n=Number(n);return isFinite(n)?n.toLocaleString('en-US'):'?';}
+var API='https://pf-api.mtcstw.workers.dev/?action=';
+function mq(t,cols,f,l,sort,dir){
+  var p={table:t,cols:cols.join(','),limit:String(l||1)};
+  if(f&&f.length)p.filters=JSON.stringify(f);
+  if(sort){p.sort=sort;p.dir=dir||'desc';}
+  var url=API+'model_query&'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetch(url,{cache:'no-store'}).then(function(r){return r.json();});
+}
+mq('dim_cfpb_company',['company','total_complaints'],[],1,'total_complaints','desc').then(function(d){
+  var r=(d&&d.ok&&d.rows&&d.rows[0])||null;
+  if(!r)return;
+  var sec=document.getElementById('pf-mcontra-sec'),host=document.getElementById('pf-mcontra');
+  if(!sec||!host)return;
+  host.innerHTML='&ldquo;We take complaints seriously.&rdquo; &mdash; <b>'+esc(r.company)+'</b>, holder of <b>'+num(r.total_complaints)+'</b> federal complaints and counting.'+
+    '<span class="src">SOURCE: CFPB VIA MTCSTW RAILS · <a href="#lookup-you-sec" style="color:#e5383b">IS IT YOUR BANK? &darr;</a></span>';
+  sec.hidden=false;
+}).catch(function(){});
+})();
+
 </script>
 </body>
 </html>

@@ -248,6 +248,45 @@
     color:#e8b32a; border:1px solid #e8b32a; border-radius:999px;
     padding:5px 12px; margin-bottom:10px; background:rgba(232,179,42,.08);
   }
+
+  
+  /* ============ CURIOSITY HOOKS v2 — Google-reviewed (feat: curiosity hooks v2) ============ */
+  .pf-cq{margin:0 16px 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:16px;padding:16px;}
+  .pf-cq-kicker{font-size:11px;letter-spacing:.2em;font-weight:800;color:#f5f0e6;margin-bottom:4px;}
+  .pf-cq-kicker em{color:#e5383b;font-style:normal;}
+  .pf-cq-sub{font-size:12px;color:#8a8478;margin-bottom:12px;line-height:1.5;}
+  .pf-cq-tabs{display:flex;gap:8px;margin-bottom:12px;}
+  .pf-cq-tab{flex:1;padding:10px 4px;border:1px solid #2a2a2a;background:#111;border-radius:10px;color:#8a8478;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;}
+  .pf-cq-tab.on{border-color:#c1121f;color:#f5f0e6;background:rgba(193,18,31,.12);}
+  .pf-cq-tab:active{transform:scale(.96);}
+  .pf-cq-hint{font-size:12px;color:#8a8478;margin-bottom:10px;line-height:1.5;}
+  .pf-cq-row{display:flex;gap:8px;}
+  .pf-cq-in{flex:1;min-width:0;background:#111;border:1px solid #2a2a2a;border-radius:10px;color:#f5f0e6;padding:12px;font-size:15px;}
+  .pf-cq-in:focus{outline:none;border-color:#c1121f;}
+  .pf-cq-go{background:#c1121f;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;}
+  .pf-cq-go:active{transform:scale(.96);}
+  .pf-cq-out{margin-top:12px;}
+  .pf-cq-loading{color:#8a8478;font-size:13px;display:flex;align-items:center;gap:8px;}
+  .pf-cq-dot{width:8px;height:8px;border-radius:50%;background:#e5383b;display:inline-block;}
+  .pf-cq-big{font-size:38px;font-weight:800;color:#e5383b;letter-spacing:-.02em;line-height:1;margin-bottom:6px;}
+  .pf-cq-line{font-size:14px;color:#f5f0e6;line-height:1.55;margin-bottom:6px;}
+  .pf-cq-line.dim{color:#8a8478;font-size:13px;}
+  .pf-cq-line b{color:#f5f0e6;}
+  .pf-cq-verdict{font-size:13px;font-weight:800;letter-spacing:.06em;margin:8px 0;color:#e8b32a;}
+  .pf-cq-err{color:#8a8478;font-size:13px;line-height:1.5;}
+  .pf-cq-compare{margin:10px 0;padding:10px 12px;background:rgba(232,179,42,.06);border-left:3px solid #e8b32a;border-radius:0 10px 10px 0;font-size:13px;color:#f5f0e6;line-height:1.5;}
+  .pf-cq-compare b{color:#e8b32a;}
+  .pf-cq-src{margin-top:10px;font-size:10px;letter-spacing:.08em;color:#5a554b;}
+  .pf-cq-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .pf-cq-act{flex:1;min-width:100px;text-align:center;padding:10px 8px;border:1px solid rgba(193,18,31,.5);background:rgba(193,18,31,.08);color:#f5f0e6;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:.05em;text-decoration:none;touch-action:manipulation;}
+  .pf-cq-act:active{transform:scale(.96);}
+  .pf-cq-audit{margin-top:12px;font-size:11px;color:#5a554b;letter-spacing:.04em;}
+  .pf-pred-slider{width:100%;margin:12px 0 4px;touch-action:manipulation;}
+  .pf-pred-val{font-size:24px;font-weight:800;color:#e8b32a;margin-bottom:4px;}
+  .pf-contra-card{margin:0 16px 10px;background:#0d0d0d;border:1px solid #2a2a2a;border-left:3px solid #e5383b;border-radius:12px;padding:14px;}
+  .pf-contra-q{font-size:15px;font-style:italic;color:#8a8478;margin-bottom:6px;}
+  .pf-contra-a{font-size:14px;color:#f5f0e6;line-height:1.55;}
+  .pf-contra-a b{color:#e5383b;}
   #pf-karl-home .kh-figstrip{ display:flex; gap:8px; margin:10px 0 2px; flex-wrap:wrap; }
   #pf-karl-home .kh-fig{
     flex:1 1 0; min-width:96px; background:var(--kh-card2); border:1px solid var(--kh-line);
@@ -408,6 +447,30 @@
     <button class="kh-chip">How rich are the billionaires?</button>
   </div>
 
+
+
+  <!-- CURIOSITY HOOKS v2: WHAT ABOUT ME? — systemic extraction framing -->
+  <div class="pf-cq" id="pf-cq">
+    <div class="pf-cq-kicker">🔍 WHAT'S BEING <em>EXTRACTED</em> NEAR YOU?</div>
+    <div class="pf-cq-sub">Not "are you a victim." What is the machine taking from your area — in dollars.</div>
+    <div class="pf-cq-tabs" id="pf-cq-tabs" role="tablist"></div>
+    <div id="pf-cq-body"></div>
+    <div class="pf-cq-audit">📋 Your audit contributions (this device): <b id="pf-cq-auditn">0</b></div>
+  </div>
+
+  <!-- PREDICTION: GUESS THE MARKUP -->
+  <div class="pf-cq" id="pf-pred" hidden>
+    <div class="pf-cq-kicker">🎯 GUESS THE <em>MARKUP</em></div>
+    <div class="pf-cq-sub">One tap. No wrong answers — only wrong systems.</div>
+    <div class="pf-cq-line" id="pf-pred-q" style="margin-bottom:4px;"></div>
+    <div class="pf-pred-val" id="pf-pred-val">10.0×</div>
+    <input type="range" class="pf-pred-slider" id="pf-pred-slider" min="100" max="2000" value="1000" step="50" aria-label="Your guess, as a multiple of Medicare">
+    <div class="pf-cq-row"><button class="pf-cq-go" id="pf-pred-btn" type="button" style="flex:1;">REVEAL THE REAL NUMBER</button></div>
+    <div class="pf-cq-out" id="pf-pred-a" hidden></div>
+  </div>
+
+  <!-- RHETORICAL CONTRADICTIONS -->
+  <div id="pf-contra" hidden></div>
   <!-- CELLS → HQ (dir-20261010-135720-3916): My Cell widget — member state swaps in via localStorage -->
   <div class="kh-cell-widget" id="kh-cell-widget">
     <div class="kh-cell-card">
@@ -1827,6 +1890,238 @@ window.KHDest = KHD;
     }
   });
 })();
+})();
+
+</script>
+
+<script>
+/* ==========================================================================
+   CURIOSITY HOOKS v2 — Google-reviewed (feat: curiosity hooks v2)
+   KILLED: blurred tap-to-reveal (clickbait), streak/intel-drop (QAnon),
+           social counters (Booking.com).
+   BUILD:
+   1. WHAT ABOUT ME? v2 — systemic extraction framing (not victimhood)
+   2. COMPARISON — geographic proximity proves malice
+   3. PREDICTION — guess the markup, reveal shock, share
+   4. COLLECTIVE THRESHOLDS — device-local audit contributions (honest)
+   5. RHETORICAL CONTRADICTIONS — jarring facts, no gimmicks
+   RULES: action within 3 taps, primary sources always, systemic framing,
+          no fake urgency, no vanity counters, no streaks.
+   ========================================================================== */
+(function(){
+'use strict';
+var API='https://pf-api.mtcstw.workers.dev/?action=';
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function $id(id){return document.getElementById(id);}
+function num(n){n=Number(n);if(!isFinite(n))return'?';return n.toLocaleString('en-US');}
+function money(n){n=Number(n);if(!isFinite(n))return'?';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.round(n);}
+function apiGet(action,params){
+  var url=API+action;
+  if(params){url+='&'+Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');}
+  return fetch(url,{cache:'no-store'}).then(function(r){return r.json();});
+}
+function mq(table,cols,filters,limit,sort,dir){
+  var p={table:table,cols:cols.join(','),limit:String(limit||10)};
+  if(filters&&filters.length)p.filters=JSON.stringify(filters);
+  if(sort){p.sort=sort;p.dir=dir||'desc';}
+  return apiGet('model_query',p);
+}
+/* device-local audit contributions — honest, labeled */
+var AUDIT_KEY='pf_audit_contrib_v1';
+function auditBump(){try{var v=parseInt(localStorage.getItem(AUDIT_KEY)||'0',10)||0;localStorage.setItem(AUDIT_KEY,String(v+1));return v+1;}catch(e){return 0;}}
+function auditCount(){try{return parseInt(localStorage.getItem(AUDIT_KEY)||'0',10)||0;}catch(e){return 0;}}
+
+var HCOLS=['hospital_name','city','state','zip','procedure_desc','avg_covered_charges','avg_medicare_payments','total_discharges'];
+
+/* ---------------- 1. WHAT ABOUT ME? v2 — systemic extraction ---------------- */
+var curTab='hospital';
+var TABDEF={
+  hospital:{label:'🏥 HOSPITALS',ph:'ZIP code (e.g. 70112)',hint:'See what hospitals near you extracted above Medicare rates.'},
+  bank:{label:'🏦 BANKS',ph:'Bank name (e.g. Chase)',hint:'See how many people filed federal complaints against your bank.'},
+  state:{label:'📍 YOUR STATE',ph:'State code (e.g. LA)',hint:'Eviction filings and private prison contracts where you live.'}
+};
+function renderTabs(){
+  var host=$id('pf-cq-tabs');if(!host)return;host.innerHTML='';
+  Object.keys(TABDEF).forEach(function(k){
+    var b=document.createElement('button');
+    b.type='button';b.className='pf-cq-tab'+(k===curTab?' on':'');b.textContent=TABDEF[k].label;
+    b.addEventListener('click',function(){curTab=k;renderTabs();renderBody();});
+    host.appendChild(b);
+  });
+}
+function renderBody(){
+  var host=$id('pf-cq-body');if(!host)return;
+  var d=TABDEF[curTab];
+  host.innerHTML=
+    '<div class="pf-cq-hint">'+esc(d.hint)+'</div>'+
+    '<div class="pf-cq-row">'+
+      '<input id="pf-cq-in" class="pf-cq-in" placeholder="'+esc(d.ph)+'" autocomplete="off" enterkeyhint="go">'+
+      '<button id="pf-cq-go" class="pf-cq-go" type="button">GO</button>'+
+    '</div><div class="pf-cq-out" id="pf-cq-out"></div>';
+  var inp=$id('pf-cq-in'),go=$id('pf-cq-go');
+  function fire(){var v=(inp.value||'').trim();if(v)runQ(curTab,v);}
+  go.addEventListener('click',fire);
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();fire();}});
+}
+function out(html){var o=$id('pf-cq-out');if(o)o.innerHTML=html;}
+function loading(m){out('<div class="pf-cq-loading"><span class="pf-cq-dot"></span>'+esc(m||'Checking the rails…')+'</div>');}
+function srcLine(s){return '<div class="pf-cq-src">SOURCE: '+esc(s)+'</div>';}
+function actions(){
+  return '<div class="pf-cq-actions">'+
+    '<a class="pf-cq-act" href="/model">MODEL IT →</a>'+
+    '<a class="pf-cq-act" href="/cells">FIND A CELL →</a>'+
+    '<a class="pf-cq-act" href="/create">MAKE IT A WEAPON →</a></div>';
+}
+function runQ(tab,raw){
+  var n=auditBump();var el=$id('pf-cq-auditn');if(el)el.textContent=String(n);
+  if(tab==='hospital')qHospital(raw);
+  else if(tab==='bank')qBank(raw);
+  else qState(raw);
+}
+function markupOf(r){
+  var c=Number(r.avg_covered_charges),m=Number(r.avg_medicare_payments);
+  return (c>0&&m>0)?c/m:0;
+}
+function extracted(r){
+  var c=Number(r.avg_covered_charges),m=Number(r.avg_medicare_payments),d=Number(r.total_discharges)||0;
+  return (c>m)?(c-m)*d:0;
+}
+function qHospital(raw){
+  var zip=String(raw).replace(/\D/g,'').slice(0,5);
+  if(zip.length<3){out('<div class="pf-cq-err">Type at least 3 digits of your ZIP.</div>');return;}
+  loading('Scanning hospitals near '+esc(zip)+'…');
+  mq('cms_hospital_prices',HCOLS,[{col:'zip',op:'starts',value:zip}],25)
+  .then(function(d){
+    var rows=(d&&d.ok&&d.rows)||[];
+    if(!rows.length&&zip.length>3)
+      return mq('cms_hospital_prices',HCOLS,[{col:'zip',op:'starts',value:zip.slice(0,3)}],25);
+    return d;
+  }).then(function(d){
+    var rows=((d&&d.ok&&d.rows)||[]).filter(function(r){return markupOf(r)>0;});
+    if(!rows.length){out('<div class="pf-cq-err">No hospital price data for that ZIP yet. 27,238 hospitals are in the rails — try another.</div>');return;}
+    rows.sort(function(a,b){return markupOf(b)-markupOf(a);});
+    var worst=rows[0],best=rows[rows.length-1];
+    var wmk=markupOf(worst),bmk=markupOf(best);
+    var wext=extracted(worst);
+    var html='<div class="pf-cq-big">'+wmk.toFixed(1)+'×</div>'+
+      '<div class="pf-cq-line"><b>'+esc(worst.hospital_name)+'</b> ('+esc(worst.city||'')+', '+esc(worst.state||'')+') bills <b>'+money(worst.avg_covered_charges)+'</b> for '+esc(String(worst.procedure_desc||'').toLowerCase())+'. Medicare pays <b>'+money(worst.avg_medicare_payments)+'</b>.</div>';
+    if(wext>0)html+='<div class="pf-cq-line">Estimated extraction: <b>'+money(wext)+'</b> above Medicare rates on this procedure alone.</div>';
+    /* COMPARISON: proximity proves malice */
+    if(rows.length>1&&wmk-bmk>=1)
+      html+='<div class="pf-cq-compare">📍 '+esc(best.hospital_name||'Another hospital')+' nearby: <b>'+bmk.toFixed(1)+'×</b>. Same region. Different greed.</div>';
+    html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions();
+    out(html);
+  }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
+}
+function qBank(raw){
+  var name=String(raw).trim().slice(0,40);
+  if(name.length<2){out('<div class="pf-cq-err">Type at least 2 letters of the bank name.</div>');return;}
+  loading('Searching '+esc(name)+'…');
+  Promise.all([
+    mq('dim_cfpb_company',['company','total_complaints'],[{col:'company',op:'contains',value:name}],3,'total_complaints','desc'),
+    mq('dim_cfpb_company',['company','total_complaints'],[],1,'total_complaints','desc')
+  ]).then(function(res){
+    var rows=(res[0]&&res[0].ok&&res[0].rows)||[];
+    var top=(res[1]&&res[1].ok&&res[1].rows&&res[1].rows[0])||null;
+    if(!rows.length){out('<div class="pf-cq-err">No complaints on file for &quot;'+esc(name)+'&quot;. Try the parent company name.</div>');return;}
+    var r=rows[0],n=Number(r.total_complaints)||0;
+    var html='<div class="pf-cq-big">'+num(n)+'</div>'+
+      '<div class="pf-cq-line">people filed federal complaints against <b>'+esc(r.company)+'</b>.</div>';
+    if(top&&top.company!==r.company)
+      html+='<div class="pf-cq-compare">📍 Worst in America: '+esc(top.company)+' — '+num(top.total_complaints)+' complaints. The system isn\'t broken; it\'s working as designed.</div>';
+    else html+='<div class="pf-cq-compare">📍 That is the most-complained-about company in America.</div>';
+    html+=srcLine('CFPB Consumer Complaint Database via MTCSTW rails')+actions();
+    out(html);
+  }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
+}
+function qState(raw){
+  var st=String(raw).trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);
+  if(st.length!==2){out('<div class="pf-cq-err">Use your 2-letter state code (e.g. LA, TX, NY).</div>');return;}
+  loading('Pulling '+esc(st)+'…');
+  Promise.all([
+    mq('eviction_county_estimates',['state_name','county_name','filings_estimate','year'],[{col:'state',op:'eq',value:st}],1,'filings_estimate','desc'),
+    mq('private_prisons',['facility_name','operator','contract_value_usd'],[{col:'location_state',op:'eq',value:st}],10)
+  ]).then(function(res){
+    var ev=(res[0]&&res[0].ok&&res[0].rows&&res[0].rows[0])||null;
+    var prs=(res[1]&&res[1].ok&&res[1].rows)||[];
+    if(!ev&&!prs.length){out('<div class="pf-cq-err">Nothing on file for '+esc(st)+' yet. Check your state code.</div>');return;}
+    var pv=0;prs.forEach(function(p){pv+=Number(p.contract_value_usd)||0;});
+    var html='<div class="pf-cq-big">'+esc(st)+'</div>';
+    if(ev)html+='<div class="pf-cq-line"><b>'+esc(ev.county_name)+'</b>: ~<b>'+num(ev.filings_estimate)+'</b> eviction filings'+(ev.year?' ('+esc(String(ev.year))+')':'')+' — the hardest-hit county in your state.</div>';
+    if(prs.length)html+='<div class="pf-cq-line"><b>'+prs.length+'</b> private prison contract'+(prs.length===1?'':'s')+' worth <b>'+money(pv)+'</b> extracted from your state.</div>';
+    html+='<div class="pf-cq-line dim">This is what the data says about where you live.</div>';
+    html+=srcLine('Eviction Lab estimates + contract records via MTCSTW rails')+actions();
+    out(html);
+  }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
+}
+
+/* ---------------- 3. PREDICTION — guess the markup ---------------- */
+var predData=null;
+function predPick(){
+  mq('cms_hospital_prices',HCOLS,[],40,'avg_covered_charges','desc').then(function(d){
+    var rows=((d&&d.ok&&d.rows)||[]).filter(function(r){return markupOf(r)>=3;});
+    if(rows.length<3)return;
+    /* deterministic daily pick */
+    var day=Math.floor(Date.now()/86400000);
+    predData=rows[day%rows.length];
+    renderPred();
+  }).catch(function(){/* silent: card stays hidden on failure */});
+}
+function renderPred(){
+  var host=$id('pf-pred');if(!host||!predData)return;
+  host.hidden=false;
+  $id('pf-pred-q').innerHTML='How much does <b>'+esc(predData.hospital_name)+'</b> ('+esc(predData.city||'')+', '+esc(predData.state||'')+
+    ') mark up <b>'+esc(String(predData.procedure_desc||'').toLowerCase())+'</b>?<br><span class="dim">Medicare pays '+money(predData.avg_medicare_payments)+'. What do they bill?</span>';
+}
+function predReveal(){
+  if(!predData)return;
+  var slider=$id('pf-pred-slider');
+  var guess=slider?Number(slider.value):100;
+  var actual=markupOf(predData);
+  var gap=Math.abs(guess-actual*100);
+  var shock=gap>400?'You weren\'t even close. Nobody is. That\'s the point.':(gap>150?'Reality outran your worst guess.':'Close — you\'ve seen this before.');
+  $id('pf-pred-a').innerHTML=
+    '<div class="pf-cq-big">'+actual.toFixed(1)+'×</div>'+
+    '<div class="pf-cq-line">You guessed <b>'+(guess/100).toFixed(1)+'×</b>. They bill <b>'+money(predData.avg_covered_charges)+'</b>.</div>'+
+    '<div class="pf-cq-verdict">'+esc(shock)+'</div>'+
+    srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+
+    '<div class="pf-cq-actions"><a class="pf-cq-act" href="/create">WEAPONIZE THIS →</a><a class="pf-cq-act" href="/cells">FIND A CELL →</a></div>';
+  $id('pf-pred-a').hidden=false;
+  var btn=$id('pf-pred-btn');if(btn)btn.disabled=true;
+}
+
+/* ---------------- 5. RHETORICAL CONTRADICTIONS ---------------- */
+function loadContradictions(){
+  Promise.all([
+    mq('dim_cfpb_company',['company','total_complaints'],[],1,'total_complaints','desc'),
+    mq('cms_hospital_prices',HCOLS,[],30,'avg_covered_charges','desc')
+  ]).then(function(res){
+    var host=$id('pf-contra');if(!host)return;
+    var html='';
+    var top=(res[0]&&res[0].ok&&res[0].rows&&res[0].rows[0])||null;
+    if(top)html+='<div class="pf-contra-card"><div class="pf-contra-q">&ldquo;We take complaints seriously.&rdquo;</div><div class="pf-contra-a">'+esc(top.company)+': <b>'+num(top.total_complaints)+'</b> federal complaints. Still operating.</div>'+srcLine('CFPB via MTCSTW rails')+'</div>';
+    var rows=((res[1]&&res[1].ok&&res[1].rows)||[]).filter(function(r){return markupOf(r)>0;});
+    if(rows.length){
+      rows.sort(function(a,b){return markupOf(b)-markupOf(a);});
+      var w=rows[0],mk=markupOf(w);
+      html+='<div class="pf-contra-card"><div class="pf-contra-q">&ldquo;Non-profit hospital.&rdquo;</div><div class="pf-contra-a">'+esc(w.hospital_name)+': bills <b>'+mk.toFixed(1)+'×</b> Medicare. '+money(w.avg_covered_charges)+' vs '+money(w.avg_medicare_payments)+'.</div>'+srcLine('CMS via MTCSTW rails')+'</div>';
+    }
+    if(html){host.innerHTML=html;host.hidden=false;}
+  }).catch(function(){/* silent */});
+}
+
+/* ---------------- boot ---------------- */
+function boot(){
+  renderTabs();renderBody();
+  predPick();loadContradictions();
+  var n=auditCount(),el=$id('pf-cq-auditn');
+  if(el)el.textContent=String(n);
+  var g=$id('pf-pred-btn');if(g)g.addEventListener('click',predReveal);
+  var s=$id('pf-pred-slider'),sv=$id('pf-pred-val');
+  if(s&&sv)s.addEventListener('input',function(){sv.textContent=(Number(s.value)/100).toFixed(1)+'×';});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
 })();
 
 </script>

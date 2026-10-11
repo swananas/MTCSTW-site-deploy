@@ -81,6 +81,29 @@
     -webkit-tap-highlight-color:rgba(255,255,255,.2);
   }
   .pf-karl-fab:active{transform:scale(.94);}
+
+  /* CURIOSITY v2: state audit card */
+  .pf-cq{margin:0 0 12px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:16px;padding:16px;}
+  .pf-cq-kicker{font-size:11px;letter-spacing:.2em;font-weight:800;color:#f5f0e6;margin-bottom:4px;}
+  .pf-cq-kicker em{color:#e5383b;font-style:normal;}
+  .pf-cq-sub{font-size:12px;color:#8a8478;margin-bottom:12px;line-height:1.5;}
+  .pf-cq-row{display:flex;gap:8px;}
+  .pf-cq-in{flex:1;min-width:0;background:#111;border:1px solid #2a2a2a;border-radius:10px;color:#f5f0e6;padding:12px;font-size:15px;}
+  .pf-cq-in:focus{outline:none;border-color:#c1121f;}
+  .pf-cq-go{background:#c1121f;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;}
+  .pf-cq-go:active{transform:scale(.96);}
+  .pf-cq-out{margin-top:12px;}
+  .pf-cq-loading{color:#8a8478;font-size:13px;}
+  .pf-cq-big{font-size:38px;font-weight:800;color:#e5383b;letter-spacing:-.02em;line-height:1;margin-bottom:6px;}
+  .pf-cq-line{font-size:14px;color:#f5f0e6;line-height:1.55;margin-bottom:6px;}
+  .pf-cq-line.dim{color:#8a8478;font-size:13px;}
+  .pf-cq-line b{color:#f5f0e6;}
+  .pf-cq-err{color:#8a8478;font-size:13px;line-height:1.5;}
+  .pf-cq-src{margin-top:10px;font-size:10px;letter-spacing:.08em;color:#5a554b;}
+  .pf-cq-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .pf-cq-act{flex:1;min-width:100px;text-align:center;padding:10px 8px;border:1px solid rgba(193,18,31,.5);background:rgba(193,18,31,.08);color:#f5f0e6;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:.05em;text-decoration:none;touch-action:manipulation;}
+  .pf-cq-act:active{transform:scale(.96);}
+
 </style>
 <style>
   /* ---------- KARL HOMEPAGE (ux/karl-homepage-20261010) ---------- */
@@ -337,6 +360,17 @@
       <div style="color:#f5f0e6;font-size:14px;line-height:1.55;">Build your cell around this discovery:<br><b id="pf-intel-name" style="color:#e5383b;"></b></div>
     </div>
 
+
+    <!-- CURIOSITY v2: state audit — what is being extracted where you live -->
+    <div class="pf-cq" id="pf-cq-state">
+      <div class="pf-cq-kicker">📍 WHAT'S BEING <em>EXTRACTED</em> IN YOUR STATE?</div>
+      <div class="pf-cq-sub">Arm your cell with local numbers. Evictions + prison contracts, by state.</div>
+      <div class="pf-cq-row">
+        <input id="pf-cqs-in" class="pf-cq-in" placeholder="State code (e.g. LA)" autocomplete="off" enterkeyhint="go" maxlength="2">
+        <button id="pf-cqs-go" class="pf-cq-go" type="button">GO</button>
+      </div>
+      <div class="pf-cq-out" id="pf-cqs-out"></div>
+    </div>
     <!-- MY CELL / FIND YOUR CELL -->
     <div style="background:#111111;border:1px solid #232323;border-radius:16px;padding:18px 16px;">
       <div style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8a8478;font-weight:700;margin-bottom:10px;">My Cell</div>
@@ -1526,6 +1560,56 @@ window.KHDest = KHD;
       });
     });
   }
+})();
+
+</script>
+<script>
+
+/* CURIOSITY v2: cells state audit */
+(function(){
+'use strict';
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function num(n){n=Number(n);return isFinite(n)?n.toLocaleString('en-US'):'?';}
+function money(n){n=Number(n);if(!isFinite(n))return'?';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Math.round(n);}
+var API='https://pf-api.mtcstw.workers.dev/?action=';
+function mq(t,cols,f,l,sort,dir){
+  var p={table:t,cols:cols.join(','),limit:String(l||10)};
+  if(f&&f.length)p.filters=JSON.stringify(f);
+  if(sort){p.sort=sort;p.dir=dir||'desc';}
+  var url=API+'model_query&'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetch(url,{cache:'no-store'}).then(function(r){return r.json();});
+}
+function out(html){var o=document.getElementById('pf-cqs-out');if(o)o.innerHTML=html;}
+function go(){
+  var inp=document.getElementById('pf-cqs-in');
+  var st=String((inp.value||'')).trim().toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);
+  if(st.length!==2){out('<div class="pf-cq-err">Use your 2-letter state code (e.g. LA).</div>');return;}
+  out('<div class="pf-cq-loading">Pulling '+esc(st)+'…</div>');
+  Promise.all([
+    mq('eviction_county_estimates',['state_name','county_name','filings_estimate','year'],[{col:'state',op:'eq',value:st}],1,'filings_estimate','desc'),
+    mq('private_prisons',['facility_name','operator','contract_value_usd'],[{col:'location_state',op:'eq',value:st}],10)
+  ]).then(function(res){
+    var ev=(res[0]&&res[0].ok&&res[0].rows&&res[0].rows[0])||null;
+    var prs=(res[1]&&res[1].ok&&res[1].rows)||[];
+    if(!ev&&!prs.length){out('<div class="pf-cq-err">Nothing on file for '+esc(st)+' yet.</div>');return;}
+    var pv=0;prs.forEach(function(p){pv+=Number(p.contract_value_usd)||0;});
+    var html='<div class="pf-cq-big">'+esc(st)+'</div>';
+    if(ev)html+='<div class="pf-cq-line"><b>'+esc(ev.county_name)+'</b>: ~<b>'+num(ev.filings_estimate)+'</b> eviction filings'+(ev.year?' ('+esc(String(ev.year))+')':'')+'.</div>';
+    if(prs.length)html+='<div class="pf-cq-line"><b>'+prs.length+'</b> private prison contract'+(prs.length===1?'':'s')+': <b>'+money(pv)+'</b> extracted.</div>';
+    html+='<div class="pf-cq-line dim">Bring these numbers to your cell.</div>';
+    html+='<div class="pf-cq-src">SOURCE: EVICTION LAB + CONTRACT RECORDS VIA MTCSTW RAILS</div>';
+    html+='<div class="pf-cq-actions"><a class="pf-cq-act" href="/model">MODEL IT →</a><a class="pf-cq-act" href="/create">WEAPONIZE →</a></div>';
+    out(html);
+  }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
+}
+function boot(){
+  var b=document.getElementById('pf-cqs-go'),i=document.getElementById('pf-cqs-in');
+  if(!b||!i)return;
+  b.addEventListener('click',go);
+  i.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go();}});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
 })();
 
 </script>

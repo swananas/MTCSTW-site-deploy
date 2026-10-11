@@ -240,12 +240,7 @@
     </div>
   </div>
 
-  <!-- 6. METHODOLOGY TRANSPARENCY -->
-  <div class="methodo" id="methodo-footer">
-    <b>How we count.</b> Row counts are live from D1 — what you see is what's in the rails right now.
-    Enforcement data: KeyVex API (SEC, DOJ, CFTC, FTC), free tier = 1-year history. Consumer complaints: CFPB bulk download, top 2,000 companies by volume.
-    <b>What we're missing:</b> SEC/CFTC/FTC enforcement actions aren't flowing yet (DOJ only). FEC donor names are withheld by policy. Some tables are not yet ingested — they show as honest-empty, never mocked.
-  </div>
+
   <div class="pf-brand-foot">
     <span class="pf-promise">Discover your power.</span>
     <p class="pf-mission">Stop waiting for the government to fix itself.</p>
@@ -599,7 +594,7 @@ function renderPulse(d){
   }
   h+='</div>';
   if(d.updated_at){
-    h+='<div class="pulse-updated">⚡ Updated '+timeAgo(d.updated_at)+' · computed live from D1, never hardcoded</div>';
+    h+='<div class="pulse-updated">⚡ Updated '+timeAgo(d.updated_at)+'</div>';
   }
   host.innerHTML=h;
   /* 3. DERIVED NARRATIVES */

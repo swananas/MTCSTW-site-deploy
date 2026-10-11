@@ -668,5 +668,218 @@ try{
 </script>
 <!-- /PF_FIRSTCLAIM_V1 -->
 
+<!-- NETWORK GRAPH OVERLAY — Gemini-built (2026-10-11), adapted as overlay -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+#network-overlay{position:fixed;inset:0;z-index:20000;background:#0a0a0a;display:none;flex-direction:column;}
+#network-overlay.open{display:flex;}
+#network-overlay-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:2px solid #c1121f;background:#0a0a0a;flex:0 0 auto;}
+#network-overlay-head h2{margin:0;color:#fff;font-size:16px;font-weight:900;letter-spacing:.08em;flex:1;}
+#network-overlay-head h2 span{color:#c1121f;}
+#network-close{width:44px;height:44px;background:none;border:1px solid #333;border-radius:50%;color:#fff;font-size:22px;cursor:pointer;flex:0 0 auto;}
+#network-controls{display:flex;gap:8px;padding:10px 16px;flex:0 0 auto;flex-wrap:wrap;align-items:center;}
+#network-search{flex:1;min-width:120px;background:#141414;border:1px solid #333;border-radius:8px;color:#fff;padding:10px 12px;font-size:14px;}
+#network-find{background:#c1121f;border:none;border-radius:8px;color:#fff;font-weight:800;padding:10px 16px;font-size:13px;cursor:pointer;min-height:44px;}
+.network-legend{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px 8px;flex:0 0 auto;}
+.legend-item{display:flex;align-items:center;gap:5px;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;min-height:44px;}
+.legend-item .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.legend-item.company .dot{background:#e5383b;}
+.legend-item.politician .dot{background:#4a90d9;}
+.legend-item.nonprofit .dot{background:#2ecc71;}
+.legend-item.donor .dot{background:#f39c12;}
+.legend-item input{width:18px;height:18px;accent-color:#c1121f;}
+#network-graph-wrap{flex:1 1 auto;position:relative;overflow:hidden;min-height:0;}
+#network-graph-wrap svg{width:100%;height:100%;display:block;touch-action:none;}
+#network-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.15em;}
+#network-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:14px;display:none;text-align:center;padding:20px;}
+.network-link{stroke:#3a3a3a;stroke-opacity:.7;}
+.network-node{stroke:#0a0a0a;stroke-width:2px;cursor:pointer;}
+.network-node-label{font-size:10px;fill:#ccc;pointer-events:none;text-anchor:middle;text-shadow:-1px -1px 0 #0a0a0a,1px -1px 0 #0a0a0a,-1px 1px 0 #0a0a0a,1px 1px 0 #0a0a0a;}
+#network-detail{position:absolute;bottom:0;left:0;right:0;background:#111;border-top:3px solid #c1121f;padding:16px 16px 24px;transform:translateY(105%);transition:transform .3s cubic-bezier(.16,1,.3,1);z-index:5;max-height:45%;overflow-y:auto;}
+#network-detail.active{transform:translateY(0);}
+#network-detail h3{margin:0 0 6px;color:#fff;font-size:18px;padding-right:44px;}
+#network-detail .badge{display:inline-block;padding:3px 8px;font-size:10px;font-weight:800;text-transform:uppercase;border-radius:4px;color:#fff;margin-bottom:10px;}
+#network-detail-close{position:absolute;top:10px;right:10px;width:44px;height:44px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer;}
+.network-stats{display:flex;gap:10px;margin:10px 0;}
+.network-stat{flex:1;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:8px;text-align:center;}
+.network-stat .sl{display:block;color:#888;font-size:9px;font-weight:800;letter-spacing:.05em;margin-bottom:4px;}
+.network-stat .sv{display:block;color:#fff;font-size:16px;font-weight:900;}
+.network-stat .sv.red{color:#e5383b;}
+#network-dossier-link{display:block;text-align:center;background:#c1121f;color:#fff;text-decoration:none;font-weight:800;padding:12px;border-radius:8px;margin-top:10px;min-height:44px;box-sizing:border-box;}
+@media(min-width:768px){
+  #network-detail{bottom:20px;left:auto;right:20px;width:340px;border:1px solid #333;border-left:3px solid #c1121f;border-radius:8px;transform:translateX(120%);}
+  #network-detail.active{transform:translateX(0);}
+}
+</style>
+<div id="network-overlay" role="dialog" aria-label="Entity network graph">
+  <div id="network-overlay-head">
+    <h2>ENTITY <span>NETWORK</span></h2>
+    <button id="network-close" aria-label="Close network graph">&times;</button>
+  </div>
+  <div id="network-controls">
+    <input type="text" id="network-search" placeholder="Search entity..." autocomplete="off" aria-label="Search entities">
+    <button id="network-find">FIND</button>
+  </div>
+  <div class="network-legend" id="network-legend">
+    <label class="legend-item company"><input type="checkbox" checked value="company"><span class="dot"></span>Company</label>
+    <label class="legend-item politician"><input type="checkbox" checked value="politician"><span class="dot"></span>Politician</label>
+    <label class="legend-item nonprofit"><input type="checkbox" checked value="nonprofit"><span class="dot"></span>Dark Money</label>
+    <label class="legend-item donor"><input type="checkbox" checked value="donor"><span class="dot"></span>Donor</label>
+  </div>
+  <div id="network-graph-wrap">
+    <div id="network-loading">MAPPING CONNECTIONS...</div>
+    <div id="network-empty">No connections found.<br>Try a different search.</div>
+  </div>
+  <div id="network-detail">
+    <button id="network-detail-close" aria-label="Close details">&times;</button>
+    <h3 id="nd-name">Entity</h3>
+    <span id="nd-type" class="badge">TYPE</span>
+    <div class="network-stats">
+      <div class="network-stat"><span class="sl">GHOUL SCORE</span><span class="sv red" id="nd-ghoul">--</span></div>
+      <div class="network-stat"><span class="sl">VIOLATIONS</span><span class="sv" id="nd-viol">--</span></div>
+      <div class="network-stat"><span class="sl">CONNECTIONS</span><span class="sv" id="nd-conn">--</span></div>
+    </div>
+    <a href="#" id="network-dossier-link">VIEW FULL DOSSIER</a>
+  </div>
+</div>
+<script>
+(function(){
+var API='https://pf-api.mtcstw.workers.dev/?action=dossier_graph';
+var COLORS={company:'#e5383b',politician:'#4a90d9',nonprofit:'#2ecc71',donor:'#f39c12'};
+var initialized=false, svg=null, g=null, sim=null, zoom=null, gdata={nodes:[],edges:[]};
+
+function openOverlay(){
+  document.getElementById('network-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!initialized){ initialized=true; initGraph(); }
+}
+function closeOverlay(){
+  document.getElementById('network-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+async function initGraph(){
+  var wrap=document.getElementById('network-graph-wrap');
+  var w=wrap.clientWidth||window.innerWidth, h=wrap.clientHeight||window.innerHeight-200;
+  svg=d3.select(wrap).append('svg');
+  g=svg.append('g');
+  zoom=d3.zoom().scaleExtent([0.15,4]).on('zoom',function(e){ g.attr('transform',e.transform); });
+  svg.call(zoom);
+  try{
+    var r=await fetch(API); var d=await r.json();
+    document.getElementById('network-loading').style.display='none';
+    if(!d.ok||!d.nodes||!d.nodes.length){
+      document.getElementById('network-empty').style.display='block'; return;
+    }
+    gdata=d; render(w,h); bindUI(w,h);
+  }catch(e){
+    document.getElementById('network-loading').textContent='CONNECTION FAILED.';
+  }
+}
+
+function render(w,h){
+  sim=d3.forceSimulation(gdata.nodes)
+    .force('link',d3.forceLink(gdata.edges).id(function(n){return n.id;}).distance(110))
+    .force('charge',d3.forceManyBody().strength(-350))
+    .force('center',d3.forceCenter(w/2,h/2))
+    .force('collide',d3.forceCollide().radius(function(n){return (n.size||14)+8;}).iterations(2));
+  var link=g.append('g').selectAll('line').data(gdata.edges).join('line')
+    .attr('class','network-link')
+    .attr('stroke-width',function(e){return Math.max(1,Math.min(5,Math.log10((e.amount||10)+1)));});
+  var node=g.append('g').selectAll('g').data(gdata.nodes).join('g')
+    .call(dragBehavior())
+    .on('click',function(e,n){ e.stopPropagation(); showDetail(n); });
+  node.append('circle')
+    .attr('class','network-node')
+    .attr('r',function(n){return n.size||14;})
+    .attr('fill',function(n){return COLORS[n.type]||'#888';});
+  node.append('text')
+    .attr('class','network-node-label')
+    .attr('dy',function(n){return (n.size||14)+14;})
+    .text(function(n){return n.label;});
+  sim.on('tick',function(){
+    link.attr('x1',function(e){return e.source.x;}).attr('y1',function(e){return e.source.y;})
+        .attr('x2',function(e){return e.target.x;}).attr('y2',function(e){return e.target.y;});
+    node.attr('transform',function(n){return 'translate('+n.x+','+n.y+')';});
+  });
+  svg.on('click',hideDetail);
+}
+
+function dragBehavior(){
+  function s(e){ if(!e.active) sim.alphaTarget(0.3).restart(); e.subject.fx=e.subject.x; e.subject.fy=e.subject.y; }
+  function d(e){ e.subject.fx=e.x; e.subject.fy=e.y; }
+  function x(e){ if(!e.active) sim.alphaTarget(0); e.subject.fx=null; e.subject.fy=null; }
+  return d3.drag().on('start',s).on('drag',d).on('end',x);
+}
+
+function showDetail(n){
+  document.getElementById('nd-name').textContent=n.label;
+  var tb=document.getElementById('nd-type');
+  tb.textContent=n.type; tb.style.background=COLORS[n.type]||'#333';
+  var det=n.details||{};
+  document.getElementById('nd-ghoul').textContent=det.ghoul_score||'--';
+  document.getElementById('nd-viol').textContent=(det.violations!=null?det.violations:'--');
+  var conns=gdata.edges.filter(function(e){
+    var s=e.source.id||e.source, t=e.target.id||e.target;
+    return s===n.id||t===n.id;
+  }).length;
+  document.getElementById('nd-conn').textContent=conns;
+  document.getElementById('network-dossier-link').href='/dossier/?entity='+encodeURIComponent(n.id);
+  document.getElementById('network-detail').classList.add('active');
+}
+function hideDetail(){ document.getElementById('network-detail').classList.remove('active'); }
+
+function bindUI(w,h){
+  document.getElementById('network-close').addEventListener('click',closeOverlay);
+  document.getElementById('network-detail-close').addEventListener('click',hideDetail);
+  document.getElementById('network-find').addEventListener('click',doSearch);
+  document.getElementById('network-search').addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();doSearch();} });
+  function doSearch(){
+    var t=document.getElementById('network-search').value.toLowerCase().trim();
+    if(!t) return;
+    var hit=null;
+    for(var i=0;i<gdata.nodes.length;i++){
+      var n=gdata.nodes[i];
+      if((n.label&&n.label.toLowerCase().indexOf(t)>-1)||(n.id&&n.id.toLowerCase().indexOf(t)>-1)){ hit=n; break; }
+    }
+    if(hit&&hit.x!=null){
+      var sc=2;
+      svg.transition().duration(750).call(
+        zoom.transform, d3.zoomIdentity.translate(w/2-hit.x*sc, h/2-hit.y*sc).scale(sc));
+      showDetail(hit);
+    }
+  }
+  var cbs=document.querySelectorAll('#network-legend input[type=checkbox]');
+  cbs.forEach(function(cb){
+    cb.addEventListener('change',function(){
+      var on={};
+      cbs.forEach(function(c){ if(c.checked) on[c.value]=1; });
+      g.selectAll('.network-node').each(function(){});
+      g.selectAll('g').filter(function(){return d3.select(this).select('circle.network-node').size()>0;})
+        .style('opacity',function(n){return on[n.type]?1:0.08;})
+        .style('pointer-events',function(n){return on[n.type]?'all':'none';});
+      g.selectAll('.network-link')
+        .style('opacity',function(e){
+          var st=e.source.type||'', tt=e.target.type||'';
+          return (on[st]&&on[tt])?0.7:0.04;
+        });
+    });
+  });
+}
+
+/* Add NETWORK button to existing tab bar */
+(function addBtn(){
+  var tabs=document.getElementById('pf-board-tabs');
+  if(!tabs||document.getElementById('pf-tab-network')) return;
+  var b=document.createElement('button');
+  b.className='pf-board-tab'; b.id='pf-tab-network'; b.type='button';
+  b.textContent='NETWORK \uD83D\uDD78\uFE0F';
+  b.addEventListener('click',openOverlay);
+  tabs.appendChild(b);
+})();
+window.__closeNetworkOverlay=closeOverlay;
+})();
+</script>
+
 </body>
 </html>

@@ -167,6 +167,14 @@
       <div class="mi">🎯</div><div class="mn">CUSTOM</div>
       <div class="md">Search any company or agency. Build your own receipt.</div>
     </div>
+    <div class="mode" data-mode="remix" role="button" tabindex="0">
+      <div class="mi">🔀</div><div class="mn">REMIX</div>
+      <div class="md">Take their stories apart. Rebuild the narrative.</div>
+    </div>
+    <div class="mode" data-mode="facts" role="button" tabindex="0">
+      <div class="mi">🧾</div><div class="mn">FACTS</div>
+      <div class="md">Type a claim. We find the receipts.</div>
+    </div>
   </div>
 
   <!-- ============ STRIKE ============ -->
@@ -260,6 +268,20 @@
         <a id="cu-ns-feed" href="/" style="display:block;text-align:center;background:#1a1a1a;color:#f5f0e6;border:1px solid #333;border-radius:10px;padding:12px;font-weight:700;font-size:14px;text-decoration:none;">📰 BACK TO FEED</a>
       </div>
     </div>
+  </div>
+
+  <!-- ============ REMIX (merged from /story-remixer/ 2026-10-11) ============ -->
+  <div class="pane" id="pane-remix">
+    <div class="sec-h">Story Remixer</div>
+    <p class="hint">Take their stories apart and rebuild them. Your remix, your message.</p>
+    <div id="pf-rx"></div>
+  </div>
+
+  <!-- ============ FACTS (merged from /fact-generator/ 2026-10-11) ============ -->
+  <div class="pane" id="pane-facts">
+    <div class="sec-h">Fact Generator</div>
+    <p class="hint">Type a claim. We find the receipts.</p>
+    <div id="pf-factgen"></div>
   </div>
 </main>
 <div id="crt-toast"></div>
@@ -862,8 +884,8 @@ function crtCopyImage(canvas, btn){
 
 /* ---------- mode switching ---------- */
 function showMode(mode){
-  if(mode!=='strike' && mode!=='custom') mode='strike';
-  ['strike','custom'].forEach(function(m){
+  if(mode!=='strike' && mode!=='custom' && mode!=='remix' && mode!=='facts') mode='strike';
+  ['strike','custom','remix','facts'].forEach(function(m){
     var p=$('pane-'+m); if(p) p.classList.toggle('on', m===mode);
   });
   document.querySelectorAll('#crt .mode').forEach(function(b){
@@ -1406,7 +1428,8 @@ if(_cuFormula) _cuFormula.addEventListener('input', function(){
 /* ---------- init ---------- */
 function init(){
   pfUpdateXPChip();
-  var mode = param('mode') || 'strike';
+  var mode = param('mode') || (location.hash||'').replace('#','') || 'strike';
+  if(mode!=='strike'&&mode!=='custom'&&mode!=='remix'&&mode!=='facts') mode='strike';
   /* deep links */
   var studioB64 = param('studio') || param('intel');
   var fromData = false;
@@ -1557,6 +1580,44 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
     }catch(e){}
     setTimeout(function(){window.location.replace('https://weather.com');},800);
   });
+})();
+</script>
+
+<!-- REMIX + FACTS bundles (merged from /story-remixer/ + /fact-generator/ 2026-10-11) -->
+<script>
+(function(){
+  var BASE='/v1.4.3/';
+  function load(src){
+    return new Promise(function(res){
+      var s=document.createElement('script');s.src=src;
+      s.onload=res;s.onerror=function(){res();};
+      document.head.appendChild(s);
+    });
+  }
+  /* Lazy-load on first tab visit to keep initial page fast */
+  var loaded={};
+  function ensureBundles(){
+    if(loaded.all) return Promise.resolve();
+    loaded.all=true;
+    return (async function(){
+      await load(BASE+'core/bundle-core.js');
+      await load(BASE+'pages/bundle-ugc-remix.js');
+      await load(BASE+'games/bundle-factgen-mount.js');
+      try{if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}}catch(e){}
+      console.log('[PF] Create studio: remix+facts bundles loaded');
+    })();
+  }
+  /* Hook into mode switching */
+  var origShow=window.showMode;
+  document.querySelectorAll('#crt .mode').forEach(function(b){
+    b.addEventListener('click',function(){
+      var m=b.getAttribute('data-mode');
+      if(m==='remix'||m==='facts'){ensureBundles();}
+    });
+  });
+  /* Preload if deep-linked */
+  var h=(location.hash||'').replace('#','');
+  if(h==='remix'||h==='facts'){ensureBundles();}
 })();
 </script>
 

@@ -448,6 +448,10 @@
     <p class="pf-mission">Stop waiting for the government to fix itself.</p>
   </div>
 </div>
+<!-- Cell War section (merged from /cell-war/ 2026-10-11) -->
+<div id="pf-cell-war-section" style="max-width:960px;margin:0 auto;padding:0 16px 40px;">
+  <div id="pf-cell-war"></div>
+</div>
 </main>
 </div>
 
@@ -1671,6 +1675,26 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
     }catch(e){}
     setTimeout(function(){window.location.replace('https://weather.com');},800);
   });
+})();
+</script>
+
+<!-- Cell War bundle (merged from /cell-war/ 2026-10-11) -->
+<script>
+(function(){
+  var BASE='/v1.4.3/';
+  function load(src){
+    return new Promise(function(res){
+      var s=document.createElement('script');s.src=src;
+      s.onload=res;s.onerror=function(){res();};
+      document.head.appendChild(s);
+    });
+  }
+  (async function(){
+    await load(BASE+'core/bundle-core.js');
+    await load(BASE+'games/bundle-cells.js');
+    try{if(window.PF){if(PF.mountSilos)PF.mountSilos();if(PF.mountPageSilos)PF.mountPageSilos();}}catch(e){}
+    console.log('[PF] Cells: cell-war bundle loaded');
+  })();
 })();
 </script>
 

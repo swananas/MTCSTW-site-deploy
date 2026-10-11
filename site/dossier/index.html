@@ -373,13 +373,15 @@ refresh();
 </script>
 
   <div id="pf-dossier"></div>
+  <!-- Extraction Engine section (merged from /extract/ 2026-10-11) -->
+  <div id="pf-extraction"></div>
 </main>
 </div>
 <script>
 (function(){
   var BASE='/v1.4.3/';
   var CORE='bundle-core.js';
-  var GAMES=["games/bundle-dossier.js"];
+  var GAMES=["games/bundle-dossier.js", "pages/bundle-extraction.js"];
   var PAGES='pages/bundle-pages.js';
   var PWA='pwa/install.js';
   var KARL='core/bundle-karl-companion.js';

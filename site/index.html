@@ -1350,7 +1350,13 @@ function FeedCardsSource(){
         return out;
       });
     },
-    exhausted: function(){ return fetched && idx >= buf.length; }
+    exhausted: function(){ return fetched && idx >= buf.length; },
+    refresh: function(){
+      /* re-pull bulk candidates: the backend generator may have landed new
+         cards since the first fetch. Permanent dedupe (fmShownIds) in
+         fmRefill guarantees only never-shown cards enter the buffer. */
+      fetched = false; idx = 0; buf = [];
+    }
   };
 }
 
@@ -1942,7 +1948,8 @@ function fmRank(n, tab){
 }
 function fmAfterRender(item){
   var id = fmCardId(item);
-  fmShownIds[id] = 1;
+  fmShownIds[id] = 1; /* PERMANENT: once shown, never shown again this session */
+  fmTotalShown++;
   fmTrack(id, 'impression');
   fmTrail.push({ src: item._src, tag: fmTagOf(item) });
   if(fmTrail.length > 12) fmTrail.shift();
@@ -1984,28 +1991,48 @@ function fmSkeletons(n){
 function fmClearSkeletons(){
   Array.prototype.forEach.call(feed.querySelectorAll('[data-skel]'), function(s){ s.remove(); });
 }
-var fmCycles = 0; /* how many times we've cycled sync sources */
-var fmIdSrc = {}; /* card id -> source (for selective shown-ID clearing on cycle) */
-function fmCycleSync(){
-  /* true infinite scroll: reset cyclable sync sources, clear their shown IDs */
-  var resetAny = false;
-  var cycSrcs = {};
-  Object.keys(FM_SOURCES).forEach(function(k){
-    var s = FM_SOURCES[k];
-    if(s && s.cyclable && typeof s.reset === 'function'){ s.reset(); cycSrcs[k] = 1; resetAny = true; }
-  });
-  if(!resetAny) return false;
-  fmCycles++;
-  /* clear shown/buffer IDs for cyclable sources so reshuffled cards can reappear */
-  Object.keys(fmIdSrc).forEach(function(id){ if(cycSrcs[fmIdSrc[id]]) delete fmShownIds[id]; });
-  fmBuffer = [];
-  fmBufIds = {};
-  if(FM_DEBUG) console.log('[FM] cycling sync sources (cycle #' + fmCycles + ')');
-  return true;
+var fmTotalShown = 0; /* feed cards rendered this session (never decremented) */
+var fmIdSrc = {}; /* card id -> source (kept for debugging; dedupe is permanent) */
+var fmBulkRetried = false; /* one fresh bulk pull per end-state */
+var fmCycled = false;      /* last-resort soft cycle is one-shot */
+function fmRefreshBulk(){
+  /* Re-pull ?action=feed_cards — the backend bulk generator may have landed
+     new candidates since the first fetch. Permanent dedupe (fmShownIds) in
+     fmRefill guarantees only never-shown cards enter the buffer, and fresh
+     fmBorn timestamps give them full freshness scores (top of the ranking). */
+  var src = FM_SOURCES.feedCards;
+  if(!src || typeof src.refresh !== 'function') return Promise.resolve(false);
+  var before = fmBuffer.length;
+  src.refresh();
+  return fmRefill().then(function(){ return fmBuffer.length > before; })
+    .catch(function(){ return false; });
 }
 function fmEnd(){
-  /* infinite scroll: cycle instead of ending (unless nothing cyclable) */
-  if(fmCycleSync()){ fmNudge(); return; }
+  /* No more reshuffling. When sources exhaust:
+     1. One fresh pull from the bulk generator (new candidates?).
+     2. Absolute last resort: single soft cycle, only after 50+ cards shown.
+        Dedupe is permanent — fmShownIds NEVER clears — so this can never
+        reshow a card; it only lets buffered-but-unrendered cards through.
+     3. Otherwise: honest end state. */
+  if(!fmBulkRetried){
+    fmBulkRetried = true;
+    if(FM_DEBUG) console.log('[FM] end: trying fresh bulk pull');
+    fmRefreshBulk().then(function(gotNew){
+      if(FM_DEBUG) console.log('[FM] end: bulk pull gotNew=' + gotNew);
+      if(gotNew){ fmNudge(); } else { fmEnd(); }
+    });
+    return;
+  }
+  if(!fmCycled && fmTotalShown >= 50){
+    fmCycled = true;
+    if(FM_DEBUG) console.log('[FM] end: last-resort soft cycle (dedupe permanent, no reshow)');
+    var resetAny = false;
+    Object.keys(FM_SOURCES).forEach(function(k){
+      var s = FM_SOURCES[k];
+      if(s && s.cyclable && typeof s.reset === 'function'){ s.reset(); resetAny = true; }
+    });
+    if(resetAny){ fmNudge(); return; }
+  }
   fmEnded = true;
   try{ fmObserver.disconnect(); }catch(e){}
   if(feed.querySelector('.kh-feed-end')) return;

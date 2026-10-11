@@ -175,6 +175,54 @@
     <p class="pf-mission">Query the data. <strong>Discover your power.</strong></p>
   </div>
 
+  <!-- ASK THE DATA: question-first hero — type plain English, Karl runs the query -->
+  <style>
+    .ask-hero{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 16px;}
+    .ask-kicker{font-size:11px;letter-spacing:.22em;color:var(--rbright);font-weight:800;margin-bottom:12px;}
+    .ask-row{display:flex;gap:8px;margin-bottom:12px;}
+    #ask-input{flex:1;background:#0a0a0a;border:1px solid var(--line);border-radius:12px;color:var(--cream);padding:15px 14px;font-size:16px;outline:none;min-width:0;}
+    #ask-input:focus{border-color:var(--red);}
+    #ask-go{background:var(--red);border:0;border-radius:12px;color:#fff;font-weight:800;font-size:14px;letter-spacing:.06em;padding:0 20px;cursor:pointer;touch-action:manipulation;}
+    #ask-go:active{transform:scale(.96);}
+    .ask-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:2px;transition:opacity .25s;}
+    .ask-chips::-webkit-scrollbar{display:none;}
+    .ask-chip{flex:0 0 auto;background:#0a0a0a;border:1px solid #333;border-radius:999px;color:var(--cream);padding:11px 15px;font-size:13px;font-weight:600;cursor:pointer;touch-action:manipulation;white-space:nowrap;max-width:270px;overflow:hidden;text-overflow:ellipsis;}
+    .ask-chip:active{transform:scale(.96);border-color:var(--red);}
+    .ask-card{margin-top:12px;background:#0d0d0d;border:1px solid var(--line);border-left:3px solid var(--red);border-radius:12px;padding:16px;}
+    .ask-big{font-size:40px;font-weight:900;color:#fff;line-height:1.1;margin:6px 0 2px;word-break:break-word;}
+    .ask-big small{display:block;font-size:13px;color:var(--dim);font-weight:600;margin-top:4px;line-height:1.4;}
+    .ask-ctx{font-size:14px;color:var(--dim);line-height:1.55;margin:10px 0 4px;}
+    .ask-ctx b{color:var(--cream);}
+    .ask-bars{margin:12px 0 4px;}
+    .ask-bar{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+    .ask-bar .bl{flex:0 0 38%;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ask-bar .bt{flex:1;height:10px;background:#1a1a1a;border-radius:6px;overflow:hidden;min-width:0;}
+    .ask-bar .bf{height:100%;background:linear-gradient(90deg,#c1121f,#e5383b);border-radius:6px;}
+    .ask-bar .bv{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--cream);}
+    .ask-src{margin:12px 0 2px;}
+    .ask-src a{display:inline-block;background:#161616;border:1px solid #333;border-radius:8px;color:var(--rbright);font-size:11px;font-weight:700;letter-spacing:.06em;padding:7px 12px;text-decoration:none;margin:0 6px 6px 0;}
+    .ask-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+    .ask-actions .btn{font-size:12px;padding:13px 8px;}
+    .ask-q{margin-top:12px;}
+    .ask-q summary{font-size:12px;color:var(--faint);cursor:pointer;font-weight:700;letter-spacing:.04em;touch-action:manipulation;}
+    .ask-q pre{font-size:11px;color:var(--dim);background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:10px;overflow-x:auto;white-space:pre-wrap;line-height:1.5;}
+    .ask-err{margin-top:12px;background:#0d0d0d;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--dim);line-height:1.6;}
+    .ask-err b{color:var(--cream);}
+    .ask-err .btnrow{margin-top:10px;}
+    .ask-spin{display:inline-block;width:16px;height:16px;border:2px solid #333;border-top-color:var(--rbright);border-radius:50%;animation:asksp .7s linear infinite;vertical-align:-3px;margin-right:8px;}
+    @keyframes asksp{to{transform:rotate(360deg);}}
+  </style>
+  <div class="sec" id="ask-sec">
+    <div class="ask-hero">
+      <div class="ask-kicker">ASK THE DATA</div>
+      <div class="ask-row">
+        <input id="ask-input" type="search" placeholder="Ask about the data…" autocomplete="off" aria-label="Ask about the data">
+        <button id="ask-go" type="button">ASK</button>
+      </div>
+      <div class="ask-chips" id="ask-chips" aria-label="Example questions"></div>
+      <div id="ask-out" aria-live="polite"></div>
+    </div>
+  </div>
 
   <!-- CURIOSITY v2: rhetorical contradiction (live, hides on failure) -->
   <div class="sec" id="pf-mcontra-sec" hidden>
@@ -1723,6 +1771,229 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
     }catch(e){}
     setTimeout(function(){window.location.replace('https://weather.com');},800);
   });
+})();
+</script>
+
+<script>
+/* ASK THE DATA: rotating loaded prompts + natural-language answers via karl_query.
+   Chips deal 4 at a time from a shuffled 12-prompt deck (no repeats until all shown),
+   advance on every page load and every 30s. Tap fills the input and submits. */
+(function(){
+'use strict';
+var PROMPTS=[
+  "How much does my hospital charge for a birth?",
+  "What's the CEO pay ratio at Amazon?",
+  "Who donated to my senator?",
+  "How many violations does my landlord have?",
+  "What's the price of oil today?",
+  "Which company paid the most in fines this year?",
+  "Is my rent above average for my city?",
+  "What did my employer spend on lobbying?",
+  "Who's #1 on the Ghoul Index?",
+  "How much did my university take in donations?",
+  "What's the markup on insulin at my hospital?",
+  "Which billionaire donated the most last cycle?"
+];
+var DECK_KEY='pf_ask_deck_v1', CHIPS_N=4, ROTATE_MS=30000;
+function $id(id){return document.getElementById(id);}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function loadDeck(){
+  try{
+    var d=JSON.parse(sessionStorage.getItem(DECK_KEY)||'null');
+    if(d&&d.order&&d.order.length===PROMPTS.length&&typeof d.pos==='number'&&d.pos>=0)return d;
+  }catch(e){}
+  return {order:shuffle(PROMPTS.map(function(_,i){return i;})),pos:0};
+}
+function saveDeck(d){try{sessionStorage.setItem(DECK_KEY,JSON.stringify(d));}catch(e){}}
+function nextChips(){
+  var d=loadDeck();
+  if(d.pos+CHIPS_N>d.order.length){d.order=shuffle(PROMPTS.map(function(_,i){return i;}));d.pos=0;}
+  var idx=d.order.slice(d.pos,d.pos+CHIPS_N);
+  d.pos+=CHIPS_N;saveDeck(d);
+  return idx.map(function(i){return PROMPTS[i];});
+}
+function renderChips(){
+  var host=$id('ask-chips');if(!host)return;
+  host.style.opacity='0';
+  setTimeout(function(){
+    host.innerHTML='';
+    nextChips().forEach(function(p){
+      var b=document.createElement('button');
+      b.type='button';b.className='ask-chip';b.textContent=p;b.title=p;
+      b.addEventListener('click',function(){fillAsk(p);});
+      host.appendChild(b);
+    });
+    host.style.opacity='1';
+  },200);
+}
+function fillAsk(p){
+  var inp=$id('ask-input');if(!inp)return;
+  inp.value=p;askSubmit();
+}
+/* ---------- answer rendering: big number → context → bars → source → propaganda ---------- */
+var MONEY_RE=/amount|value|charge|payment|wealth|spend|cost|price|penalt|fee|revenue|profit|salary|wage|donat|fine|award|contract|rent|bill/i;
+var SKIP_NUM=/\b(id|year|cycle|zip|_id)$/i;
+var NAME_COLS=['company','hospital_name','entity_name','name','candidate_name','contractor','facility_name','employer','recipient_name','agency','landlord','owner','procedure_desc','title','item'];
+function prettyCol(c){return String(c||'').replace(/_/g,' ').replace(/\b\w/g,function(m){return m.toUpperCase();});}
+function fmtMoney(v){
+  var n=Number(v);if(!isFinite(n))return '—';
+  var neg=n<0;n=Math.abs(n);
+  var s=n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toLocaleString('en-US',{maximumFractionDigits:2});
+  return (neg?'-$':'$')+s;
+}
+function factRows(f){
+  if(!f||typeof f!=='object')return null;
+  var keys=Object.keys(f);
+  for(var i=0;i<keys.length;i++){
+    var v=f[keys[i]];
+    if(Array.isArray(v)&&v.length&&typeof v[0]==='object')return {key:keys[i],rows:v,table:f.table||null};
+  }
+  return null;
+}
+function tableLabel(name){
+  try{
+    if(window.catalog&&window.catalog.length){
+      for(var i=0;i<window.catalog.length;i++)if(window.catalog[i].name===name)return window.catalog[i].label||name;
+    }
+  }catch(e){}
+  return (name||'data').replace(/_/g,' ');
+}
+function askSubmit(){
+  var inp=$id('ask-input'),out=$id('ask-out');
+  if(!inp||!out)return;
+  var q=(inp.value||'').trim();
+  if(!q)return;
+  out.innerHTML='<div class="ask-card"><span class="ask-spin"></span><span style="font-size:14px;color:#8a8478">Asking Karl…</span></div>';
+  try{out.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+  apiGet('karl_query',{q:q}).then(function(d){
+    if(!d||d.ok!==true){renderAskErr(q,'Karl didn\u2019t answer that one.');return;}
+    renderAskAnswer(d,q);
+  }).catch(function(){renderAskErr(q,'The rails didn\u2019t answer. Check your connection.');});
+}
+function renderAskErr(q,msg){
+  var out=$id('ask-out');if(!out)return;
+  out.innerHTML='<div class="ask-err"><b>'+esc(msg)+'</b><br>'+
+    'Try rephrasing, or go hands-on below — every table is queryable.'+
+    '<div class="btnrow"><button class="btn" id="ask-adv" type="button">ADVANCED BUILDER ↓</button>'+
+    '<button class="btn" id="ask-karl2" type="button">🧠 ASK KARL DIRECTLY</button></div></div>';
+  var adv=$id('ask-adv');
+  if(adv)adv.addEventListener('click',function(){
+    var s=$id('tbl-search');if(s&&s.scrollIntoView)s.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  var k2=$id('ask-karl2');
+  if(k2)k2.addEventListener('click',function(){
+    window.location.href='/karl/?q='+encodeURIComponent(q);
+  });
+}
+function renderAskAnswer(d,q){
+  var out=$id('ask-out');if(!out)return;
+  var facts=d.facts||[],pick=null;
+  for(var i=0;i<facts.length&&!pick;i++)pick=factRows(facts[i]);
+  if(!pick){renderAskErr(q,'Karl couldn\u2019t find that in the rails yet.');return;}
+  var rows=pick.rows,first=rows[0]||{};
+  /* big number: largest numeric field in the top row */
+  var bestCol=null,bestVal=-Infinity;
+  Object.keys(first).forEach(function(c){
+    if(SKIP_NUM.test(c))return;
+    var v=Number(first[c]);
+    if(isFinite(v)&&v>bestVal){bestVal=v;bestCol=c;}
+  });
+  var isMoney=bestCol&&MONEY_RE.test(bestCol);
+  var big=isMoney?fmtMoney(bestVal):fmt(bestVal);
+  var label=prettyCol(bestCol||'result');
+  /* who: first name-ish string */
+  var who='';
+  for(var n=0;n<NAME_COLS.length;n++){
+    var col=NAME_COLS[n];
+    if(first[col]!=null&&String(first[col]).trim()){who=String(first[col]);break;}
+  }
+  if(!who){
+    var ks=Object.keys(first);
+    for(var j=0;j<ks.length;j++){
+      var v=first[ks[j]];
+      if(v!=null&&String(v).trim()&&isNaN(Number(v))&&String(v).length<90&&ks[j]!=='url'){who=String(v);break;}
+    }
+  }
+  /* context: average across rows */
+  var sum=0,cnt=0;
+  rows.forEach(function(r){var v=Number(r[bestCol]);if(isFinite(v)){sum+=v;cnt++;}});
+  var avg=cnt?sum/cnt:null;
+  var ctx='';
+  if(avg!=null&&cnt>1){
+    var a=isMoney?fmtMoney(avg):fmt(avg);
+    ctx='Across <b>'+cnt+'</b> results, the average '+esc(label.toLowerCase())+' is <b>'+esc(a)+'</b>.';
+    if(bestVal>avg)ctx+=' This one runs <b>'+(bestVal/avg).toFixed(1)+'×</b> the average.';
+  }
+  /* bars: top 5 by the stat */
+  var sorted=rows.slice().sort(function(a,b){return (Number(b[bestCol])||0)-(Number(a[bestCol])||0);}).slice(0,5);
+  var maxV=Number(sorted[0][bestCol])||1;
+  var bars='<div class="ask-bars">';
+  sorted.forEach(function(r){
+    var v=Number(r[bestCol])||0,bl='';
+    for(var n2=0;n2<NAME_COLS.length;n2++){var c2=NAME_COLS[n2];if(r[c2]!=null&&String(r[c2]).trim()){bl=String(r[c2]);break;}}
+    if(!bl)bl='—';
+    var val=isMoney?fmtMoney(v):fmt(v);
+    bars+='<div class="ask-bar"><div class="bl" title="'+esc(bl)+'">'+esc(bl)+'</div>'+
+      '<div class="bt"><div class="bf" style="width:'+Math.max(2,Math.round(v/maxV*100))+'%"></div></div>'+
+      '<div class="bv">'+esc(val)+'</div></div>';
+  });
+  bars+='</div>';
+  /* source pill + query disclosure */
+  var tbl=pick.table||'',tlabel=tableLabel(tbl);
+  var src='<div class="ask-src"><a href="/model/?table='+encodeURIComponent(tbl)+'">📊 '+esc(tlabel.toUpperCase())+'</a>'+
+    '<a href="https://pf-api.mtcstw.workers.dev/?action=model_tables" target="_blank" rel="noopener">RAILS ↗</a></div>';
+  var qd='<details class="ask-q"><summary>SHOW ME THE QUERY</summary><pre>'+
+    'Karl template: '+esc(d.template||'general')+'\n'+
+    'Source table: '+esc(tbl)+'\n'+
+    'Confidence: '+esc(d.confidence||'—')+'\n'+
+    'Sources: '+esc((d.sources_used||[]).join(', ')||'internal databank')+'\n'+
+    'Question: '+esc(q)+'</pre></details>';
+  /* create deep-link */
+  var cp={mode:'custom',tpl:'statbomb',
+    headline:q.length>90?q.slice(0,87)+'…':q,
+    stat:big,stat_label:label.toLowerCase(),
+    who:who||'',sub:cnt+' rows from the rails',
+    source:'MTCSTW rails · '+tlabel};
+  var curl='/create/?'+Object.keys(cp).map(function(k){return k+'='+encodeURIComponent(cp[k]);}).join('&');
+  var acts='<div class="ask-actions">'+
+    '<button class="btn primary" id="ask-prop" type="button">🎨 MAKE PROPAGANDA</button>'+
+    '<button class="btn" id="ask-csv" type="button">⬇ CSV</button>'+
+    '<button class="btn" id="ask-karl3" type="button">🧠 ASK KARL MORE</button></div>';
+  out.innerHTML='<div class="ask-card">'+
+    '<div class="ask-big">'+esc(big)+'<small>'+esc(label)+(who?' — '+esc(who.length>60?who.slice(0,57)+'…':who):'')+'</small></div>'+
+    (ctx?'<div class="ask-ctx">'+ctx+'</div>':'')+
+    bars+src+acts+qd+'</div>';
+  try{out.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+  $id('ask-prop').addEventListener('click',function(){window.location.href=curl;});
+  $id('ask-karl3').addEventListener('click',function(){
+    window.location.href='/karl/?q='+encodeURIComponent(q);
+  });
+  $id('ask-csv').addEventListener('click',function(){
+    var cols=Object.keys(first);
+    var lines=[cols.map(csvCell).join(',')];
+    rows.forEach(function(r){lines.push(cols.map(function(c){return csvCell(r[c]);}).join(','));});
+    var blob=new Blob([lines.join('\r\n')],{type:'text/csv'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='ask-'+Date.now()+'.csv';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+  });
+}
+/* init */
+(function init(){
+  var inp=$id('ask-input'),go=$id('ask-go');
+  if(!inp||!go)return;
+  renderChips();
+  setInterval(function(){if(!document.hidden)renderChips();},ROTATE_MS);
+  go.addEventListener('click',askSubmit);
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();askSubmit();}});
+  /* deep-link: /model/?ask=... fills the input and runs it */
+  try{
+    var sp=new URLSearchParams(window.location.search);
+    var aq=sp.get('ask');
+    if(aq&&aq.trim()){inp.value=aq.trim();setTimeout(askSubmit,600);}
+  }catch(e){}
+})();
 })();
 </script>
 

@@ -307,6 +307,32 @@
     </div>
   </div>
 
+  <!-- 8. DEGREES OF EXPLOITATION: connect two entities through THE WEB -->
+  <div class="sec" id="netlink-sec">
+    <h2>🔗 DEGREES OF EXPLOITATION</h2>
+    <div class="netmap">
+      <div class="netmap-search">
+        <input id="netlink-a" type="text" placeholder="Entity A — billionaire, corporation, lobbyist…" autocomplete="off" aria-label="First entity">
+      </div>
+      <div class="netmap-search">
+        <input id="netlink-b" type="text" placeholder="Entity B — who funds who?" autocomplete="off" aria-label="Second entity">
+      </div>
+      <div class="btnrow"><button class="btn primary" id="netlink-go" type="button">🔗 FIND THE PATH</button></div>
+      <div id="netlink-out" class="netmap-node-info" style="display:none"></div>
+      <div class="btnrow" id="netlink-save-row" hidden><button class="btn" id="netlink-save" type="button">💾 SAVE PATH TO DOSSIER</button></div>
+      <div class="netmap-hint">Two degrees of separation is all it takes. We map Entity A's influence web, then trace the money, the boards, and the back rooms between the two.</div>
+    </div>
+  </div>
+  <style>
+  .nl-chain{display:flex;flex-direction:column;align-items:stretch;margin-top:6px;}
+  .nl-node{background:#161616;border:1px solid #333;border-radius:10px;padding:12px 14px;font-weight:800;font-size:15px;color:#f5f0e6;}
+  .nl-node.nl-first{border-color:#e5383b;color:#fff;}
+  .nl-node.nl-last{border-color:#d4a017;color:#fff;}
+  .nl-via{display:flex;align-items:center;gap:8px;padding:7px 4px 7px 24px;}
+  .nl-arrow{color:#c1121f;font-weight:800;font-size:14px;flex:0 0 auto;}
+  .nl-rel{font-size:12.5px;color:#a09a8e;font-style:italic;line-height:1.4;}
+  </style>
+
 
   <div class="pf-brand-foot">
     <span class="pf-promise">Discover your power.</span>
@@ -1453,6 +1479,146 @@ function netTap(sx,sy){
       netDraw();
     },400);
   });
+})();
+
+/* ============ DEGREES OF EXPLOITATION: connect two entities (BFS through THE WEB) ============ */
+var netlink={path:null,from:null,to:null};
+function netlinkNorm(s){return String(s==null?'':s).toLowerCase().trim();}
+function netlinkFind(nodes,q){
+  var nq=netlinkNorm(q),i,n,nl;
+  if(!nq)return null;
+  for(i=0;i<nodes.length;i++){n=nodes[i];if(netlinkNorm(n.label)===nq)return n;} /* exact */
+  for(i=0;i<nodes.length;i++){n=nodes[i];nl=netlinkNorm(n.label);if(nl&&nl.indexOf(nq)>-1)return n;} /* substring */
+  var toks=nq.split(/\s+/).filter(function(t){return t.length>2;}); /* token overlap */
+  if(toks.length){
+    for(i=0;i<nodes.length;i++){n=nodes[i];nl=netlinkNorm(n.label);
+      if(nl&&toks.every(function(t){return nl.indexOf(t)>-1;}))return n;}
+  }
+  return null;
+}
+/* BFS over the undirected edge graph; returns steps [{node,via}] from start to target */
+function netlinkBFS(nodes,edges,startId,targetId){
+  var adj={},i,e;
+  function add(u,v,edge){(adj[u]=adj[u]||[]).push({to:v,edge:edge});}
+  for(i=0;i<edges.length;i++){e=edges[i];
+    if(e.from!=null&&e.to!=null){add(e.from,e.to,e);add(e.to,e.from,e);}
+  }
+  var prev={};prev[startId]=null;
+  var q=[startId];
+  while(q.length){
+    var cur=q.shift();
+    if(cur===targetId)break;
+    var nb=adj[cur]||[];
+    for(i=0;i<nb.length;i++){
+      var t=nb[i].to;
+      if(!(t in prev)){prev[t]={from:cur,edge:nb[i].edge};q.push(t);}
+    }
+  }
+  if(!(targetId in prev)||targetId===startId)return null;
+  var map={};for(i=0;i<nodes.length;i++)map[nodes[i].id]=nodes[i];
+  var steps=[],cur=targetId;
+  while(cur!==startId){
+    var p=prev[cur];
+    steps.unshift({node:map[cur],via:(p.edge&&(p.edge.label||p.edge.category_name||p.edge.description))||'linked'});
+    cur=p.from;
+  }
+  steps.unshift({node:map[startId],via:null});
+  return steps;
+}
+function netlinkRender(steps){
+  var out=$id('netlink-out');out.style.display='block';
+  var h='<div style="font-size:11px;letter-spacing:.18em;color:#e5383b;font-weight:800;margin-bottom:10px;">THE RECEIPT — '+(steps.length-1)+' DEGREE'+(steps.length===2?'':'S')+'</div>';
+  h+='<div class="nl-chain">';
+  steps.forEach(function(s,i){
+    var n=s.node||{};
+    if(i>0)h+='<div class="nl-via"><span class="nl-arrow">&#8595;</span><span class="nl-rel">'+esc(s.via)+'</span></div>';
+    h+='<div class="nl-node'+(i===0?' nl-first':'')+(i===steps.length-1?' nl-last':'')+'">'+esc(n.label||'?')+'</div>';
+  });
+  h+='</div>';
+  h+='<div style="margin-top:10px;font-size:12px;color:#8a8478;">Every hop is a real LittleSis relationship. Screenshot it. Save it. Say their names.</div>';
+  out.innerHTML=h;
+  var sr=$id('netlink-save-row');if(sr)sr.hidden=false;
+}
+function netlinkRun(){
+  var a=$id('netlink-a').value.trim(),b=$id('netlink-b').value.trim();
+  var out=$id('netlink-out'),sr=$id('netlink-save-row');
+  if(sr)sr.hidden=true;netlink.path=null;
+  if(!a||!b){out.style.display='block';out.innerHTML='<span style="color:#e5383b">Name two entities first — the money trail needs both ends.</span>';return;}
+  out.style.display='block';out.innerHTML='Tracing the web from <b>'+esc(a)+'</b>&hellip;';
+  var btn=$id('netlink-go');btn.textContent='TRACING…';btn.disabled=true;
+  apiGet('network_map',{entity:a}).then(function(d){
+    btn.innerHTML='&#x1F517; FIND THE PATH';btn.disabled=false;
+    if(!d||d.ok!==true||!d.nodes||!d.nodes.length){
+      out.innerHTML='Couldn\'t map <b>'+esc(a)+'</b>. Try a different spelling — or MAP IT in THE WEB above first.';
+      return;
+    }
+    var nodes=d.nodes,edges=d.edges||[];
+    var start=netlinkFind(nodes,a)||nodes.filter(function(n){return n.seed;})[0]||nodes[0];
+    var target=netlinkFind(nodes,b);
+    if(!target){
+      out.innerHTML='No direct path in this map — <b>'+esc(b)+'</b> didn\'t show up in <b>'+esc(start.label||a)+'</b>\'s web. Try THE WEB above for a wider search, or flip A and B.';
+      return;
+    }
+    if(target.id===start.id){
+      out.innerHTML='That\'s the same entity twice. Two <i>different</i> names — that\'s where the trail gets interesting.';
+      return;
+    }
+    var steps=netlinkBFS(nodes,edges,start.id,target.id);
+    if(!steps||steps.length<2){
+      out.innerHTML='No direct path in this map. Try THE WEB for a wider search.';
+      return;
+    }
+    netlink.path=steps.map(function(s){return {label:(s.node&&s.node.label)||'?',type:(s.node&&s.node.type)||'',via:s.via};});
+    netlink.from=start.label||a;netlink.to=target.label||b;
+    netlinkRender(steps);
+  }).catch(function(){
+    btn.innerHTML='&#x1F517; FIND THE PATH';btn.disabled=false;
+    out.innerHTML='<span style="color:#e5383b">The rails went quiet — check your connection and try again.</span>';
+  });
+}
+/* dossier save: IndexedDB pf_dossier_v1 / items — same schema as /dossier */
+function netlinkDossierAdd(item){
+  return new Promise(function(res,rej){
+    try{
+      var r=indexedDB.open('pf_dossier_v1',1);
+      r.onupgradeneeded=function(){r.result.createObjectStore('items',{keyPath:'id'});};
+      r.onsuccess=function(){
+        var db=r.result,tx=db.transaction('items','readwrite');
+        tx.objectStore('items').put(item);
+        tx.oncomplete=function(){res();};tx.onerror=function(){rej(tx.error);};
+      };
+      r.onerror=function(){rej(r.error);};
+    }catch(e){rej(e);}
+  });
+}
+function netlinkSave(){
+  if(!netlink.path||!netlink.path.length)return;
+  var chain=netlink.path.map(function(s){return s.label;}).join(' → ');
+  var body=chain+'\n\n'+netlink.path.slice(1).map(function(s){return s.label+' — via '+s.via;}).join('\n');
+  var item={
+    id:'path-'+Date.now(),
+    type:'exploit_path',
+    title:netlink.from+' → '+netlink.to,
+    body:body,
+    data:{from:netlink.from,to:netlink.to,path:netlink.path},
+    source_url:'https://www.mtcstw.com/model/',
+    created_at:Date.now(),
+    tags:['path','the-web']
+  };
+  netlinkDossierAdd(item).then(function(){
+    var b=$id('netlink-save');b.textContent='✓ SAVED TO DOSSIER';b.disabled=true;
+    setTimeout(function(){b.innerHTML='&#x1F4BE; SAVE PATH TO DOSSIER';b.disabled=false;},2500);
+  }).catch(function(){
+    var out=$id('netlink-out');
+    out.innerHTML+='<br><span style="color:#e5383b">Save failed on this device — screenshot the path instead.</span>';
+  });
+}
+(function(){
+  var go=$id('netlink-go'),a=$id('netlink-a'),bb=$id('netlink-b'),sv=$id('netlink-save');
+  if(go)go.addEventListener('click',netlinkRun);
+  if(a)a.addEventListener('keydown',function(e){if(e.key==='Enter')netlinkRun();});
+  if(bb)bb.addEventListener('keydown',function(e){if(e.key==='Enter')netlinkRun();});
+  if(sv)sv.addEventListener('click',netlinkSave);
 })();
 
 /* boot: load the live catalog + data pulse */

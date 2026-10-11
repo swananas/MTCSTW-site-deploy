@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dossier Builder — Build the Case.</title>
-<meta name="description" content="Compile dossiers on the powerful. Evidence, sourced and shareable.">
-<meta property="og:title" content="Dossier Builder — Build the Case.">
-<meta property="og:description" content="Compile dossiers on the powerful. Evidence, sourced and shareable.">
+<title>My Investigation Board — Your receipts. Your villains. Your case files.</title>
+<meta name="description" content="Your receipts. Your villains. Your case files. Sourced, not accused.">
+<meta property="og:title" content="My Investigation Board — Your receipts. Your villains. Your case files.">
+<meta property="og:description" content="Your receipts. Your villains. Your case files. Sourced, not accused.">
 <meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta property="og:url" content="https://www.mtcstw.com/dossier">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Dossier Builder — Build the Case.">
-<meta name="twitter:description" content="Compile dossiers on the powerful. Evidence, sourced and shareable.">
+<meta name="twitter:title" content="My Investigation Board — Your receipts. Your villains. Your case files.">
+<meta name="twitter:description" content="Your receipts. Your villains. Your case files. Sourced, not accused.">
 <meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
@@ -117,6 +117,261 @@
   <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
 </header>
 <main id="main">
+
+<!-- ======== MY INVESTIGATION BOARD ======== -->
+<style>
+#pf-board{max-width:680px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 104px) 16px 24px;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.pf-board-head{padding:18px 0 6px;}
+.pf-board-head h1{margin:0 0 6px;font-size:26px;font-weight:900;letter-spacing:.04em;color:#fff;}
+.pf-board-head h1 .red{color:#c1121f;}
+.pf-board-head p{margin:0 0 14px;color:#8a8478;font-size:14px;font-style:italic;}
+.pf-board-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.pf-board-btn{background:#1a1a1a;border:1px solid #333;border-radius:10px;color:#f5f0e6;font-size:12px;font-weight:800;letter-spacing:.06em;padding:12px 14px;cursor:pointer;touch-action:manipulation;}
+.pf-board-btn:active{transform:scale(.96);}
+.pf-board-btn.share{background:#c1121f;border:0;color:#fff;}
+.pf-board-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none;-ms-overflow-style:none;}
+.pf-board-tabs::-webkit-scrollbar{display:none;}
+.pf-board-tab{flex:0 0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:999px;color:#8a8478;font-size:11.5px;font-weight:800;letter-spacing:.05em;padding:10px 14px;cursor:pointer;touch-action:manipulation;white-space:nowrap;}
+.pf-board-tab.on{background:#c1121f;border-color:#c1121f;color:#fff;}
+.pf-board-list{display:flex;flex-direction:column;gap:10px;}
+.pf-board-card{background:#111;border:1px solid #232323;border-radius:12px;padding:14px;position:relative;}
+.pf-board-card .type{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.1em;border-radius:6px;padding:4px 8px;margin-bottom:8px;}
+.pf-board-card .type.ghoul{background:rgba(212,160,23,.15);color:#d4a017;border:1px solid rgba(212,160,23,.4);}
+.pf-board-card .type.slumlord{background:rgba(74,144,217,.12);color:#4a90d9;border:1px solid rgba(74,144,217,.4);}
+.pf-board-card .type.translation{background:rgba(47,191,113,.12);color:#2fbf71;border:1px solid rgba(47,191,113,.4);}
+.pf-board-card .type.exploit_path{background:rgba(193,18,31,.12);color:#e5383b;border:1px solid rgba(193,18,31,.4);}
+.pf-board-card .type.bounty{background:rgba(230,126,34,.12);color:#e67e22;border:1px solid rgba(230,126,34,.4);}
+.pf-board-card .type.feed_card{background:rgba(255,255,255,.06);color:#a09a8e;border:1px solid #333;}
+.pf-board-card .ttl{font-size:15px;font-weight:800;color:#fff;line-height:1.35;margin:0 0 4px;padding-right:28px;}
+.pf-board-card .dt{font-size:11px;color:#5a554b;letter-spacing:.06em;margin-bottom:6px;}
+.pf-board-card .bd{font-size:13px;color:#b0b0b0;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.pf-board-card .src{margin-top:8px;font-size:11.5px;}
+.pf-board-card .src a{color:#e5383b;}
+.pf-board-del{position:absolute;top:10px;right:10px;background:transparent;border:1px solid #333;border-radius:8px;color:#5a554b;font-size:14px;width:32px;height:32px;cursor:pointer;touch-action:manipulation;}
+.pf-board-del:active{border-color:#e5383b;color:#e5383b;}
+.pf-board-empty{text-align:center;padding:36px 20px;border:1px dashed #333;border-radius:12px;color:#8a8478;font-size:14px;line-height:1.6;}
+.pf-board-empty .big{font-size:18px;color:#f5f0e6;font-weight:800;display:block;margin-bottom:8px;}
+.pf-board-empty .links{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.pf-board-empty .links a{background:#1a1a1a;border:1px solid #333;border-radius:10px;color:#f5f0e6;text-decoration:none;font-size:12px;font-weight:800;padding:10px 14px;}
+.pf-board-toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1a1a1a;border:1px solid #c1121f;color:#fff;font-size:13px;font-weight:700;padding:12px 18px;border-radius:10px;z-index:9000;max-width:90vw;text-align:center;}
+</style>
+<section id="pf-board" aria-label="My Investigation Board">
+  <div class="pf-board-head">
+    <h1>MY INVESTIGATION BOARD <span class="red">🗂️</span></h1>
+    <p>Your receipts. Your villains. Your case files.</p>
+    <div class="pf-board-actions">
+      <button class="pf-board-btn" id="pf-board-import" type="button">📥 IMPORT SAVED FEED CARDS</button>
+      <button class="pf-board-btn share" id="pf-board-share" type="button">📤 SHARE MY DOSSIER</button>
+    </div>
+  </div>
+  <div class="pf-board-tabs" id="pf-board-tabs" role="tablist" aria-label="Filter case files">
+    <button class="pf-board-tab on" data-f="all" type="button" role="tab">ALL</button>
+    <button class="pf-board-tab" data-f="ghoul" type="button" role="tab">GHOSTS 👹</button>
+    <button class="pf-board-tab" data-f="slumlord" type="button" role="tab">SLUMLORDS 🏚️</button>
+    <button class="pf-board-tab" data-f="translation" type="button" role="tab">TRANSLATIONS 🗣️</button>
+    <button class="pf-board-tab" data-f="exploit_path" type="button" role="tab">PATHS 🔗</button>
+    <button class="pf-board-tab" data-f="bounty" type="button" role="tab">BOUNTIES 🎯</button>
+  </div>
+  <div class="pf-board-list" id="pf-board-list"></div>
+  <div class="pf-board-empty" id="pf-board-empty" hidden>
+    <span class="big">No case files yet.</span>
+    Go catch some ghouls — pin their receipts here and build the case.
+    <div class="links">
+      <a href="/ghouls/">👹 GHOULS</a>
+      <a href="/slumlord/">🏚️ SLUMLORD</a>
+      <a href="/model/">🔗 THE WEB</a>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+'use strict';
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* --- PFDossier: IndexedDB helper (schema shared with sibling pages) --- */
+var PFDossier = (function(){
+  var DB='pf_dossier_v1', STORE='items';
+  function open(){ return new Promise(function(res,rej){
+    try{
+      var r = indexedDB.open(DB,1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore(STORE,{keyPath:'id'}); };
+      r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); };
+    }catch(e){ rej(e); }
+  });}
+  function list(){ return open().then(function(db){ return new Promise(function(res,rej){
+    var out=[]; var tx=db.transaction(STORE,'readonly');
+    var cur=tx.objectStore(STORE).openCursor(null,'prev');
+    cur.onsuccess=function(){ var c=cur.result; if(c){ out.push(c.value); c.continue(); } else res(out); };
+    cur.onerror=function(){ rej(cur.error); };
+  });});}
+  function add(item){ return open().then(function(db){ return new Promise(function(res,rej){
+    var tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(item);
+    tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);};
+  });});}
+  function remove(id){ return open().then(function(db){ return new Promise(function(res,rej){
+    var tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(id);
+    tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);};
+  });});}
+  return {list:list, add:add, remove:remove};
+})();
+var boardFilter='all';
+var TYPES={
+  ghoul:{badge:'👹 GHOST',tab:'ghoul'},
+  slumlord:{badge:'🏚️ SLUMLORD',tab:'slumlord'},
+  translation:{badge:'🗣️ TRANSLATION',tab:'translation'},
+  exploit_path:{badge:'🔗 PATH',tab:'exploit_path'},
+  bounty:{badge:'🎯 BOUNTY',tab:'bounty'},
+  feed_card:{badge:'📋 FEED CARD',tab:'all'}
+};
+function toast(msg){
+  var t=document.createElement('div');t.className='pf-board-toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){try{t.remove();}catch(e){}},2600);
+}
+function fmtDate(ts){
+  try{return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  catch(e){return '';}
+}
+function render(items){
+  var list=document.getElementById('pf-board-list');
+  var empty=document.getElementById('pf-board-empty');
+  var shown=items.filter(function(it){
+    if(boardFilter==='all')return true;
+    return it.type===boardFilter;
+  });
+  list.innerHTML='';
+  if(!shown.length){
+    list.innerHTML='';
+    empty.hidden=false;
+    empty.querySelector('.big').textContent = items.length? 'Nothing under this tab.' : 'No case files yet.';
+    return;
+  }
+  empty.hidden=true;
+  shown.forEach(function(it){
+    var meta=TYPES[it.type]||{badge:String(it.type||'FILE').toUpperCase(),tab:'all'};
+    var card=document.createElement('div');card.className='pf-board-card';
+    var h='<span class="type '+(it.type||'file')+'">'+esc(meta.badge)+'</span>';
+    h+='<button class="pf-board-del" data-id="'+esc(it.id)+'" aria-label="Delete case file">🗑</button>';
+    h+='<p class="ttl">'+esc(it.title||'(untitled)')+'</p>';
+    h+='<div class="dt">'+esc(fmtDate(it.created_at))+'</div>';
+    if(it.body)h+='<div class="bd">'+esc(String(it.body).slice(0,400))+(String(it.body).length>400?'…':'')+'</div>';
+    if(it.source_url)h+='<div class="src"><a href="'+esc(it.source_url)+'" target="_blank" rel="noopener">Source ↗</a></div>';
+    card.innerHTML=h;
+    list.appendChild(card);
+  });
+  var dels=list.querySelectorAll('.pf-board-del');
+  for(var i=0;i<dels.length;i++){
+    (function(d){
+      d.addEventListener('click',function(){
+        var id=d.getAttribute('data-id');
+        if(!confirm('Burn this file? It\'s gone for good.'))return;
+        PFDossier.remove(id).then(function(){toast('File burned. 🗑');refresh();}).catch(function(){toast('Couldn\'t delete — try again.');});
+      });
+    })(dels[i]);
+  }
+}
+function refresh(){
+  PFDossier.list().then(render).catch(function(){
+    var list=document.getElementById('pf-board-list');
+    list.innerHTML='<div class="pf-board-empty"><span class="big">Dossier vault unreachable.</span>Your browser blocked the local vault — the files are safe, they just can\'t load right now.</div>';
+  });
+}
+function hashStr(s){
+  var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}
+  return (h>>>0).toString(36);
+}
+function normalizeFeedCard(c){
+  var q=c.q||c.title||c.question||c.headline||'';
+  var a=c.a||c.body||c.answer||c.text||'';
+  return {
+    id:'feedcard-'+hashStr(String(q)+String(a).slice(0,80)),
+    type:'feed_card',
+    title:String(q).slice(0,140)||'(saved card)',
+    body:String(a).slice(0,800),
+    data:c,
+    source_url:c.src||c.source_url||'https://www.mtcstw.com/',
+    created_at:Date.now(),
+    tags:['feed','imported']
+  };
+}
+/* Import: 'pf_saves' is a count on the feed, but some builds stash cards there;
+   the feed's real saved cards live under 'kh_saved_v1'. Check both. */
+function importFeedCards(){
+  var raw=[];
+  try{
+    var p=localStorage.getItem('pf_saves');
+    if(p){var j=JSON.parse(p);if(Array.isArray(j))raw=raw.concat(j);}
+  }catch(e){}
+  try{
+    var s=JSON.parse(localStorage.getItem('kh_saved_v1')||'[]');
+    if(Array.isArray(s))raw=raw.concat(s);
+  }catch(e){}
+  if(!raw.length){toast('No saved feed cards found. Save some cards in the FEED first.');return;}
+  PFDossier.list().then(function(items){
+    var have={};items.forEach(function(it){have[it.id]=1;});
+    var fresh=raw.map(normalizeFeedCard).filter(function(it){return !have[it.id];});
+    if(!fresh.length){toast('All saved cards are already on the board.');return;}
+    var chain=Promise.resolve();
+    fresh.forEach(function(it){chain=chain.then(function(){return PFDossier.add(it);});});
+    return chain.then(function(){
+      toast('Imported '+fresh.length+' saved card'+(fresh.length===1?'':'s')+'. 📥');
+      refresh();
+    });
+  }).catch(function(){toast('Import failed — the vault wouldn\'t open.');});
+}
+function shareDossier(){
+  PFDossier.list().then(function(items){
+    if(!items.length){toast('Nothing to share yet — catch some ghouls first.');return;}
+    var counts={};
+    items.forEach(function(it){counts[it.type]=(counts[it.type]||0)+1;});
+    var lines=[];
+    lines.push('MY INVESTIGATION BOARD 🗂️');
+    lines.push('Your receipts. Your villains. Your case files.');
+    lines.push('');
+    lines.push(items.length+' case files on the record:');
+    items.slice(0,25).forEach(function(it){
+      var meta=TYPES[it.type]||{badge:String(it.type||'FILE').toUpperCase()};
+      lines.push('— '+meta.badge+': '+String(it.title||'(untitled)').slice(0,90));
+    });
+    if(items.length>25)lines.push('…and '+(items.length-25)+' more.');
+    lines.push('');
+    lines.push('Sourced, not accused. Reveal, don\'t accuse.');
+    lines.push('Built on MTCSTW.com/dossier');
+    var text=lines.join('\n');
+    if(navigator.share){
+      navigator.share({title:'My Investigation Board',text:text}).catch(function(){});
+    }else if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){toast('Dossier copied — paste it anywhere. 📋');})
+        .catch(function(){fallbackCopy(text);});
+    }else{fallbackCopy(text);}
+  });
+}
+function fallbackCopy(text){
+  try{
+    var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');ta.remove();
+    toast('Dossier copied — paste it anywhere. 📋');
+  }catch(e){toast('Copy failed — long-press to copy manually.');}
+}
+/* tabs */
+(function(){
+  var tabs=document.getElementById('pf-board-tabs');
+  tabs.addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('.pf-board-tab'):null;
+    if(!b)return;
+    boardFilter=b.getAttribute('data-f');
+    var all=tabs.querySelectorAll('.pf-board-tab');
+    for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+    b.classList.add('on');
+    refresh();
+  });
+  document.getElementById('pf-board-import').addEventListener('click',importFeedCards);
+  document.getElementById('pf-board-share').addEventListener('click',shareDossier);
+})();
+refresh();
+})();
+</script>
+
   <div id="pf-dossier"></div>
 </main>
 </div>

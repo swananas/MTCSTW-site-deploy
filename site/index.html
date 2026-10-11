@@ -227,6 +227,38 @@
   #pf-karl-home .kh-deploys{ display:flex; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
   #pf-karl-home .kh-deploys .n{ color:var(--kh-cream); font-weight:700; }
   #pf-karl-home .kh-src{ font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em; }
+  /* ---- escalation engine (CEO 2026-10-11): Hook -> Enemy -> CTA ---- */
+  #pf-karl-home .kh-escalation{
+    margin-top:12px; padding-top:12px; border-top:1px solid rgba(193,18,31,.35);
+  }
+  #pf-karl-home .kh-enemy{ margin-bottom:10px; }
+  #pf-karl-home .kh-enemy-tag{
+    display:inline-block; font-size:10px; font-weight:800; letter-spacing:.08em;
+    color:#fff; background:#c1121f; border-radius:4px; padding:2px 6px; margin-right:6px;
+  }
+  #pf-karl-home .kh-enemy-name{
+    font-size:14px; font-weight:800; color:var(--kh-cream); margin-right:6px;
+  }
+  #pf-karl-home .kh-enemy-role{
+    display:block; font-size:12px; color:var(--kh-dim); margin-top:4px; line-height:1.45;
+  }
+  #pf-karl-home .kh-enemy-ls{
+    display:inline-block; font-size:11px; color:var(--kh-red-bright); margin-top:4px;
+    text-decoration:none; border-bottom:1px dotted var(--kh-red-bright);
+  }
+  #pf-karl-home .kh-cta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #pf-karl-home .kh-cta-tag{
+    font-size:10px; font-weight:800; letter-spacing:.08em; color:var(--kh-red-bright);
+  }
+  #pf-karl-home .kh-cta-btn{
+    flex:1 1 auto; min-width:180px; text-align:center;
+    background:#c1121f; color:#fff; border:none; border-radius:10px;
+    font:800 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    letter-spacing:.04em; padding:12px 16px; cursor:pointer; text-decoration:none;
+    display:inline-block; touch-action:manipulation;
+    box-shadow:0 4px 14px rgba(193,18,31,.35);
+  }
+  #pf-karl-home .kh-cta-btn:active{ transform:scale(.97); }
   /* ---- crowdsourced fact-checking (CEO 2026-10-11): up/down vote cards ---- */
   #pf-karl-home .kh-factvote{
     display:flex; align-items:center; gap:8px; flex-wrap:wrap;
@@ -787,6 +819,7 @@ function cardEl(d){
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
       '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
+    '<div class="kh-escal-slot">'+fmEscalationHtml(d)+'</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
@@ -811,6 +844,7 @@ function cardEl(d){
     '</div>';
   el.addEventListener('click', function(e){
     if(e.target.classList.contains('kh-deploy-btn')) return;
+    if(e.target.closest('.kh-escalation')) return;
     if(e.target.closest('.kh-factvote')) return;
     if(e.target.closest('.kh-card-actions')) return;
     if(e.target.closest('.kh-related')) return;
@@ -827,27 +861,31 @@ function cardEl(d){
   });
   var btn = el.querySelector('.kh-deploy-btn');
   var nEl = el.querySelector('.kh-deploys .n');
-  btn.addEventListener('click', function(e){
-    e.stopPropagation();
+  function markDeployed(){
+    btn.classList.add('kh-done');
+    btn.textContent = 'SHARED \u2713';
+    d.deploys = (d.deploys||0)+1;
+    nEl.textContent = fmt(d.deploys);
+    showToast('Shared — the robbery report grows');
+    fmTrackByQ(d.q, 'share');
+  }
+  function doShareCard(){
     if(btn.classList.contains('kh-done')) return;
-    /* Build share text from the card */
     var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
-    /* Try native share, fall back to clipboard */
     if (navigator.share) {
       navigator.share({ title: 'KARL Discovery', text: shareText, url: 'https://mtcstw.com/' })
-        .then(function(){ markDeployed(); })
-        .catch(function(){});
+        .then(function(){ markDeployed(); }).catch(function(){});
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText).then(function(){ markDeployed(); showToast('Copied — paste it anywhere'); });
     } else { markDeployed(); }
-    function markDeployed(){
-      btn.classList.add('kh-done');
-      btn.textContent = 'SHARED \u2713';
-      d.deploys = (d.deploys||0)+1;
-      nEl.textContent = fmt(d.deploys);
-      showToast('Shared — the robbery report grows');
-      fmTrackByQ(d.q, 'share');
-    }
+  }
+  var ctaShareBtn = el.querySelector('[data-ctashare]');
+  if(ctaShareBtn) ctaShareBtn.addEventListener('click', function(e){
+    e.stopPropagation(); doShareCard();
+  });
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    doShareCard();
   });
   return el;
 }
@@ -1231,6 +1269,7 @@ function beefyCard(d){
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
       '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
+    '<div class="kh-escal-slot">'+fmEscalationHtml(d)+'</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
@@ -1255,7 +1294,7 @@ function beefyCard(d){
     '</div>'+
     '<a class="kh-deeplink" href="'+esc(d.deep||R.deep)+'">DIG DEEPER \u2192</a>';
   el.addEventListener('click', function(e){
-    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell') || e.target.closest('.kh-factvote')) return;
+    if(e.target.closest('.kh-deploy-btn') || e.target.closest('.kh-fig') || e.target.closest('.kh-deeplink') || e.target.closest('.kh-form-cell') || e.target.closest('.kh-factvote') || e.target.closest('.kh-escalation')) return;
     el.classList.toggle('kh-open');
     if(el.classList.contains('kh-open')) fmTrackTap(el);
   });
@@ -1268,6 +1307,11 @@ function beefyCard(d){
     });
   });
   var btn = el.querySelector('.kh-deploy-btn');
+  var ctaShareBtnB = el.querySelector('[data-ctashare]');
+  if(ctaShareBtnB) ctaShareBtnB.addEventListener('click', function(e){
+    e.stopPropagation();
+    btn.click();
+  });
   btn.addEventListener('click', function(e){
     e.stopPropagation();
     if(btn.classList.contains('kh-done')) return;
@@ -1324,8 +1368,85 @@ function apiCardToData(c){
     source_url: c.source_url || '', who: c.who || '',
     provenance: c.provenance || '', _tag: tag,
     card_id: c.id || null,
+    cta_type: c.cta_type || null, cta_label: c.cta_label || null,
+    cta_url: c.cta_url || null, enemy_name: c.enemy_name || null,
+    enemy_role: c.enemy_role || null,
     deploys: 0, when: 'now'
   };
+}
+/* ESCALATION ENGINE (client-side fallback): Hook -> Enemy -> CTA.
+   Backend fields win when present. Otherwise derive from card content. */
+function fmEscalation(d){
+  if(d.cta_type || d.enemy_name){
+    return { cta_type: d.cta_type || 'share',
+      cta_label: d.cta_label || 'SHARE THIS',
+      cta_url: d.cta_url || '',
+      enemy_name: d.enemy_name || d.who || '',
+      enemy_role: d.enemy_role || '' };
+  }
+  var text = ((d.q || '') + ' ' + (d.a || '') + ' ' + (d.who || '')).toLowerCase();
+  var who = d.who || '';
+  var esc = { cta_type: 'share', cta_label: 'SHARE THIS', cta_url: '',
+    enemy_name: who, enemy_role: '' };
+  function has(){ for(var i=0;i<arguments.length;i++){ if(text.indexOf(arguments[i])>=0) return true; } return false; }
+  if(has('hospital', 'markup', 'medicare')){
+    esc.cta_type='model'; esc.cta_label="FIND YOUR HOSPITAL'S MARKUP"; esc.cta_url='/model?table=cms_hospital_prices';
+    esc.enemy_role = 'price-gouging while patients go bankrupt';
+  } else if(has('union', 'nlrb', 'labor')){
+    esc.cta_type='rights'; esc.cta_label='KNOW YOUR RIGHTS';
+    esc.cta_url='/karl?q=' + encodeURIComponent('What are my rights if my employer is union-busting?');
+    esc.enemy_role = 'charged with unfair labor practices';
+  } else if(has('ceo', 'pay ratio', 'pay gap')){
+    esc.cta_type='share'; esc.cta_label='SHARE THIS PAY GAP'; esc.cta_url='';
+    esc.enemy_role = 'CEO pay vs the median worker — see the gap';
+  } else if(has('lobby')){
+    esc.cta_type='rep'; esc.cta_label='FIND WHO THEY BOUGHT'; esc.cta_url='/model?table=lobbying_filings';
+    esc.enemy_role = 'buying influence while you pay the price';
+  } else if(has('enforcement', 'violation', 'fraud')){
+    esc.cta_type='share'; esc.cta_label='SHARE THIS RECORD'; esc.cta_url='';
+    esc.enemy_role = 'caught — see the enforcement record';
+  } else if(has('pollut', 'epa', 'emission')){
+    esc.cta_type='rep'; esc.cta_label='REPORT TO YOUR REP';
+    esc.cta_url='/karl?q=' + encodeURIComponent('Who represents me and how do I report a polluter?');
+    esc.enemy_role = 'polluting your community';
+  } else if(has('billionaire', 'net worth')){
+    esc.cta_type='share'; esc.cta_label='SHARE THIS WEALTH HOARD'; esc.cta_url='';
+    esc.enemy_role = 'hoarding wealth while workers get squeezed';
+  } else if(has('evict')){
+    esc.cta_type='rights'; esc.cta_label='KNOW YOUR TENANT RIGHTS';
+    esc.cta_url='/karl?q=' + encodeURIComponent('What are my rights as a tenant facing eviction?');
+    esc.enemy_role = 'evicting working people';
+  } else if(has('311', 'crime')){
+    esc.cta_type='rep'; esc.cta_label='DEMAND ACTION FROM YOUR COUNCIL';
+    esc.cta_url='/karl?q=' + encodeURIComponent('Who is my city council member and how do I contact them?');
+    esc.enemy_role = 'failing your neighborhood';
+  }
+  return esc;
+}
+/* Render the escalation block: THE ENEMY + DO SOMETHING. Returns HTML. */
+function fmEscalationHtml(d){
+  var e = fmEscalation(d);
+  if(!e.enemy_name && !e.cta_label) return '';
+  var lsUrl = e.enemy_name
+    ? 'https://littlesis.org/search?q=' + encodeURIComponent(e.enemy_name) : '';
+  var ctaBtn;
+  if(e.cta_type === 'share'){
+    ctaBtn = '<button class="kh-cta-btn" data-ctashare="1" type="button">' +
+      esc(e.cta_label) + ' \u2192</button>';
+  } else {
+    ctaBtn = '<a class="kh-cta-btn" href="' + esc(e.cta_url || '/model') + '">' +
+      esc(e.cta_label) + ' \u2192</a>';
+  }
+  return '<div class="kh-escalation">' +
+    (e.enemy_name
+      ? '<div class="kh-enemy"><span class="kh-enemy-tag">\uD83C\uDFAF THE ENEMY</span>' +
+        '<span class="kh-enemy-name">' + esc(e.enemy_name) + '</span>' +
+        (e.enemy_role ? '<span class="kh-enemy-role">' + esc(e.enemy_role) + '</span>' : '') +
+        (lsUrl ? '<a class="kh-enemy-ls" href="' + lsUrl + '" target="_blank" rel="noopener">LittleSis profile \u2197</a>' : '') +
+        '</div>'
+      : '') +
+    '<div class="kh-cta"><span class="kh-cta-tag">\u26A1 DO SOMETHING</span>' + ctaBtn + '</div>' +
+    '</div>';
 }
 function FeedCardsSource(){
   var buf = [], fetched = false, idx = 0;

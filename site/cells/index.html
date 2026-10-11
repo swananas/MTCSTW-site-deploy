@@ -349,7 +349,7 @@
     <h1 style="font-family:Georgia,serif;font-size:34px;line-height:1.15;font-weight:700;margin:0 0 12px;letter-spacing:-.01em;color:#f5f0e6;">Nobody fights <em style="color:#e5383b;font-style:normal;">alone.</em></h1>
     <p style="color:#8a8478;font-size:15px;margin:0 0 20px;line-height:1.55;">Cells are small crews that turn intel into action. Find yours, or start one. Karl digs up the intel. You decide what to do with it.</p>
     <p class="pf-mission" style="margin:0 0 20px;">Find your people. <strong>Discover your power.</strong></p>
-    <p style="font-size:13px;margin:0 0 4px;"><a href="/model/?table=dim_cfpb_company" style="color:#e5383b;text-decoration:none;font-weight:700;">📊 Power your cell with live data →</a> <span style="color:#5a554b;">18M+ complaints · 1.1M corruption connections · 218K entities tracked</span></p>
+    <p style="font-size:13px;margin:0 0 4px;"><a href="/model/?table=dim_cfpb_company" style="color:#e5383b;text-decoration:none;font-weight:700;">📊 Power your cell with live data →</a> <span style="color:#5a554b;">18M+ complaints · 1.1M documented connections · 218K entities tracked</span></p>
   </div>
 
   <div style="max-width:560px;margin:0 auto;padding:0 14px 30px;display:flex;flex-direction:column;gap:12px;">
@@ -474,11 +474,11 @@ if('serviceWorker' in navigator){
 var API = 'https://pf-api.mtcstw.workers.dev/?action=';
 
 var SEED = [
-  { q:"Which defense contractor stole the most?",
+  { q:"Which defense contractor paid the most in penalties?",
     a:"Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy — the largest penalty in the contractor ledger.",
     rows:[["737 MAX fraud conspiracy","$2.5B"],["Defense contract fraud","$615M"],["Total Boeing penalties","$3.3B"]],
     src:"▸ RECEIPTS — DOJ, SEC filings", deploys:1284, when:"2m" },
-  { q:"Is my hospital price-gouging?",
+  { q:"Is my hospital charging above average?",
     a:"The average ER visit is billed at <b>$2,200</b> but costs the hospital <b>$180</b> to deliver. 27K hospitals tracked.",
     rows:[["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"],["Markup","12×"]],
     src:"▸ RECEIPTS — CMS hospital price transparency", deploys:862, when:"9m" },
@@ -502,7 +502,7 @@ var SEED = [
 
 var INFERENCES = [
   { q:"Boeing paid $2.5B in fraud penalties — then spent $13.3M lobbying the same regulators.",
-    a:"That's a <b>188:1 return</b> on corruption. For every $1 Boeing spends lobbying, they dodge $188 in accountability. The revolving door isn't a metaphor — it's a business model.",
+    a:"That's a <b>188:1 return</b> on lobbying. For every $1 Boeing spends lobbying, they dodge $188 in accountability. The revolving door isn't a metaphor — it's a business model.",
     rows:[["737 MAX fraud conspiracy penalty","$2.5B"],["Boeing 2025 lobbying spend","$13.3M"],["DoD → Boeing revolving-door hires","27"]],
     src:"▸ RECEIPTS — DOJ case files · LDA filings · LittleSis", deploys:2147, when:"just now", inference:true },
   { q:"2,261 for-profit schools collected federal aid while only 54 were ever flagged for fraud.",
@@ -804,9 +804,9 @@ var RAILS = [
   { rail:'bills',       icon:'\uD83E\uDDFE', label:'BILLS',               probe:'Who profits from my bills?',          deep:'/economy' },
   { rail:'evictions',   icon:'\uD83D\uDCE6', label:'EVICTIONS',           probe:'Who is evicting people?',             deep:'/town' },
   { rail:'billionaires',icon:'\uD83D\uDCB0', label:'BILLIONAIRES',        probe:'How rich are the billionaires?',      deep:'/follow-the-money' },
-  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who stole the most wages?',           deep:'/follow-the-money' },
-  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital price-gouging?',       deep:'/town' },
-  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor stole the most?', deep:'/corruption-index' }
+  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who paid the most in wage settlements?',           deep:'/follow-the-money' },
+  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital charging above average?',       deep:'/town' },
+  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor paid the most in penalties?', deep:'/corruption-index' }
 ];
 function railOf(key){
   for(var i=0;i<RAILS.length;i++) if(RAILS[i].rail===key) return RAILS[i];
@@ -825,7 +825,7 @@ var ANCHORS = [
     ],
     src:'\u25B8 RECEIPTS \u2014 Forbes-2026', when:'audited', deep:'/follow-the-money' },
   { rail:'hospitals', kind:'inference',
-    q:'Is your hospital price-gouging?',
+    q:'Is your hospital charging above average?',
     a:'The average ER visit is billed at <b>$2,200</b> (CPT 99285). Karl tracks 6,000 hospitals\u2019 posted prices.',
     figures:[
       {label:'Avg ER billed charge', value:'$2,200', source:'CMS price transparency', chain:['CPT 99285 — high-severity ER visit','Billed charge, not what insurers pay','Posted under federal transparency rules']},
@@ -840,7 +840,7 @@ var ANCHORS = [
     ],
     src:'\u25B8 RECEIPTS \u2014 Dept. of Education', when:'audited', deep:'/follow-the-money' },
   { rail:'economy', kind:'inference',
-    q:'Which defense contractor stole the most?',
+    q:'Which defense contractor paid the most in penalties?',
     a:'Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy (DOJ, 2021) — on top of <b>$615M</b> in 2006. Total: <b>$3.1B</b>.',
     figures:[
       {label:'737 MAX fraud conspiracy', value:'$2.5B', source:'DOJ-2021', chain:['DOJ settlement, January 2021','Criminal fraud conspiracy — 737 MAX certification','The largest contractor penalty on record']},
@@ -1280,8 +1280,8 @@ function shareImage(d, btn){
 
 /* ---------- 4. GO DEEPER ---------- */
 var FOLLOW_UPS = {
-  'boeing': ['Which defense contractor stole the most?', 'Defense contractor penalties', 'Boeing enforcement actions'],
-  'hospital': ['Hospital price gouging examples', 'Worst hospital markups', 'Healthcare CEO pay'],
+  'boeing': ['Which defense contractor paid the most in penalties?', 'Defense contractor penalties', 'Boeing enforcement actions'],
+  'hospital': ['Hospital markup examples', 'Worst hospital markups', 'Healthcare CEO pay'],
   'fec': ['Who funds my congressman?', 'Top FEC donors', 'Dark money spending'],
   'prison': ['GEO Group contracts', 'Private prison profits', 'CoreCivic lobbying'],
   'college': ['Worst for-profit college?', 'For-profit college fraud cases', 'Student debt by school'],

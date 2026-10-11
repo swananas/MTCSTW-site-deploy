@@ -123,7 +123,7 @@
   /* Methodology footer */
   .methodo{margin:20px 16px 0;padding:14px 16px;border:1px dashed #333;border-radius:12px;font-size:12px;color:var(--dim);line-height:1.6;}
   .methodo b{color:var(--cream);}
-  /* Network map (LittleSis corruption web) */
+  /* Network map (LittleSis influence web) */
   .netmap{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
   .netmap-search{display:flex;gap:8px;margin-bottom:10px;}
   .netmap-search input{flex:1;background:#0a0a0a;border:1px solid var(--line);border-radius:10px;color:var(--cream);padding:13px 14px;font-size:15px;outline:none;}
@@ -266,7 +266,7 @@
     <h2>🕸️ THE WEB</h2>
     <div class="netmap">
       <div class="netmap-search">
-        <input id="netmap-q" type="search" placeholder="Search a name — politician, company, lobbyist…" autocomplete="off" aria-label="Search corruption network">
+        <input id="netmap-q" type="search" placeholder="Search a name — politician, company, lobbyist…" autocomplete="off" aria-label="Search the power network">
         <button id="netmap-go" type="button">MAP&nbsp;IT</button>
       </div>
       <canvas id="netmap-canvas"></canvas>
@@ -303,7 +303,7 @@
         </div>
       </div>
       <div class="netmap-node-info" id="netmap-info">Type a name above to see who's connected to who.</div>
-      <div class="netmap-hint">2-hop corruption web from 1.1M+ LittleSis relationships. Drag to pan, pinch to zoom. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
+      <div class="netmap-hint">2-hop influence web from 1.1M+ LittleSis relationships. Drag to pan, pinch to zoom. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
     </div>
   </div>
 
@@ -357,7 +357,7 @@ function renderPresets(){
 }
 /* COMPETITOR STEAL: ProPublica's "look up yourself first" — personal relevance hooks */
 var LOOKUP_YOU=[
- {t:'🏥 Look up your hospital', table:'cms_hospital_prices', q:'Is MY hospital price-gouging?'},
+ {t:'🏥 Look up your hospital', table:'cms_hospital_prices', q:'Is MY hospital charging above average?'},
  {t:'🏦 Look up your bank', table:'dim_cfpb_company', q:'How many complaints does MY bank have?'},
  {t:'🏛️ Look up your congressman', table:'stock_trades', q:'Is MY congressman trading stocks?'},
  {t:'⚖️ Look up your employer', table:'fact_keyvex_enforcement', q:'Has MY employer been busted?'}
@@ -1037,7 +1037,7 @@ function netDraw(){
   var nodes=netState.visible;
   if(!netState.nodes.length){
     ctx.fillStyle='#5a554b';ctx.font='14px sans-serif';ctx.textAlign='center';
-    ctx.fillText('Search above to map the corruption web.',W/2,H/2);
+    ctx.fillText('Search above to map the influence web.',W/2,H/2);
     return;
   }
   if(nodes.length&&nodes[0].x===undefined)netLayout(W,H);
@@ -1293,7 +1293,7 @@ function netStoryWeaponize(){
   params.set('mode','strike');
   params.set('headline',headlines.slice(0,120));
   params.set('stat',slides.length+' NODES');
-  params.set('stat_label','in this corruption web');
+  params.set('stat_label','in this influence web');
   params.set('source','THE WEB · LittleSis');
   params.set('story',captions.slice(0,500));
   netStoryClosePlayer();

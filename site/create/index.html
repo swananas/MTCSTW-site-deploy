@@ -904,11 +904,11 @@ function loadTicker(){
 
 /* ---------- STRIKE ---------- */
 var STRIKE_PROBES = [
-  'Which defense contractor stole the most?',
-  'Is my hospital price-gouging?',
-  'Who is the most corrupt billionaire?',
-  'Biggest bank fraud enforcement this year?',
-  'Which pharma company price-gouged the worst?'
+  'Which defense contractor paid the most in penalties?',
+  'Is my hospital charging above average?',
+  'Which billionaire took the most while workers got the least?',
+  'Biggest bank enforcement action this year?',
+  'Which pharma company marks up the most?'
 ];
 /* variable reward: ~1 in 8 items is a SMOKING GUN (stable per item) */
 function isSmokingGun(q){
@@ -964,7 +964,7 @@ function renderStrike(){
 function renderStrikeFallback(){
   var host = $('strike-list');
   var fallbacks = [
-    {q:'Which defense contractor stole the most?', a:'Boeing: $2.5B in penalties. That is a poster waiting to happen.', rows:[['Boeing penalties','$2.5B']], src:'DOJ enforcement records', when:'breaking', gun:true},
+    {q:'Which defense contractor paid the most in penalties?', a:'Boeing: $2.5B in penalties. That is a poster waiting to happen.', rows:[['Boeing penalties','$2.5B']], src:'DOJ enforcement records', when:'breaking', gun:true},
     {q:'Hospital ER markups hit 12x', a:'59,717 eviction estimates pile up while hospital ER markups hit 12x.', rows:[['ER markup','12x'],['Evictions','59,717']], src:'CMS + Census data', when:'breaking', gun:false}
   ];
   strikeItems = fallbacks;
@@ -1034,7 +1034,7 @@ $('strike-everywhere').addEventListener('click', function(){
 /* ---------- bounties + swarm barometer (device-local v1) ---------- */
 var BOUNTY_KEY='pf_bounties_v1';
 var BOUNTIES = [
-  {id:'hospital', name:'🏥 Hospital Price Week', target:200, desc:'Deploy hospital price-gouging receipts'},
+  {id:'hospital', name:'🏥 Hospital Price Week', target:200, desc:'Deploy hospital markup receipts'},
   {id:'defense', name:'🛡️ Defense Contractor Week', target:150, desc:'Deploy defense fraud receipts'},
   {id:'bank', name:'🏦 Bank Fraud Week', target:150, desc:'Deploy bank enforcement receipts'}
 ];

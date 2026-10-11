@@ -307,6 +307,8 @@
   #pf-karl-home .kh-proof-row .k{ color:var(--kh-dim); }
   #pf-karl-home .kh-proof-row .v{ color:var(--kh-red-bright); font-weight:800; font-size:17px; white-space:nowrap; font-variant-numeric:tabular-nums; }
   #pf-karl-home .kh-proof .kh-receipts{ margin-top:10px; font-family:ui-monospace,Menlo,monospace; font-size:10.5px; color:var(--kh-faint); letter-spacing:.05em; }
+  .kh-srcpill{ display:inline-block; background:#1a1a1a; border:1px solid #c1121f; border-radius:12px; padding:2px 10px; margin:2px 4px 2px 0; font-size:10px; font-weight:700; letter-spacing:.05em; color:#f5f0e6; }
+  .kh-srcpill a{ color:#f5f0e6; }
   #pf-karl-home .kh-deploy-btn{
     width:100%; margin-top:12px; background:transparent; color:var(--kh-red-bright);
     border:1.5px solid var(--kh-red); border-radius:12px; padding:13px;
@@ -548,8 +550,8 @@
   </div>
 
   <div class="kh-chips" id="kh-chips">
-    <button class="kh-chip">Which defense contractor stole the most?</button>
-    <button class="kh-chip">Is my hospital price-gouging?</button>
+    <button class="kh-chip">Which defense contractor paid the most in penalties?</button>
+    <button class="kh-chip">Is my hospital charging above average?</button>
     <button class="kh-chip">Who funds my congressman?</button>
     <button class="kh-chip">Worst for-profit college?</button>
     <button class="kh-chip">Biggest private prison operator?</button>
@@ -680,11 +682,11 @@ var SEED = [
     a:"Don Jr.'s 1789 Capital went from a few hundred million to several billion in assets and is raising another <b>$3B</b>. Eric Trump cashes in via defense startups and critical minerals; Kushner pursues Middle East deals while taking a diplomatic role.",
     rows:[["1789 Capital raising","$3B"],["Asset growth","Hundreds of M → billions"],["Eric/Kushner","Defense, minerals, Mideast"]],
     src:"▸ RECEIPTS — Financial reporting", deploys:0, when:"now" },
-  { q:"Which defense contractor stole the most?",
+  { q:"Which defense contractor paid the most in penalties?",
     a:"Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy — the largest penalty in the contractor ledger.",
     rows:[["737 MAX fraud conspiracy","$2.5B"],["Defense contract fraud","$615M"],["Total Boeing penalties","$3.3B"]],
     src:"▸ RECEIPTS — DOJ, SEC filings", deploys:1284, when:"2m" },
-  { q:"Is my hospital price-gouging?",
+  { q:"Is my hospital charging above average?",
     a:"The average ER visit is billed at <b>$2,200</b> but costs the hospital <b>$180</b> to deliver. 27K hospitals tracked.",
     rows:[["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"],["Markup","12×"]],
     src:"▸ RECEIPTS — CMS hospital price transparency", deploys:862, when:"9m" },
@@ -728,7 +730,7 @@ var INFERENCES = [
     rows:[["Itemized contributions","176,870"],["Avg out-of-district share","68%"],["Top donor industry","Finance"]],
     src:"▸ RECEIPTS — FEC filings", deploys:1302, when:"just now", inference:true },
   { q:"59,717 eviction estimates pile up while hospital ER markups hit 12×.",
-    a:"You're being robbed coming and going — displaced from your home while hospitals bill <b>$2,200</b> for care that costs <b>$180</b>. Two datasets, one story.",
+    a:"Displaced from your home while hospitals bill <b>$2,200</b> for care that costs <b>$180</b>. Two datasets, one story.",
     rows:[["County eviction estimates","59,717"],["Avg ER billed charge","$2,200"],["Avg ER actual cost","$180"]],
     src:"▸ RECEIPTS — Eviction Lab · CMS price transparency", deploys:1587, when:"just now", inference:true },
   { q:"Defense contractors paid $5.44B in penalties across 20 cases — while insiders traded their own stock 71 times.",
@@ -749,6 +751,39 @@ function showToast(msg){
 }
 function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* REVEAL, DON'T ACCUSE (CEO directive 2026-10-11): every data point gets a
+   source pill linking directly to the government record. If we have to prove
+   it in court, the URL is right there. */
+var SRC_LINKS = {
+  'FEC': 'https://www.fec.gov/data/', 'SEC': 'https://www.sec.gov/cgi-bin/browse-edgar',
+  'SEC EDGAR': 'https://www.sec.gov/cgi-bin/browse-edgar', 'CMS': 'https://www.cms.gov/priorities/key-initiatives/hospital-price-transparency',
+  'DOJ': 'https://www.justice.gov/', 'CFPB': 'https://www.consumerfinance.gov/data-research/consumer-complaints/',
+  'NLRB': 'https://www.nlrb.gov/', 'LittleSis': 'https://littlesis.org/',
+  'NYC OpenData': 'https://opendata.cityofnewyork.us/', 'Eviction Lab': 'https://evictionlab.org/',
+  'BLS': 'https://www.bls.gov/', 'Census': 'https://www.census.gov/',
+  'USAspending': 'https://www.usaspending.gov/', 'LDA': 'https://lda.senate.gov/',
+  'OSHA': 'https://www.osha.gov/', 'EPA': 'https://www.epa.gov/',
+  'Forbes': 'https://www.forbes.com/', 'GDELT': 'https://www.gdeltproject.org/'
+};
+function receiptPills(src){
+  var s = String(src || '').replace(/^▸ RECEIPTS\s*[—–-]\s*/, '');
+  var parts = s.split(/[·,]/).map(function(p){ return p.trim(); }).filter(Boolean);
+  if (!parts.length) return esc(src);
+  return parts.map(function(p){
+    var url = null, label = p;
+    for (var k in SRC_LINKS) {
+      if (p.toUpperCase().indexOf(k.toUpperCase()) === 0 || p.toUpperCase() === k.toUpperCase()) { url = SRC_LINKS[k]; label = k; break; }
+    }
+    if (!url) {
+      for (var k2 in SRC_LINKS) {
+        if (p.toUpperCase().indexOf(k2.toUpperCase()) >= 0) { url = SRC_LINKS[k2]; label = k2; break; }
+      }
+    }
+    var inner = esc(label);
+    if (url) inner = '<a href="' + url + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">' + esc(label) + '</a>';
+    return '<span class="kh-srcpill">' + inner + '</span>';
+  }).join(' ');
+}
 /* CELLS → HQ (dir-20261010-135720-3916): slugify a card question for the /cells?intel= founding-intel link */
 function cellSlug(q){ return String(q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60) || 'intel'; }
 /* data → propaganda handoff: card data into /create deep-link */
@@ -816,7 +851,7 @@ function cardEl(d){
     '<div class="kh-a">'+d.a+'</div>'+
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">▸ EXHIBIT — VERIFIED</div>'+ rowsHtml +
-      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<div class="kh-receipts">'+receiptPills(d.src)+'</div>'+
       '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-escal-slot">'+fmEscalationHtml(d)+'</div>'+
@@ -1104,9 +1139,9 @@ var RAILS = [
   { rail:'bills',       icon:'\uD83E\uDDFE', label:'BILLS',               probe:'Who profits from my bills?',          deep:'/economy' },
   { rail:'evictions',   icon:'\uD83D\uDCE6', label:'EVICTIONS',           probe:'Who is evicting people?',             deep:'/town' },
   { rail:'billionaires',icon:'\uD83D\uDCB0', label:'BILLIONAIRES',        probe:'How rich are the billionaires?',      deep:'/follow-the-money' },
-  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who stole the most wages?',           deep:'/follow-the-money' },
-  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital price-gouging?',       deep:'/town' },
-  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor stole the most?', deep:'/corruption-index' }
+  { rail:'labor',       icon:'\u270A',       label:'LABOR',               probe:'Who paid the most in wage settlements?',           deep:'/follow-the-money' },
+  { rail:'hospitals',   icon:'\uD83C\uDFE5', label:'HOSPITALS',           probe:'Is my hospital charging above average?',       deep:'/town' },
+  { rail:'economy',     icon:'\uD83D\uDCC9', label:'THE ECONOMY',         probe:'Which defense contractor paid the most in penalties?', deep:'/corruption-index' }
 ];
 function railOf(key){
   for(var i=0;i<RAILS.length;i++) if(RAILS[i].rail===key) return RAILS[i];
@@ -1125,7 +1160,7 @@ var ANCHORS = [
     ],
     src:'\u25B8 RECEIPTS \u2014 Forbes-2026', when:'audited', deep:'/follow-the-money' },
   { rail:'hospitals', kind:'inference',
-    q:'Is your hospital price-gouging?',
+    q:'Is your hospital charging above average?',
     a:'The average ER visit is billed at <b>$2,200</b> (CPT 99285). Karl tracks 6,000 hospitals\u2019 posted prices.',
     figures:[
       {label:'Avg ER billed charge', value:'$2,200', source:'CMS price transparency', chain:['CPT 99285 — high-severity ER visit','Billed charge, not what insurers pay','Posted under federal transparency rules']},
@@ -1140,7 +1175,7 @@ var ANCHORS = [
     ],
     src:'\u25B8 RECEIPTS \u2014 Dept. of Education', when:'audited', deep:'/follow-the-money' },
   { rail:'economy', kind:'inference',
-    q:'Which defense contractor stole the most?',
+    q:'Which defense contractor paid the most in penalties?',
     a:'Boeing paid <b>$2.5B</b> for the 737 MAX fraud conspiracy (DOJ, 2021) — on top of <b>$615M</b> in 2006. Total: <b>$3.1B</b>.',
     figures:[
       {label:'737 MAX fraud conspiracy', value:'$2.5B', source:'DOJ-2021', chain:['DOJ settlement, January 2021','Criminal fraud conspiracy — 737 MAX certification','The largest contractor penalty on record']},
@@ -1266,7 +1301,7 @@ function beefyCard(d){
     (figs ? '<div class="kh-figstrip">'+figs+'</div>' : '')+
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">\u25B8 EXHIBIT \u2014 VERIFIED</div>'+ rows +
-      '<div class="kh-receipts">'+esc(d.src)+'</div>'+
+      '<div class="kh-receipts">'+receiptPills(d.src)+'</div>'+
       '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-escal-slot">'+fmEscalationHtml(d)+'</div>'+
@@ -1391,7 +1426,7 @@ function fmEscalation(d){
   function has(){ for(var i=0;i<arguments.length;i++){ if(text.indexOf(arguments[i])>=0) return true; } return false; }
   if(has('hospital', 'markup', 'medicare')){
     esc.cta_type='model'; esc.cta_label="FIND YOUR HOSPITAL'S MARKUP"; esc.cta_url='/model?table=cms_hospital_prices';
-    esc.enemy_role = 'price-gouging while patients go bankrupt';
+    esc.enemy_role = 'charging above Medicare while patients go bankrupt';
   } else if(has('union', 'nlrb', 'labor')){
     esc.cta_type='rights'; esc.cta_label='KNOW YOUR RIGHTS';
     esc.cta_url='/karl?q=' + encodeURIComponent('What are my rights if my employer is union-busting?');
@@ -3083,7 +3118,7 @@ function shareImage(d, btn){
 
 /* ---------- 4. GO DEEPER ---------- */
 var FOLLOW_UPS = {
-  'boeing': ['Which defense contractor stole the most?', 'Defense contractor penalties', 'Boeing enforcement actions'],
+  'boeing': ['Which defense contractor paid the most in penalties?', 'Defense contractor penalties', 'Boeing enforcement actions'],
   'hospital': ['Hospital price gouging examples', 'Worst hospital markups', 'Healthcare CEO pay'],
   'fec': ['Who funds my congressman?', 'Top FEC donors', 'Dark money spending'],
   'prison': ['GEO Group contracts', 'Private prison profits', 'CoreCivic lobbying'],
@@ -3367,7 +3402,7 @@ function qHospital(raw){
       html+='<div class="pf-cq-compare">📍 '+esc(best.hospital_name||'Another hospital')+' nearby: <b>'+bmk.toFixed(1)+'×</b>. Same region. Different greed.</div>';
     html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions('table=cms_hospital_prices&filter='+encodeURIComponent('zip:starts:'+zip),
       createQS({mode:'custom',tpl:'statbomb',
-        headline:String(worst.hospital_name||'Hospital')+' price-gouging',
+        headline:String(worst.hospital_name||'Hospital')+' Medicare markup',
         stat:wmk.toFixed(1)+'×', stat_label:'Medicare markup',
         who:String(worst.hospital_name||''),
         sub:'Bills '+money(worst.avg_covered_charges)+' vs Medicare '+money(worst.avg_medicare_payments)+(wext>0?' · ~'+money(wext)+' extracted':''),

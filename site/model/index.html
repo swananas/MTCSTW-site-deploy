@@ -130,6 +130,21 @@
   .pf-contra-strip{margin:0 0 14px;background:#0d0d0d;border:1px solid #2a2a2a;border-left:3px solid #e5383b;border-radius:12px;padding:12px 14px;font-size:13px;color:#8a8478;line-height:1.55;}
   .pf-contra-strip b{color:#e5383b;}
   .pf-contra-strip .src{display:block;margin-top:6px;font-size:10px;letter-spacing:.08em;color:#5a554b;}
+  /* SAVED QUERIES */
+  #saved-list{display:flex;flex-direction:column;gap:10px;}
+  .saved-card{background:#0d0d0d;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;touch-action:manipulation;}
+  .saved-card:active{border-color:var(--rbright);}
+  .sq-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;}
+  .sq-name{color:var(--cream);font-weight:800;font-size:14px;line-height:1.35;flex:1;min-width:0;}
+  .sq-x{background:none;border:1px solid var(--line);border-radius:8px;color:var(--faint);font-size:12px;font-weight:700;width:28px;height:28px;flex:none;cursor:pointer;touch-action:manipulation;line-height:1;}
+  .sq-x:active{color:#fff;border-color:var(--rbright);}
+  .sq-meta{color:var(--dim);font-size:12px;line-height:1.5;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;}
+  .sq-date{color:var(--faint);font-size:11px;display:block;margin-top:2px;}
+  .sq-actions{display:flex;gap:8px;}
+  .sq-run{flex:1;background:var(--red);border:0;border-radius:10px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em;padding:10px 12px;cursor:pointer;touch-action:manipulation;}
+  .sq-run:active{transform:scale(.97);}
+  .sq-link{background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 12px;cursor:pointer;touch-action:manipulation;}
+  .sq-link:active{border-color:var(--rbright);}
 
 </style>
 </head>
@@ -189,6 +204,11 @@
       <div id="recent-tables" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
     </div>
     <div id="tbl-list"></div>
+  </div>
+
+  <div class="sec" id="saved-sec" hidden>
+    <h2>⭐ Saved queries</h2>
+    <div id="saved-list"></div>
   </div>
 
   <!-- 2. UNIFORM DATASET PAGE: detail panel when a table is selected -->
@@ -480,6 +500,96 @@ function renderRecent(){
     host.appendChild(b);
   });
 }
+/* ===== SAVED QUERIES: save, reuse, share — localStorage only, no backend ===== */
+var SAVED_KEY='pf_saved_queries_v1';
+function getSavedQueries(){
+  try{var s=JSON.parse(localStorage.getItem(SAVED_KEY)||'[]');return Array.isArray(s)?s:[];}
+  catch(e){return [];}
+}
+function setSavedQueries(a){
+  try{localStorage.setItem(SAVED_KEY,JSON.stringify(a));}catch(e){}
+}
+function saveCurrentQuery(name,t,cols,filters,limit,sort,dir){
+  var list=getSavedQueries();
+  list.unshift({
+    name:name,
+    table:t.name,
+    cols:cols.slice(),
+    filters:filters.map(function(f){return {col:f.col,op:f.op,value:f.value};}),
+    limit:limit, sort:sort||'', dir:dir||'desc',
+    created:Date.now()
+  });
+  setSavedQueries(list);
+  renderSaved();
+}
+function savedFilterSummary(sq){
+  return ((sq.filters||[]).map(function(f){return f.col+' '+f.op+' '+f.value;}).join(' · '))||'all rows';
+}
+function loadSavedQuery(sq){
+  var t=tableByName(sq.table);
+  if(!t||!t.available){status('That table isn\u2019t live right now.',true);return;}
+  selectTable(sq.table);
+  var all={};
+  (t.columns||[]).forEach(function(c){all[c.name]=false;});
+  (sq.cols||[]).forEach(function(c){if(Object.prototype.hasOwnProperty.call(all,c))all[c]=true;});
+  state.cols=all;renderCols();
+  state.filters=(sq.filters||[]).map(function(f){return {col:f.col,op:f.op,value:f.value};});
+  renderFilters();
+  $id('limit-in').value=sq.limit||25;
+  $id('sort-sel').value=sq.sort||'';
+  $id('dir-sel').value=sq.dir||'desc';
+  status('Loaded "'+sq.name+'".');
+  runQuery();
+  var r=$id('results');
+  if(r&&r.scrollIntoView){try{r.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}}
+}
+function deleteSavedQuery(idx){
+  var l=getSavedQueries();l.splice(idx,1);setSavedQueries(l);renderSaved();
+}
+function savedQueryLink(sq){
+  var u='/model/?table='+encodeURIComponent(sq.table);
+  var f=(sq.filters||[])[0];
+  if(f&&f.col&&String(f.value).trim())u+='&filter='+encodeURIComponent(f.col+':'+f.op+':'+f.value);
+  return u;
+}
+function copySavedLink(sq){
+  var link=location.origin+savedQueryLink(sq);
+  function done(){status('Link copied — share it anywhere.');}
+  function fallback(){
+    var ta=document.createElement('textarea');ta.value=link;
+    ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done,function(){fallback();done();});
+  }else{fallback();done();}
+}
+function renderSaved(){
+  var sec=$id('saved-sec'),host=$id('saved-list');
+  if(!sec||!host)return;
+  var list=getSavedQueries();
+  if(!list.length){sec.hidden=true;host.innerHTML='';return;}
+  sec.hidden=false;host.innerHTML='';
+  list.forEach(function(sq,idx){
+    var t=tableByName(sq.table);
+    var card=document.createElement('div');card.className='saved-card';
+    var dt='';try{dt=new Date(sq.created).toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){}
+    card.innerHTML=
+      '<div class="sq-head"><div class="sq-name">'+esc(sq.name)+'</div>'+
+      '<button class="sq-x" type="button" aria-label="Delete saved query">✕</button></div>'+
+      '<div class="sq-meta">'+esc(t?t.label:sq.table)+' · '+esc(savedFilterSummary(sq))+
+      (dt?'<span class="sq-date">saved '+esc(dt)+'</span>':'')+'</div>'+
+      '<div class="sq-actions"><button class="sq-run" type="button">▶ RUN</button>'+
+      '<button class="sq-link" type="button">🔗 COPY LINK</button></div>';
+    card.addEventListener('click',function(){loadSavedQuery(sq);});
+    card.querySelector('.sq-run').addEventListener('click',function(ev){ev.stopPropagation();loadSavedQuery(sq);});
+    card.querySelector('.sq-x').addEventListener('click',function(ev){ev.stopPropagation();deleteSavedQuery(idx);});
+    card.querySelector('.sq-link').addEventListener('click',function(ev){ev.stopPropagation();copySavedLink(sq);});
+    host.appendChild(card);
+  });
+}
 function renderCols(){
   var host=$id('col-chips');host.innerHTML='';
   var t=tableByName(state.table);if(!t)return;
@@ -566,10 +676,20 @@ function renderResults(t,d,cols,filters,limit,sort,dir){
   var karlQ=nlSummary(t,d,cols,filters,limit,sort,dir);
   var acts='<div class="ractions">'+
     '<button class="btn" id="ask-karl" type="button">🧠 ASK KARL ABOUT THIS</button>'+
-    '<button class="btn" id="csv-exp" type="button">⬇ CSV</button></div>';
+    '<button class="btn" id="csv-exp" type="button">⬇ CSV</button>'+
+    '<button class="btn" id="save-query" type="button">💾 SAVE QUERY</button></div>';
   host.innerHTML=head+tbl+acts;
   $id('ask-karl').addEventListener('click',function(){
     window.location.href='/karl/?q='+encodeURIComponent(karlQ);
+  });
+  $id('save-query').addEventListener('click',function(){
+    var def=t.label+(filters.length?' — '+filters.map(function(f){return f.col+' '+f.op+' '+f.value;}).join(', '):' — all rows');
+    var name=null;
+    try{name=prompt('Name this query:',def.slice(0,80));}catch(e){}
+    if(name===null)return;
+    name=String(name).trim()||def.slice(0,80);
+    saveCurrentQuery(name,t,cols,filters,limit,sort,dir);
+    status('Saved "'+name+'" — find it under Saved queries.');
   });
   $id('csv-exp').addEventListener('click',function(){
     var lines=[cols.map(csvCell).join(',')];
@@ -1214,7 +1334,7 @@ apiGet('model_tables',{}).then(function(d){
   var total=0;(d.tables||[]).forEach(function(t){if(t.available)total+=t.rows;});
   $id('msl-rows').textContent=total.toLocaleString('en-US');
   renderPresets();renderLookupYou();renderTables('');
-  renderRecent();
+  renderRecent();renderSaved();
   if(!applyDeepLink()){
     status(catalog.filter(function(t){return t.available;}).length+' live tables · '+total.toLocaleString('en-US')+' rows. Pick one to start modeling.');
   }

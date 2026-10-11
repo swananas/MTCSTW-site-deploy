@@ -100,6 +100,16 @@
   .narr-more{display:block;text-align:center;color:var(--rbright);font-size:13px;font-weight:700;padding:10px;text-decoration:none;}
   /* Table detail panel (uniform dataset page) */
   .tbl-detail{background:rgba(193,18,31,.05);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px;}
+  /* derived metrics: insights panel */
+  .insights{display:flex;flex-direction:column;gap:10px;}
+  .insight{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:14px 16px;}
+  .ins-label{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--red);margin-bottom:4px;}
+  .ins-value{font-size:28px;font-weight:800;color:var(--cream);margin-bottom:4px;}
+  .ins-ctx{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:8px;}
+  .ins-items{margin:8px 0;}
+  .ins-item{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #222;font-size:13px;color:var(--dim);}
+  .ins-item b{color:var(--cream);white-space:nowrap;}
+  .ins-weapon{margin-top:6px;}
   .tbl-detail h3{margin:0 0 6px;font-size:15px;}
   .tbl-detail .m{font-size:12px;color:var(--dim);line-height:1.5;margin:6px 0;}
   .tbl-detail .m b{color:var(--cream);}
@@ -214,6 +224,11 @@
   <!-- 2. UNIFORM DATASET PAGE: detail panel when a table is selected -->
   <div class="sec" id="tbl-detail-sec" hidden>
     <div class="tbl-detail" id="tbl-detail"></div>
+  </div>
+
+  <!-- 2b. DERIVED METRICS: what the data means (ProPublica-style insights) -->
+  <div class="sec" id="insights-sec" hidden>
+    <div id="insights"></div>
   </div>
 
   <div class="sec" id="builder-sec" hidden>
@@ -418,6 +433,7 @@ function selectTable(name){
   $id('filter-sec').hidden=false;
   renderCols();renderFilters();renderTables($id('tbl-search').value);
   renderTableDetail(t); /* KeyVex-inspired: uniform dataset page */
+  renderInsights(name); /* derived metrics: what the data means */
   var ss=$id('sort-sel');ss.innerHTML='<option value="">(none)</option>';
   t.columns.forEach(function(c){var o=document.createElement('option');o.value=c.name;o.textContent=c.name;ss.appendChild(o);});
   status('Table: '+t.label+' — '+t.rows.toLocaleString('en-US')+' rows. Tap columns off to narrow, add filters, hit RUN.');
@@ -821,8 +837,54 @@ function renderNarratives(d){
   }
 }
 /* 2. UNIFORM DATASET PAGE: detail panel on table select */
-function renderTableDetail(t){
-  var sec=$id('tbl-detail-sec');
+/* DERIVED METRICS (2026-10-11): fetch ?action=model_insights and render the
+   "what the data means" panel above the raw table. Each insight with a
+   create payload gets a WEAPONIZE button that deep-links into /create. */
+var insightCache=[];
+function insightCreateUrl(c){
+  var p={mode:c.mode||'custom',tpl:c.tpl||'statbomb',
+    headline:c.headline||'',stat:c.stat||'',stat_label:c.stat_label||'',source:c.source||''};
+  if(c.who)p.who=c.who;
+  if(c.sub)p.sub=c.sub;
+  return '/create/?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+}
+function renderInsights(tableName){
+  var sec=$id('insights-sec'),host=$id('insights');
+  if(!sec||!host)return;
+  sec.hidden=true;host.innerHTML='';insightCache=[];
+  if(!tableName)return;
+  apiGet('model_insights',{table:tableName}).then(function(d){
+    if(!d||d.ok!==true||!d.insights||!d.insights.length)return;
+    insightCache=d.insights;
+    var h='<h2>\u26a1 What the data means</h2><div class="insights">';
+    d.insights.forEach(function(ins,idx){
+      h+='<div class="insight"><div class="ins-label">'+esc(ins.label)+'</div>';
+      if(ins.value!=null)h+='<div class="ins-value">'+esc(ins.value)+'</div>';
+      if(ins.context)h+='<div class="ins-ctx">'+esc(ins.context)+'</div>';
+      if(ins.items&&ins.items.length){
+        h+='<div class="ins-items">';
+        ins.items.forEach(function(it){
+          h+='<div class="ins-item"><span>'+esc(it.name)+'</span><b>'+esc(it.value)+'</b></div>';
+        });
+        h+='</div>';
+      }
+      if(ins.create)h+='<button class="btn ins-weapon" type="button" data-idx="'+idx+'">\ud83c\udfa8 WEAPONIZE</button>';
+      h+='</div>';
+    });
+    h+='</div>';
+    host.innerHTML=h;sec.hidden=false;
+    var btns=host.querySelectorAll('.ins-weapon');
+    for(var i=0;i<btns.length;i++){
+      (function(b){
+        b.addEventListener('click',function(){
+          var c=insightCache[Number(b.getAttribute('data-idx'))];
+          if(c&&c.create)window.location.href=insightCreateUrl(c.create);
+        });
+      })(btns[i]);
+    }
+  }).catch(function(){/* insights are optional — never break the page */});
+}
+function renderTableDetail(t){  var sec=$id('tbl-detail-sec');
   var host=$id('tbl-detail');
   if(!t||!t.available){sec.hidden=true;return;}
   var h='<h3>'+esc(t.label)+'</h3>';

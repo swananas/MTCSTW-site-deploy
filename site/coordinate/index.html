@@ -531,7 +531,7 @@ try { wireForm(); loadCampaigns(); loadTargets(); } catch(e){}
 // Minimal SW registration (homepage is zero-JS otherwise)
 // Forces PWA to update to latest SW on each visit
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').then(function(r){
+  navigator.serviceWorker.register('/sw.js?v=20261011-0156').then(function(r){
     // Check for updates
     r.update();
   }).catch(function(){});

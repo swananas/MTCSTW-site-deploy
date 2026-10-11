@@ -106,6 +106,7 @@
 <div id="pf-boot">
 <header class="pf-topbar">
   <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
     <a href="/" class="pf-topbar-brand" onclick="window.location.href='/';return false;">MTC<span>STW</span></a>
     <nav class="pf-pillars-nav" aria-label="Mission pillars">
       <a class="pf-pillar" href="/create">CREATE</a>
@@ -116,6 +117,81 @@
   </div>
   <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
 </header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav-overlay.open{opacity:1;pointer-events:auto}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+  </div>
+  <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+  var sx=null;
+  nav.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; }, {passive:true});
+  nav.addEventListener('touchmove', function(e){
+    if(sx===null) return;
+    var dx=e.touches[0].clientX - sx;
+    if(dx < -60){ close(); sx=null; }
+  }, {passive:true});
+})();
+</script>
+
 <main id="main">
   <div id="pf-academy-hq"></div>
 </main>

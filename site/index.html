@@ -340,6 +340,14 @@
     color:#e8b32a; border:1px solid #e8b32a; border-radius:999px;
     padding:5px 12px; margin-bottom:10px; background:rgba(232,179,42,.08);
   }
+  #pf-karl-home .kh-bbadge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:ui-monospace,Menlo,monospace; font-size:10px; font-weight:700; letter-spacing:.18em;
+    color:#fff; background:#c1121f; border-radius:999px;
+    padding:5px 12px; margin-bottom:10px;
+    animation:kh-blink 1.5s infinite;
+  }
+  @keyframes kh-blink{0%,100%{opacity:1}50%{opacity:.7}}
 
   
   /* ============ CURIOSITY HOOKS v2 — Google-reviewed (feat: curiosity hooks v2) ============ */
@@ -815,11 +823,13 @@ function cardEl(d){
   var rowsHtml = (d.rows||[]).slice(0,4).map(function(r){
     return '<div class="kh-proof-row"><span class="k">'+esc(r[0])+'</span><span class="v">'+esc(r[1])+'</span></div>';
   }).join('');
-  var badge = ftag === 'comrade'
+  var badge = d._breaking
+    ? '<div class="kh-bbadge">🔴 BREAKING</div>'
+    : (ftag === 'comrade'
     ? '<div class="kh-dbadge">✊ COMRADE FOUND</div>'
     : (ftag === 'karl'
       ? '<div class="kh-kbadge">🧠 KARL NOTICED</div>'
-      : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>');
+      : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>'));
   el.innerHTML =
     badge+
     '<div class="kh-q">'+esc(d.q)+'</div>'+
@@ -827,7 +837,7 @@ function cardEl(d){
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">▸ EXHIBIT — VERIFIED</div>'+ rowsHtml +
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
-      '<button class="kh-deploy-btn">DEPLOY</button>'+
+      '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
@@ -884,10 +894,10 @@ function cardEl(d){
     } else { markDeployed(); }
     function markDeployed(){
       btn.classList.add('kh-done');
-      btn.textContent = 'DEPLOYED \u2713';
+      btn.textContent = 'SHARED \u2713';
       d.deploys = (d.deploys||0)+1;
       nEl.textContent = fmt(d.deploys);
-      showToast('Deployed — the robbery report grows');
+      showToast('Shared — the robbery report grows');
       fmTrackByQ(d.q, 'share');
     }
   });
@@ -1184,7 +1194,7 @@ function khSheet(cfg){
     (chain ? '<ul class="bt-sheet-chain">'+chain+'</ul>' : '')+
     '<div style="font-size:11px;color:#5a554b;letter-spacing:.06em;margin:10px 0">SOURCE \u2014 '+esc(cfg.source)+'</div>'+
     '<div class="bt-sheet-actions">'+
-    '<button class="bt-act bt-act-deploy">DEPLOY</button>'+
+    '<button class="bt-act bt-act-deploy">SHARE</button>'+
     '<button class="bt-act bt-act-ask">ASK KARL</button>'+
     '<button class="bt-act bt-act-weaponize">🎨 MAKE PROPAGANDA</button>'+
     '</div></div>';
@@ -1271,7 +1281,7 @@ function beefyCard(d){
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">\u25B8 EXHIBIT \u2014 VERIFIED</div>'+ rows +
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
-      '<button class="kh-deploy-btn">DEPLOY</button>'+
+      '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
@@ -1315,8 +1325,8 @@ function beefyCard(d){
     if(btn.classList.contains('kh-done')) return;
     var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
     var markDeployed = function(){
-      btn.classList.add('kh-done'); btn.textContent = 'DEPLOYED \u2713';
-      showToast('Deployed — the robbery report grows');
+      btn.classList.add('kh-done'); btn.textContent = 'SHARED \u2713';
+      showToast('Shared — the robbery report grows');
       recordDiscovery(d);
       fmTrackByQ(d.q, 'share');
     };
@@ -1771,7 +1781,52 @@ function ActivitySource(){
   };
 }
 
+
+/* ---- source: breaking news — recent enforcement (<48h), top priority ---- */
+function BreakingSource(){
+  var buf = [], fetched = false, idx = 0;
+  function ensure(){
+    if(fetched) return Promise.resolve();
+    fetched = true;
+    return fetch(API + 'data_pulse', {cache: 'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || d.ok !== true || !d.enforcement_latest) return;
+        var now = Date.now();
+        var cutoff = now - (48 * 3600000); /* 48 hours */
+        d.enforcement_latest.forEach(function(e){
+          var pubDate = e.published_date ? new Date(e.published_date).getTime() : 0;
+          /* include if recent OR if no date (assume fresh from pulse) */
+          if(pubDate >= cutoff || !e.published_date){
+            buf.push({d: {
+              q: '\uD83D\uDD34 BREAKING: ' + String(e.title || 'Enforcement action').slice(0, 80),
+              a: esc(String(e.agency_component || 'Federal enforcement')) + ' — ' +
+                 '<a href="' + esc(e.url || '#') + '" target="_blank" rel="noopener" style="color:#e5383b;font-weight:700">Read the filing \u2192</a>',
+              rows: [['Agency', String(e.agency_component || '\u2014').slice(0, 40)],
+                     ['Date', String(e.published_date || 'Recent').slice(0, 20)]],
+              src: '\u25B8 RECEIPTS \u2014 ' + String(e.agency_component || 'Enforcement').split(' - ')[0],
+              deploys: 0, when: e.published_date || 'live', _tag: 'robbery',
+              _breaking: true, _pubTime: pubDate || now
+            }, kind: 'spine'});
+          }
+        });
+      }).catch(function(){}); /* fail-open */
+  }
+  return {
+    name: 'breaking', sync: false,
+    loadMore: function(n){
+      return ensure().then(function(){
+        var out = buf.slice(idx, idx + n);
+        idx += out.length;
+        return out;
+      });
+    },
+    exhausted: function(){ return fetched && idx >= buf.length; }
+  };
+}
+
 var FM_SOURCES = {
+  breaking: BreakingSource(),
   feedCards: FeedCardsSource(),
   karlRail: KarlRailSource(),
   anchor: AnchorSource(),
@@ -1799,11 +1854,12 @@ var FM_SOURCES = {
    ========================================================================== */
 var FM_W = {
   freshMax: 30, freshTau: 48,
-  auth: { feedCards: 25, karlRail: 20, anchor: 15, seed: 10, discovery: 5, ugc: 20,
+  auth: { breaking: 30, feedCards: 25, karlRail: 20, anchor: 15, seed: 10, discovery: 5, ugc: 20,
           lb: 15, mission: 15, game: 12, tools: 18, activity: 15 },
   engMax: 20, engK: 4,
   provVerified: 15, provRaw: 10, provCalc: 5, provEst: 0,
   prefMax: 10,
+  recency24: 15, recency48: 10, recency7d: 5, recencyStale: -20,
   divPenalty: 10, divStreak: 3,
   refillPerSource: 3
 };
@@ -1881,6 +1937,7 @@ function fmProvScore(item){
   if(item._src === 'game') return FM_W.provCalc;               /* invitational */
   if(item._src === 'tools') return FM_W.provCalc;              /* derived insights */
   if(item._src === 'activity') return FM_W.provRaw;            /* live counts */
+  if(item._src === 'breaking') return FM_W.provRaw;             /* fresh enforcement */
   return FM_W.provCalc; /* seed */
 }
 function fmPrefScore(tag, prefMap){
@@ -1893,6 +1950,16 @@ function fmScoreCard(item, engMap, prefMap, now){
   if(!fmBorn[id]) fmBorn[id] = now;
   var ageH = Math.max(0, (now - fmBorn[id]) / 3600000);
   var fresh = FM_W.freshMax * Math.exp(-ageH / FM_W.freshTau);
+  /* recency boost: chronological freshness layered into the algo */
+  var recency = 0;
+  var pubTime = (item.d && item.d._pubTime) || fmBorn[id];
+  var pubAgeH = Math.max(0, (now - pubTime) / 3600000);
+  if(pubAgeH < 24) recency = FM_W.recency24;
+  else if(pubAgeH < 48) recency = FM_W.recency48;
+  else if(pubAgeH < 168) recency = FM_W.recency7d;
+  else if(pubAgeH > 720) recency = FM_W.recencyStale;
+  /* breaking news: freshness x2 if <48h old */
+  if(item.d && item.d._breaking && pubAgeH < 48) fresh = fresh * 2;
   var auth = FM_W.auth[item._src] || 10;
   var r = engMap[id], eng = 0;
   if(r && r.impressions > 0){
@@ -1900,8 +1967,8 @@ function fmScoreCard(item, engMap, prefMap, now){
   }
   var prov = fmProvScore(item);
   var pref = fmPrefScore(fmTagOf(item), prefMap);
-  return { id: id, score: fresh + auth + eng + prov + pref,
-    parts: { fresh: fresh, auth: auth, eng: eng, prov: prov, pref: pref } };
+  return { id: id, score: fresh + auth + eng + prov + pref + recency,
+    parts: { fresh: fresh, auth: auth, eng: eng, prov: prov, pref: pref, recency: recency } };
 }
 function fmDivPenalty(item, trail){
   var n = FM_W.divStreak - 1;
@@ -1979,7 +2046,8 @@ function fmRank(n, tab){
       s.item._dbg = 'Score ' + r2(s.total) +
         ' (fresh:' + r2(p.fresh) + ' auth:' + r2(p.auth) +
         ' eng:' + r2(p.eng) + ' prov:' + r2(p.prov) +
-        ' pref:' + r2(p.pref) + ' div:-' + r2(s.penalty) + ')';
+        ' pref:' + r2(p.pref) + ' recency:' + r2(p.recency) +
+        ' div:-' + r2(s.penalty) + ')';
     });
   }
   return picked;
@@ -3238,7 +3306,7 @@ function predReveal(){
       stat:actual.toFixed(1)+'×', stat_label:'Medicare markup',
       who:String(predData.hospital_name||''),
       sub:'You guessed '+(guess/100).toFixed(1)+'×. They bill '+money(predData.avg_covered_charges)+' for '+String(predData.procedure_desc||'').toLowerCase(),
-      source:'CMS Hospital Prices via MTCSTW'})+'">WEAPONIZE THIS →</a><a class="pf-cq-act" href="/cells">FIND A CELL →</a></div>';
+      source:'CMS Hospital Prices via MTCSTW'})+'">MAKE PROPAGANDA →</a><a class="pf-cq-act" href="/cells">FIND A CELL →</a></div>';
   $id('pf-pred-a').hidden=false;
   var btn=$id('pf-pred-btn');if(btn)btn.disabled=true;
 }
@@ -3314,5 +3382,46 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 <script>
 (function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
 </script>
+<!-- PF PANIC BUTTON (site-wide) -->
+<style>
+.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1px solid #333;color:#8a8478;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
+.pf-panic:active{opacity:1;transform:scale(.92);}
+</style>
+<button class="pf-panic" id="pf-panic" aria-label="Panic button: wipe all local data">&#x1F6A8;</button>
+<script>
+(function(){
+  var b=document.getElementById('pf-panic');
+  if(!b||b.dataset.pfPanic) return;
+  b.dataset.pfPanic='1';
+  b.addEventListener('click',function(){
+    if(!confirm('Wipe all local data? Nobody saw anything. \uD83E\uDEE1')) return;
+    try{localStorage.clear();}catch(e){}
+    try{sessionStorage.clear();}catch(e){}
+    try{
+      if(window.indexedDB&&indexedDB.databases){
+        indexedDB.databases().then(function(dbs){
+          (dbs||[]).forEach(function(db){try{indexedDB.deleteDatabase(db.name);}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(window.caches&&caches.keys){
+        caches.keys().then(function(names){
+          (names||[]).forEach(function(n){caches.delete(n);});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          (regs||[]).forEach(function(r){try{r.unregister();}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    setTimeout(function(){window.location.replace('https://weather.com');},800);
+  });
+})();
+</script>
+
 </body>
 </html>

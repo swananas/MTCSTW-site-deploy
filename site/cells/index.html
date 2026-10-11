@@ -557,7 +557,7 @@ function cardEl(d){
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">▸ EXHIBIT — VERIFIED</div>'+ rowsHtml +
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
-      '<button class="kh-deploy-btn">DEPLOY</button>'+
+      '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
@@ -567,7 +567,7 @@ function cardEl(d){
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
     '<div class="kh-related" style="display:none"><div class="kh-related-title">MORE LIKE THIS</div><div class="kh-rel-list"></div></div>'+
     '<div class="kh-card-meta">'+
-      '<span class="kh-deploys"><span class="n">'+fmt(d.deploys)+'</span> deployed</span>'+
+      '<span class="kh-deploys"><span class="n">'+fmt(d.deploys)+'</span> shared</span>'+
       '<span><span class="kh-src">'+esc(String(d.src).split('—')[0].trim())+'</span> &middot; '+esc(d.when)+'</span>'+
     '</div>';
   el.addEventListener('click', function(e){
@@ -602,10 +602,10 @@ function cardEl(d){
     } else { markDeployed(); }
     function markDeployed(){
       btn.classList.add('kh-done');
-      btn.textContent = 'DEPLOYED \u2713';
+      btn.textContent = 'SHARED \u2713';
       d.deploys = (d.deploys||0)+1;
       nEl.textContent = fmt(d.deploys);
-      showToast('Deployed — the robbery report grows');
+      showToast('Shared — the robbery report grows');
     }
   });
   return el;
@@ -880,7 +880,7 @@ function khSheet(cfg){
     (chain ? '<ul class="bt-sheet-chain">'+chain+'</ul>' : '')+
     '<div style="font-size:11px;color:#5a554b;letter-spacing:.06em;margin:10px 0">SOURCE \u2014 '+esc(cfg.source)+'</div>'+
     '<div class="bt-sheet-actions">'+
-    '<button class="bt-act bt-act-deploy">DEPLOY</button>'+
+    '<button class="bt-act bt-act-deploy">SHARE</button>'+
     '<button class="bt-act bt-act-ask">ASK KARL</button>'+
     '</div></div>';
   document.body.appendChild(scrim); document.body.appendChild(sheet);
@@ -902,7 +902,7 @@ function khSheet(cfg){
   });
   sheet.querySelector('.bt-act-deploy').addEventListener('click', function(){
     var txt = cfg.figure+' — '+cfg.label+' — via KARL at mtcstw.com';
-    var done = function(){ showToast('Deployed — spread it'); khSheetClose(); };
+    var done = function(){ showToast('Shared — spread it'); khSheetClose(); };
     if(navigator.share){ navigator.share({title:'KARL Discovery', text:txt, url:'https://mtcstw.com/'}).then(done).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(done); }
     else done();
@@ -954,7 +954,7 @@ function beefyCard(d){
     '<div class="kh-proof">'+
       '<div class="kh-exhibit">\u25B8 EXHIBIT \u2014 VERIFIED</div>'+ rows +
       '<div class="kh-receipts">'+esc(d.src)+'</div>'+
-      '<button class="kh-deploy-btn">DEPLOY</button>'+
+      '<button class="kh-deploy-btn">SHARE</button>'+
     '</div>'+
     '<div class="kh-card-actions" style="display:none">'+
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
@@ -986,8 +986,8 @@ function beefyCard(d){
     if(btn.classList.contains('kh-done')) return;
     var shareText = d.q + "\n\n" + d.a.replace(/<[^>]*>/g, '') + "\n\n— via KARL at mtcstw.com";
     var markDeployed = function(){
-      btn.classList.add('kh-done'); btn.textContent = 'DEPLOYED \u2713';
-      showToast('Deployed — the robbery report grows');
+      btn.classList.add('kh-done'); btn.textContent = 'SHARED \u2713';
+      showToast('Shared — the robbery report grows');
       recordDiscovery(d);
     };
     if(navigator.share){
@@ -1598,7 +1598,7 @@ function go(){
     if(prs.length)html+='<div class="pf-cq-line"><b>'+prs.length+'</b> private prison contract'+(prs.length===1?'':'s')+': <b>'+money(pv)+'</b> extracted.</div>';
     html+='<div class="pf-cq-line dim">Bring these numbers to your cell.</div>';
     html+='<div class="pf-cq-src">SOURCE: EVICTION LAB + CONTRACT RECORDS VIA MTCSTW RAILS</div>';
-    html+='<div class="pf-cq-actions"><a class="pf-cq-act" href="/model/?table=eviction_county_estimates&filter='+encodeURIComponent('state:eq:'+st)+'">MODEL IT →</a><a class="pf-cq-act" href="/create">WEAPONIZE →</a></div>';
+    html+='<div class="pf-cq-actions"><a class="pf-cq-act" href="/model/?table=eviction_county_estimates&filter='+encodeURIComponent('state:eq:'+st)+'">MODEL IT →</a><a class="pf-cq-act" href="/create">MAKE PROPAGANDA →</a></div>';
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -1633,5 +1633,46 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 <script>
 (function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
 </script>
+<!-- PF PANIC BUTTON (site-wide) -->
+<style>
+.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1px solid #333;color:#8a8478;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
+.pf-panic:active{opacity:1;transform:scale(.92);}
+</style>
+<button class="pf-panic" id="pf-panic" aria-label="Panic button: wipe all local data">&#x1F6A8;</button>
+<script>
+(function(){
+  var b=document.getElementById('pf-panic');
+  if(!b||b.dataset.pfPanic) return;
+  b.dataset.pfPanic='1';
+  b.addEventListener('click',function(){
+    if(!confirm('Wipe all local data? Nobody saw anything. \uD83E\uDEE1')) return;
+    try{localStorage.clear();}catch(e){}
+    try{sessionStorage.clear();}catch(e){}
+    try{
+      if(window.indexedDB&&indexedDB.databases){
+        indexedDB.databases().then(function(dbs){
+          (dbs||[]).forEach(function(db){try{indexedDB.deleteDatabase(db.name);}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(window.caches&&caches.keys){
+        caches.keys().then(function(names){
+          (names||[]).forEach(function(n){caches.delete(n);});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          (regs||[]).forEach(function(r){try{r.unregister();}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    setTimeout(function(){window.location.replace('https://weather.com');},800);
+  });
+})();
+</script>
+
 </body>
 </html>

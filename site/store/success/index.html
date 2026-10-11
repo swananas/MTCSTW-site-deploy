@@ -97,5 +97,46 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 <script>
 (function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
 </script>
+<!-- PF PANIC BUTTON (site-wide) -->
+<style>
+.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1px solid #333;color:#8a8478;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
+.pf-panic:active{opacity:1;transform:scale(.92);}
+</style>
+<button class="pf-panic" id="pf-panic" aria-label="Panic button: wipe all local data">&#x1F6A8;</button>
+<script>
+(function(){
+  var b=document.getElementById('pf-panic');
+  if(!b||b.dataset.pfPanic) return;
+  b.dataset.pfPanic='1';
+  b.addEventListener('click',function(){
+    if(!confirm('Wipe all local data? Nobody saw anything. \uD83E\uDEE1')) return;
+    try{localStorage.clear();}catch(e){}
+    try{sessionStorage.clear();}catch(e){}
+    try{
+      if(window.indexedDB&&indexedDB.databases){
+        indexedDB.databases().then(function(dbs){
+          (dbs||[]).forEach(function(db){try{indexedDB.deleteDatabase(db.name);}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(window.caches&&caches.keys){
+        caches.keys().then(function(names){
+          (names||[]).forEach(function(n){caches.delete(n);});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    try{
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          (regs||[]).forEach(function(r){try{r.unregister();}catch(e){}});
+        }).catch(function(){});
+      }
+    }catch(e){}
+    setTimeout(function(){window.location.replace('https://weather.com');},800);
+  });
+})();
+</script>
+
 </body>
 </html>

@@ -241,7 +241,7 @@
 
   <!-- 5. CROSS-LINKING: data → action -->
   <div class="xlinks">
-    <a class="xlink" href="/create"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
+    <a class="xlink" id="xlink-weaponize" href="/create"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
     <a class="xlink" href="/cells"><span>👥</span>FIND YOUR CELL</a>
     <a class="xlink" href="/coordinate"><span>🎯</span>COORDINATE<br>ACTION</a>
   </div>
@@ -259,6 +259,7 @@
         <button id="netmap-expand" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">SHOW ALL</button>
         <button id="netmap-reset" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">RESET VIEW</button>
         <button id="netmap-story" type="button" hidden style="background:#c1121f;border:0;border-radius:10px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em;padding:10px 18px;cursor:pointer;touch-action:manipulation;">📖 TELL THE STORY</button>
+        <button id="netmap-weaponize" type="button" hidden style="background:#c1121f;border:0;border-radius:10px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em;padding:10px 18px;cursor:pointer;touch-action:manipulation;">🎨 WEAPONIZE THIS MAP</button>
       </div>
       <!-- STORY BUILDER -->
       <div id="netmap-story-builder" hidden style="margin-top:12px;background:#111;border:1px solid #232323;border-radius:12px;padding:14px;">
@@ -653,6 +654,40 @@ function nlSummary(t,d,cols,filters,limit,sort,dir){
   if(sort)s+=' sorted by '+sort+' '+(dir==='asc'?'ascending':'descending');
   return s.slice(0,400);
 }
+/* data → propaganda handoff: build a /create deep-link from query results.
+   Picks the most impactful stat (largest number in first row) and a name-ish who. */
+function weaponizeUrl(t,d,cols,filters){
+  var rows=(d&&d.rows)||[];
+  var first=rows[0]||{};
+  var bestCol=null,bestVal=-Infinity;
+  cols.forEach(function(c){
+    var v=Number(first[c]);
+    if(isFinite(v)&&v>bestVal){bestVal=v;bestCol=c;}
+  });
+  var isMoney=bestCol&&/amount|value|charges|payments|wealth|spend|cost|price|penalt|fees|revenue|profit/i.test(bestCol);
+  var stat=(bestCol&&isFinite(bestVal)&&bestVal>0)
+    ?(isMoney?'$':'')+fmtNum(bestVal)
+    :String((d&&d.count)||'');
+  var statLabel=bestCol?bestCol.replace(/_/g,' '):'results';
+  var who='';
+  var nameCols=['company','hospital_name','entity_name','name','candidate_name','contractor','facility_name','donor_name','employer','billionaire','recipient_name','agency'];
+  for(var i=0;i<nameCols.length;i++){ if(first[nameCols[i]]!=null&&String(first[nameCols[i]]).trim()){who=String(first[nameCols[i]]);break;} }
+  if(!who){
+    for(var j=0;j<cols.length;j++){
+      var v=first[cols[j]];
+      if(v!=null&&String(v).trim()&&isNaN(Number(v))&&String(v).length<80&&cols[j]!=='url'){who=String(v);break;}
+    }
+  }
+  var fsum=(filters||[]).map(function(f){return f.col+' '+f.op+' '+f.value;}).join(', ');
+  var p={
+    mode:'custom', tpl:'statbomb',
+    headline:((t&&t.label)||'Data')+(fsum?' — '+fsum:''),
+    stat:stat, stat_label:statLabel,
+    who:who, sub:((d&&d.count)||0)+' rows from the rails',
+    source:'MTCSTW rails · '+((t&&t.label)||'')
+  };
+  return '/create/?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+}
 function renderResults(t,d,cols,filters,limit,sort,dir){
   var host=$id('results');
   var head='<div class="rhead">Found <b>'+d.count+'</b> row'+(d.count===1?'':'s')+' in <b>'+esc(t.label)+'</b>'+
@@ -676,12 +711,19 @@ function renderResults(t,d,cols,filters,limit,sort,dir){
   var karlQ=nlSummary(t,d,cols,filters,limit,sort,dir);
   var acts='<div class="ractions">'+
     '<button class="btn" id="ask-karl" type="button">🧠 ASK KARL ABOUT THIS</button>'+
+    '<button class="btn" id="weaponize" type="button">🎨 MAKE PROPAGANDA</button>'+
     '<button class="btn" id="csv-exp" type="button">⬇ CSV</button>'+
     '<button class="btn" id="save-query" type="button">💾 SAVE QUERY</button></div>';
   host.innerHTML=head+tbl+acts;
   $id('ask-karl').addEventListener('click',function(){
     window.location.href='/karl/?q='+encodeURIComponent(karlQ);
   });
+  $id('weaponize').addEventListener('click',function(){
+    window.location.href=weaponizeUrl(t,d,cols,filters);
+  });
+  /* keep the static cross-link honest: carry the data too */
+  var xl=$id('xlink-weaponize');
+  if(xl) xl.href=weaponizeUrl(t,d,cols,filters);
   $id('save-query').addEventListener('click',function(){
     var def=t.label+(filters.length?' — '+filters.map(function(f){return f.col+' '+f.op+' '+f.value;}).join(', '):' — all rows');
     var name=null;
@@ -1026,13 +1068,40 @@ function netSearch(){
   });
 }
 function netUpdateButtons(){
-  var exp=$id('netmap-expand'),rst=$id('netmap-reset'),story=$id('netmap-story');
+  var exp=$id('netmap-expand'),rst=$id('netmap-reset'),story=$id('netmap-story'),weap=$id('netmap-weaponize');
   var hidden=netState.nodes.length<=NET_MAX_DEFAULT;
   if(exp){exp.hidden=hidden;
     exp.textContent=netState.showAll?'SHOW TOP '+NET_MAX_DEFAULT:'SHOW ALL ('+netState.nodes.length+')';}
   if(rst){rst.hidden=!netState.nodes.length;}
   if(story){story.hidden=!netState.nodes.length;}
+  if(weap){weap.hidden=!netState.nodes.length;}
 }
+/* map → propaganda: carry the web into /create as a linear money-flow template */
+function netWebWeaponize(){
+  var nodes=netState.nodes||[], edges=netState.edges||[];
+  var seed=nodes.filter(function(n){return n.seed;})[0]||nodes[0];
+  if(!seed) return;
+  var deg={};
+  edges.forEach(function(e){deg[e.from]=(deg[e.from]||0)+1;deg[e.to]=(deg[e.to]||0)+1;});
+  var others=nodes.filter(function(n){return n.id!==seed.id;})
+    .sort(function(a,b){return (deg[b.id]||0)-(deg[a.id]||0);}).slice(0,3);
+  var lines=others.map(function(n){
+    var e=edges.filter(function(x){
+      return (x.from===seed.id&&x.to===n.id)||(x.from===n.id&&x.to===seed.id);
+    })[0];
+    return n.label+' | '+(n.type||'connected')+' | '+((e&&(e.label||e.category_name))||'linked');
+  });
+  var p={
+    mode:'custom', tpl:'web',
+    headline:'THE WEB: '+seed.label,
+    sub:nodes.length+' nodes · '+edges.length+' connections mapped. Follow the money.',
+    nodes:lines.join('\n'),
+    source:'LittleSis via MTCSTW rails'
+  };
+  window.location.href='/create/?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+}
+var _netWebBtn=document.getElementById('netmap-weaponize');
+if(_netWebBtn)_netWebBtn.addEventListener('click',netWebWeaponize);
 /* ============ THE WEB: STORY MODE ============ */
 var netStory={active:false,slides:[],playing:false,idx:0};
 function netStoryStart(){

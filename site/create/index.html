@@ -165,6 +165,7 @@
 
   <!-- ============ CUSTOM ============ -->
   <div class="pane" id="pane-custom">
+    <div id="cu-dl-banner" style="display:none;background:#1a2b1a;border:1px solid #2fbf71;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;font-weight:700;color:#7ee2a8;letter-spacing:.04em;">📥 LOADED FROM DATA — fields pre-filled from the rails. Edit freely, then fire.</div>
     <div class="sec-h">Find your target</div>
     <div class="search-row">
       <input id="cu-search" type="text" placeholder="Company, billionaire, agency…" maxlength="80" enterkeyhint="search">
@@ -1112,6 +1113,7 @@ function init(){
   var mode = param('mode') || 'strike';
   /* deep links */
   var studioB64 = param('studio') || param('intel');
+  var fromData = false;
   if(studioB64){
     var payload = b64decode(studioB64);
     if(payload){
@@ -1122,6 +1124,7 @@ function init(){
       cuData.src = payload.src||'';
       cuData.rows = payload.rows||[];
       mode = 'custom';
+      fromData = true;
     }
   }
   var topic = param('topic') || param('for') || param('cause');
@@ -1129,10 +1132,48 @@ function init(){
     cuData.headline = topic;
     mode = 'custom';
   }
+  /* flat deep-link params: ?mode=custom&tpl=statbomb&headline=..&stat=..&stat_label=..&source=..&who=..&sub=..&nodes=.. */
+  var dl = {
+    tpl: param('tpl'),
+    headline: param('headline'),
+    stat: param('stat'),
+    stat_label: param('stat_label'),
+    source: param('source'),
+    who: param('who'),
+    sub: param('sub'),
+    nodes: param('nodes')
+  };
+  var hasDl = !!(dl.headline || dl.stat || dl.who || dl.sub || dl.nodes);
+  if(hasDl && !studioB64 && !topic){
+    if(dl.tpl && TPL_FIELDS[dl.tpl]) cuTpl = dl.tpl;
+    if(dl.headline) cuData.headline = String(dl.headline).slice(0,140);
+    if(dl.stat) cuData.stat = String(dl.stat).slice(0,40);
+    if(dl.who) cuData.who = String(dl.who).slice(0,80);
+    if(dl.source) cuData.src = String(dl.source).slice(0,80);
+    if(dl.sub) cuData.sub = String(dl.sub).slice(0,280);
+    else if(dl.stat_label) cuData.sub = String(dl.stat_label).slice(0,120);
+    if(dl.nodes){
+      cuData.nodes = String(dl.nodes).split('\n').map(function(line){
+        var p = line.split('|').map(function(s){ return s.trim(); });
+        return {label:p[0]||'', sub:p[1]||'', amount:p[2]||''};
+      }).filter(function(n){ return n.label; }).slice(0,4);
+    }
+    mode = 'custom';
+    fromData = true;
+  }
   renderCuFields();
+  if(hasDl && dl.nodes && !studioB64 && !topic){
+    var dlTa = document.querySelector('#cu-fields textarea[data-k="webnodes"]');
+    if(dlTa) dlTa.value = dl.nodes;
+  }
   showMode(mode);
   previewCustom();
   if(topic && !studioB64){ $('cu-search').value = topic; doCustomSearch(); }
+  if(fromData){
+    var dlBanner = $('cu-dl-banner');
+    if(dlBanner) dlBanner.style.display = 'block';
+    toast('📥 Loaded from data — edit freely, then fire');
+  }
 }
 init();
 

@@ -677,6 +677,27 @@ function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 /* CELLS → HQ (dir-20261010-135720-3916): slugify a card question for the /cells?intel= founding-intel link */
 function cellSlug(q){ return String(q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60) || 'intel'; }
+/* data → propaganda handoff: card data into /create deep-link */
+function pfCreateUrl(o){
+  var p={mode:'custom',tpl:o.tpl||'robbery',
+    headline:String(o.headline||'').slice(0,140),
+    sub:String(o.sub||'').slice(0,280),
+    stat:String(o.stat||'').slice(0,40),
+    stat_label:String(o.stat_label||'').slice(0,60),
+    who:String(o.who||'').slice(0,80),
+    source:String(o.source||'').slice(0,80)};
+  if(o.nodes) p.nodes=String(o.nodes).slice(0,400);
+  return '/create/?'+Object.keys(p).map(function(k){return k+'='+encodeURIComponent(p[k]);}).join('&');
+}
+function cardUrlFor(d){
+  var rows=d.rows||[];
+  var stat='',statLabel='';
+  if(rows.length){ stat=String(rows[0][1]||'').slice(0,40); statLabel=String(rows[0][0]||'').slice(0,60); }
+  else if(d.figures&&d.figures.length){ stat=String(d.figures[0].value||'').slice(0,40); statLabel=String(d.figures[0].label||'').slice(0,60); }
+  var sub=String(d.a||'').replace(/<[^>]*>/g,'').slice(0,280);
+  var src=String(d.src||'').replace(/^▸ RECEIPTS — /,'').slice(0,80);
+  return pfCreateUrl({tpl:'robbery',headline:d.q,sub:sub,stat:stat,stat_label:statLabel,source:src});
+}
 
 function cardEl(d){
   var el = document.createElement('div');
@@ -699,6 +720,7 @@ function cardEl(d){
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+      '<a class="kh-act-btn kh-weaponize" href="'+cardUrlFor(d)+'">🎨 MAKE PROPAGANDA</a>'+
       '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
@@ -1055,6 +1077,7 @@ function khSheet(cfg){
     '<div class="bt-sheet-actions">'+
     '<button class="bt-act bt-act-deploy">DEPLOY</button>'+
     '<button class="bt-act bt-act-ask">ASK KARL</button>'+
+    '<button class="bt-act bt-act-weaponize">🎨 MAKE PROPAGANDA</button>'+
     '</div></div>';
   document.body.appendChild(scrim); document.body.appendChild(sheet);
   var prevOverflow = document.body.style.overflow;
@@ -1086,6 +1109,14 @@ function khSheet(cfg){
       var q = document.getElementById('kh-q');
       if(q){ q.value = 'Why '+cfg.figure+'?'; q.focus(); q.scrollIntoView({behavior:'smooth', block:'center'}); }
     }catch(e){}
+  });
+  sheet.querySelector('.bt-act-weaponize').addEventListener('click', function(){
+    var url = pfCreateUrl({tpl:'statbomb',
+      headline:String(cfg.label||'').slice(0,140),
+      stat:String(cfg.figure||'').slice(0,40),
+      stat_label:String(cfg.label||'').slice(0,60),
+      source:String(cfg.source||'').slice(0,80)});
+    window.location.href = url;
   });
   requestAnimationFrame(function(){ requestAnimationFrame(function(){
     scrim.classList.add('bt-show'); sheet.classList.add('bt-show');
@@ -1137,6 +1168,7 @@ function beefyCard(d){
       '<button class="kh-act-btn kh-go-deeper">GO DEEPER ↓</button>'+
       '<button class="kh-act-btn kh-share-img">SHARE IMAGE</button>'+
       '<button class="kh-act-btn kh-save-btn">☆ SAVE</button>'+
+      '<a class="kh-act-btn kh-weaponize" href="'+cardUrlFor(d)+'">🎨 MAKE PROPAGANDA</a>'+
       '<a class="kh-act-btn kh-form-cell" href="/cells?intel='+cellSlug(d.q)+'">FORM A CELL AROUND THIS</a>'+
     '</div>'+
     '<div class="kh-live-ev" style="display:none"><div class="kh-ev-title">⚡ LIVE FROM THE RAILS</div><div class="kh-ev-body"><div class="kh-shimmer"></div></div></div>'+
@@ -1969,11 +2001,14 @@ function srcLine(s){return '<div class="pf-cq-src">SOURCE: '+esc(s)+'</div>';}
 function modelUrlFor(params){
   return '/model/'+(params?'?'+params:'');
 }
-function actions(modelParams){
+function createQS(o){
+  return Object.keys(o).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(o[k]);}).join('&');
+}
+function actions(modelParams, createParams){
   return '<div class="pf-cq-actions">'+
     '<a class="pf-cq-act" href="'+modelUrlFor(modelParams)+'">MODEL IT →</a>'+
     '<a class="pf-cq-act" href="/cells">FIND A CELL →</a>'+
-    '<a class="pf-cq-act" href="/create">MAKE IT A WEAPON →</a></div>';
+    '<a class="pf-cq-act" href="/create/'+(createParams?'?'+createParams:'')+'">MAKE IT A WEAPON →</a></div>';
 }
 function runQ(tab,raw){
   var n=auditBump();var el=$id('pf-cq-auditn');if(el)el.textContent=String(n);
@@ -2012,7 +2047,13 @@ function qHospital(raw){
     /* COMPARISON: proximity proves malice */
     if(rows.length>1&&wmk-bmk>=1)
       html+='<div class="pf-cq-compare">📍 '+esc(best.hospital_name||'Another hospital')+' nearby: <b>'+bmk.toFixed(1)+'×</b>. Same region. Different greed.</div>';
-    html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions('table=cms_hospital_prices&filter='+encodeURIComponent('zip:starts:'+zip));
+    html+=srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+actions('table=cms_hospital_prices&filter='+encodeURIComponent('zip:starts:'+zip),
+      createQS({mode:'custom',tpl:'statbomb',
+        headline:String(worst.hospital_name||'Hospital')+' price-gouging',
+        stat:wmk.toFixed(1)+'×', stat_label:'Medicare markup',
+        who:String(worst.hospital_name||''),
+        sub:'Bills '+money(worst.avg_covered_charges)+' vs Medicare '+money(worst.avg_medicare_payments)+(wext>0?' · ~'+money(wext)+' extracted':''),
+        source:'CMS Hospital Prices via MTCSTW'}));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -2033,7 +2074,13 @@ function qBank(raw){
     if(top&&top.company!==r.company)
       html+='<div class="pf-cq-compare">📍 Worst in America: '+esc(top.company)+' — '+num(top.total_complaints)+' complaints. The system isn\'t broken; it\'s working as designed.</div>';
     else html+='<div class="pf-cq-compare">📍 That is the most-complained-about company in America.</div>';
-    html+=srcLine('CFPB Consumer Complaint Database via MTCSTW rails')+actions('table=dim_cfpb_company&filter='+encodeURIComponent('company:contains:'+name));
+    html+=srcLine('CFPB Consumer Complaint Database via MTCSTW rails')+actions('table=dim_cfpb_company&filter='+encodeURIComponent('company:contains:'+name),
+      createQS({mode:'custom',tpl:'statbomb',
+        headline:String(r.company||'Company')+' complaints',
+        stat:num(n), stat_label:'federal complaints filed',
+        who:String(r.company||''),
+        sub:'Consumers filed '+num(n)+' federal complaints',
+        source:'CFPB via MTCSTW'}));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -2053,7 +2100,14 @@ function qState(raw){
     if(ev)html+='<div class="pf-cq-line"><b>'+esc(ev.county_name)+'</b>: ~<b>'+num(ev.filings_estimate)+'</b> eviction filings'+(ev.year?' ('+esc(String(ev.year))+')':'')+' — the hardest-hit county in your state.</div>';
     if(prs.length)html+='<div class="pf-cq-line"><b>'+prs.length+'</b> private prison contract'+(prs.length===1?'':'s')+' worth <b>'+money(pv)+'</b> extracted from your state.</div>';
     html+='<div class="pf-cq-line dim">This is what the data says about where you live.</div>';
-    html+=srcLine('Eviction Lab estimates + contract records via MTCSTW rails')+actions('table=eviction_county_estimates&filter='+encodeURIComponent('state:eq:'+st));
+    html+=srcLine('Eviction Lab estimates + contract records via MTCSTW rails')+actions('table=eviction_county_estimates&filter='+encodeURIComponent('state:eq:'+st),
+      createQS({mode:'custom',tpl:'statbomb',
+        headline:ev?String(ev.county_name||st)+' evictions':st+' prison contracts',
+        stat:ev?num(ev.filings_estimate):money(pv),
+        stat_label:ev?'eviction filings':'private prison contracts',
+        who:ev?String(ev.county_name||'')+', '+st:st,
+        sub:(ev?'Hardest-hit county in '+st:'')+(prs.length?' · '+prs.length+' private prison contracts worth '+money(pv):''),
+        source:'Eviction Lab + contracts via MTCSTW'}));
     out(html);
   }).catch(function(){out('<div class="pf-cq-err">The rails didn\'t answer. Check your connection.</div>');});
 }
@@ -2088,7 +2142,12 @@ function predReveal(){
     '<div class="pf-cq-line">You guessed <b>'+(guess/100).toFixed(1)+'×</b>. They bill <b>'+money(predData.avg_covered_charges)+'</b>.</div>'+
     '<div class="pf-cq-verdict">'+esc(shock)+'</div>'+
     srcLine('CMS Hospital Price Transparency data via MTCSTW rails')+
-    '<div class="pf-cq-actions"><a class="pf-cq-act" href="/create">WEAPONIZE THIS →</a><a class="pf-cq-act" href="/cells">FIND A CELL →</a></div>';
+    '<div class="pf-cq-actions"><a class="pf-cq-act" href="/create/?'+createQS({mode:'custom',tpl:'statbomb',
+      headline:String(predData.hospital_name||'Hospital')+' markup',
+      stat:actual.toFixed(1)+'×', stat_label:'Medicare markup',
+      who:String(predData.hospital_name||''),
+      sub:'You guessed '+(guess/100).toFixed(1)+'×. They bill '+money(predData.avg_covered_charges)+' for '+String(predData.procedure_desc||'').toLowerCase(),
+      source:'CMS Hospital Prices via MTCSTW'})+'">WEAPONIZE THIS →</a><a class="pf-cq-act" href="/cells">FIND A CELL →</a></div>';
   $id('pf-pred-a').hidden=false;
   var btn=$id('pf-pred-btn');if(btn)btn.disabled=true;
 }

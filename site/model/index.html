@@ -120,7 +120,7 @@
   .netmap-search input:focus{border-color:var(--red);}
   .netmap-search button{background:var(--red);border:none;border-radius:10px;color:#fff;font-weight:800;font-size:13px;letter-spacing:.06em;padding:0 18px;cursor:pointer;touch-action:manipulation;}
   .netmap-search button:active{transform:scale(.96);}
-  #netmap-canvas{width:100%;height:380px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;touch-action:pan-x pan-y;display:block;}
+  #netmap-canvas{width:100%;height:420px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;touch-action:none;display:block;cursor:grab;}
   .netmap-hint{font-size:12px;color:var(--faint);margin-top:8px;line-height:1.5;}
   .netmap-node-info{font-size:13px;color:var(--dim);margin-top:8px;padding:10px 12px;background:#0d0d0d;border-radius:8px;line-height:1.5;min-height:20px;}
   .netmap-node-info b{color:var(--cream);}
@@ -227,16 +227,20 @@
   </div>
 
   <!-- 7. FOLLOW THE MONEY: LittleSis network map -->
-  <div class=\"sec\" id=\"netmap-sec\">
+  <div class="sec" id="netmap-sec">
     <h2>🕸️ THE WEB</h2>
-    <div class=\"netmap\">
-      <div class=\"netmap-search\">
-        <input id=\"netmap-q\" type=\"search\" placeholder=\"Search a name — politician, company, lobbyist…\" autocomplete=\"off\" aria-label=\"Search corruption network\">
-        <button id=\"netmap-go\" type=\"button\">MAP&nbsp;IT</button>
+    <div class="netmap">
+      <div class="netmap-search">
+        <input id="netmap-q" type="search" placeholder="Search a name — politician, company, lobbyist…" autocomplete="off" aria-label="Search corruption network">
+        <button id="netmap-go" type="button">MAP&nbsp;IT</button>
       </div>
-      <canvas id=\"netmap-canvas\"></canvas>
-      <div class=\"netmap-node-info\" id=\"netmap-info\">Type a name above to see who's connected to who.</div>
-      <div class=\"netmap-hint\">2-hop corruption web from 1.1M+ LittleSis relationships. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
+      <canvas id="netmap-canvas"></canvas>
+      <div class="netmap-row" style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+        <button id="netmap-expand" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">SHOW ALL</button>
+        <button id="netmap-reset" type="button" hidden style="background:#1a1a1a;border:1px solid var(--line);border-radius:10px;color:var(--cream);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;touch-action:manipulation;">RESET VIEW</button>
+      </div>
+      <div class="netmap-node-info" id="netmap-info">Type a name above to see who's connected to who.</div>
+      <div class="netmap-hint">2-hop corruption web from 1.1M+ LittleSis relationships. Drag to pan, pinch to zoom. Tap a node to see its connections. Red = the one you searched. Gold = people. Blue = organizations.</div>
     </div>
   </div>
 
@@ -658,86 +662,190 @@ function renderTableDetail(t){
   }
 }
 
-/* ============ FOLLOW THE MONEY: LittleSis network map ============ */
-var netState={nodes:[],edges:[],selected:null};
+/* ============ THE WEB: LittleSis network map (rebuilt) ============ */
+var netState={nodes:[],edges:[],nodeMap:{},degree:{},visible:[],showAll:false,selected:null,
+  view:{x:0,y:0,scale:1}};
+var NET_MAX_DEFAULT=40, NET_HIT_R=22;
 function netColor(t,seed){
   if(seed) return '#e5383b';
   if(t==='Person') return '#d4a017';
   return '#4a90d9';
 }
-function netLayout(nodes,edges,W,H){
-  /* Simple radial layout: seed center, hop1 ring, hop2 outer */
-  var seed=nodes.find(function(n){return n.seed;})||nodes[0];
-  if(!seed) return;
-  var cx=W/2, cy=H/2;
-  seed.x=cx; seed.y=cy;
-  /* Find hop1 = directly connected to seed */
-  var seedEdges=edges.filter(function(e){return e.from===seed.id||e.to===seed.id;});
-  var hop1Ids={};
-  seedEdges.forEach(function(e){hop1Ids[e.from===seed.id?e.to:e.from]=1;});
-  var hop1=nodes.filter(function(n){return hop1Ids[n.id]&&!n.seed;});
-  var hop2=nodes.filter(function(n){return !hop1Ids[n.id]&&!n.seed;});
-  var r1=Math.min(W,H)*0.28, r2=Math.min(W,H)*0.44;
+function netCanvasH(){
+  return Math.max(320,Math.min(500,Math.floor(window.innerHeight*0.6)));
+}
+/* Build O(1) node map + degree counts */
+function netIndex(){
+  var m={},deg={},i,n,e;
+  for(i=0;i<netState.nodes.length;i++){n=netState.nodes[i];m[n.id]=n;deg[n.id]=0;}
+  for(i=0;i<netState.edges.length;i++){e=netState.edges[i];
+    if(deg[e.from]!==undefined)deg[e.from]++;
+    if(deg[e.to]!==undefined)deg[e.to]++;
+  }
+  netState.nodeMap=m; netState.degree=deg;
+}
+/* Pick visible subset: seed + top-degree nodes, or all */
+function netPickVisible(){
+  var nodes=netState.nodes;
+  if(netState.showAll||nodes.length<=NET_MAX_DEFAULT){netState.visible=nodes.slice();return;}
+  var seed=null,i;
+  for(i=0;i<nodes.length;i++){if(nodes[i].seed){seed=nodes[i];break;}}
+  var rest=nodes.filter(function(n){return n!==seed;});
+  rest.sort(function(a,b){return (netState.degree[b.id]||0)-(netState.degree[a.id]||0);});
+  netState.visible=rest.slice(0,NET_MAX_DEFAULT-1);
+  if(seed)netState.visible.unshift(seed);
+}
+/* Force-directed-ish layout: seed center, hop1 ring, hop2 near parent + repulsion */
+function netLayout(W,H){
+  var nodes=netState.visible,edges=netState.edges,map=netState.nodeMap;
+  var vis={}; nodes.forEach(function(n){vis[n.id]=1;});
+  var seed=null,i;
+  for(i=0;i<nodes.length;i++){if(nodes[i].seed){seed=nodes[i];break;}}
+  if(!seed)seed=nodes[0];
+  if(!seed)return;
+  var cx=W/2,cy=H/2;
+  seed.x=cx;seed.y=cy;seed._hop=0;
+  /* hop assignment via BFS from seed (visible nodes only) */
+  var hop={};hop[seed.id]=0;
+  var frontier=[seed.id];
+  while(frontier.length){
+    var cur=frontier.shift();
+    for(i=0;i<edges.length;i++){
+      var e=edges[i],other=null;
+      if(e.from===cur)other=e.to;else if(e.to===cur)other=e.from;else continue;
+      if(!vis[other]||hop[other]!==undefined)continue;
+      hop[other]=hop[cur]+1;frontier.push(other);
+    }
+  }
+  var hop1=nodes.filter(function(n){return hop[n.id]===1;});
+  var hop2=nodes.filter(function(n){return hop[n.id]!==0&&hop[n.id]!==1;});
+  /* hop1: even ring */
+  var r1=Math.min(W,H)*0.30;
   hop1.forEach(function(n,i){
-    var a=(i/hop1.length)*Math.PI*2-Math.PI/2;
-    n.x=cx+Math.cos(a)*r1; n.y=cy+Math.sin(a)*r1;
+    var a=(i/Math.max(hop1.length,1))*Math.PI*2-Math.PI/2;
+    n.x=cx+Math.cos(a)*r1;n.y=cy+Math.sin(a)*r1;n._hop=1;
   });
+  /* hop2: place near a connected hop1/seed parent */
+  var r2=Math.min(W,H)*0.46;
   hop2.forEach(function(n,i){
-    var a=(i/Math.max(hop2.length,1))*Math.PI*2-Math.PI/2+0.3;
-    n.x=cx+Math.cos(a)*r2; n.y=cy+Math.sin(a)*r2;
-    /* clamp to canvas */
-    n.x=Math.max(30,Math.min(W-30,n.x)); n.y=Math.max(30,Math.min(H-30,n.y));
+    var parent=null;
+    for(var j=0;j<edges.length;j++){
+      var e=edges[j],oid=null;
+      if(e.from===n.id)oid=e.to;else if(e.to===n.id)oid=e.from;else continue;
+      var p=map[oid];
+      if(p&&vis[oid]&&(hop[oid]===0||hop[oid]===1)){parent=p;break;}
+    }
+    if(parent&&parent.x!==undefined){
+      var ang=Math.atan2(n.y!==undefined?n.y-cy:0,n.x!==undefined?n.x-cx:0);
+      if(n.x===undefined){ang=(i*2.39996);}
+      n.x=parent.x+Math.cos(ang)*70;n.y=parent.y+Math.sin(ang)*70;
+    }else{
+      var a2=(i/Math.max(hop2.length,1))*Math.PI*2-Math.PI/2+0.4;
+      n.x=cx+Math.cos(a2)*r2;n.y=cy+Math.sin(a2)*r2;
+    }
+    n._hop=2;
+  });
+  /* repulsion: 20 iterations, push overlapping nodes apart */
+  var minD=52;
+  for(var it=0;it<20;it++){
+    for(i=0;i<nodes.length;i++){
+      var a=nodes[i];if(a.x===undefined||a===seed)continue;
+      for(var j=i+1;j<nodes.length;j++){
+        var b=nodes[j];if(b.x===undefined||b===seed)continue;
+        var dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<minD&&d>0.01){
+          var push=(minD-d)/2*0.5,ux=dx/d,uy=dy/d;
+          a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;
+        }
+      }
+    }
+  }
+  /* clamp to canvas */
+  nodes.forEach(function(n){
+    if(n.x===undefined)return;
+    n.x=Math.max(24,Math.min(W-24,n.x));n.y=Math.max(24,Math.min(H-24,n.y));
   });
 }
+/* world <-> screen transforms */
+function netToScreen(x,y){
+  var v=netState.view;
+  return [x*v.scale+v.x,y*v.scale+v.y];
+}
+function netToWorld(sx,sy){
+  var v=netState.view;
+  return [(sx-v.x)/v.scale,(sy-v.y)/v.scale];
+}
 function netDraw(){
-  var cv=$id('netmap-canvas'); if(!cv) return;
+  var cv=$id('netmap-canvas');if(!cv)return;
   var dpr=window.devicePixelRatio||1;
-  var W=cv.clientWidth, H=380;
-  cv.width=W*dpr; cv.height=H*dpr;
-  var ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
-  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
-  var nodes=netState.nodes, edges=netState.edges;
-  if(!nodes.length){
-    ctx.fillStyle='#5a554b'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+  var W=cv.clientWidth,H=netCanvasH();
+  cv.style.height=H+'px';
+  cv.width=W*dpr;cv.height=H*dpr;
+  var ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,W,H);
+  var nodes=netState.visible;
+  if(!netState.nodes.length){
+    ctx.fillStyle='#5a554b';ctx.font='14px sans-serif';ctx.textAlign='center';
     ctx.fillText('Search above to map the corruption web.',W/2,H/2);
     return;
   }
-  netLayout(nodes,edges,W,H);
-  /* edges */
-  edges.forEach(function(e){
-    var a=nodes.find(function(n){return n.id===e.from;});
-    var b=nodes.find(function(n){return n.id===e.to;});
-    if(!a||!b||a.x===undefined||b.x===undefined) return;
-    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  if(nodes.length&&nodes[0].x===undefined)netLayout(W,H);
+  var map=netState.nodeMap,vis={};
+  nodes.forEach(function(n){vis[n.id]=1;});
+  /* edges (visible nodes only, O(E) with map lookups) */
+  ctx.strokeStyle='rgba(255,255,255,0.10)';ctx.lineWidth=1;
+  ctx.beginPath();
+  netState.edges.forEach(function(e){
+    if(!vis[e.from]||!vis[e.to])return;
+    var a=map[e.from],b=map[e.to];
+    if(!a||!b||a.x===undefined||b.x===undefined)return;
+    var pa=netToScreen(a.x,a.y),pb=netToScreen(b.x,b.y);
+    ctx.moveTo(pa[0],pa[1]);ctx.lineTo(pb[0],pb[1]);
   });
+  ctx.stroke();
   /* nodes */
   nodes.forEach(function(n){
-    if(n.x===undefined) return;
+    if(n.x===undefined)return;
+    var p=netToScreen(n.x,n.y);
+    if(p[0]<-40||p[0]>W+40||p[1]<-40||p[1]>H+40)return; /* cull offscreen */
     var sel=netState.selected===n.id;
-    ctx.beginPath(); ctx.arc(n.x,n.y,sel?14:(n.seed?12:8),0,Math.PI*2);
-    ctx.fillStyle=netColor(n.type,n.seed); ctx.fill();
+    var r=(sel?14:(n.seed?12:8))*Math.max(0.6,Math.min(1.4,netState.view.scale));
+    ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);
+    ctx.fillStyle=netColor(n.type,n.seed);ctx.fill();
     if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
-    /* label */
-    ctx.fillStyle=n.seed?'#fff':'#8a8478'; ctx.font=(n.seed?'bold 11px':'10px')+' sans-serif';
-    ctx.textAlign='center';
-    var lbl=n.label.length>18?n.label.slice(0,17)+'…':n.label;
-    ctx.fillText(lbl,n.x,n.y+(n.seed?24:20));
+    /* labels: seed + hop1 + selected always; hop2 on selection only */
+    var showLabel=n.seed||n._hop===1||sel;
+    if(showLabel){
+      ctx.fillStyle=n.seed?'#fff':'#a09a8e';
+      ctx.font=(n.seed?'bold 11px':'10px')+' sans-serif';ctx.textAlign='center';
+      var lbl=n.label.length>20?n.label.slice(0,19)+'…':n.label;
+      ctx.fillText(lbl,p[0],p[1]+r+12);
+    }
   });
+  /* node count badge */
+  if(netState.nodes.length>netState.visible.length){
+    ctx.fillStyle='#5a554b';ctx.font='11px sans-serif';ctx.textAlign='right';
+    ctx.fillText('showing '+netState.visible.length+' of '+netState.nodes.length,W-10,H-10);
+  }
 }
+function netResetView(){netState.view={x:0,y:0,scale:1};netDraw();}
 function netInfo(n){
-  var info=$id('netmap-info'); if(!info) return;
+  var info=$id('netmap-info');if(!info)return;
   if(!n){info.innerHTML='Type a name above to see who\'s connected to who.';return;}
-  var rels=netState.edges.filter(function(e){return e.from===n.id||e.to===n.id;});
+  var map=netState.nodeMap,rels=[];
+  for(var i=0;i<netState.edges.length;i++){
+    var e=netState.edges[i];
+    if(e.from===n.id||e.to===n.id)rels.push(e);
+  }
   var h='<b>'+esc(n.label)+'</b> <span style="color:#5a554b">('+(n.type||'Unknown')+')</span>';
-  if(n.blurb) h+='<br>'+esc(n.blurb);
+  if(n.blurb)h+='<br>'+esc(n.blurb);
   h+='<br><span class="rel">'+rels.length+' connection'+(rels.length===1?'':'s')+'</span>';
-  var shown=rels.slice(0,5);
+  var shown=rels.slice(0,6);
   shown.forEach(function(e){
-    var other=netState.nodes.find(function(x){return x.id===(e.from===n.id?e.to:e.from);});
-    if(other) h+='<br>→ '+esc(other.label)+' <span style="color:#5a554b">· '+esc(e.label)+'</span>';
+    var other=map[e.from===n.id?e.to:e.from];
+    if(other)h+='<br>→ '+esc(other.label)+' <span style="color:#5a554b">· '+esc(e.label)+'</span>';
   });
-  if(rels.length>5) h+='<br><span style="color:#5a554b">+'+(rels.length-5)+' more</span>';
+  if(rels.length>6)h+='<br><span style="color:#5a554b">+'+(rels.length-6)+' more</span>';
   info.innerHTML=h;
 }
 function netSearch(){
@@ -750,12 +858,18 @@ function netSearch(){
     if(!d||d.ok!==true){$id('netmap-info').textContent='Search failed — try again.';return;}
     if(!d.nodes||!d.nodes.length){
       $id('netmap-info').textContent='No entities found for "'+q+'". Try a different spelling.';
-      netState={nodes:[],edges:[],selected:null}; netDraw(); return;
+      netState={nodes:[],edges:[],nodeMap:{},degree:{},visible:[],showAll:false,selected:null,view:{x:0,y:0,scale:1}};
+      netDraw();netUpdateButtons();return;
     }
-    netState={nodes:d.nodes,edges:d.edges||[],selected:null};
-    netDraw();
-    var seed=d.nodes.find(function(n){return n.seed;})||d.nodes[0];
-    netInfo(seed);
+    netState.nodes=d.nodes;netState.edges=d.edges||[];
+    netState.selected=null;netState.showAll=false;netState.view={x:0,y:0,scale:1};
+    netIndex();netPickVisible();
+    /* clear stale positions so layout re-runs */
+    netState.visible.forEach(function(n){delete n.x;delete n.y;delete n._hop;});
+    netDraw();netUpdateButtons();
+    var seed=null;
+    for(var i=0;i<d.nodes.length;i++){if(d.nodes[i].seed){seed=d.nodes[i];break;}}
+    netInfo(seed||d.nodes[0]);
     if(d.alternatives&&d.alternatives.length){
       $id('netmap-info').innerHTML+='<br><span style="color:#5a554b">Also found: '+d.alternatives.map(function(a){return esc(a.name);}).join(', ')+'</span>';
     }
@@ -764,28 +878,146 @@ function netSearch(){
     $id('netmap-info').textContent='Network error — check your connection.';
   });
 }
-/* tap a node to inspect */
-document.addEventListener('click',function(ev){
+function netUpdateButtons(){
+  var exp=$id('netmap-expand'),rst=$id('netmap-reset');
+  var hidden=netState.nodes.length<=NET_MAX_DEFAULT;
+  if(exp){exp.hidden=hidden;
+    exp.textContent=netState.showAll?'SHOW TOP '+NET_MAX_DEFAULT:'SHOW ALL ('+netState.nodes.length+')';}
+  if(rst){rst.hidden=!netState.nodes.length;}
+}
+/* tap / pan / pinch on canvas */
+(function(){
   var cv=$id('netmap-canvas');
-  if(!cv||ev.target!==cv) return;
-  var rect=cv.getBoundingClientRect();
-  var mx=ev.clientX-rect.left, my=ev.clientY-rect.top;
-  var best=null,bd=25;
-  netState.nodes.forEach(function(n){
-    if(n.x===undefined) return;
-    var d=Math.sqrt((n.x-mx)*(n.x-mx)+(n.y-my)*(n.y-my));
+  if(!cv)return;
+  var touches={},lastPinch=0,moved=false,startX=0,startY=0;
+  function pos(t){
+    var r=cv.getBoundingClientRect();
+    return [t.clientX-r.left,t.clientY-r.top];
+  }
+  cv.addEventListener('touchstart',function(e){
+    e.preventDefault();
+    moved=false;
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i],p=pos(t);
+      touches[t.identifier]={x:p[0],y:p[1]};
+    }
+    var ids=Object.keys(touches);
+    if(ids.length===2){
+      var a=touches[ids[0]],b=touches[ids[1]];
+      lastPinch=Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+    }else if(ids.length===1){
+      startX=touches[ids[0]].x;startY=touches[ids[0]].y;
+    }
+  },{passive:false});
+  cv.addEventListener('touchmove',function(e){
+    e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i],p=pos(t);
+      touches[t.identifier]={x:p[0],y:p[1]};
+    }
+    var ids=Object.keys(touches),v=netState.view;
+    if(ids.length===2){
+      var a=touches[ids[0]],b=touches[ids[1]];
+      var d=Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+      if(lastPinch>0){
+        var midX=(a.x+b.x)/2,midY=(a.y+b.y)/2;
+        var ns=Math.max(0.4,Math.min(4,v.scale*d/lastPinch));
+        /* zoom toward midpoint */
+        var w=netToWorld(midX,midY);
+        v.scale=ns;
+        v.x=midX-w[0]*ns;v.y=midY-w[1]*ns;
+        netDraw();
+      }
+      lastPinch=d;moved=true;
+    }else if(ids.length===1){
+      var t1=touches[ids[0]];
+      var dx=t1.x-startX,dy=t1.y-startY;
+      if(Math.abs(dx)+Math.abs(dy)>6)moved=true;
+      v.x+=dx;v.y+=dy;startX=t1.x;startY=t1.y;
+      netDraw();
+    }
+  },{passive:false});
+  cv.addEventListener('touchend',function(e){
+    for(var i=0;i<e.changedTouches.length;i++){
+      var t=e.changedTouches[i];
+      var wasTap=!moved&&Object.keys(touches).length===1;
+      var p=pos(t);
+      delete touches[t.identifier];
+      if(wasTap)netTap(p[0],p[1]);
+    }
+    lastPinch=0;
+  });
+  /* mouse: drag to pan, wheel to zoom, click to select */
+  var mDown=false,mMoved=false,mSX=0,mSY=0;
+  cv.addEventListener('mousedown',function(e){
+    mDown=true;mMoved=false;mSX=e.clientX;mSY=e.clientY;cv.style.cursor='grabbing';
+  });
+  cv.addEventListener('mousemove',function(e){
+    if(!mDown)return;
+    var dx=e.clientX-mSX,dy=e.clientY-mSY;
+    if(Math.abs(dx)+Math.abs(dy)>4)mMoved=true;
+    netState.view.x+=dx;netState.view.y+=dy;mSX=e.clientX;mSY=e.clientY;
+    netDraw();
+  });
+  cv.addEventListener('mouseup',function(e){
+    cv.style.cursor='grab';
+    if(mDown&&!mMoved){
+      var r=cv.getBoundingClientRect();
+      netTap(e.clientX-r.left,e.clientY-r.top);
+    }
+    mDown=false;
+  });
+  cv.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var v=netState.view,r=cv.getBoundingClientRect();
+    var mx=e.clientX-r.left,my=e.clientY-r.top;
+    var ns=Math.max(0.4,Math.min(4,v.scale*(e.deltaY<0?1.12:0.89)));
+    var w=netToWorld(mx,my);
+    v.scale=ns;v.x=mx-w[0]*ns;v.y=my-w[1]*ns;
+    netDraw();
+  },{passive:false});
+})();
+function netTap(sx,sy){
+  var w=netToWorld(sx,sy),best=null,bd=NET_HIT_R/netState.view.scale+8;
+  netState.visible.forEach(function(n){
+    if(n.x===undefined)return;
+    var d=Math.sqrt((n.x-w[0])*(n.x-w[0])+(n.y-w[1])*(n.y-w[1]));
     if(d<bd){bd=d;best=n;}
   });
   if(best){netState.selected=best.id;netDraw();netInfo(best);}
-});
-/* wire search */
+}
+/* wire search + buttons */
 (function(){
-  var go=$id('netmap-go'), inp=$id('netmap-q');
-  if(go) go.addEventListener('click',netSearch);
-  if(inp) inp.addEventListener('keydown',function(e){if(e.key==='Enter')netSearch();});
+  var go=$id('netmap-go'),inp=$id('netmap-q');
+  if(go)go.addEventListener('click',netSearch);
+  if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter')netSearch();});
+  var exp=$id('netmap-expand');
+  if(exp)exp.addEventListener('click',function(){
+    netState.showAll=!netState.showAll;
+    netState.selected=null;
+    netIndex();netPickVisible();
+    netState.visible.forEach(function(n){delete n.x;delete n.y;delete n._hop;});
+    netResetView();netUpdateButtons();
+  });
+  var rst=$id('netmap-reset');
+  if(rst)rst.addEventListener('click',netResetView);
   /* initial draw */
   setTimeout(netDraw,500);
-  window.addEventListener('resize',function(){netDraw();});
+  var rsz=null;
+  window.addEventListener('resize',function(){
+    if(rsz)clearTimeout(rsz);
+    rsz=setTimeout(function(){
+      /* re-run layout on orientation/size change */
+      netState.visible.forEach(function(n){delete n.x;delete n.y;delete n._hop;});
+      netDraw();
+    },200);
+  });
+  window.addEventListener('orientationchange',function(){
+    setTimeout(function(){
+      netState.visible.forEach(function(n){delete n.x;delete n.y;delete n._hop;});
+      netDraw();
+    },400);
+  });
 })();
 
 /* boot: load the live catalog + data pulse */

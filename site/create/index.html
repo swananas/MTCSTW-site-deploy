@@ -119,6 +119,12 @@
   #crt #cu-formula{width:100%;box-sizing:border-box;margin-top:8px;background:#0d0d0d;border:1px solid var(--line);border-radius:8px;color:var(--cream);font-size:13px;padding:10px 12px;font-family:inherit;}
   #crt #cu-formula:focus{outline:none;border-color:var(--red);}
   #crt .shield-warn{margin-top:10px;font-size:12.5px;line-height:1.5;color:#ffb84d;background:rgba(255,184,77,.08);border:1px solid rgba(255,184,77,.4);border-radius:8px;padding:10px 12px;font-weight:600;}
+  /* auto-detect: raw vs modified number indicators */
+  #cu-fields .cu-stat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:7px;vertical-align:1px;background:#3a3a3a;}
+  #cu-fields .cu-stat-dot.verified{background:#2fbf71;box-shadow:0 0 6px rgba(47,191,113,.8);}
+  #cu-fields .cu-stat-dot.modified{background:#ffb84d;box-shadow:0 0 6px rgba(255,184,77,.8);}
+  #cu-fields .cu-stat-dot.manual{background:#e5383b;box-shadow:0 0 6px rgba(229,56,59,.8);}
+  #crt .shield-state{font-size:12.5px;font-weight:600;line-height:1.5;margin:0 0 12px;padding:8px 12px;background:#080808;border-radius:8px;border:1px dashed #333;}
   #crt .size-row{display:flex;gap:8px;margin-bottom:12px;}
   #crt .size-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);font-size:12px;font-weight:800;cursor:pointer;touch-action:manipulation;}
   #crt .size-btn.on{border-color:var(--red);color:#fff;background:rgba(193,18,31,.12);}
@@ -233,6 +239,7 @@
     <div class="shields" id="cu-shields">
       <div class="sec-h">Sources <span class="shield-note">printed on every export</span></div>
       <div class="shield-lines" id="cu-shield-lines"></div>
+      <div class="shield-state" id="cu-shield-state"></div>
       <div class="shield-xform">
         <div class="shield-xform-q">Is this a raw number or transformed?</div>
         <label class="shield-radio"><input type="radio" name="cu-xform" value="raw" checked> <span>Raw from data</span></label>
@@ -245,6 +252,14 @@
     </div>
     <button class="btn primary" id="cu-fire" type="button">🔥 FIRE RECEIPT</button>
     <button class="btn ghost" id="cu-copyimg" type="button" disabled>📋 COPY IMAGE</button>
+    <div id="cu-nextsteps" style="display:none;margin-top:16px;padding:16px;background:#111;border:1px solid #2a2a2a;border-radius:12px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:12px;color:#f5f0e6;">🔥 FIRED! Now put it to work:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a id="cu-ns-cell" href="/cells" style="display:block;text-align:center;background:#2fbf71;color:#0a0a0a;border-radius:10px;padding:12px;font-weight:800;font-size:14px;text-decoration:none;">👥 FIND YOUR CELL</a>
+        <a id="cu-ns-coordinate" href="/coordinate" style="display:block;text-align:center;background:#1a1a1a;color:#f5f0e6;border:1px solid #333;border-radius:10px;padding:12px;font-weight:700;font-size:14px;text-decoration:none;">🎯 COORDINATE ACTION</a>
+        <a id="cu-ns-feed" href="/" style="display:block;text-align:center;background:#1a1a1a;color:#f5f0e6;border:1px solid #333;border-radius:10px;padding:12px;font-weight:700;font-size:14px;text-decoration:none;">📰 BACK TO FEED</a>
+      </div>
+    </div>
   </div>
 </main>
 <div id="crt-toast"></div>
@@ -789,6 +804,20 @@ function crtBlobFrom(canvas, done){
 }
 
 /* fire: share via Web Share API, fallback download. Records share + XP. */
+function showNextSteps(data){
+  try{
+    var panel = $('cu-nextsteps');
+    if(!panel) return;
+    /* Pass intel context to cells/coordinate */
+    var q = encodeURIComponent(String(data.headline||data.q||'').slice(0,100));
+    var cellLink = $('cu-ns-cell');
+    var coordLink = $('cu-ns-coordinate');
+    if(cellLink && q) cellLink.href = '/cells?intel='+q;
+    if(coordLink && q) coordLink.href = '/coordinate?intel='+q;
+    panel.style.display = 'block';
+    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }catch(e){}
+}
 function crtFire(canvas, data, btn, btnLabel){
   var restore = function(){ if(btn){ btn.disabled=false; btn.textContent=btnLabel||'🔥 FIRE RECEIPT'; } };
   crtBlobFrom(canvas, function(blob){
@@ -801,6 +830,7 @@ function crtFire(canvas, data, btn, btnLabel){
       navigator.share({ title:'The Robbery Report', text:String(data.headline||data.q||''), files:[file] }).catch(function(){});
       var n = pfRecordShare(slug); pfBumpDeploys();
       toast('Deployed! Strike #'+n+' for this intel. +5 XP');
+      showNextSteps(data);
     } else {
       try{
         var a=document.createElement('a');
@@ -808,6 +838,7 @@ function crtFire(canvas, data, btn, btnLabel){
         document.body.appendChild(a); a.click(); a.remove();
         var n2 = pfRecordShare(slug); pfBumpDeploys();
         toast('Receipt saved (strike #'+n2+'). +5 XP');
+        showNextSteps(data);
       }catch(e){ toast('Could not save image'); }
     }
   });
@@ -1075,13 +1106,15 @@ function renderCuFields(){
   var host = $('cu-fields');
   var defs = TPL_FIELDS[cuTpl] || TPL_FIELDS.robbery;
   var html = '<div class="sec-h">Your intel</div>';
+  var CU_DOT_KEYS = {stat:1, before:1, after:1};
   defs.forEach(function(f){
     var key=f[0], label=f[1], ph=f[2];
     var val = cuData[key]||'';
+    var dot = CU_DOT_KEYS[key] ? ' <span class="cu-stat-dot" data-dotkey="'+key+'" title=""></span>' : '';
     if(key==='sub'||key==='quote'){
-      html += '<div class="field"><label>'+esc(label)+'</label><textarea data-k="'+key+'" placeholder="'+esc(ph)+'">'+esc(val)+'</textarea></div>';
+      html += '<div class="field"><label>'+esc(label)+dot+'</label><textarea data-k="'+key+'" placeholder="'+esc(ph)+'">'+esc(val)+'</textarea></div>';
     } else {
-      html += '<div class="field"><label>'+esc(label)+'</label><input data-k="'+key+'" type="text" value="'+esc(val)+'" placeholder="'+esc(ph)+'" maxlength="140"></div>';
+      html += '<div class="field"><label>'+esc(label)+dot+'</label><input data-k="'+key+'" type="text" value="'+esc(val)+'" placeholder="'+esc(ph)+'" maxlength="140"></div>';
     }
   });
   if(cuTpl==='web'){
@@ -1100,6 +1133,7 @@ function renderCuFields(){
       } else {
         cuData[k] = inp.value;
       }
+      if(k==='stat'||k==='before'||k==='after'||k==='webnodes') cuAutoDetect();
       previewCustom();
     });
   });
@@ -1159,6 +1193,10 @@ function doCustomSearch(){
         cuData.src = crtSrc({src:res.src}) || 'Karl data rails';
         cuData.rows = (res.rows||[]).slice(0,5);
         dataBacked = true;
+        /* Karl search is data-backed: snapshot so later edits are detected */
+        cuFromData = true;
+        cuSnapshotData();
+        cuAutoDetect();
         /* try to pull a web from the answer */
         renderCuFields(); renderCuShields(); renderDossier(q); bumpDossier(q, []);
         previewCustom();
@@ -1179,7 +1217,7 @@ function doCustomSearch(){
 var cuCanvas = null;
 function previewCustom(){
   renderCuShields();
-  crtRender(cuTpl, cuData, cuSize, cuTheme, function(canvas){
+  crtRender(cuTpl, cuEffectiveData(), cuSize, cuTheme, function(canvas){
     var host = $('cu-canvas');
     if(!canvas){ return; }
     cuCanvas = canvas;
@@ -1205,8 +1243,9 @@ $('cu-copyimg').addEventListener('click', function(){
    Unchecked = manual entry; the user owns the claim's accuracy. */
 var dataBacked = false;
 function cuShieldLines(){
-  var arr = [crtTransformLine(cuData)];
-  arr.push('Data as of '+crtShieldAsof(cuData)+' · User-generated content');
+  var d = cuEffectiveData();
+  var arr = [crtTransformLine(d)];
+  arr.push('Data as of '+crtShieldAsof(d)+' · User-generated content');
   return arr;
 }
 function cuSyncXformUI(){
@@ -1220,12 +1259,124 @@ function cuSyncXformUI(){
     fi.style.display = (t==='raw') ? 'none' : 'block';
   }
 }
+/* ---------- auto-detect: raw vs modified numbers ----------
+   The system tracks the deep-linked originals. If the user edits a number
+   that came from our data, the radio auto-switches to "calculated" and the
+   export shield reflects the truth even if the user tries to leave it "raw".
+   States: verified (green) / modified (yellow) / manual (red). */
+var dlSnapshot = null;    /* originals as loaded: {stat,before,after,nodes} */
+var cuFromData = false;   /* any data-backed load (deep-link, studio payload, Karl search) */
+var cuXformAuto = false;  /* true when the radio was set by auto-detect, not the user */
+var CU_NUM_KEYS = ['stat','before','after'];
+function cuSnapshotData(){
+  dlSnapshot = {
+    stat: String(cuData.stat||''),
+    before: String(cuData.before||''),
+    after: String(cuData.after||''),
+    nodes: JSON.stringify(cuData.nodes||[])
+  };
+}
+/* per-field integrity: was THIS field deep-linked, and does it still match? */
+function cuFieldState(key){
+  if(!cuFromData || !dlSnapshot) return 'manual';
+  if(key==='webnodes'){
+    var snapN = dlSnapshot.nodes || '[]';
+    if(snapN && snapN!=='[]'){
+      return JSON.stringify(cuData.nodes||[])===snapN ? 'verified' : 'modified';
+    }
+    return (cuData.nodes && cuData.nodes.length) ? 'manual' : 'verified';
+  }
+  var snap = dlSnapshot[key] || '';
+  if(snap){
+    return String(cuData[key]||'')===snap ? 'verified' : 'modified';
+  }
+  return String(cuData[key]||'').trim() ? 'manual' : 'verified';
+}
+/* worst-case rollup across all numeric fields: modified > manual > verified */
+function cuNumericState(){
+  if(!cuFromData || !dlSnapshot) return 'manual';
+  var worst = 'verified', i, fs;
+  for(i=0;i<CU_NUM_KEYS.length;i++){
+    fs = cuFieldState(CU_NUM_KEYS[i]);
+    if(fs==='modified') return 'modified';
+    if(fs==='manual') worst = 'manual';
+  }
+  fs = cuFieldState('webnodes');
+  if(fs==='modified') return 'modified';
+  if(fs==='manual') worst = 'manual';
+  return worst;
+}
+/* the truth, regardless of radio position. modified numbers can never export as raw. */
+function cuEffectiveTransform(){
+  var state = cuNumericState();
+  var t = String(cuData.transform||'').toLowerCase();
+  if(t!=='calculated'&&t!=='estimate') t='raw';
+  if(state==='modified') return 'calculated';
+  if(state==='manual' && t==='raw'){
+    var cb = $('cu-confirm');
+    if(!(cb && cb.checked)) return 'estimate';
+  }
+  return t;
+}
+/* shallow copy of cuData with truthful transform/formula for painters + shield preview */
+function cuEffectiveData(){
+  var d = {}, k;
+  for(k in cuData){ if(Object.prototype.hasOwnProperty.call(cuData,k)) d[k]=cuData[k]; }
+  d.transform = cuEffectiveTransform();
+  if(cuNumericState()==='modified' && !String(d.formula||d.method||'').trim()){
+    d.formula = 'Modified from source data';
+  }
+  return d;
+}
+/* called on every numeric input: auto-switch the radio to match reality */
+function cuAutoDetect(){
+  var state = cuNumericState();
+  if(state==='modified'){
+    cuData.transform = 'calculated';
+    cuXformAuto = true;
+  } else if(state==='verified'){
+    if(cuXformAuto) cuData.transform = 'raw';
+  } else {
+    if(cuXformAuto || !cuData.transform){ cuData.transform = 'estimate'; cuXformAuto = true; }
+  }
+}
+function cuUpdateStatDot(){
+  var tips = {
+    verified: 'Matches the source data',
+    modified: 'Modified from the source data',
+    manual: 'Manual entry — not verified against our data'
+  };
+  var dots = document.querySelectorAll('#cu-fields .cu-stat-dot');
+  for(var i=0;i<dots.length;i++){
+    var key = dots[i].getAttribute('data-dotkey');
+    var st = (key==='webnodes') ? cuFieldState('webnodes') : cuFieldState(key);
+    dots[i].className = 'cu-stat-dot ' + st;
+    dots[i].title = tips[st] || '';
+  }
+}
+function cuStateLine(){
+  var state = cuNumericState();
+  var t = String(cuData.transform||'raw').toLowerCase();
+  if(state==='verified') return '<span style="color:#2fbf71">✅ Number matches the source data</span>';
+  if(state==='modified'){
+    var s = '<span style="color:#ffb84d">⚠️ You modified the original number</span>';
+    if(t!=='calculated') s += ' — <span style="color:#ffb84d">export will label it Calculated</span>';
+    return s;
+  }
+  var m = '<span style="color:#e5383b">🔴 Manual entry — not verified against our data</span>';
+  var cb = $('cu-confirm');
+  if(t==='raw' && !(cb && cb.checked)) m += ' — <span style="color:#ffb84d">export will label it Estimate unless you confirm the source</span>';
+  return m;
+}
 function renderCuShields(){
   var host = $('cu-shield-lines');
   if(host){
     host.innerHTML = cuShieldLines().map(function(t){ return '<div>'+esc(t)+'</div>'; }).join('');
   }
+  var st = $('cu-shield-state');
+  if(st) st.innerHTML = cuStateLine();
   cuSyncXformUI();
+  cuUpdateStatDot();
   var cb = $('cu-confirm');
   if(cb) cb.checked = dataBacked;
   var warn = $('cu-manual-warn');
@@ -1240,6 +1391,7 @@ if(_cuCb) _cuCb.addEventListener('change', function(){
 document.querySelectorAll('input[name="cu-xform"]').forEach(function(r){
   r.addEventListener('change', function(){
     cuData.transform = r.value;
+    cuXformAuto = false; /* explicit user choice — auto-detect will not override the radio, but export still enforces truth */
     cuSyncXformUI();
     previewCustom();
   });
@@ -1326,6 +1478,14 @@ function init(){
   }
   showMode(mode);
   if(fromData) dataBacked = true;
+  /* auto-detect: snapshot the deep-linked originals so edits are caught */
+  cuFromData = fromData;
+  cuSnapshotData();
+  if(!cuFromData){
+    /* pure manual entry: default to Estimate, not Raw */
+    cuData.transform = 'estimate';
+    cuXformAuto = true;
+  }
   renderCuShields();
   previewCustom();
   if(topic && !studioB64){ $('cu-search').value = topic; doCustomSearch(); }

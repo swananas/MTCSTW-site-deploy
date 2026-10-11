@@ -133,6 +133,35 @@
   }
   #pf-karl-home .kh-ask-btn:active{ transform:scale(.95); }
   #pf-karl-home .kh-ask-btn:disabled{ opacity:.55; box-shadow:none; }
+  /* COMPACT: one-line composer (declutter 20261011) */
+  #pf-karl-home .kh-ask-compact{ padding:20px 16px 8px; }
+  #pf-karl-home .kh-ask-compact h1{ font-size:28px; margin:0 0 12px; }
+  #pf-karl-home .kh-composer-oneline{ display:flex; align-items:center; gap:8px; padding:6px 6px 6px 16px; }
+  #pf-karl-home .kh-composer-oneline input{
+    flex:1; min-width:0; background:transparent; border:0; outline:0;
+    color:var(--kh-cream); font-size:16px; font-family:inherit; padding:10px 0;
+  }
+  #pf-karl-home .kh-composer-oneline input::placeholder{ color:var(--kh-faint); }
+  #pf-karl-home .kh-composer-oneline .kh-ask-btn{ padding:10px 20px; font-size:14px; flex-shrink:0; }
+  #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
+  /* CURIOSITY CAROUSEL: horizontal swipe (declutter 20261011) */
+  .pf-carousel{ margin:6px 0 4px; }
+  .pf-carousel-track{
+    display:flex; gap:12px; overflow-x:auto; padding:8px 16px 12px;
+    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .pf-carousel-track::-webkit-scrollbar{ display:none; }
+  .pf-carousel-card{
+    flex:0 0 86%; max-width:420px; scroll-snap-align:center;
+    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
+    padding:16px; min-height:120px;
+  }
+  .pf-carousel-card .pf-cq{ margin:0; border:0; padding:0; background:transparent; }
+  .pf-carousel-card .pf-contra-card{ margin:0 0 10px; }
+  .pf-carousel-card .pf-contra-card:last-child{ margin-bottom:0; }
+  .pf-carousel-dots{ display:flex; gap:6px; justify-content:center; padding:0 0 4px; }
+  .pf-carousel-dots i{ width:6px; height:6px; border-radius:50%; background:#333; }
+  .pf-carousel-dots i.on{ background:var(--kh-red-bright); }
   #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
   #pf-karl-home .kh-chip{
@@ -426,21 +455,17 @@
       <span>⚡</span><span id="pf-xp-val">0</span>&nbsp;XP
     </div>
   </div>
-  <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
-  <p class="pf-promise" style="text-align:center;margin:6px 0 0;">Discover your power.</p>
+
 </header>
 <main id="main">
 <div id="pf-karl-home">
-  <div class="kh-ask">
+  <div class="kh-ask kh-ask-compact">
     <h1>Who's <em>robbing</em> you?</h1>
-    <p class="pf-mission">Stop waiting for the government to fix itself. <strong>Discover your power.</strong></p>
-    <div class="kh-composer">
-      <textarea id="kh-q" rows="2" placeholder="Ask anything&hellip;" enterkeyhint="go"></textarea>
-      <div class="kh-composer-foot">
-        <span class="kh-composer-hint" id="kh-hint">sourced answers &middot; never a guess</span>
-        <button class="kh-ask-btn" id="kh-askBtn">ASK</button>
-      </div>
+    <div class="kh-composer kh-composer-oneline">
+      <input id="kh-q" placeholder="Ask anything…" enterkeyhint="go" autocomplete="off">
+      <button class="kh-ask-btn" id="kh-askBtn">ASK</button>
     </div>
+    <p class="pf-mission">Stop waiting for the government to fix itself. <strong>Discover your power.</strong></p>
   </div>
 
   <div class="kh-chips" id="kh-chips">
@@ -454,48 +479,41 @@
 
 
 
-  <!-- CURIOSITY HOOKS v2: WHAT ABOUT ME? — systemic extraction framing -->
-  <div class="pf-cq" id="pf-cq">
-    <div class="pf-cq-kicker">🔍 WHAT'S BEING <em>EXTRACTED</em> NEAR YOU?</div>
-    <div class="pf-cq-sub">Not "are you a victim." What is the machine taking from your area — in dollars.</div>
-    <div class="pf-cq-tabs" id="pf-cq-tabs" role="tablist"></div>
-    <div id="pf-cq-body"></div>
-    <div class="pf-cq-audit">📋 Your audit contributions (this device): <b id="pf-cq-auditn">0</b></div>
-  </div>
-
-  <!-- PREDICTION: GUESS THE MARKUP -->
-  <div class="pf-cq" id="pf-pred" hidden>
-    <div class="pf-cq-kicker">🎯 GUESS THE <em>MARKUP</em></div>
-    <div class="pf-cq-sub">One tap. No wrong answers — only wrong systems.</div>
-    <div class="pf-cq-line" id="pf-pred-q" style="margin-bottom:4px;"></div>
-    <div class="pf-pred-val" id="pf-pred-val">10.0×</div>
-    <input type="range" class="pf-pred-slider" id="pf-pred-slider" min="100" max="2000" value="1000" step="50" aria-label="Your guess, as a multiple of Medicare">
-    <div class="pf-cq-row"><button class="pf-cq-go" id="pf-pred-btn" type="button" style="flex:1;">REVEAL THE REAL NUMBER</button></div>
-    <div class="pf-cq-out" id="pf-pred-a" hidden></div>
-  </div>
-
-  <!-- RHETORICAL CONTRADICTIONS -->
-  <div id="pf-contra" hidden></div>
-  <!-- CELLS → HQ (dir-20261010-135720-3916): My Cell widget — member state swaps in via localStorage -->
-  <div class="kh-cell-widget" id="kh-cell-widget">
-    <div class="kh-cell-card">
-      <div class="kh-cell-top"><span class="kh-cell-kicker">⚑ COORDINATE</span><a class="kh-cell-open" href="/cells">OPEN CELLS →</a></div>
-      <div class="kh-cell-body" id="kh-cell-body">
-        <div class="kh-cell-title">Not in a cell yet</div>
-        <div class="kh-cell-sub">Cells are small crews that turn intel into action. Find yours, or start one.</div>
-        <a class="kh-cell-cta" href="/cells">FIND YOUR CELL</a>
+  <!-- CURIOSITY CAROUSEL: swipe through hooks — Extracted → Markup → Contradictions -->
+  <div class="pf-carousel" id="pf-carousel">
+    <div class="pf-carousel-track">
+      <div class="pf-carousel-card">
+        <!-- CURIOSITY HOOKS v2: WHAT ABOUT ME? — systemic extraction framing -->
+        <div class="pf-cq" id="pf-cq">
+          <div class="pf-cq-kicker">🔍 WHAT'S BEING <em>EXTRACTED</em> NEAR YOU?</div>
+          <div class="pf-cq-sub">Not "are you a victim." What is the machine taking from your area — in dollars.</div>
+          <div class="pf-cq-tabs" id="pf-cq-tabs" role="tablist"></div>
+          <div id="pf-cq-body"></div>
+          <div class="pf-cq-audit">📋 Your audit contributions (this device): <b id="pf-cq-auditn">0</b></div>
+        </div>
+      </div>
+      <div class="pf-carousel-card">
+        <!-- PREDICTION: GUESS THE MARKUP -->
+        <div class="pf-cq" id="pf-pred">
+          <div class="pf-cq-kicker">🎯 GUESS THE <em>MARKUP</em></div>
+          <div class="pf-cq-sub">One tap. No wrong answers — only wrong systems.</div>
+          <div class="pf-cq-line" id="pf-pred-q" style="margin-bottom:4px;"></div>
+          <div class="pf-pred-val" id="pf-pred-val">10.0×</div>
+          <input type="range" class="pf-pred-slider" id="pf-pred-slider" min="100" max="2000" value="1000" step="50" aria-label="Your guess, as a multiple of Medicare">
+          <div class="pf-cq-row"><button class="pf-cq-go" id="pf-pred-btn" type="button" style="flex:1;">REVEAL THE REAL NUMBER</button></div>
+          <div class="pf-cq-out" id="pf-pred-a" hidden></div>
+        </div>
+      </div>
+      <div class="pf-carousel-card">
+        <!-- RHETORICAL CONTRADICTIONS -->
+        <div id="pf-contra"></div>
       </div>
     </div>
+    <div class="pf-carousel-dots" id="pf-carousel-dots" aria-hidden="true"></div>
   </div>
-
   <div class="kh-feed-head">
     
     <span class="kh-tick"><i></i>LIVE</span>
-  </div>
-  <!-- LIVE DATA -->
-  <div id="kh-pulse" style="margin:0 16px 12px;background:#111;border:1px solid #232323;border-left:3px solid #c1121f;border-radius:12px;padding:12px 14px;font-size:12px;color:#8a8478;">
-    <span style="color:#e5383b;font-weight:800;letter-spacing:.08em;">⚡ LIVE FROM THE DATA</span>
-    <span id="kh-pulse-text" style="margin-left:8px;">Reading the rails…</span>
   </div>
   <div class="kh-feed" id="kh-feed"></div>
   <!-- INFINITE FEED (ux/feed-destinations-20261010): unified queue — feed_cards API,
@@ -505,6 +523,18 @@
   <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
   <div class="kh-more-wrap" style="padding-top:0">
     <a href="/model/" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THE DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Hospitals, banks, FEC, prisons, housing — query it all yourself</span></a>
+  </div>
+
+  <!-- CELLS → HQ: My Cell widget moved below feed (declutter 20261011) -->
+  <div class="kh-cell-widget" id="kh-cell-widget">
+    <div class="kh-cell-card">
+      <div class="kh-cell-top"><span class="kh-cell-kicker">⚑ COORDINATE</span><a class="kh-cell-open" href="/cells">OPEN CELLS →</a></div>
+      <div class="kh-cell-body" id="kh-cell-body">
+        <div class="kh-cell-title">Not in a cell yet</div>
+        <div class="kh-cell-sub">Cells are small crews that turn intel into action. Find yours, or start one.</div>
+        <a class="kh-cell-cta" href="/cells">FIND YOUR CELL</a>
+      </div>
+    </div>
   </div>
 
   <!-- CELLS → HQ (dir-20261010-135720-3916): cell activity — seed data, wired to live API later -->
@@ -1333,32 +1363,43 @@ function AnchorSource(){
   var list = beefyKilled ? [] : ANCHORS;
   var idx = 0;
   return {
-    name: 'anchor', sync: true,
+    name: 'anchor', sync: true, cyclable: true,
     loadMore: function(n){
       var out = list.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'beefy'}; });
       idx += out.length;
       return Promise.resolve(out);
     },
-    exhausted: function(){ return idx >= list.length; }
+    exhausted: function(){ return idx >= list.length; },
+    reset: function(){ idx = 0; }
   };
 }
 
 /* ---- source: hardcoded seeds - 2 SEED, 1 INFERENCE repeating (sync) ---- */
 function SeedSource(){
   var seq = [], si = 0, ii = 0;
-  while(si < SEED.length || ii < INFERENCES.length){
-    for(var k = 0; k < 2 && si < SEED.length; k++) seq.push(SEED[si++]);
-    if(ii < INFERENCES.length) seq.push(INFERENCES[ii++]);
+  function build(){
+    seq = []; si = 0; ii = 0;
+    while(si < SEED.length || ii < INFERENCES.length){
+      for(var k = 0; k < 2 && si < SEED.length; k++) seq.push(SEED[si++]);
+      if(ii < INFERENCES.length) seq.push(INFERENCES[ii++]);
+    }
+    /* reshuffle on reset so cycled content feels fresh */
+    for(var j = seq.length - 1; j > 0; j--){
+      var r = Math.floor(Math.random() * (j + 1));
+      var t = seq[j]; seq[j] = seq[r]; seq[r] = t;
+    }
   }
+  build();
   var idx = 0;
   return {
-    name: 'seed', sync: true,
+    name: 'seed', sync: true, cyclable: true,
     loadMore: function(n){
       var out = seq.slice(idx, idx + n).map(function(d){ return {d: d, kind: 'spine'}; });
       idx += out.length;
       return Promise.resolve(out);
     },
-    exhausted: function(){ return idx >= seq.length; }
+    exhausted: function(){ return idx >= seq.length; },
+    reset: function(){ build(); idx = 0; }
   };
 }
 
@@ -1557,6 +1598,7 @@ function fmRefill(syncOnly){
       (cards || []).forEach(function(c){
         c._src = k;
         var id = fmCardId(c);
+        fmIdSrc[id] = k;
         if(!fmShownIds[id] && !fmBufIds[id]){ fmBufIds[id] = 1; fmBuffer.push(c); }
       });
     }).catch(function(){});
@@ -1636,7 +1678,28 @@ function fmSkeletons(n){
 function fmClearSkeletons(){
   Array.prototype.forEach.call(feed.querySelectorAll('[data-skel]'), function(s){ s.remove(); });
 }
+var fmCycles = 0; /* how many times we've cycled sync sources */
+var fmIdSrc = {}; /* card id -> source (for selective shown-ID clearing on cycle) */
+function fmCycleSync(){
+  /* true infinite scroll: reset cyclable sync sources, clear their shown IDs */
+  var resetAny = false;
+  var cycSrcs = {};
+  Object.keys(FM_SOURCES).forEach(function(k){
+    var s = FM_SOURCES[k];
+    if(s && s.cyclable && typeof s.reset === 'function'){ s.reset(); cycSrcs[k] = 1; resetAny = true; }
+  });
+  if(!resetAny) return false;
+  fmCycles++;
+  /* clear shown/buffer IDs for cyclable sources so reshuffled cards can reappear */
+  Object.keys(fmIdSrc).forEach(function(id){ if(cycSrcs[fmIdSrc[id]]) delete fmShownIds[id]; });
+  fmBuffer = [];
+  fmBufIds = {};
+  if(FM_DEBUG) console.log('[FM] cycling sync sources (cycle #' + fmCycles + ')');
+  return true;
+}
 function fmEnd(){
+  /* infinite scroll: cycle instead of ending (unless nothing cyclable) */
+  if(fmCycleSync()){ fmNudge(); return; }
   fmEnded = true;
   try{ fmObserver.disconnect(); }catch(e){}
   if(feed.querySelector('.kh-feed-end')) return;
@@ -1647,27 +1710,32 @@ function fmEnd(){
 }
 function fmLoadBatch(retry){
   if(fmLoading || fmEnded || fmActiveTab === 'saved') return;
+  if(FM_DEBUG) console.log('[FM] loadBatch: requesting 5' + (retry ? ' (retry)' : ''));
   fmLoading = true;
   var gen = fmGen;
   fmSkeletons(3);
   fmNextBatch(5).then(function(batch){
     fmClearSkeletons();
     fmLoading = false; /* reset FIRST - stale gen must not wedge the loader */
-    if(gen !== fmGen) return; /* tab changed mid-flight - drop stale batch */
+    if(gen !== fmGen){ if(FM_DEBUG) console.log('[FM] loadBatch: stale gen, dropping'); return; } /* tab changed mid-flight - drop stale batch */
+    if(FM_DEBUG) console.log('[FM] loadBatch: got ' + batch.length + ' cards, buffer=' + fmBuffer.length);
     if(!batch.length){
       /* empty batch but pool may still be filling (tab filter) - one retry */
       if(!retry && !fmAllExhausted()){ fmLoadBatch(true); return; }
       fmEnd(); return;
     }
     batch.forEach(function(item, i){
-      feed.appendChild(fmRenderCard(item, i));
-      fmAfterRender(item);
+      try{
+        feed.appendChild(fmRenderCard(item, i));
+        fmAfterRender(item);
+      }catch(e){ if(FM_DEBUG) console.log('[FM] render error for card:', e.message); }
     });
     if(fmAllExhausted()) fmEnd();
     else fmNudge(); /* sentinel may already be in view - don't wait for scroll */
-  }).catch(function(){
+  }).catch(function(e){
     fmClearSkeletons();
     fmLoading = false; /* network failure must not wedge the loader */
+    if(FM_DEBUG) console.log('[FM] loadBatch error:', e.message);
   });
 }
 /* If the sentinel is already visible (short feed), trigger another batch
@@ -1695,9 +1763,11 @@ function fmObserve(){
   if(!sentinel || !('IntersectionObserver' in window)){ fmLoadBatch(); return; }
   if(fmObserver) try{ fmObserver.disconnect(); }catch(e){}
   fmObserver = new IntersectionObserver(function(entries){
+    if(FM_DEBUG) console.log('[FM] observer fired, intersecting=' + !!(entries[0] && entries[0].isIntersecting));
     if(entries[0] && entries[0].isIntersecting) fmLoadBatch();
   }, {rootMargin: '700px'}); /* prefetch before the user hits bottom */
   fmObserver.observe(sentinel);
+  if(FM_DEBUG) console.log('[FM] observer attached to sentinel');
   /* scroll fallback for flaky webviews */
   if(!fmScrollBound){
     fmScrollBound = true;
@@ -1771,13 +1841,22 @@ function fmSetTab(tab){
 
 /* ---- boot: rank the sync pool for 2 above-the-fold cards, then lazy ---- */
 fmBuildTabs();
+if(FM_DEBUG) console.log('[FM] boot: requesting 2 sync cards');
 fmNextBatch(2, true).then(function(cards){
+  if(FM_DEBUG) console.log('[FM] boot: got ' + cards.length + ' cards');
   cards.forEach(function(item, i){
-    feed.appendChild(fmRenderCard(item, i));
-    fmAfterRender(item);
+    try{
+      feed.appendChild(fmRenderCard(item, i));
+      fmAfterRender(item);
+    }catch(e){ if(FM_DEBUG) console.log('[FM] boot render error:', e.message); }
   });
   fmObserve();
-});
+  fmNudge(); /* observer may not fire in flaky webviews — nudge forces first check */
+  /* watchdog: if nothing rendered in 5s, force a batch (iOS PWA safety net) */
+  setTimeout(function(){
+    if(!feed.querySelector('.kh-card') && !fmEnded){ if(FM_DEBUG) console.log('[FM] watchdog: no cards, forcing batch'); fmLoadBatch(); }
+  }, 5000);
+}).catch(function(e){ if(FM_DEBUG) console.log('[FM] boot failed:', e.message); fmLoadBatch(); });
 
 /* feed boot moved into beefy IIFE tail (FeedManager) */
 })();
@@ -2581,6 +2660,22 @@ function boot(){
   var g=$id('pf-pred-btn');if(g)g.addEventListener('click',predReveal);
   var s=$id('pf-pred-slider'),sv=$id('pf-pred-val');
   if(s&&sv)s.addEventListener('input',function(){sv.textContent=(Number(s.value)/100).toFixed(1)+'×';});
+  /* carousel dots */
+  var track=document.querySelector('#pf-carousel .pf-carousel-track');
+  var dots=document.getElementById('pf-carousel-dots');
+  if(track&&dots){
+    var cards=track.querySelectorAll('.pf-carousel-card');
+    for(var i=0;i<cards.length;i++){ var d=document.createElement('i'); if(i===0)d.className='on'; dots.appendChild(d); }
+    var dotEls=dots.querySelectorAll('i');
+    var t=null;
+    track.addEventListener('scroll',function(){
+      if(t)clearTimeout(t);
+      t=setTimeout(function(){
+        var idx=Math.round(track.scrollLeft/(track.scrollWidth/track.children.length));
+        for(var j=0;j<dotEls.length;j++)dotEls[j].className=(j===idx?'on':'');
+      },80);
+    },{passive:true});
+  }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();

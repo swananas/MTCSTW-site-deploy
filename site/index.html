@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
 <style>
   html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
-  #pf-boot{min-height:100vh;}
+  #pf-boot{min-height:100vh;min-height:100dvh;}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:#e5383b;color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
   /* Merged header + pillars: butter-smooth, PWA-native */
@@ -133,7 +133,7 @@
   }
   #pf-karl-home .kh-ask-btn:active{ transform:scale(.95); }
   #pf-karl-home .kh-ask-btn:disabled{ opacity:.55; box-shadow:none; }
-  #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; }
+  #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
   #pf-karl-home .kh-chip{
     flex:0 0 auto; background:var(--kh-card); border:1px solid var(--kh-line); color:var(--kh-cream);
@@ -213,7 +213,7 @@
   }
   @keyframes kh-shim{ to{ background-position:-200% 0; } }
   #pf-karl-home .kh-toast{
-    position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(80px);
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(80px) translateZ(0);
     background:var(--kh-red); color:#fff; font-weight:700; font-size:14px;
     padding:13px 24px; border-radius:999px; z-index:99; opacity:0;
     transition:transform .3s cubic-bezier(.2,.9,.3,1.2), opacity .3s;
@@ -840,7 +840,7 @@ function doAsk(){
   load.className = 'kh-card';
   load.innerHTML = '<div class="kh-q">'+esc(text)+'</div><div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div>';
   feed.insertBefore(load, feed.firstChild);
-  load.scrollIntoView({behavior:'smooth', block:'center'});
+  load.scrollIntoView({behavior:'auto', block:'center'}); /* instant — smooth scroll fights the user's swipe gesture */
 
   var done = function(card){
     var el = cardEl(card);

@@ -216,8 +216,16 @@
     <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
     <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
     <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>
   </div>
-  <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">LEGAL</span>
+    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>
+    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>
+    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>
+  </div>
+  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>
 </nav>
 <script>
 (function(){
@@ -315,7 +323,7 @@
   <div class="sec" id="pulse-sec">
     <h2>⚡ Live from the data</h2>
     <div id="pulse-banner" class="pulse">
-      <div class="pulse-loading">Reading the live rails…</div>
+      <div class="pulse-loading">Reading live data…</div>
     </div>
   </div>
 
@@ -490,7 +498,7 @@ function fmt(v){
 }
 function status(msg,err){var e=$id('status');e.textContent=msg||'';e.className=err?'err':'';}
 function setLoading(on){
-  $id('results').innerHTML = on ? '<div class="loading"><span class="spin"></span>Running against the live rails…</div>' : '';
+  $id('results').innerHTML = on ? '<div class="loading"><span class="spin"></span>Searching the data…</div>' : '';
 }
 function tableByName(n){for(var i=0;i<catalog.length;i++)if(catalog[i].name===n)return catalog[i];return null;}
 

@@ -587,8 +587,16 @@
     <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
     <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
     <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>
   </div>
-  <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">LEGAL</span>
+    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>
+    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>
+    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>
+  </div>
+  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>
 </nav>
 <script>
 (function(){
@@ -1089,7 +1097,7 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
       f.creators.slice(0,3).forEach(function(c){
         rows.push([c.name||'Creator', (c.propaganda_score?c.propaganda_score+'★ ':'')+(c.followers_display||'')]);
       });
-      srcBits.push('slr_roster');
+      srcBits.push('Sick Left Radicals');
     }
     if(f.trades && f.trades.length){
       f.trades.slice(0,3).forEach(function(t){
@@ -1134,11 +1142,11 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
     });
   }
   if(!rows.length) return null;
-  var src = srcBits.length ? '▸ RECEIPTS — '+srcBits.filter(function(v,i,a){return a.indexOf(v)===i;}).join(' · ') : '▸ RECEIPTS — Karl rails';
+  var src = srcBits.length ? '▸ RECEIPTS — '+srcBits.filter(function(v,i,a){return a.indexOf(v)===i;}).join(' · ') : '▸ RECEIPTS — Karl\u2019s data';
   var lead = rows[0];
   return {
     q: q,
-    a: '<b>'+esc(lead[1])+'</b> — '+esc(lead[0])+'. Karl pulled this from the live rails.',
+    a: '<b>'+esc(lead[1])+'</b> — '+esc(lead[0])+'. Karl pulled this from live data.',
     rows: rows.slice(0,4), src: src, deploys: 0, when: "now"
   };
 }
@@ -1191,7 +1199,7 @@ function doAsk(){
       });
       if(hit){ done(Object.assign({}, hit, {q:text, when:"now"})); return; }
       done({ q:text,
-        a:"Karl searched the live rails and found <b>no direct match</b> — try naming a company, person, or industry.",
+        a:"Karl searched the data and found <b>no direct match</b> — try naming a company, person, or industry.",
         rows:[["Template", d&&d.template?d.template:"unknown"],["Rails checked","27"]],
         src:"▸ RECEIPTS — Karl rails", deploys:0, when:"now" });
     })
@@ -3288,7 +3296,7 @@ var KHD = {
           });
           liveEv.innerHTML = html;
         } else {
-          liveEv.innerHTML = '<div style="font-size:13px;color:#666">Seed data shown above — live rails returned no additional rows for this query.</div>';
+          liveEv.innerHTML = '<div style="font-size:13px;color:#666">Showing saved results — no new data for this search.</div>';
         }
       }).catch(function(){
         liveEv.innerHTML = '<div style="font-size:13px;color:#666">Live rails unreachable — showing seed data.</div>';

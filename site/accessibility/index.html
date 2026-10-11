@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Accessibility ♿ — Power for everyone.</title>
+<meta name="description" content="Our WCAG 2.1 AA commitment: 44px targets, screen reader labels, keyboard navigation, reduced motion support, known gaps, and how to report issues.">
+<meta property="og:title" content="Accessibility ♿ — Power for everyone.">
+<meta property="og:description" content="Our WCAG 2.1 AA commitment: 44px targets, screen reader labels, keyboard navigation, reduced motion support, known gaps, and how to report issues.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/accessibility">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Accessibility ♿ — Power for everyone.">
+<meta name="twitter:description" content="Our WCAG 2.1 AA commitment: 44px targets, screen reader labels, keyboard navigation, reduced motion support, known gaps, and how to report issues.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
+  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
+  .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;line-height:1.15;}
+  .hero h1 .red{color:#c1121f;}
+  .sub{color:#b0b0b0;font-size:15px;margin:0 0 20px;}
+  .karl-quote{border-left:3px solid #c1121f;background:#141414;border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:#f5ead6;font-style:italic;margin:0 0 20px;}
+  .karl-quote b{color:#e5383b;font-style:normal;}
+  .doc h2{font-size:19px;margin:30px 0 10px;letter-spacing:.03em;line-height:1.3;}
+  .doc h2 .red{color:#c1121f;}
+  .doc p{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;}
+  .doc ul{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;padding-left:22px;}
+  .doc li{margin-bottom:8px;}
+  .doc a{color:#e5383b;font-weight:600;}
+  .doc strong{color:#fff;}
+  .doc code{color:#f5ead6;background:#1a1a1a;padding:1px 6px;border-radius:4px;font-size:13px;}
+  .callout{background:#141414;border:1px solid #c1121f;border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:15px;line-height:1.6;color:#e8e2d6;}
+  .doc .updated{font-size:12px;color:#8a8478;margin-top:28px;}
+  details.faq{background:#141414;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  details.faq[open]{border-color:#c1121f;}
+  details.faq summary{padding:14px 16px;font-size:15px;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation;min-height:44px;display:flex;align-items:center;gap:10px;color:#fff;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::before{content:'+';color:#c1121f;font-weight:900;font-size:20px;flex-shrink:0;}
+  details.faq[open] summary::before{content:'\2212';}
+  details.faq .faq-body{padding:0 16px 16px;font-size:15px;line-height:1.65;color:#e8e2d6;}
+  details.faq .faq-body p{margin:0 0 12px;}
+  details.faq .faq-body p:last-child{margin-bottom:0;}
+  .faq-body a{color:#e5383b;font-weight:600;}
+</style>
+</head>
+<body>
+<header class="pf-topbar">
+  <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
+    <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
+  </div>
+</header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav-overlay.open{opacity:1;pointer-events:auto}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+    <a class="pf-snav-link" href="/faq/"><span class="em">&#x2753;</span>FAQ</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">LEGAL</span>
+    <a class="pf-snav-link" href="/privacy/"><span class="em">&#x1F512;</span>Privacy Policy</a>
+    <a class="pf-snav-link" href="/terms/"><span class="em">&#x1F4DC;</span>Terms of Service</a>
+    <a class="pf-snav-link" href="/cookies/"><span class="em">&#x1F36A;</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/accessibility/"><span class="em">&#x267F;</span>Accessibility</a>
+  </div>
+  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>&copy; 2026 The Propaganda Factory.<br>Discover your power.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+  var sx=null;
+  nav.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; }, {passive:true});
+  nav.addEventListener('touchmove', function(e){
+    if(sx===null) return;
+    var dx=e.touches[0].clientX - sx;
+    if(dx < -60){ close(); sx=null; }
+  }, {passive:true});
+})();
+</script>
+
+<main id="main">
+  <div class="hero">
+    <h1>POWER FOR <span class="red">EVERYONE.</span></h1>
+    <p class="sub">Our WCAG 2.1 AA commitment: 44px targets, screen reader labels, keyboard navigation, reduced motion support, known gaps, and how to report issues.</p>
+    <p class="karl-quote"><b>KARL:</b> &ldquo;A movement that isn't usable by disabled comrades isn't a movement. It's a club.&rdquo;</p>
+  </div>
+  <div class="doc">
+
+<div class="callout"><strong>Our commitment:</strong> This site aims to meet <strong>WCAG 2.1 Level AA</strong>. Power belongs to everyone &mdash; including everyone using a screen reader, a keyboard, voice control, or a five-year-old phone on a bad connection. If something here doesn&rsquo;t work for you, that&rsquo;s our bug, and we want to hear about it.</div>
+
+<h2>WHAT WE <span class="red">DO</span></h2>
+<ul>
+<li><strong>Touch targets:</strong> interactive elements are at least <strong>44px</strong> &mdash; big enough for thumbs, tremors, and styluses.</li>
+<li><strong>Screen readers:</strong> semantic HTML, labeled controls, and ARIA attributes on navigation (menu, accordions, bottom nav) so assistive tech can parse the page.</li>
+<li><strong>Keyboard navigation:</strong> every action reachable without a mouse &mdash; menus open and close on keyboard, accordions expand, focus stays visible.</li>
+<li><strong>Reduced motion:</strong> we respect <code>prefers-reduced-motion</code> &mdash; animations and transitions stand down when your system asks them to.</li>
+<li><strong>Contrast:</strong> body text and key actions are designed against WCAG AA contrast ratios on the dark theme. Red accents are never the only carrier of meaning.</li>
+<li><strong>Mobile-first:</strong> the whole site is built phone-first &mdash; large text, single-column layouts, no hover-dependent interactions.</li>
+<li><strong>Zoom:</strong> layouts reflow instead of breaking at 200% zoom and beyond.</li>
+</ul>
+
+<h2>KNOWN <span class="red">GAPS</span></h2>
+<p>We&rsquo;re honest about where we fall short. Current known issues:</p>
+<ul>
+<li>Some older embedded widgets predate our accessibility pass and may have unlabeled controls.</li>
+<li>Third-party embeds (payment checkout, external media) follow their own accessibility standards, not ours.</li>
+<li>User-generated content &mdash; memes and images uploaded by the community &mdash; doesn&rsquo;t always ship with alt text. We&rsquo;re building prompts to encourage it.</li>
+</ul>
+<p>We fix reported issues in priority order: blockers first, annoyances next, polish last.</p>
+
+<h2>REPORT AN <span class="red">ISSUE</span></h2>
+<p>Hit a barrier? Tell us exactly what happened:</p>
+<ul>
+<li>The page and what you were trying to do</li>
+<li>Your device, browser, and assistive tech (e.g., &ldquo;VoiceOver on iPhone&rdquo;)</li>
+<li>What you expected vs. what happened</li>
+</ul>
+<p>Email <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a> with the subject <strong>&ldquo;Accessibility issue&rdquo;</strong>. A human reads it, and accessibility reports jump the queue.</p>
+
+<p class="updated">Last updated: October 11, 2026.</p>
+
+  </div>
+</main>
+<!-- PF BOTTOM NAV (site-wide hard nav) -->
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a:active{opacity:.7;}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;&#xFE0F;</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>
+</nav>
+<script>
+(function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
+</script>
+</body>
+</html>

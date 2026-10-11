@@ -104,6 +104,21 @@
   /* preview */
   #crt .preview-wrap{background:#000;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;text-align:center;}
   #crt .preview-wrap canvas{max-width:100%;height:auto;border-radius:8px;}
+  /* legal shields */
+  #crt .shields{background:#0d0d0d;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;}
+  #crt .shields .sec-h{margin-top:0;}
+  #crt .shield-note{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.02em;}
+  #crt .shield-lines{font-size:12px;color:var(--dim);line-height:1.7;margin:8px 0 12px;padding:10px 12px;background:#080808;border-radius:8px;border:1px dashed #333;font-family:inherit;}
+  #crt .shield-lines div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #crt .shield-check{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:600;color:var(--cream);cursor:pointer;touch-action:manipulation;}
+  #crt .shield-check input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--red);cursor:pointer;}
+  #crt .shield-xform{margin:4px 0 12px;padding:10px 12px;background:#080808;border-radius:8px;border:1px dashed #333;}
+  #crt .shield-xform-q{font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+  #crt .shield-radio{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--cream);cursor:pointer;touch-action:manipulation;padding:5px 0;}
+  #crt .shield-radio input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--red);cursor:pointer;}
+  #crt #cu-formula{width:100%;box-sizing:border-box;margin-top:8px;background:#0d0d0d;border:1px solid var(--line);border-radius:8px;color:var(--cream);font-size:13px;padding:10px 12px;font-family:inherit;}
+  #crt #cu-formula:focus{outline:none;border-color:var(--red);}
+  #crt .shield-warn{margin-top:10px;font-size:12.5px;line-height:1.5;color:#ffb84d;background:rgba(255,184,77,.08);border:1px solid rgba(255,184,77,.4);border-radius:8px;padding:10px 12px;font-weight:600;}
   #crt .size-row{display:flex;gap:8px;margin-bottom:12px;}
   #crt .size-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);font-size:12px;font-weight:800;cursor:pointer;touch-action:manipulation;}
   #crt .size-btn.on{border-color:var(--red);color:#fff;background:rgba(193,18,31,.12);}
@@ -215,6 +230,19 @@
     </div>
     <div class="sec-h">Preview</div>
     <div class="preview-wrap"><canvas id="cu-canvas"></canvas></div>
+    <div class="shields" id="cu-shields">
+      <div class="sec-h">Legal shields <span class="shield-note">printed on every export</span></div>
+      <div class="shield-lines" id="cu-shield-lines"></div>
+      <div class="shield-xform">
+        <div class="shield-xform-q">Is this a raw number or transformed?</div>
+        <label class="shield-radio"><input type="radio" name="cu-xform" value="raw" checked> <span>Raw from data</span></label>
+        <label class="shield-radio"><input type="radio" name="cu-xform" value="calculated"> <span>Calculated by me</span></label>
+        <label class="shield-radio"><input type="radio" name="cu-xform" value="estimate"> <span>Estimate</span></label>
+        <input id="cu-formula" type="text" maxlength="90" placeholder="Formula or method — e.g. avg billed ÷ avg Medicare rate, 2024" style="display:none">
+      </div>
+      <label class="shield-check"><input type="checkbox" id="cu-confirm"> <span>I confirm this uses real data from the source shown</span></label>
+      <div class="shield-warn" id="cu-manual-warn" style="display:none">⚠️ This claim isn't backed by our data. You're responsible for its accuracy.</div>
+    </div>
     <button class="btn primary" id="cu-fire" type="button">🔥 FIRE RECEIPT</button>
     <button class="btn ghost" id="cu-copyimg" type="button" disabled>📋 COPY IMAGE</button>
   </div>
@@ -358,6 +386,68 @@ function crtSrc(d){
   var i = s.indexOf('—');
   return (i>=0 ? s.slice(i+1) : s).replace(/^\s*[▸►>]?\s*/,'').trim();
 }
+/* legal shields: friendly dataset names for the source line on every export */
+var CRT_SOURCES = {
+  cms_hospital_prices:'CMS Hospital Price Transparency',
+  dim_cfpb_company:'CFPB Consumer Complaints',
+  fact_keyvex_enforcement:'Federal Enforcement Records',
+  fec_itemized:'FEC Campaign Finance Filings',
+  eviction_county_estimates:'Eviction Lab County Estimates',
+  littlesis_entities:'LittleSis Power Network',
+  littlesis_relationships:'LittleSis Power Network',
+  private_prisons:'Private Prison Contracts',
+  billionaires:'Billionaire Wealth Index',
+  stock_trades:'Congressional Stock Trades',
+  usaspending_contracts:'USAspending Contracts',
+  hud_fmr:'HUD Fair Market Rents',
+  for_profit_colleges:'For-Profit College Records'
+};
+function crtSrcName(s){
+  s = String(s==null?'':s).trim();
+  if(CRT_SOURCES[s]) return CRT_SOURCES[s];
+  if(!s) return 'MTCSTW data';
+  if(s.length > 56) return s.slice(0,55)+'…';
+  return s;
+}
+function crtShieldAsof(d){
+  var a = String((d&&d.asof)||'').trim().slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(a)){
+    try{ a = new Date().toISOString().slice(0,10); }catch(e){ a=''; }
+  }
+  return a;
+}
+/* legal shields: drawn on every export, just above the footer band.
+   Shield order (bottom → top): transformation/source line, timestamp + UGC.
+   Shield 5 — transformation disclosure: no silent transformations.
+     raw        → "Source: X via mtcstw.com · Unmodified"
+     calculated → "Calculated: [formula] · Source: X via mtcstw.com"
+     estimate   → "Estimate based on [formula] · Source: X via mtcstw.com" */
+function crtTransformLine(d){
+  var srcName = crtSrcName(d.src||d.source);
+  var t = String(d.transform||'').toLowerCase();
+  var f = String(d.formula||d.method||'').trim().slice(0,90);
+  if(t==='calculated') return 'Calculated: '+(f||'derived from data')+' · Source: '+srcName+' via mtcstw.com';
+  if(t==='estimate') return 'Estimate based on '+(f||'stated method')+' · Source: '+srcName+' via mtcstw.com';
+  return 'Source: '+srcName+' via mtcstw.com · Unmodified';
+}
+function crtShields(x, W, H, cfg, theme, d, footTop){
+  d = d||{};
+  var m = cfg.m;
+  var l1 = Math.round(cfg.footSmall*0.72), l2 = Math.round(cfg.footSmall*0.62);
+  var lines = [{t:crtTransformLine(d), px:l1}];
+  lines.push({t:'Data as of '+crtShieldAsof(d)+' · User-generated content', px:l2});
+  var y = footTop - Math.round(cfg.footSmall*0.75);
+  x.save(); x.textAlign='center';
+  lines.forEach(function(ln){
+    x.fillStyle=theme.dim; x.globalAlpha=0.85;
+    x.font=ln.px+'px '+theme.sysFont;
+    var t = ln.t;
+    while(t.length>4 && x.measureText(t).width > W-2*m) t=t.slice(0,-1);
+    x.fillText(t, W/2, y);
+    y -= Math.round(ln.px*1.5);
+  });
+  x.restore();
+}
 function crtWho(d){
   if(d.who) return String(d.who).trim();
   var t = String(d.a||d.headline||'').replace(/<[^>]*>/g,'').trim().replace(/^(The|A|An)\s+/i,'');
@@ -408,8 +498,9 @@ function crtWatermark(x, W, H, theme){
   x.fillText('PFN', wmX, wmY+Math.round(W*0.023));
   x.textAlign='left'; x.restore();
 }
-function crtFooter(x, W, H, cfg, theme, slug){
+function crtFooter(x, W, H, cfg, theme, slug, d){
   var footTop = H - cfg.footH;
+  crtShields(x, W, H, cfg, theme, d, footTop);
   x.fillStyle=theme.accent; x.fillRect(0, footTop, W, cfg.footH);
   x.fillStyle='#ffffff'; x.textAlign='center';
   x.font='900 '+cfg.footBig+'px '+theme.sysFont;
@@ -500,7 +591,7 @@ function paintRobbery(x, W, H, cfg, theme, d, m){
     }
   }
   crtWatermark(x, W, H, theme);
-  crtFooter(x, W, H, cfg, theme, slug);
+  crtFooter(x, W, H, cfg, theme, slug, d);
 }
 
 /* THE WEB — linear money flow: [A] →$→ [B] →$→ [C]. Max 4 nodes, mobile-first. */
@@ -556,7 +647,7 @@ function paintWeb(x, W, H, cfg, theme, d, m){
     crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y, W-2*m, cfg.ansLh, footTop-30);
   }
   crtWatermark(x, W, H, theme);
-  crtFooter(x, W, H, cfg, theme, slug);
+  crtFooter(x, W, H, cfg, theme, slug, d);
 }
 
 function paintQuote(x, W, H, cfg, theme, d, m){
@@ -583,7 +674,7 @@ function paintQuote(x, W, H, cfg, theme, d, m){
     crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y+10, W-2*m, Math.round(cfg.ansLh*0.9), footTop-30);
   }
   crtWatermark(x, W, H, theme);
-  crtFooter(x, W, H, cfg, theme, slug);
+  crtFooter(x, W, H, cfg, theme, slug, d);
 }
 
 function paintBeforeAfter(x, W, H, cfg, theme, d, m){
@@ -623,7 +714,7 @@ function paintBeforeAfter(x, W, H, cfg, theme, d, m){
     crtWrap(x, String(d.sub).replace(/<[^>]*>/g,''), m, y, W-2*m, Math.round(cfg.ansLh*0.9), footTop-30);
   }
   crtWatermark(x, W, H, theme);
-  crtFooter(x, W, H, cfg, theme, slug);
+  crtFooter(x, W, H, cfg, theme, slug, d);
 }
 
 function paintStatbomb(x, W, H, cfg, theme, d, m){
@@ -661,7 +752,7 @@ function paintStatbomb(x, W, H, cfg, theme, d, m){
   }
   x.textAlign='left';
   crtWatermark(x, W, H, theme);
-  crtFooter(x, W, H, cfg, theme, slug);
+  crtFooter(x, W, H, cfg, theme, slug, d);
 }
 
 var PAINTERS = { robbery:paintRobbery, web:paintWeb, quote:paintQuote, beforeafter:paintBeforeAfter, statbomb:paintStatbomb };
@@ -949,7 +1040,7 @@ function bumpBountyFor(d){
 
 /* ---------- CUSTOM ---------- */
 var cuTpl='robbery', cuTheme='brutalist', cuSize='portrait';
-var cuData = { headline:'', sub:'', stat:'', who:'', src:'', quote:'', attribution:'', before:'', after:'', beforeLabel:'BEFORE', afterLabel:'AFTER', nodes:[] };
+var cuData = { headline:'', sub:'', stat:'', who:'', src:'', quote:'', attribution:'', before:'', after:'', beforeLabel:'BEFORE', afterLabel:'AFTER', nodes:[], method:'', asof:'', transform:'', formula:'' };
 
 document.querySelectorAll('#cu-tpls .tpl').forEach(function(t){
   t.addEventListener('click', function(){
@@ -1067,25 +1158,27 @@ function doCustomSearch(){
         cuData.who = crtWho({a:plain}) || q;
         cuData.src = crtSrc({src:res.src}) || 'Karl data rails';
         cuData.rows = (res.rows||[]).slice(0,5);
+        dataBacked = true;
         /* try to pull a web from the answer */
-        renderCuFields(); renderDossier(q); bumpDossier(q, []);
+        renderCuFields(); renderCuShields(); renderDossier(q); bumpDossier(q, []);
         previewCustom();
         toast('Intel loaded — build your receipt');
         pfAddXP(2);
       } else {
         toast('No intel found — fill the fields manually');
-        cuData.headline = q; renderCuFields(); previewCustom();
+        cuData.headline = q; renderCuFields(); renderCuShields(); previewCustom();
       }
     })
     .catch(function(){
       btn.disabled=false; btn.textContent='DIG';
       toast('Rails quiet — fill the fields manually');
-      cuData.headline = q; renderCuFields(); previewCustom();
+      cuData.headline = q; renderCuFields(); renderCuShields(); previewCustom();
     });
 }
 
 var cuCanvas = null;
 function previewCustom(){
+  renderCuShields();
   crtRender(cuTpl, cuData, cuSize, cuTheme, function(canvas){
     var host = $('cu-canvas');
     if(!canvas){ return; }
@@ -1105,6 +1198,57 @@ $('cu-fire').addEventListener('click', function(){
 $('cu-copyimg').addEventListener('click', function(){
   if(!cuCanvas) return;
   crtCopyImage(cuCanvas, $('cu-copyimg'));
+});
+
+/* ---------- legal shields (UI) ---------- */
+/* dataBacked = the claim rides on real data from our rails (deep-link or Karl search).
+   Unchecked = manual entry; the user owns the claim's accuracy. */
+var dataBacked = false;
+function cuShieldLines(){
+  var arr = [crtTransformLine(cuData)];
+  arr.push('Data as of '+crtShieldAsof(cuData)+' · User-generated content');
+  return arr;
+}
+function cuSyncXformUI(){
+  var t = String(cuData.transform||'').toLowerCase();
+  if(t!=='calculated'&&t!=='estimate') t='raw';
+  var radios = document.querySelectorAll('input[name="cu-xform"]');
+  for(var i=0;i<radios.length;i++) radios[i].checked = (radios[i].value===t);
+  var fi = $('cu-formula');
+  if(fi){
+    fi.value = String(cuData.formula||cuData.method||'');
+    fi.style.display = (t==='raw') ? 'none' : 'block';
+  }
+}
+function renderCuShields(){
+  var host = $('cu-shield-lines');
+  if(host){
+    host.innerHTML = cuShieldLines().map(function(t){ return '<div>'+esc(t)+'</div>'; }).join('');
+  }
+  cuSyncXformUI();
+  var cb = $('cu-confirm');
+  if(cb) cb.checked = dataBacked;
+  var warn = $('cu-manual-warn');
+  if(warn) warn.style.display = dataBacked ? 'none' : 'block';
+}
+var _cuCb = $('cu-confirm');
+if(_cuCb) _cuCb.addEventListener('change', function(){
+  dataBacked = _cuCb.checked;
+  var warn = $('cu-manual-warn');
+  if(warn) warn.style.display = dataBacked ? 'none' : 'block';
+});
+document.querySelectorAll('input[name="cu-xform"]').forEach(function(r){
+  r.addEventListener('change', function(){
+    cuData.transform = r.value;
+    cuSyncXformUI();
+    previewCustom();
+  });
+});
+var _cuFormula = $('cu-formula');
+if(_cuFormula) _cuFormula.addEventListener('input', function(){
+  cuData.formula = _cuFormula.value.slice(0,90);
+  renderCuShields();
+  previewCustom();
 });
 
 /* ---------- init ---------- */
@@ -1132,7 +1276,7 @@ function init(){
     cuData.headline = topic;
     mode = 'custom';
   }
-  /* flat deep-link params: ?mode=custom&tpl=statbomb&headline=..&stat=..&stat_label=..&source=..&who=..&sub=..&nodes=.. */
+  /* flat deep-link params: ?mode=custom&tpl=statbomb&headline=..&stat=..&stat_label=..&source=..&who=..&sub=..&nodes=..&method=..&asof=..&transform=..&formula=.. */
   var dl = {
     tpl: param('tpl'),
     headline: param('headline'),
@@ -1141,7 +1285,11 @@ function init(){
     source: param('source'),
     who: param('who'),
     sub: param('sub'),
-    nodes: param('nodes')
+    nodes: param('nodes'),
+    method: param('method'),
+    asof: param('asof'),
+    transform: param('transform'),
+    formula: param('formula')
   };
   var hasDl = !!(dl.headline || dl.stat || dl.who || dl.sub || dl.nodes);
   if(hasDl && !studioB64 && !topic){
@@ -1152,6 +1300,16 @@ function init(){
     if(dl.source) cuData.src = String(dl.source).slice(0,80);
     if(dl.sub) cuData.sub = String(dl.sub).slice(0,280);
     else if(dl.stat_label) cuData.sub = String(dl.stat_label).slice(0,120);
+    if(dl.method) cuData.method = String(dl.method).slice(0,90);
+    if(dl.asof && /^\d{4}-\d{2}-\d{2}$/.test(String(dl.asof).slice(0,10))) cuData.asof = String(dl.asof).slice(0,10);
+    /* transformation disclosure (shield 5): explicit param wins; a method with no
+       transform implies calculated; deep-linked data otherwise auto-detects as raw */
+    var dlT = String(dl.transform||'').toLowerCase();
+    if(dlT==='calculated'||dlT==='estimate'||dlT==='raw') cuData.transform = dlT;
+    else if(dl.method) cuData.transform = 'calculated';
+    else cuData.transform = 'raw';
+    if(dl.formula) cuData.formula = String(dl.formula).slice(0,90);
+    else if(dl.method) cuData.formula = String(dl.method).slice(0,90);
     if(dl.nodes){
       cuData.nodes = String(dl.nodes).split('\n').map(function(line){
         var p = line.split('|').map(function(s){ return s.trim(); });
@@ -1167,6 +1325,8 @@ function init(){
     if(dlTa) dlTa.value = dl.nodes;
   }
   showMode(mode);
+  if(fromData) dataBacked = true;
+  renderCuShields();
   previewCustom();
   if(topic && !studioB64){ $('cu-search').value = topic; doCustomSearch(); }
   if(fromData){

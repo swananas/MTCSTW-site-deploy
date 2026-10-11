@@ -2325,3 +2325,20 @@ a[id*="pf-"]:focus-visible, button[id*="pf-"]:focus-visible{
   .bt-sheet.bt-show{ transform:none; opacity:1; }
   .bt-sheet-grab{ display:none; }
 }
+
+/* ---------- DISCOVER YOUR POWER brand weave (2026-10-10) ---------- */
+.pf-mission{
+  font-size:13px; line-height:1.5; color:#8a8478; letter-spacing:.02em;
+  margin:10px 0 0; max-width:34em;
+}
+.pf-mission strong{ color:#c9c2b4; font-weight:600; }
+.pf-promise{
+  display:block; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:#e5383b; font-weight:700; margin:14px 0 4px;
+}
+.pf-brand-foot{
+  text-align:center; padding:28px 20px 34px; color:#5a554b; font-size:12.5px; line-height:1.7;
+  border-top:1px solid #1e1e1e; margin-top:36px;
+}
+.pf-brand-foot .pf-mission{ margin:0 auto 6px; text-align:center; }
+.pf-brand-foot .pf-promise{ margin:0 0 10px; }

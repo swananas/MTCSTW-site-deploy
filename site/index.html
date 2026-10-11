@@ -42,6 +42,18 @@
     max-width:960px;margin:0 auto;
     display:flex;align-items:center;gap:10px;
   }
+  .pf-xp-chip{
+    display:inline-flex;align-items:center;
+    background:rgba(255,183,3,.12);border:1px solid rgba(255,183,3,.35);
+    border-radius:9999px;padding:4px 10px;
+    font-size:12px;font-weight:700;color:#ffb703;
+    margin-left:auto;flex:0 0 auto;
+  }
+  .pf-medal{
+    display:inline-block;background:#1a1a1a;border:1px solid #c1121f;
+    border-radius:8px;padding:4px 10px;margin:2px 4px 2px 0;
+    font-size:13px;color:#f5f0e6;
+  }
   .pf-topbar-brand{
     color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;
     text-decoration:none;flex:0 0 auto;
@@ -354,13 +366,18 @@
       <a class="pf-pillar" href="/coordinate">COORDINATE</a>
       <a class="pf-pillar" href="/money">CAPITAL</a>
     </nav>
+    <div class="pf-xp-chip" id="pf-xp-chip" title="Your XP (device-local v1)">
+      <span>⚡</span><span id="pf-xp-val">0</span>&nbsp;XP
+    </div>
   </div>
   <p class="pf-tagline">JOIN THE FIGHT. Four ways in.</p>
+  <p class="pf-promise" style="text-align:center;margin:6px 0 0;">Discover your power — everything free.</p>
 </header>
 <main id="main">
 <div id="pf-karl-home">
   <div class="kh-ask">
     <h1>Who's <em>robbing</em> you?</h1>
+    <p class="pf-mission">Stop waiting for the government to fix itself. <strong>Discover your power.</strong></p>
     <div class="kh-composer">
       <textarea id="kh-q" rows="2" placeholder="Ask anything&hellip;" enterkeyhint="go"></textarea>
       <div class="kh-composer-foot">
@@ -428,12 +445,25 @@
     <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>3 cells</b> picked up the GEO Group private-prison intel for local FOIA pushes.</div><div class="w">1d ago &middot; via /cells</div></div></div>
   </div>
 
+  <!-- MEDALS + LEADERBOARD (v1: device-local, backend later) -->
+  <div class="kh-feed-head" style="padding-top:6px">
+    <h2>🏅 Your medals</h2>
+    <span class="kh-tick"><i></i>THIS DEVICE</span>
+  </div>
+  <div style="padding:0 14px 14px" id="pf-medals-row">
+    <span style="color:#666;font-size:12px">No medals yet — share intel to earn your first.</span>
+  </div>
+
   <div class="kh-foot">
     <span><b id="kh-stat-wealth">&mdash;</b> tracked</span>
     <span><b id="kh-stat-rows">&mdash;</b> records</span>
     <span><b id="kh-stat-creators">&mdash;</b> creators</span>
   </div>
   <div class="kh-powered">POWERED BY <b>KARL</b> &middot; KOMRADE ARTIFICIAL REVOLUTIONARY LABORER</div>
+  <div class="pf-brand-foot">
+    <span class="pf-promise">Discover your power.</span>
+    <p class="pf-mission">Stop waiting for the government to fix itself.</p>
+  </div>
   <div class="kh-toast" id="kh-toast"></div>
 </div>
 </main>
@@ -1481,6 +1511,61 @@ function khPaintShare(d, sizeKey, done){
   }catch(e){ deliver(null); }
 }
 
+/* ---------- SHARE ATTRIBUTION + LOCAL XP (v1) ---------- */
+/* Tracks shares per card slug in localStorage. Shows "your share reached X".
+   v1 is device-local; backend attribution comes later. */
+var PF_SHARES_KEY = 'pf_shares_v1';
+var PF_XP_KEY = 'pf_xp_local_v1';
+var PF_MEDALS_KEY = 'pf_medals_v1';
+function pfGetShares(){ try{ return JSON.parse(localStorage.getItem(PF_SHARES_KEY)||'{}'); }catch(e){ return {}; } }
+function pfGetXP(){ try{ return parseInt(localStorage.getItem(PF_XP_KEY)||'0',10)||0; }catch(e){ return 0; } }
+function pfAddXP(n){ try{ var v = pfGetXP()+n; localStorage.setItem(PF_XP_KEY, String(v)); pfUpdateXPChip(); pfCheckMedals(); }catch(e){} }
+function pfGetMedals(){ try{ return JSON.parse(localStorage.getItem(PF_MEDALS_KEY)||'[]'); }catch(e){ return []; } }
+/* Medal definitions: id, name, desc, check function */
+var PF_MEDALS = [
+  { id:'first-share', name:'📢 Amplifier', desc:'Shared your first intel', check:function(s){ return s.totalShares>=1; } },
+  { id:'propagandist', name:'🔥 Propagandist', desc:'Shared 10 intel cards', check:function(s){ return s.totalShares>=10; } },
+  { id:'truth-seeker', name:'🔍 Truth-Seeker', desc:'Asked Karl 5 questions', check:function(s){ return s.karlAsks>=5; } },
+  { id:'archivist', name:'💾 Archivist', desc:'Saved 5 intel cards', check:function(s){ return s.saves>=5; } }
+];
+function pfCheckMedals(){
+  var shares = pfGetShares();
+  var totalShares = 0; for(var k in shares){ totalShares += shares[k]; }
+  var stats = { totalShares: totalShares,
+    karlAsks: parseInt(localStorage.getItem('pf_karl_asks')||'0',10)||0,
+    saves: parseInt(localStorage.getItem('pf_saves')||'0',10)||0 };
+  var earned = pfGetMedals();
+  var changed = false;
+  PF_MEDALS.forEach(function(m){
+    if(earned.indexOf(m.id)<0 && m.check(stats)){ earned.push(m.id); changed = true; toast('🏅 Medal earned: '+m.name); }
+  });
+  if(changed){ try{ localStorage.setItem(PF_MEDALS_KEY, JSON.stringify(earned)); }catch(e){} pfRenderMedals(); }
+}
+function pfUpdateXPChip(){
+  var el = document.getElementById('pf-xp-val');
+  if(el) el.textContent = pfGetXP();
+}
+function pfRenderMedals(){
+  var wrap = document.getElementById('pf-medals-row');
+  if(!wrap) return;
+  var earned = pfGetMedals();
+  if(!earned.length){ wrap.innerHTML = '<span style="color:#666;font-size:12px">No medals yet — share intel to earn your first.</span>'; return; }
+  var html = '';
+  PF_MEDALS.forEach(function(m){
+    if(earned.indexOf(m.id)>=0) html += '<span class="pf-medal" title="'+m.desc+'">'+m.name+'</span>';
+  });
+  wrap.innerHTML = html;
+}
+function pfRecordShare(d){
+  /* Track this share, award XP, update UI */
+  var slug = String(d.q||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,36) || 'intel';
+  var shares = pfGetShares();
+  shares[slug] = (shares[slug]||0)+1;
+  try{ localStorage.setItem(PF_SHARES_KEY, JSON.stringify(shares)); }catch(e){}
+  pfAddXP(5); /* +5 XP per share */
+  return shares[slug];
+}
+
 /* Simple share flow: tap -> paint portrait -> native share sheet -> download fallback */
 function shareImage(d, btn){
   btn.disabled = true; btn.textContent = 'PAINTING\u2026';
@@ -1493,13 +1578,15 @@ function shareImage(d, btn){
       try{ file = new File([blob], 'robbery-report.png', {type:'image/png'}); }catch(e){}
       if(file && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
         navigator.share({ title:'The Robbery Report', text: String(d.q||''), files:[file] }).catch(function(){});
-        toast('Image ready!');
+        var n = pfRecordShare(d);
+        toast('Shared! That\'s share #'+n+' for this intel. +5 XP');
       } else {
         try{
           var a = document.createElement('a');
           a.href = URL.createObjectURL(blob); a.download = 'robbery-report.png';
           document.body.appendChild(a); a.click(); a.remove();
-          toast('Image downloaded');
+          var n2 = pfRecordShare(d);
+          toast('Image downloaded (share #'+n2+'). +5 XP');
         }catch(e){ toast('Could not save image'); }
       }
     });

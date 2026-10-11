@@ -144,24 +144,7 @@
   #pf-karl-home .kh-composer-oneline input::placeholder{ color:var(--kh-faint); }
   #pf-karl-home .kh-composer-oneline .kh-ask-btn{ padding:10px 20px; font-size:14px; flex-shrink:0; }
   #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
-  /* CURIOSITY CAROUSEL: horizontal swipe (declutter 20261011) */
-  .pf-carousel{ margin:6px 0 4px; }
-  .pf-carousel-track{
-    display:flex; gap:12px; overflow-x:auto; padding:8px 16px 12px;
-    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-  }
-  .pf-carousel-track::-webkit-scrollbar{ display:none; }
-  .pf-carousel-card{
-    flex:0 0 86%; max-width:420px; scroll-snap-align:center;
-    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:16px;
-    padding:16px; min-height:120px;
-  }
-  .pf-carousel-card .pf-cq{ margin:0; border:0; padding:0; background:transparent; }
-  .pf-carousel-card .pf-contra-card{ margin:0 0 10px; }
-  .pf-carousel-card .pf-contra-card:last-child{ margin-bottom:0; }
-  .pf-carousel-dots{ display:flex; gap:6px; justify-content:center; padding:0 0 4px; }
-  .pf-carousel-dots i{ width:6px; height:6px; border-radius:50%; background:#333; }
-  .pf-carousel-dots i.on{ background:var(--kh-red-bright); }
+  /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed */
   #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
   #pf-karl-home .kh-chip{
@@ -230,6 +213,9 @@
   }
   #pf-karl-home .kh-inter-btnrow{ display:flex; gap:8px; }
   #pf-karl-home .kh-inter-btnrow .kh-inter-btn{ flex:1; }
+  /* curiosity cards in feed: reset pf-cq margins for interleave context */
+  #pf-karl-home .kh-inter-cq .pf-cq-kicker em{ color:#e5383b; font-style:normal; }
+  #pf-karl-home .kh-inter-cq .pf-cq{ margin:0; border:0; padding:0; background:transparent; }
   #pf-karl-home .kh-card .kh-q{ font-size:15px; font-weight:600; margin-bottom:8px; color:var(--kh-cream); }
   #pf-karl-home .kh-card .kh-a{ font-size:14px; color:var(--kh-dim); line-height:1.55; }
   #pf-karl-home .kh-card .kh-a b{ color:var(--kh-red-bright); font-weight:700; }
@@ -540,38 +526,6 @@
 
 
 
-  <!-- CURIOSITY CAROUSEL: swipe through hooks — Extracted → Markup → Contradictions -->
-  <div class="pf-carousel" id="pf-carousel">
-    <div class="pf-carousel-track">
-      <div class="pf-carousel-card">
-        <!-- CURIOSITY HOOKS v2: WHAT ABOUT ME? — systemic extraction framing -->
-        <div class="pf-cq" id="pf-cq">
-          <div class="pf-cq-kicker">🔍 WHAT'S BEING <em>EXTRACTED</em> NEAR YOU?</div>
-          <div class="pf-cq-sub">Not "are you a victim." What is the machine taking from your area — in dollars.</div>
-          <div class="pf-cq-tabs" id="pf-cq-tabs" role="tablist"></div>
-          <div id="pf-cq-body"></div>
-          <div class="pf-cq-audit">📋 Your audit contributions (this device): <b id="pf-cq-auditn">0</b></div>
-        </div>
-      </div>
-      <div class="pf-carousel-card">
-        <!-- PREDICTION: GUESS THE MARKUP -->
-        <div class="pf-cq" id="pf-pred">
-          <div class="pf-cq-kicker">🎯 GUESS THE <em>MARKUP</em></div>
-          <div class="pf-cq-sub">One tap. No wrong answers — only wrong systems.</div>
-          <div class="pf-cq-line" id="pf-pred-q" style="margin-bottom:4px;"></div>
-          <div class="pf-pred-val" id="pf-pred-val">10.0×</div>
-          <input type="range" class="pf-pred-slider" id="pf-pred-slider" min="100" max="2000" value="1000" step="50" aria-label="Your guess, as a multiple of Medicare">
-          <div class="pf-cq-row"><button class="pf-cq-go" id="pf-pred-btn" type="button" style="flex:1;">REVEAL THE REAL NUMBER</button></div>
-          <div class="pf-cq-out" id="pf-pred-a" hidden></div>
-        </div>
-      </div>
-      <div class="pf-carousel-card">
-        <!-- RHETORICAL CONTRADICTIONS -->
-        <div id="pf-contra"></div>
-      </div>
-    </div>
-    <div class="pf-carousel-dots" id="pf-carousel-dots" aria-hidden="true"></div>
-  </div>
   <div class="kh-feed-head">
     
     <span class="kh-tick"><i></i>LIVE</span>
@@ -2394,8 +2348,9 @@ function fmToolCard(){
       : '<button class="kh-inter-btn" type="button" data-act="'+esc(t.act)+'">'+esc(t.b)+"</button>"));
   var g = el.querySelector('[data-act="guess"]');
   if(g) g.addEventListener("click", function(){
-    var c = document.getElementById("pf-carousel");
+    var c = document.getElementById("pf-pred-slider");
     if(c) c.scrollIntoView({behavior:"auto", block:"center"});
+    else feed.scrollIntoView({behavior:"auto"});
   });
   return el;
 }
@@ -2422,13 +2377,65 @@ function fmCreatorCard(){
     "</div>");
   return el;
 }
+/* ---- curiosity cards as feed cards (CEO: carousel → feed) ----
+   One-shot per session: high-priority positions 3/9/15.
+   Reuses the existing curiosity JS (renderTabs/renderBody/predPick/
+   loadContradictions) — called after the card is in the DOM so the
+   fixed IDs resolve. */
+var fmExtractShown = false, fmPredShown = false, fmContraShown = false;
+function fmExtractCard(){
+  var el = fmInterCard("kh-inter-cq",
+    '<div class="pf-cq-kicker">\uD83D\uDD0D WHAT\u2019S BEING <em>EXTRACTED</em> NEAR YOU?</div>'+
+    '<div class="pf-cq-sub">Not "are you a victim." What is the machine taking from your area \u2014 in dollars.</div>'+
+    '<div class="pf-cq-tabs" id="pf-cq-tabs" role="tablist"></div>'+
+    '<div id="pf-cq-body"></div>'+
+    '<div class="pf-cq-audit">\uD83D\uDCCB Your audit contributions (this device): <b id="pf-cq-auditn">0</b></div>');
+  return el;
+}
+function fmPredCard(){
+  var el = fmInterCard("kh-inter-cq",
+    '<div class="pf-cq-kicker">\uD83C\uDFAF GUESS THE <em>MARKUP</em></div>'+
+    '<div class="pf-cq-sub">One tap. No wrong answers \u2014 only wrong systems.</div>'+
+    '<div class="pf-cq-line" id="pf-pred-q" style="margin-bottom:4px;"></div>'+
+    '<div class="pf-pred-val" id="pf-pred-val">10.0\u00D7</div>'+
+    '<input type="range" class="pf-pred-slider" id="pf-pred-slider" min="100" max="2000" value="1000" step="50" aria-label="Your guess, as a multiple of Medicare">'+
+    '<div class="pf-cq-row"><button class="pf-cq-go" id="pf-pred-btn" type="button" style="flex:1;">REVEAL THE REAL NUMBER</button></div>'+
+    '<div class="pf-cq-out" id="pf-pred-a" hidden></div>');
+  return el;
+}
+function fmContraCard(){
+  var el = fmInterCard("kh-inter-cq", '<div id="pf-contra"></div>');
+  return el;
+}
+function fmInitExtractCard(){
+  try{
+    renderTabs(); renderBody();
+    var n = auditCount(), aEl = document.getElementById('pf-cq-auditn');
+    if(aEl) aEl.textContent = String(n);
+  }catch(e){ if(FM_DEBUG) console.log('[FM] extract card init failed:', e.message); }
+}
+function fmInitPredCard(){
+  try{
+    predPick();
+    var s = document.getElementById('pf-pred-slider'), sv = document.getElementById('pf-pred-val');
+    if(s && sv) s.addEventListener('input', function(){ sv.textContent = (Number(s.value)/100).toFixed(1) + '\u00D7'; });
+    var g = document.getElementById('pf-pred-btn');
+    if(g) g.addEventListener('click', predReveal);
+  }catch(e){ if(FM_DEBUG) console.log('[FM] pred card init failed:', e.message); }
+}
+function fmInitContraCard(){
+  try{ loadContradictions(); }catch(e){ if(FM_DEBUG) console.log('[FM] contra card init failed:', e.message); }
+}
 function fmInterleave(){
   fmCardCount++;
-  var m = fmCardCount % 24, el = null;
-  if(m === 6 || m === 0) el = fmAskCard();       /* 6, 24, 30, 48 … */
+  var m = fmCardCount % 24, el = null, init = null;
+  if(m === 3 && !fmExtractShown){ fmExtractShown = true; el = fmExtractCard(); init = fmInitExtractCard; }
+  else if(m === 6 || m === 0) el = fmAskCard();       /* 6, 24, 30, 48 … */
+  else if(m === 9 && !fmPredShown){ fmPredShown = true; el = fmPredCard(); init = fmInitPredCard; }
   else if(m === 12) el = fmToolCard();           /* 12, 36, 60 … */
+  else if(m === 15 && !fmContraShown){ fmContraShown = true; el = fmContraCard(); init = fmInitContraCard; }
   else if(m === 18) el = fmCreatorCard();        /* 18, 42, 66 … */
-  if(el) feed.appendChild(el);
+  if(el){ feed.appendChild(el); if(init) init(); }
 }
 function fmObserve(){
   var sentinel = document.getElementById('kh-feed-sentinel');
@@ -2512,10 +2519,30 @@ function fmSetTab(tab){
 }
 
 /* ---- boot: rank the sync pool for 2 above-the-fold cards, then lazy ---- */
-fmBuildTabs();
+function fmBootError(){
+  if(feed.querySelector('.kh-feed-err')) return;
+  var err = document.createElement('div');
+  err.className = 'kh-feed-err';
+  err.style.cssText = 'background:#1a0a0a;border:1px solid #c1121f;border-radius:16px;padding:20px;margin:0 0 12px;text-align:center;color:#f5f0e6;';
+  err.innerHTML = 'The feed didn\u2019t load. <button type="button" id="kh-feed-retry" style="background:#c1121f;border:0;border-radius:10px;color:#fff;font-weight:800;padding:10px 20px;margin-top:10px;cursor:pointer;">TRY AGAIN</button>';
+  feed.appendChild(err);
+  document.getElementById('kh-feed-retry').addEventListener('click', function(){
+    err.remove(); fmEnded = false; fmLoading = false; fmLoadBatch();
+  });
+}
+try{
+  fmBuildTabs();
+}catch(e){ console.log('[FM] boot: fmBuildTabs failed:', e.message); }
 if(FM_DEBUG) console.log('[FM] boot: requesting 2 sync cards');
+try{
 fmNextBatch(2, true).then(function(cards){
   if(FM_DEBUG) console.log('[FM] boot: got ' + cards.length + ' cards');
+  if(!cards.length){
+    /* sync pool empty — try async immediately instead of waiting */
+    if(FM_DEBUG) console.log('[FM] boot: sync empty, trying async batch');
+    fmLoadBatch();
+    return;
+  }
   cards.forEach(function(item, i){
     try{
       feed.appendChild(fmRenderCard(item, i));
@@ -2525,12 +2552,29 @@ fmNextBatch(2, true).then(function(cards){
   });
   fmObserve();
   fmNudge(); /* observer may not fire in flaky webviews — nudge forces first check */
-  fvRefreshCounts(); /* crowdsourced fact-checking: fetch vote counts for boot cards */
+  try{ fvRefreshCounts(); }catch(e){} /* crowdsourced fact-checking: fetch vote counts for boot cards */
   /* watchdog: if nothing rendered in 5s, force a batch (iOS PWA safety net) */
   setTimeout(function(){
-    if(!feed.querySelector('.kh-card') && !fmEnded){ if(FM_DEBUG) console.log('[FM] watchdog: no cards, forcing batch'); fmLoadBatch(); }
+    if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded){
+      if(FM_DEBUG) console.log('[FM] watchdog: no cards, forcing batch');
+      fmLoadBatch();
+      /* second watchdog: if still nothing after 10s, show error */
+      setTimeout(function(){
+        if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded) fmBootError();
+      }, 8000);
+    }
   }, 5000);
-}).catch(function(e){ if(FM_DEBUG) console.log('[FM] boot failed:', e.message); fmLoadBatch(); });
+}).catch(function(e){
+  console.log('[FM] boot failed:', e.message);
+  fmLoadBatch();
+  setTimeout(function(){
+    if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded) fmBootError();
+  }, 10000);
+});
+}catch(e){
+  console.log('[FM] boot exception:', e.message);
+  fmBootError();
+}
 
 /* feed boot moved into beefy IIFE tail (FeedManager) */
 })();
@@ -3325,34 +3369,9 @@ function loadContradictions(){
   }).catch(function(){/* silent */});
 }
 
-/* ---------------- boot ---------------- */
-function boot(){
-  renderTabs();renderBody();
-  predPick();loadContradictions();
-  var n=auditCount(),el=$id('pf-cq-auditn');
-  if(el)el.textContent=String(n);
-  var g=$id('pf-pred-btn');if(g)g.addEventListener('click',predReveal);
-  var s=$id('pf-pred-slider'),sv=$id('pf-pred-val');
-  if(s&&sv)s.addEventListener('input',function(){sv.textContent=(Number(s.value)/100).toFixed(1)+'×';});
-  /* carousel dots */
-  var track=document.querySelector('#pf-carousel .pf-carousel-track');
-  var dots=document.getElementById('pf-carousel-dots');
-  if(track&&dots){
-    var cards=track.querySelectorAll('.pf-carousel-card');
-    for(var i=0;i<cards.length;i++){ var d=document.createElement('i'); if(i===0)d.className='on'; dots.appendChild(d); }
-    var dotEls=dots.querySelectorAll('i');
-    var t=null;
-    track.addEventListener('scroll',function(){
-      if(t)clearTimeout(t);
-      t=setTimeout(function(){
-        var idx=Math.round(track.scrollLeft/(track.scrollWidth/track.children.length));
-        for(var j=0;j<dotEls.length;j++)dotEls[j].className=(j===idx?'on':'');
-      },80);
-    },{passive:true});
-  }
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
-else boot();
+/* ---------------- boot: curiosity hooks now init as feed cards ----------------
+   (fmInitExtractCard / fmInitPredCard / fmInitContraCard in the interleave
+   engine). No standalone boot needed — the carousel is gone. */
 })();
 
 </script>

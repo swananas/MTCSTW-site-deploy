@@ -726,6 +726,36 @@
         h += '<div class="pf-karl-src">Public enforcement records</div></div>';
         return;
       }
+      /* Regional price maps (weave 2026-10-11: crowdsourced price maps) */
+      if (f.unit_groups && f.unit_groups.length) {
+        var _rg = f.unit_groups;
+        h += '<div class="pf-karl-fact"><div class="lb">Exhibit — regional prices: ' + esc(f.product || '') + '</div>';
+        _rg.slice(0, 3).forEach(function (g) {
+          var _money = function (n) { n = Number(n); return isFinite(n) ? '$' + n.toFixed(2) : '\u2014'; };
+          h += '<div style="padding:8px 0 0;' + (g.states && g.states.length ? '' : '') + '">' +
+            '<b style="color:#fff">per ' + esc(g.unit || '') + '</b>' +
+            (g.avg_price != null ? ' — national avg <span class="num">' + _money(g.avg_price) + '</span>' : '') +
+            (g.ugc_n ? ' <span style="font-size:10px;font-weight:800;background:#123b1f;color:#7ddf9a;border-radius:12px;padding:2px 8px;margin-left:6px;">\uD83D\uDCF8 ' + g.ugc_n + ' FROM COMRADES</span>' : '') +
+            '<div class="nt">' + (g.n || 0) + ' observations' +
+            (g.min_price != null ? ' · range ' + _money(g.min_price) + '\u2013' + _money(g.max_price) : '') + '</div></div>';
+          (g.states || []).slice(0, 8).forEach(function (st2, sti) {
+            h += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:' +
+              (sti ? '8px 0 0' : '6px 0 0') + ';' + (sti ? 'border-top:1px solid #1e1e1e;' : '') + '">' +
+              '<div><b style="color:#fff">' + esc(st2.state || '') + '</b>' +
+              (st2.ugc_n ? ' <span style="font-size:10px;color:#7ddf9a;">\uD83D\uDCF8</span>' : '') +
+              '<div class="nt">' + (st2.n || 0) + ' observations</div></div>' +
+              '<div class="vl" style="font-size:20px;white-space:nowrap"><span class="num">' + _money(st2.avg_price) + '</span></div></div>';
+          });
+        });
+        if (f.near_zip && f.near_zip.observations && f.near_zip.observations.length) {
+          h += '<div class="nt" style="margin-top:8px">Near ' + esc(f.near_zip.zip) + ': ' +
+            f.near_zip.observations.slice(0, 3).map(function (o) {
+              return '<span class="num">$' + Number(o.price).toFixed(2) + '</span>/' + esc(o.unit || '');
+            }).join(' · ') + '</div>';
+        }
+        h += '<div class="pf-karl-src">\u25B8 Receipts — BLS/EIA data + comrade photo bounties · <a href="/detective/" style="color:#e5383b;">compare states in Price Detective</a></div></div>';
+        return;
+      }
       /* Generic fact */
       h += '<div class="pf-karl-fact"><div class="lb">' + esc(f.label || 'Finding') + '</div>' +
         '<div class="vl">' + richNum(f.value_display || '') + '</div>' +

@@ -73,6 +73,36 @@
   @keyframes sp{to{transform:rotate(360deg);}}
   .pf-err{background:#1d0f10;border:1px solid #5a1a1e;border-radius:12px;padding:16px;margin-top:20px;font-size:14px;color:#e8b4b4;display:none;}
   .pf-note{font-size:11.5px;color:#6e675c;line-height:1.5;margin-top:18px;text-align:center;}
+  /* NEAR YOU — regional price maps (weave 2026-10-11) */
+  .pf-reg{margin:30px 0 8px;border-top:1px solid #2a2a2a;padding-top:24px;}
+  .pf-reg .r{color:#e5383b;}
+  .pf-reg-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+  .pf-reg-chip{border:2px solid #2a2a2a;background:#141414;border-radius:20px;padding:8px 12px;font-size:13px;font-weight:700;color:#e8e2d4;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit;}
+  .pf-reg-chip:active{transform:scale(.96);}
+  .pf-reg-chip.on{border-color:#e5383b;background:#1d0f10;color:#fff;}
+  .pf-reg-ziprow{display:flex;gap:8px;margin:0 0 12px;}
+  .pf-reg-ziprow input{flex:1;min-width:0;background:#141414;border:2px solid #2a2a2a;border-radius:10px;color:#fff;font-size:16px;padding:12px 14px;font-family:inherit;box-sizing:border-box;}
+  .pf-reg-ziprow input:focus{outline:none;border-color:#e5383b;}
+  .pf-reg-go{flex:0 0 auto;padding:12px 22px;font-size:15px;}
+  .pf-reg-out{margin-top:6px;}
+  .pf-reg-card{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:14px;margin-bottom:12px;}
+  .pf-reg-card.you{border-color:#e5383b;}
+  .pf-reg-kind{font-size:10px;font-weight:800;letter-spacing:.12em;color:#e5383b;margin-bottom:4px;}
+  .pf-reg-big{font-size:24px;font-weight:900;}
+  .pf-reg-meta{font-size:12px;color:#8a8478;margin-top:5px;line-height:1.5;}
+  .pf-reg-tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;}
+  .pf-reg-table{width:100%;border-collapse:collapse;font-size:14px;min-width:300px;}
+  .pf-reg-table th{font-size:10.5px;letter-spacing:.08em;color:#8a8478;text-align:left;padding:8px;border-bottom:1px solid #2a2a2a;font-weight:800;}
+  .pf-reg-table td{padding:9px 8px;border-bottom:1px solid #1f1f1f;}
+  .pf-reg-table tr.you td{background:#1d0f10;font-weight:800;}
+  .pf-reg-table td.num,.pf-reg-table th.num{text-align:right;}
+  .pf-ugc{display:inline-block;font-size:10px;font-weight:800;background:#123b1f;color:#7ddf9a;border-radius:12px;padding:2px 8px;margin-left:6px;letter-spacing:.04em;vertical-align:middle;}
+  .pf-reg-obs{font-size:13px;color:#c9c2b4;margin:7px 0 0;line-height:1.6;}
+  .pf-reg-obs b{color:#fff;}
+  .pf-reg-cta{font-size:12.5px;color:#8a8478;margin:16px 0 0;text-align:center;line-height:1.6;}
+  .pf-reg-cta a{color:#e5383b;font-weight:700;}
+  .pf-reg-empty{background:#1d0f10;border:1px solid #5a1a1e;border-radius:12px;padding:16px;font-size:14px;color:#e8b4b4;line-height:1.6;}
+  .pf-reg-empty a{color:#e5383b;font-weight:800;}
 </style>
 </head>
 <body>
@@ -196,9 +226,146 @@
       </div>
     </div>
 
+    <!-- NEAR YOU (weave 2026-10-11: crowdsourced price maps into Price Detective) -->
+    <section class="pf-reg" id="pf-reg" aria-label="Prices near you">
+      <h2 class="pf-rtitle" style="display:block;">📍 PRICES <span class="r">NEAR YOU</span></h2>
+      <p class="pf-rsub">Real prices by state — from comrades' shelf-tag photos plus our price database.</p>
+      <div class="pf-reg-chips" id="pf-reg-chips" role="radiogroup" aria-label="Pick an item"></div>
+      <div class="pf-reg-ziprow">
+        <input id="pf-reg-zip" inputmode="numeric" maxlength="5" placeholder="Your ZIP — e.g. 70801" aria-label="Your ZIP code">
+        <button class="pf-trace pf-reg-go" id="pf-reg-go">SHOW ME</button>
+      </div>
+      <div class="pf-reg-out" id="pf-reg-out"></div>
+      <p class="pf-reg-cta">Thin data in your area? <a href="/dig/">📸 Photograph a price tag and claim a bounty</a> — quorum-confirmed prices land here.</p>
+    </section>
+
     <p class="pf-note">Every step is a cited public record or a labeled calculation. We reveal — you decide what it means. <a href="/model/" style="color:#e5383b;">Dig deeper in /model</a>.</p>
   </main>
 </div>
+
+<!-- NEAR YOU: regional price maps (weave 2026-10-11) -->
+<script>
+(function(){
+  'use strict';
+  var box = document.getElementById('pf-reg-chips');
+  if(!box) return;
+  var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+  var PRODUCTS = [
+    ['milk','🥛 Milk'],['eggs','🥚 Eggs'],['bread','🍞 Bread'],['butter','🧈 Butter'],
+    ['cheddar','🧀 Cheddar'],['ground-beef','🥩 Ground beef'],['chicken-breast','🍗 Chicken'],
+    ['bacon','🥓 Bacon'],['coffee','☕ Coffee'],['bananas','🍌 Bananas'],['rice','🍚 Rice'],
+    ['peanut-butter','🥜 PB'],['toilet-paper','🧻 TP'],['diapers','👶 Diapers'],
+    ['gas-regular','⛽ Gas']
+  ];
+  var cur = 'milk';
+  var STATES = {AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function money(n){ n=Number(n); return isFinite(n)?('$'+n.toFixed(2)):'—'; }
+  function sname(c){ return STATES[c]||c; }
+
+  PRODUCTS.forEach(function(p){
+    var b = document.createElement('button');
+    b.className = 'pf-reg-chip' + (p[0]===cur ? ' on' : '');
+    b.type = 'button'; b.textContent = p[1];
+    b.setAttribute('role','radio');
+    b.setAttribute('aria-checked', p[0]===cur ? 'true' : 'false');
+    b.addEventListener('click', function(){
+      cur = p[0];
+      var els = box.querySelectorAll('.pf-reg-chip');
+      for(var i=0;i<els.length;i++){ els[i].classList.remove('on'); els[i].setAttribute('aria-checked','false'); }
+      b.classList.add('on'); b.setAttribute('aria-checked','true');
+      load();
+    });
+    box.appendChild(b);
+  });
+
+  function ugcBadge(n){
+    return n>0 ? '<span class="pf-ugc">📸 '+n+' FROM COMRADES</span>' : '';
+  }
+
+  function render(d){
+    var out = document.getElementById('pf-reg-out');
+    if(!d || !d.ok){ out.innerHTML = '<div class="pf-reg-empty">The trail went cold — network hiccup. Try again.</div>'; return; }
+    var html = '';
+    var groups = d.unit_groups || [];
+    /* your state card — from the first unit group that has your state */
+    if(d.your_state){
+      var me = null, meUnit = '';
+      for(var gi=0; gi<groups.length && !me; gi++){
+        var st = groups[gi].states || [];
+        for(var si=0; si<st.length; si++){ if(st[si].state===d.your_state){ me = st[si]; meUnit = groups[gi].unit; break; } }
+      }
+      if(me){
+        html += '<div class="pf-reg-card you"><div class="pf-reg-kind">YOUR STATE — '+esc(sname(me.state)).toUpperCase()+'</div>' +
+          '<div class="pf-reg-big">'+money(me.avg_price)+' <span style="font-size:14px;font-weight:700;color:#8a8478;">/ '+esc(meUnit)+'</span></div>' +
+          '<div class="pf-reg-meta">'+me.n+' observations'+ugcBadge(me.ugc_n)+'<br>Range '+money(me.min_price)+' – '+money(me.max_price)+'</div></div>';
+      }
+    }
+    /* your zip observations */
+    if(d.your_zip && (d.your_zip.exact.length || d.your_zip.area.length)){
+      html += '<div class="pf-reg-card"><div class="pf-reg-kind">NEAR YOUR ZIP — '+esc(d.your_zip.zip)+'</div>';
+      (d.your_zip.exact||[]).slice(0,5).forEach(function(r){
+        html += '<div class="pf-reg-obs"><b>'+money(r.price)+'</b> / '+esc(r.unit||'') +
+          (r.source==='bounty_photo' ? ' <span class="pf-ugc">📸 PHOTO</span>' : ' <span style="color:#8a8478;font-size:11px;">'+esc(r.source||'')+'</span>') + '</div>';
+      });
+      if(d.your_zip.area.length){
+        html += '<div class="pf-reg-meta" style="margin-top:8px;">Nearby area ('+esc(d.your_zip.zip.slice(0,3))+'xx):</div>';
+        (d.your_zip.area||[]).slice(0,3).forEach(function(r){
+          html += '<div class="pf-reg-obs"><b>'+money(r.price)+'</b> / '+esc(r.unit||'')+' · ZIP '+esc(r.location) +
+            (r.source==='bounty_photo' ? ' <span class="pf-ugc">📸</span>' : '') + '</div>';
+        });
+      }
+      html += '</div>';
+    }
+    /* one block per unit — apples to apples within each */
+    groups.forEach(function(g){
+      var unitLabel = g.unit || '';
+      if(g.n){
+        html += '<div class="pf-reg-card"><div class="pf-reg-kind">NATIONAL BASELINE — PER '+esc(unitLabel).toUpperCase()+'</div>' +
+          '<div class="pf-reg-big">'+money(g.avg_price)+' <span style="font-size:14px;font-weight:700;color:#8a8478;">/ '+esc(unitLabel)+'</span></div>' +
+          '<div class="pf-reg-meta">'+g.n+' observations'+ugcBadge(g.ugc_n)+' · range '+money(g.min_price)+' – '+money(g.max_price)+'</div></div>';
+      }
+      if((g.states||[]).length){
+        html += '<div class="pf-reg-kind" style="margin:14px 0 4px;">STATE-BY-STATE — '+esc(d.display_name||cur).toUpperCase()+' / '+esc(unitLabel).toUpperCase()+'</div>' +
+          '<div class="pf-reg-tablewrap"><table class="pf-reg-table"><thead><tr><th>STATE</th><th class="num">AVG</th><th class="num">RANGE</th><th class="num">N</th></tr></thead><tbody>';
+        (g.states||[]).forEach(function(s){
+          html += '<tr'+(s.state===d.your_state?' class="you"':'')+'><td>'+esc(sname(s.state))+ugcBadge(s.ugc_n)+'</td>' +
+            '<td class="num"><b>'+money(s.avg_price)+'</b></td>' +
+            '<td class="num" style="color:#8a8478;font-size:12px;">'+money(s.min_price)+'–'+money(s.max_price)+'</td>' +
+            '<td class="num">'+s.n+'</td></tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+    });
+    if(groups.length > 1 || (groups.length && !(groups[0].states||[]).length)){
+      html += '<div class="pf-reg-meta" style="margin-top:8px;">'+esc(d.unit_note||'')+'</div>';
+    }
+    if(!html){
+      html = '<div class="pf-reg-empty">Nobody has logged '+esc(d.display_name||'this item')+' yet — ' +
+        '<a href="/dig/">📸 be the first: photograph a price tag and claim the bounty</a>.</div>';
+    }
+    out.innerHTML = html;
+  }
+
+  function load(){
+    var out = document.getElementById('pf-reg-out');
+    var zip = document.getElementById('pf-reg-zip').value.replace(/\D/g,'').slice(0,5);
+    try{ if(zip.length===5) localStorage.setItem('pf_reg_zip', zip); }catch(e){}
+    out.innerHTML = '<div style="text-align:center;padding:20px;color:#8a8478;">🔍 Checking prices…</div>';
+    var url = API + 'regional_prices&product=' + encodeURIComponent(cur) + (zip ? '&zip=' + encodeURIComponent(zip) : '');
+    fetch(url, {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(render)
+      .catch(function(){ render(null); });
+  }
+
+  document.getElementById('pf-reg-go').addEventListener('click', load);
+  document.getElementById('pf-reg-zip').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); load(); } });
+  try{ var z = localStorage.getItem('pf_reg_zip'); if(z) document.getElementById('pf-reg-zip').value = z; }catch(e){}
+  load();
+})();
+</script>
 
 <!-- PF BOTTOM NAV (site-wide hard nav) -->
 <style>

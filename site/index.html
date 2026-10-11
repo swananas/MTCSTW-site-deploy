@@ -395,6 +395,11 @@
     <h2>The Robbery Report</h2>
     <span class="kh-tick"><i></i>LIVE</span>
   </div>
+  <!-- KeyVex-inspired: LIVE FROM THE DATA — real numbers from D1 -->
+  <div id="kh-pulse" style="margin:0 16px 12px;background:#111;border:1px solid #232323;border-left:3px solid #c1121f;border-radius:12px;padding:12px 14px;font-size:12px;color:#8a8478;">
+    <span style="color:#e5383b;font-weight:800;letter-spacing:.08em;">⚡ LIVE FROM THE DATA</span>
+    <span id="kh-pulse-text" style="margin-left:8px;">Reading the rails…</span>
+  </div>
   <div class="kh-feed" id="kh-feed"></div>
 
   <!-- BEEFY FEED (fe/beefy-feed-20261010): richer cards from the 9 rails —
@@ -633,6 +638,23 @@ function cardEl(d){
 
 /* Seed feed */
 SEED.forEach(function(d){ feed.appendChild(cardEl(d)); });
+
+/* KeyVex-inspired: LIVE FROM THE DATA pulse on homepage */
+(function dataPulse(){
+  var el = document.getElementById('kh-pulse-text');
+  if(!el) return;
+  fetch('https://pf-api.mtcstw.workers.dev/?action=data_pulse',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d||d.ok!==true){el.textContent='Stats unavailable right now.';return;}
+      var parts=[];
+      if(d.enforcement_total)parts.push('<b style="color:#f5f0e6">'+Number(d.enforcement_total).toLocaleString()+'</b> enforcement actions');
+      if(d.enforcement_30d)parts.push('<b style="color:#e5383b">'+Number(d.enforcement_30d).toLocaleString()+'</b> in last 30 days');
+      if(d.cfpb_total_complaints)parts.push('<b style="color:#f5f0e6">'+Number(d.cfpb_total_complaints).toLocaleString()+'</b> consumer complaints');
+      el.innerHTML=parts.join(' · ')+' — <a href="/model" style="color:#e5383b">query the data →</a>';
+    })
+    .catch(function(){el.textContent='Stats unavailable right now.';});
+})();
 
 /* Karl's lead inference on every load */
 (function leadInference(){

@@ -80,6 +80,39 @@
   .ractions{display:flex;gap:8px;padding:12px 16px 0;}
   .ractions .btn{font-size:12.5px;padding:13px 8px;}
   .note{font-size:12px;color:var(--faint);padding:10px 16px 0;line-height:1.5;}
+  /* KeyVex-inspired: live pulse banner */
+  .pulse{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:12px;padding:14px 16px;margin-bottom:8px;}
+  .pulse-loading{color:var(--dim);font-size:13px;}
+  .pulse-stats{display:flex;flex-wrap:wrap;gap:16px;}
+  .pulse-stat{min-width:120px;}
+  .pulse-stat .n{font-size:22px;font-weight:900;color:var(--cream);}
+  .pulse-stat .n em{color:var(--rbright);font-style:normal;}
+  .pulse-stat .l{font-size:11px;color:var(--dim);letter-spacing:.06em;margin-top:2px;}
+  .pulse-updated{font-size:11px;color:var(--faint);margin-top:10px;}
+  /* Derived narratives */
+  .narr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+  .narr h3{margin:0 0 8px;font-size:14px;color:var(--rbright);letter-spacing:.04em;}
+  .narr-item{padding:8px 0;border-top:1px solid #1a1a1a;font-size:13px;line-height:1.5;}
+  .narr-item:first-of-type{border-top:none;}
+  .narr-item .src{font-size:11px;color:var(--faint);}
+  .narr-item a{color:var(--rbright);text-decoration:none;}
+  .narr-item a:active{text-decoration:underline;}
+  .narr-more{display:block;text-align:center;color:var(--rbright);font-size:13px;font-weight:700;padding:10px;text-decoration:none;}
+  /* Table detail panel (uniform dataset page) */
+  .tbl-detail{background:rgba(193,18,31,.05);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px;}
+  .tbl-detail h3{margin:0 0 6px;font-size:15px;}
+  .tbl-detail .m{font-size:12px;color:var(--dim);line-height:1.5;margin:6px 0;}
+  .tbl-detail .m b{color:var(--cream);}
+  .tbl-detail .eq{margin:8px 0 0;}
+  .tbl-detail .eq button{background:transparent;border:1px solid var(--red);color:var(--rbright);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;margin:0 6px 6px 0;cursor:pointer;}
+  /* Cross-links */
+  .xlinks{display:flex;gap:8px;margin:14px 16px 0;flex-wrap:wrap;}
+  .xlink{flex:1;min-width:140px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px;color:var(--cream);text-decoration:none;font-size:12px;font-weight:700;}
+  .xlink span{display:block;font-size:20px;margin-bottom:4px;}
+  .xlink:active{border-color:var(--red);}
+  /* Methodology footer */
+  .methodo{margin:20px 16px 0;padding:14px 16px;border:1px dashed #333;border-radius:12px;font-size:12px;color:var(--dim);line-height:1.6;}
+  .methodo b{color:var(--cream);}
   .loading{display:flex;align-items:center;gap:10px;padding:24px 16px;color:var(--dim);font-size:14px;}
   .loading .spin{width:20px;height:20px;border:2px solid var(--line);border-top-color:var(--rbright);border-radius:50%;animation:sp 0.8s linear infinite;}
   @keyframes sp{to{transform:rotate(360deg);}}
@@ -101,6 +134,20 @@
     <p>Every table in our rails, queryable. Pick one, pick your columns, hit <span class="live">RUN</span>. <span class="live" id="msl-rows">…</span> live rows and counting.</p>
   </div>
 
+  <!-- 1. LIVE FROM THE DATA: real computed stats, never hardcoded -->
+  <div class="sec" id="pulse-sec">
+    <h2>⚡ Live from the data</h2>
+    <div id="pulse-banner" class="pulse">
+      <div class="pulse-loading">Reading the live rails…</div>
+    </div>
+  </div>
+
+  <!-- 3. DERIVED NARRATIVES: computed stories, not raw rows -->
+  <div class="sec" id="narratives-sec" hidden>
+    <h2>📖 This week in the data</h2>
+    <div id="narratives"></div>
+  </div>
+
   <div class="sec">
     <h2>One-tap starters</h2>
     <div class="presets" id="presets"></div>
@@ -110,6 +157,11 @@
     <h2>1 · Pick a table</h2>
     <input id="tbl-search" type="search" placeholder="Search tables…" autocomplete="off" aria-label="Search tables">
     <div id="tbl-list"></div>
+  </div>
+
+  <!-- 2. UNIFORM DATASET PAGE: detail panel when a table is selected -->
+  <div class="sec" id="tbl-detail-sec" hidden>
+    <div class="tbl-detail" id="tbl-detail"></div>
   </div>
 
   <div class="sec" id="builder-sec" hidden>
@@ -134,6 +186,20 @@
   <div id="status" role="status"></div>
   <div id="results"></div>
   <div class="note">Read-only. Rate-limited. Donor names are never served — aggregates only. No raw SQL leaves your thumbs: every query is built from the whitelist.</div>
+
+  <!-- 5. CROSS-LINKING: data → action -->
+  <div class="xlinks">
+    <a class="xlink" href="/create"><span>🎨</span>MAKE PROPAGANDA<br>FROM THIS DATA</a>
+    <a class="xlink" href="/cells"><span>👥</span>FIND YOUR CELL</a>
+    <a class="xlink" href="/coordinate"><span>🎯</span>COORDINATE<br>ACTION</a>
+  </div>
+
+  <!-- 6. METHODOLOGY TRANSPARENCY -->
+  <div class="methodo" id="methodo-footer">
+    <b>How we count.</b> Row counts are live from D1 — what you see is what's in the rails right now.
+    Enforcement data: KeyVex API (SEC, DOJ, CFTC, FTC), free tier = 1-year history. Consumer complaints: CFPB bulk download, top 2,000 companies by volume.
+    <b>What we're missing:</b> SEC/CFTC/FTC enforcement actions aren't flowing yet (DOJ only). FEC donor names are withheld by policy. Some tables are not yet ingested — they show as honest-empty, never mocked.
+  </div>
 </main>
 <script>
 (function(){
@@ -221,6 +287,7 @@ function selectTable(name){
   $id('builder-sec').hidden=false;
   $id('filter-sec').hidden=false;
   renderCols();renderFilters();renderTables($id('tbl-search').value);
+  renderTableDetail(t); /* KeyVex-inspired: uniform dataset page */
   var ss=$id('sort-sel');ss.innerHTML='<option value="">(none)</option>';
   t.columns.forEach(function(c){var o=document.createElement('option');o.value=c.name;o.textContent=c.name;ss.appendChild(o);});
   status('Table: '+t.label+' — '+t.rows.toLocaleString('en-US')+' rows. Tap columns off to narrow, add filters, hit RUN.');
@@ -297,7 +364,14 @@ function renderResults(t,d,cols,filters,limit,sort,dir){
   tbl+='</tr></thead><tbody>';
   d.rows.forEach(function(r){
     tbl+='<tr>';
-    cols.forEach(function(c){tbl+='<td title="'+esc(r[c])+'">'+esc(fmt(r[c]))+'</td>';});
+    cols.forEach(function(c){
+      /* 4. SOURCE LINKS: url columns render as clickable source filings */
+      if(c==='url'&&r[c]){
+        tbl+='<td><a href="'+esc(r[c])+'" target="_blank" rel="noopener" style="color:var(--rbright)">→ source</a></td>';
+      }else{
+        tbl+='<td title="'+esc(r[c])+'">'+esc(fmt(r[c]))+'</td>';
+      }
+    });
     tbl+='</tr>';
   });
   tbl+='</tbody></table></div>';
@@ -334,8 +408,103 @@ $id('add-filter').addEventListener('click',function(){
 $id('run-btn').addEventListener('click',runQuery);
 $id('tbl-search').addEventListener('input',function(){renderTables($id('tbl-search').value);});
 
-/* boot: load the live catalog */
+/* ===== KeyVex-inspired: LIVE FROM THE DATA + DERIVED NARRATIVES ===== */
+function fmtNum(n){n=Number(n)||0;return n.toLocaleString('en-US');}
+function timeAgo(iso){
+  try{
+    var d=new Date(iso),now=new Date(),s=Math.floor((now-d)/1000);
+    if(s<60)return 'just now';
+    if(s<3600)return Math.floor(s/60)+'m ago';
+    if(s<86400)return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+  }catch(e){return '';}
+}
+function renderPulse(d){
+  var host=$id('pulse-banner');
+  if(!d||d.ok!==true){
+    host.innerHTML='<div class="pulse-loading">Live stats unavailable — the rails didn\u2019t answer. Tables below still work.</div>';
+    return;
+  }
+  var h='<div class="pulse-stats">';
+  if(d.enforcement_total){
+    h+='<div class="pulse-stat"><div class="n">'+fmtNum(d.enforcement_total)+'</div><div class="l">ENFORCEMENT ACTIONS</div></div>';
+  }
+  if(d.enforcement_30d){
+    h+='<div class="pulse-stat"><div class="n"><em>'+fmtNum(d.enforcement_30d)+'</em></div><div class="l">LAST 30 DAYS</div></div>';
+  }
+  if(d.cfpb_total_complaints){
+    h+='<div class="pulse-stat"><div class="n">'+fmtNum(d.cfpb_total_complaints)+'</div><div class="l">CONSUMER COMPLAINTS</div></div>';
+  }
+  h+='</div>';
+  if(d.updated_at){
+    h+='<div class="pulse-updated">⚡ Updated '+timeAgo(d.updated_at)+' · computed live from D1, never hardcoded</div>';
+  }
+  host.innerHTML=h;
+  /* 3. DERIVED NARRATIVES */
+  renderNarratives(d);
+}
+function renderNarratives(d){
+  var host=$id('narratives');
+  var sec=$id('narratives-sec');
+  var html='';
+  /* This week in enforcement */
+  if(d.enforcement_latest&&d.enforcement_latest.length){
+    html+='<div class="narr"><h3>🚨 THIS WEEK IN ENFORCEMENT</h3>';
+    d.enforcement_latest.forEach(function(a){
+      html+='<div class="narr-item"><b>'+esc(a.title||'Untitled')+'</b><br><span class="src">'+esc(a.agency_component||'')+' · '+esc(a.published_date||'')+'</span>';
+      if(a.url)html+=' <a href="'+esc(a.url)+'" target="_blank" rel="noopener">→ source filing</a>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+  /* Most complained-about companies */
+  if(d.cfpb_top_companies&&d.cfpb_top_companies.length){
+    html+='<div class="narr"><h3>📢 MOST COMPLAINED-ABOUT COMPANIES</h3>';
+    d.cfpb_top_companies.forEach(function(c,i){
+      html+='<div class="narr-item"><b>#'+(i+1)+' '+esc(c.company||'Unknown')+'</b> — '+fmtNum(c.total_complaints)+' complaints</div>';
+    });
+    html+='</div>';
+  }
+  if(html){
+    host.innerHTML=html;
+    sec.hidden=false;
+  }
+}
+/* 2. UNIFORM DATASET PAGE: detail panel on table select */
+function renderTableDetail(t){
+  var sec=$id('tbl-detail-sec');
+  var host=$id('tbl-detail');
+  if(!t||!t.available){sec.hidden=true;return;}
+  var h='<h3>'+esc(t.label)+'</h3>';
+  h+='<div class="m">'+esc(t.description||'')+'</div>';
+  h+='<div class="m"><b>'+fmtNum(t.rows)+'</b> live rows · '+t.columns.length+' columns · Category: '+esc(t.category||'—')+'</div>';
+  if(t.methodology){
+    h+='<div class="m"><b>Methodology:</b> '+esc(t.methodology)+'</div>';
+  }
+  if(t.example_questions&&t.example_questions.length){
+    h+='<div class="m"><b>Try asking:</b></div><div class="eq">';
+    t.example_questions.forEach(function(q){
+      h+='<button type="button" data-karlq="'+esc(q)+'">🧠 '+esc(q)+'</button>';
+    });
+    h+='</div>';
+  }
+  host.innerHTML=h;
+  sec.hidden=false;
+  /* Wire example question buttons to Karl */
+  var btns=host.querySelectorAll('[data-karlq]');
+  for(var i=0;i<btns.length;i++){
+    (function(b){
+      b.addEventListener('click',function(){
+        window.location.href='/karl/?q='+encodeURIComponent(b.getAttribute('data-karlq'));
+      });
+    })(btns[i]);
+  }
+}
+
+/* boot: load the live catalog + data pulse */
 status('Loading the live catalog…');
+/* KeyVex-inspired: fetch live aggregates first */
+apiGet('data_pulse',{}).then(renderPulse).catch(function(){renderPulse(null);});
 apiGet('model_tables',{}).then(function(d){
   if(!d||d.ok!==true){status('Catalog failed to load: '+((d&&(d.error_note||d.error))||'unknown'),true);return;}
   catalog=d.tables||[];

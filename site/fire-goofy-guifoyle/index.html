@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" data-face="fight">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FIRE GOOFY GUIFOYLE — JOIN THE FIGHT.</title>
+<meta name="description" content="Too goofy for the job. Too guilty for the paycheck. Join the campaign to send Goofy packing.">
+<link rel="canonical" href="https://www.mtcstw.com/fire-goofy-guifoyle/">
+<meta property="og:title" content="FIRE GOOFY GUIFOYLE — JOIN THE FIGHT.">
+<meta property="og:description" content="Too goofy for the job. Too guilty for the paycheck.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/fire-goofy-guifoyle/">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="stylesheet" href="/v1.4.3/core/bundle-styles.css">
+<script src="/v1.4.3/core/47-campaign-share.js" defer></script>
+<style>
+html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+.pf-wrap{max-width:720px;margin:0 auto;padding:32px 16px;}
+.pf-hero{text-align:center;padding:48px 16px 32px;border-bottom:2px solid #c1121f;margin-bottom:32px;}
+.pf-hero h1{font-size:clamp(36px,8vw,64px);font-weight:900;letter-spacing:.02em;margin:0 0 16px;color:#fff;}
+.pf-hero h1 .red{color:#c1121f;}
+.pf-hero p{font-size:18px;color:#8a8478;max-width:520px;margin:0 auto 24px;line-height:1.5;}
+.pf-cta{display:inline-block;background:#c1121f;color:#fff;font-weight:800;font-size:18px;padding:16px 40px;border-radius:8px;text-decoration:none;min-height:44px;letter-spacing:.04em;}
+.pf-cta:active{transform:scale(.96);}
+.pf-missions{margin:32px 0;}
+.pf-missions h2{font-size:24px;font-weight:800;margin-bottom:16px;}
+.pf-mission{background:#141311;border:1px solid #2a2824;border-left:3px solid #c1121f;border-radius:4px;padding:16px;margin-bottom:12px;}
+.pf-mission h3{margin:0 0 8px;font-size:16px;}
+.pf-mission p{margin:0;color:#8a8478;font-size:14px;line-height:1.45;}
+.pf-mission .xp{color:#ffb703;font-weight:700;font-size:13px;}
+.pf-share{margin:32px 0;text-align:center;}
+.pf-share h2{font-size:24px;font-weight:800;margin-bottom:16px;}
+.pf-share-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+.pf-share-btn{background:#141311;border:1px solid #2a2824;border-radius:8px;padding:20px 12px;color:#f5f0e6;text-decoration:none;font-weight:700;font-size:14px;min-height:44px;display:flex;align-items:center;justify-content:center;}
+.pf-back{display:block;text-align:center;margin-top:48px;color:#8a8478;text-decoration:none;font-size:14px;}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+<div class="pf-wrap">
+  <div class="pf-hero">
+    <h1 data-campaign="hero_title">FIRE <span class="red">GOOFY GUIFOYLE</span></h1>
+    <p data-campaign="hero_sub">Too goofy for the job. Too guilty for the paycheck. Join the campaign to send Goofy packing.</p>
+    <a class="pf-cta" href="/" data-campaign-href="cta_url" data-campaign="cta_text">JOIN THE FIGHT</a>
+  </div>
+
+  <div class="pf-missions">
+    <h2>Daily Missions</h2>
+    <div id="pf-campaign-missions"><p style="color:#8a8478">Loading missions…</p></div>
+  </div>
+
+  <div class="pf-share">
+    <h2>Spread the Word</h2>
+    <div data-pf-campaign-share="wanted"></div>
+    <div class="pf-share-grid" style="margin-top:16px;">
+      <a class="pf-share-btn" href="#" id="pf-share-x">Share on X</a>
+      <a class="pf-share-btn" href="#" id="pf-share-fb">Share on Facebook</a>
+      <a class="pf-share-btn" href="#" id="pf-share-copy">Copy Link</a>
+    </div>
+  </div>
+
+  <a class="pf-back" href="/">← Back to The Propaganda Factory</a>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var API = "https://pf-api.mtcstw.workers.dev/?action=";
+  // Fill data-campaign slots
+  fetch(API + "campaign_active", {credentials:"omit"}).then(function(r){return r.json();}).then(function(d){
+    var c = d && d.campaign;
+    if(!c) return;
+    document.querySelectorAll("[data-campaign]").forEach(function(el){
+      var f = el.getAttribute("data-campaign");
+      if(c[f] && f !== "hero_title") el.textContent = c[f];
+    });
+    document.querySelectorAll("[data-campaign-href]").forEach(function(el){
+      var f = el.getAttribute("data-campaign-href");
+      if(c[f]) el.setAttribute("href", c[f]);
+    });
+  }).catch(function(){});
+  // Load missions
+  fetch(API + "campaign_missions&campaign_id=fire-goofy-guifoyle", {credentials:"omit"}).then(function(r){return r.json();}).then(function(d){
+    var box = document.getElementById("pf-campaign-missions");
+    var ms = (d && d.missions) || [];
+    if(!ms.length){ box.innerHTML = '<p style="color:#8a8478">Missions loading — check back soon.</p>'; return; }
+    box.innerHTML = "";
+    ms.forEach(function(m){
+      var div = document.createElement("div");
+      div.className = "pf-mission";
+      var h = document.createElement("h3"); h.textContent = m.title;
+      var p = document.createElement("p"); p.textContent = m.detail || "";
+      var xp = document.createElement("div"); xp.className = "xp"; xp.textContent = "+" + (m.xp||0) + " XP";
+      div.appendChild(h); div.appendChild(p); div.appendChild(xp);
+      box.appendChild(div);
+    });
+  }).catch(function(){});
+  // Share buttons
+  var url = encodeURIComponent("https://www.mtcstw.com/fire-goofy-guifoyle/");
+  var txt = encodeURIComponent("FIRE GOOFY GUIFOYLE — JOIN THE FIGHT. MTCSTW.COM");
+  document.getElementById("pf-share-x").href = "https://twitter.com/intent/tweet?text="+txt+"&url="+url;
+  document.getElementById("pf-share-fb").href = "https://www.facebook.com/sharer/sharer.php?u="+url;
+  document.getElementById("pf-share-x").target = "_blank";
+  document.getElementById("pf-share-fb").target = "_blank";
+  document.getElementById("pf-share-copy").addEventListener("click", function(e){
+    e.preventDefault();
+    var done = function(){ e.target.textContent = "Copied!"; setTimeout(function(){e.target.textContent="Copy Link";},2000); };
+    if(navigator.clipboard) navigator.clipboard.writeText(decodeURIComponent(url)).then(done, function(){});
+  });
+})();
+</script>
+</body>
+</html>

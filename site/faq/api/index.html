@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>API FAQ — Data packs, keys, rate limits, OpenSecrets migration | MTCSTW</title>
+<meta name="description" content="API questions answered: data pack pricing, free API keys, rate limits, OpenSecrets migration, donor-data rules, attribution, SLA, webhooks.">
+<link rel="canonical" href="https://www.mtcstw.com/faq/api">
+<meta property="og:title" content="API FAQ — Data packs, keys, rate limits, OpenSecrets migration | MTCSTW">
+<meta property="og:description" content="API questions answered: data pack pricing, free API keys, rate limits, OpenSecrets migration, donor-data rules, attribution, SLA, webhooks.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/faq/api">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API FAQ — Data packs, keys, rate limits, OpenSecrets migration | MTCSTW">
+<meta name="twitter:description" content="API questions answered: data pack pricing, free API keys, rate limits, OpenSecrets migration, donor-data rules, attribution, SLA, webhooks.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What data packs exist, and what do they cost?", "acceptedAnswer": {"@type": "Answer", "text": "Five packs, one engine: $0 Free — 1,000 calls/month, sample data from all packs. No credit card. $69/mo Politics — 50K calls. FEC aggregates, lobbying, bills. $69/mo Corporate — 50K calls. Violations, OSHA, wage theft, Ghoul scores. $99/mo PE — 50K calls. Firms, portfolio companies, bankruptcy tracking. $69/mo Health — 50K calls. Nursing homes, drug safety, clinical trials. $69/mo Patent — 50K calls. Patent hoarders, evergreening, troll profiles. $349/mo All Access — 500K calls, every pack, webhooks + bulk downloads. $1,499/mo Enterprise — unlimited calls, SLA, custom endpoints, dedicated support. Every paid tier includes AI-detected connections (Lux). Full pricing at /api/ ."}}, {"@type": "Question", "name": "How do I get an API key?", "acceptedAnswer": {"@type": "Answer", "text": "One curl, no card: curl -X POST https://pf-api.mtcstw.workers.dev/v1/keys/signup That returns your free API key — 1,000 calls/month. Send it as an X-API-Key header (or ?api_key= query param) on every request. Upgrade to a pack whenever you outgrow it."}}, {"@type": "Question", "name": "What are the rate limits and quotas? What happens on overage?", "acceptedAnswer": {"@type": "Answer", "text": "Each tier carries a monthly call quota : 1,000 on Free, 50,000 per pack on the $69–$99 tiers, 500,000 on All Access, unlimited on Enterprise. Burst limits keep any one key from hogging the pipe. Hit your quota and the API answers 402 Payment Required — that’s your cue to upgrade, not an error. Your existing key keeps working the moment you do."}}, {"@type": "Question", "name": "I’m migrating from OpenSecrets. Is there a mapping guide?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — we built the replacement when OpenSecrets killed their public API in April 2025 . The migration guide maps dead OpenSecrets methods ( getLegislators , candSummary , candContrib , and more) to our REST equivalents. Biggest change: auth moves from a key parameter to an X-API-Key header. Most migrations take under an hour."}}, {"@type": "Question", "name": "Can I use individual donor data commercially?", "acceptedAnswer": {"@type": "Answer", "text": "No. The API exposes aggregates only — totals, averages, employer and zip-level patterns. Individual donor identities are never in the responses. That’s not a policy choice, it’s the law: 52 U.S.C. § 30111(a)(4) prohibits commercial use of individual contributor information from FEC filings, and our API enforces it at the data layer. Don’t build around it; you can’t."}}, {"@type": "Question", "name": "What are the attribution requirements?", "acceptedAnswer": {"@type": "Answer", "text": "Free tier: cite us. Attribution is all we ask — link the Propaganda Factory API wherever the data appears. Paid packs ($69+) have no attribution requirement . Good citations make the data stronger for everyone. Link it and keep moving."}}, {"@type": "Question", "name": "Is there an SLA?", "acceptedAnswer": {"@type": "Answer", "text": "Enterprise tier ($1,499/mo) carries a formal SLA with dedicated support and custom endpoints. All Access ($349/mo) gets priority support. Free and pack tiers get community support — best-effort, but we ship fixes fast. The API is live and monitored; status questions go to mtcstw@gmail.com."}}, {"@type": "Question", "name": "Do you support webhooks?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, on All Access and up. Webhooks fire real-time alerts for the things you care about — new violations, fresh donations, bankruptcy events — so you don’t poll the API like it’s 2009. Free and pack tiers don’t get webhooks. It’s one of the reasons All Access exists."}}]}</script>
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
+  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
+  .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;line-height:1.15;}
+  .hero h1 .red{color:#c1121f;}
+  .sub{color:#b0b0b0;font-size:15px;margin:0 0 20px;}
+  .karl-quote{border-left:3px solid #c1121f;background:#141414;border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:#f5ead6;font-style:italic;margin:0 0 20px;}
+  .karl-quote b{color:#e5383b;font-style:normal;}
+  .doc h2{font-size:19px;margin:30px 0 10px;letter-spacing:.03em;line-height:1.3;}
+  .doc h2 .red{color:#c1121f;}
+  .doc p{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;}
+  .doc ul{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;padding-left:22px;}
+  .doc li{margin-bottom:8px;}
+  .doc a{color:#e5383b;font-weight:600;}
+  .doc strong{color:#fff;}
+  .doc code{color:#f5ead6;background:#1a1a1a;padding:1px 6px;border-radius:4px;font-size:13px;}
+  .callout{background:#141414;border:1px solid #c1121f;border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:15px;line-height:1.6;color:#e8e2d6;}
+  .xlink{background:#101010;border:1px solid #2a2a2a;border-radius:12px;padding:14px 16px;margin:22px 0 10px;font-size:14px;line-height:1.6;color:#b0b0b0;}
+  .xlink a{color:#e5383b;font-weight:700;}
+  .doc .updated{font-size:12px;color:#8a8478;margin-top:28px;}
+  details.faq{background:#141414;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  details.faq[open]{border-color:#c1121f;}
+  details.faq summary{padding:14px 16px;font-size:15px;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation;min-height:44px;display:flex;align-items:center;gap:10px;color:#fff;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::before{content:'+';color:#c1121f;font-weight:900;font-size:20px;flex-shrink:0;}
+  details.faq[open] summary::before{content:'\2212';}
+  details.faq .faq-body{padding:0 16px 16px;font-size:15px;line-height:1.65;color:#e8e2d6;}
+  details.faq .faq-body p{margin:0 0 12px;}
+  details.faq .faq-body p:last-child{margin-bottom:0;}
+  .faq-body a{color:#e5383b;font-weight:600;}
+</style>
+</head>
+<body>
+<header class="pf-topbar">
+  <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
+    <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
+  </div>
+</header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav-overlay.open{opacity:1;pointer-events:auto}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+    <a class="pf-snav-link" href="/faq/"><span class="em">&#x2753;</span>FAQ</a>
+    <a class="pf-snav-link" href="/faq/api/"><span class="em">&#x1F527;</span>API FAQ</a>
+    <a class="pf-snav-link" href="/faq/data/"><span class="em">&#x1F4CA;</span>Data FAQ</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">LEGAL</span>
+    <a class="pf-snav-link" href="/privacy/"><span class="em">&#x1F512;</span>Privacy Policy</a>
+    <a class="pf-snav-link" href="/terms/"><span class="em">&#x1F4DC;</span>Terms of Service</a>
+    <a class="pf-snav-link" href="/cookies/"><span class="em">&#x1F36A;</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/accessibility/"><span class="em">&#x267F;</span>Accessibility</a>
+  </div>
+  <div class="pf-snav-foot">&copy; 2026 The Propaganda Factory.<br>Discover your power.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+  var sx=null;
+  nav.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; }, {passive:true});
+  nav.addEventListener('touchmove', function(e){
+    if(sx===null) return;
+    var dx=e.touches[0].clientX - sx;
+    if(dx < -60){ close(); sx=null; }
+  }, {passive:true});
+})();
+</script>
+<main id="main">
+  <div class="hero">
+    <h1>API FAQ <span class="red">/v1</span></h1>
+    <p class="sub">The Propaganda Factory API: 27 endpoints, 45+ public datasets, 1,000 free calls a month. Answers below, receipts included.</p>
+    <p class="karl-quote"><b>KARL:</b> &ldquo;Our API killed nothing. OpenSecrets killed their own API and we picked up the bodies.&rdquo;</p>
+  </div>
+  <div class="doc">
+<details class="faq"><summary>What data packs exist, and what do they cost?</summary><div class="faq-body"><p>Five packs, one engine:</p><p><strong>$0 Free</strong> &mdash; 1,000 calls/month, sample data from all packs. No credit card.<br><strong>$69/mo Politics</strong> &mdash; 50K calls. FEC aggregates, lobbying, bills.<br><strong>$69/mo Corporate</strong> &mdash; 50K calls. Violations, OSHA, wage theft, Ghoul scores.<br><strong>$99/mo PE</strong> &mdash; 50K calls. Firms, portfolio companies, bankruptcy tracking.<br><strong>$69/mo Health</strong> &mdash; 50K calls. Nursing homes, drug safety, clinical trials.<br><strong>$69/mo Patent</strong> &mdash; 50K calls. Patent hoarders, evergreening, troll profiles.<br><strong>$349/mo All Access</strong> &mdash; 500K calls, every pack, webhooks + bulk downloads.<br><strong>$1,499/mo Enterprise</strong> &mdash; unlimited calls, SLA, custom endpoints, dedicated support.</p><p>Every paid tier includes AI-detected connections (Lux). Full pricing at <a href="/api/">/api/</a>.</p></div></details>
+<details class="faq"><summary>How do I get an API key?</summary><div class="faq-body"><p>One curl, no card:</p><p><code>curl -X POST https://pf-api.mtcstw.workers.dev/v1/keys/signup</code></p><p>That returns your free API key &mdash; 1,000 calls/month. Send it as an <code>X-API-Key</code> header (or <code>?api_key=</code> query param) on every request. Upgrade to a pack whenever you outgrow it.</p></div></details>
+<details class="faq"><summary>What are the rate limits and quotas? What happens on overage?</summary><div class="faq-body"><p>Each tier carries a <strong>monthly call quota</strong>: 1,000 on Free, 50,000 per pack on the $69&ndash;$99 tiers, 500,000 on All Access, unlimited on Enterprise. Burst limits keep any one key from hogging the pipe.</p><p>Hit your quota and the API answers <strong>402 Payment Required</strong> &mdash; that&rsquo;s your cue to upgrade, not an error. Your existing key keeps working the moment you do.</p></div></details>
+<details class="faq"><summary>I&rsquo;m migrating from OpenSecrets. Is there a mapping guide?</summary><div class="faq-body"><p>Yes &mdash; we built the replacement when <strong>OpenSecrets killed their public API in April 2025</strong>. The <a href="/api/opensecrets-alternative/">migration guide</a> maps dead OpenSecrets methods (<code>getLegislators</code>, <code>candSummary</code>, <code>candContrib</code>, and more) to our REST equivalents.</p><p>Biggest change: auth moves from a key parameter to an <code>X-API-Key</code> header. Most migrations take under an hour.</p></div></details>
+<details class="faq"><summary>Can I use individual donor data commercially?</summary><div class="faq-body"><p><strong>No.</strong> The API exposes <strong>aggregates only</strong> &mdash; totals, averages, employer and zip-level patterns. Individual donor identities are never in the responses.</p><p>That&rsquo;s not a policy choice, it&rsquo;s the law: <strong>52 U.S.C. &sect; 30111(a)(4)</strong> prohibits commercial use of individual contributor information from FEC filings, and our API enforces it at the data layer. Don&rsquo;t build around it; you can&rsquo;t.</p></div></details>
+<details class="faq"><summary>What are the attribution requirements?</summary><div class="faq-body"><p><strong>Free tier: cite us.</strong> Attribution is all we ask &mdash; link the Propaganda Factory API wherever the data appears. Paid packs ($69+) have <strong>no attribution requirement</strong>.</p><p>Good citations make the data stronger for everyone. Link it and keep moving.</p></div></details>
+<details class="faq"><summary>Is there an SLA?</summary><div class="faq-body"><p><strong>Enterprise tier ($1,499/mo)</strong> carries a formal SLA with dedicated support and custom endpoints. All Access ($349/mo) gets priority support. Free and pack tiers get community support &mdash; best-effort, but we ship fixes fast.</p><p>The API is live and monitored; status questions go to mtcstw@gmail.com.</p></div></details>
+<details class="faq"><summary>Do you support webhooks?</summary><div class="faq-body"><p><strong>Yes, on All Access and up.</strong> Webhooks fire real-time alerts for the things you care about &mdash; new violations, fresh donations, bankruptcy events &mdash; so you don&rsquo;t poll the API like it&rsquo;s 2009.</p><p>Free and pack tiers don&rsquo;t get webhooks. It&rsquo;s one of the reasons All Access exists.</p></div></details>
+  </div>
+  <div class="xlink">Not a developer? Start with the <a href="/faq/">General FAQ</a>. Wondering where the data comes from? Read the <a href="/faq/data/">Data FAQ</a>. Full endpoint docs at <a href="/api/">/api/</a>.</div>
+  <p class="doc updated">Last updated October 2026. Pricing changes are announced on /api/ before they take effect.</p>
+</main>
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a:active{opacity:.7;}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;&#xFE0F;</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>
+</nav>
+<script>
+(function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
+</script>
+</body>
+</html>

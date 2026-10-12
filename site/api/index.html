@@ -37,6 +37,7 @@
     {"@type": "Offer", "name": "Private Equity Pack", "price": "99", "priceCurrency": "USD", "description": "50,000 API calls/month — private equity firms, portfolio, impacts"},
     {"@type": "Offer", "name": "Health Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — nursing homes, drug safety, clinical trials"},
     {"@type": "Offer", "name": "Patent Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — patents, evergreening, trolls"},
+    {"@type": "Offer", "name": "Science Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — hospital prices, drug costs, OpenPayments, OSHA/FDA/wage-theft joins; also included on the Free tier at 1,000 calls/month"},
     {"@type": "Offer", "name": "All Access", "price": "349", "priceCurrency": "USD", "description": "500,000 API calls/month, all packs + webhooks"},
     {"@type": "Offer", "name": "Enterprise", "price": "1499", "priceCurrency": "USD", "description": "Unlimited + SLA + webhooks"}
   ],
@@ -303,6 +304,17 @@ curl -H "X-API-Key: YOUR_KEY" \
     </ul>
   </div>
   <div class="plan">
+    <h3>Science Pack</h3>
+    <div class="price">$69<span>/mo</span></div>
+    <div class="annual">Included on Free — 1,000 calls/mo</div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>Hospital prices, drug costs, OpenPayments</li>
+      <li>OSHA + FDA + wage-theft facility joins</li>
+      <li>One-line embed + import ship-outs</li>
+    </ul>
+  </div>
+  <div class="plan">
     <h3>Pick 2 Bundle</h3>
     <div class="price">$123<span>/mo</span></div>
     <div class="annual">$1,255/yr — save 15%</div>
@@ -348,6 +360,23 @@ curl -H "X-API-Key: YOUR_KEY" \
   </div>
 </div>
 <p class="billing-note">Annual billing saves 15% on every plan. Bundle pricing: Pick 2 is $123/mo ($153/mo with Private Equity Pack); Pick 3 is $192/mo ($222/mo with Private Equity Pack) — $15 off individual pack prices either way.</p>
+
+<h2>Data Packs — One-Line Ship-Outs</h2>
+<p>Data packs are versioned products served on this same API, under <code>/packs/&lt;pack&gt;/&lt;version&gt;/</code> — same keys, same quotas, same revocation. The first served pack is the <strong>Science Pack</strong> (v0.1.0, data through 2026-10): CMS hospital prices, NADAC drug prices, Census ACS, CMS OpenPayments, FDA enforcement and drug shortages, OSHA inspections and violations, DOL wage-theft cases, clinical trials, and EPA toxic releases — with two models (hospital price dispersion; household drug cost burden) and joined facility and drug-path views. Every figure carries its source, vintage, method, license note, and a measured-vs-modeled label.</p>
+<p>Your total integration work is pasting one line. All complexity — data, models, licensing, provenance, versioning, updates, revocation — stays server-side:</p>
+<p><strong>Script embed (web pages):</strong></p>
+<pre><code>&lt;script src="https://api.mtcstw.com/packs/science/v1/embed.js" data-pack-key="pf_..." async&gt;&lt;/script&gt;</code></pre>
+<p><strong>Code import (apps and sites with a build step):</strong></p>
+<pre><code>import { mountSciencePack } from "https://api.mtcstw.com/packs/science/v1/client.mjs";
+mountSciencePack({ key: "pf_..." });</code></pre>
+<ul>
+  <li><strong>Key scoping:</strong> one pack, one tier, one version line, one consumer surface per key. Keys can be restricted to named domains, enforced server-side.</li>
+  <li><strong>Manifest + changelog:</strong> <code>GET /packs/science/v1/manifest</code> and <code>GET /packs/science/v1/changelog</code> — if a dataset is not in the manifest, it is not in the pack.</li>
+  <li><strong>Exports:</strong> <code>GET /packs/science/v1/export/:table?format=csv|parquet</code> — CSV from the serving tables, Parquet from the Tier-2 data lake, provenance included.</li>
+  <li><strong>Versioning:</strong> <code>v1</code> is a living line — refreshes and corrections arrive server-side with no change on your page. Breaking changes ship as a new major line with a stated sunset date; a live line never breaks.</li>
+  <li><strong>Licensing is enforced server-side:</strong> a dataset not cleared for your tier is absent from your responses. Some datasets are excluded or held from every pack tier until their terms are verified.</li>
+  <li><strong>Revocation is instant:</strong> kill the key and the embed stops serving data on the next request.</li>
+</ul>
 
 <h2>How we compare</h2>
 <table class="compare">

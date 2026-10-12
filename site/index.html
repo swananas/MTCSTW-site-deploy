@@ -584,6 +584,7 @@
 }
 </script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<script src="/v1.4.3/core/03-global.js" defer></script>
 </head>
 <body>
 <a href="#main" class="pf-skip-link">Skip to main content</a>
@@ -1454,6 +1455,23 @@ function doAsk(){
     askBtn.disabled = false;
     askBtn.textContent = 'ASK';
     showToast('Answer ready — tap DEPLOY to spread it');
+    /* UX sprint ITER-8: come-back trigger. After the visitor's FIRST Karl
+       answer, prompt callsign claim once ever — so their intel is saved and
+       they have a reason to return. Uses existing requireCallsign rail. */
+    try{
+      var has = window.PFCallsign && window.PFCallsign();
+      var prompted = false;
+      try{ prompted = !!localStorage.getItem('pf_callsign_prompted_karl'); }catch(e){}
+      if(!has && !prompted && window.PF && PF.requireCallsign){
+        try{ localStorage.setItem('pf_callsign_prompted_karl','1'); }catch(e){}
+        setTimeout(function(){
+          try{
+            var stillHas = window.PFCallsign && window.PFCallsign();
+            if(!stillHas) PF.requireCallsign(function(){}, {context:'to save your intel and track your impact'});
+          }catch(e){}
+        }, 4000);
+      }
+    }catch(e){}
   };
 
   fetch(API+'karl_query&q='+encodeURIComponent(text), {cache:'no-store'})

@@ -150,6 +150,14 @@
   #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
   #pf-karl-home .pf-explainer{ font-size:14px; line-height:1.45; margin:8px 2px 12px; color:var(--kh-cream); max-width:34ch; }
   #pf-karl-home .pf-explainer strong{ color:#fff; }
+  /* 4-pillar nav (UX sprint ITER-2) */
+  .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:4px 14px 14px; }
+  .pf-pillar-btn{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 4px 10px;
+    background:#141414; border:1px solid #2a2a2a; border-radius:12px; color:#f5ead6;
+    font-size:11px; font-weight:800; letter-spacing:.08em; text-decoration:none;
+    min-height:64px; touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
+  .pf-pillar-btn .em{ font-size:22px; }
+  .pf-pillar-btn:active{ background:#1f1f1f; border-color:#e5383b; }
   /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed */
   #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
@@ -830,6 +838,15 @@ fetchCampaign().then(render);
     <button class="kh-chip">Biggest private prison operator?</button>
     <button class="kh-chip">How rich are the billionaires?</button>
   </div>
+
+  <!-- 4 PILLARS NAV (UX sprint ITER-2): the mission backbone as visible nav.
+       Create / Connect / Coordinate / Capital — four ways in. -->
+  <nav class="pf-pillars" aria-label="Four ways in">
+    <a class="pf-pillar-btn" href="/create/"><span class="em">🎨</span>Create</a>
+    <a class="pf-pillar-btn" href="/sick-left-radicals/"><span class="em">🔗</span>Connect</a>
+    <a class="pf-pillar-btn" href="/cells/"><span class="em">⚑</span>Coordinate</a>
+    <a class="pf-pillar-btn" href="/money/"><span class="em">💰</span>Capital</a>
+  </nav>
 
   <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
        into the active campaign. Pulls from campaign_active API. After

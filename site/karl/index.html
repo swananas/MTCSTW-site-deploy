@@ -105,6 +105,50 @@
   }catch(e){}
 })();</script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<style>
+
+  html, body {margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body {padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+  #pf-translator-tab .pf-topbar {position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  #pf-translator-tab .pf-topbar-inner {max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  #pf-translator-tab .pf-topbar-brand {color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  #pf-translator-tab .pf-topbar-brand span {color:#c1121f;}
+  #pf-translator-tab .pf-pillars-nav {display:flex;gap:6px;flex:1 1 auto;}
+  #pf-translator-tab .pf-pillar {flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  #pf-translator-tab .pf-pillar:active {color:#fff;background:#1a1a1a;}
+  #pf-translator-tab main {max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
+  #pf-translator-tab .hero h1 {font-size:30px;margin:0 0 6px;letter-spacing:.02em;}
+  #pf-translator-tab .hero h1 .red {color:#c1121f;}
+  #pf-translator-tab .sub {color:#b0b0b0;font-size:15px;margin:0 0 20px;}
+  #pf-translator-tab .karl-quote {border-left:3px solid #c1121f;background:#141414;border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:#f5ead6;font-style:italic;margin:0 0 20px;}
+  #pf-translator-tab .karl-quote b {color:#e5383b;font-style:normal;}
+  /* Input */
+  #pf-translator-tab textarea {width:100%;box-sizing:border-box;background:#141414;border:1px solid #333;border-radius:12px;color:#fff;font-size:15px;line-height:1.5;padding:14px;font-family:inherit;min-height:150px;resize:vertical;}
+  #pf-translator-tab textarea:focus {outline:none;border-color:#c1121f;}
+  #pf-translator-tab .translate-btn {width:100%;background:#c1121f;color:#fff;border:none;border-radius:10px;font-weight:900;font-size:16px;letter-spacing:.06em;padding:14px;cursor:pointer;touch-action:manipulation;margin-top:12px;}
+  #pf-translator-tab .translate-btn:active {transform:scale(.98);}
+  #pf-translator-tab .translate-btn:disabled {opacity:.5;}
+  /* Output */
+  #pf-translator-tab #output {margin-top:20px;}
+  #pf-translator-tab .truth-card {background:#141414;border:1px solid #c1121f;border-radius:12px;padding:16px;margin-bottom:14px;}
+  #pf-translator-tab .truth-label {font-size:11px;font-weight:800;letter-spacing:.1em;color:#e5383b;margin:0 0 8px;}
+  #pf-translator-tab .truth-text {font-size:16px;line-height:1.6;margin:0 0 4px;white-space:pre-wrap;}
+  #pf-translator-tab .caught-title {font-size:14px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:16px 0 8px;}
+  #pf-translator-tab .caught {display:flex;align-items:center;gap:10px;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:14px;}
+  #pf-translator-tab .caught .phrase {background:#2a1a1a;border:1px solid #c1121f;border-radius:6px;padding:4px 8px;font-weight:700;color:#f5ead6;white-space:nowrap;}
+  #pf-translator-tab .caught .arrow {color:#e5383b;font-weight:900;}
+  #pf-translator-tab .caught .meaning {color:#d9d2c2;}
+  #pf-translator-tab .actions {display:flex;gap:10px;margin-top:14px;}
+  #pf-translator-tab .action-btn {flex:1;border-radius:10px;font-weight:800;font-size:13px;letter-spacing:.04em;padding:12px;cursor:pointer;touch-action:manipulation;}
+  #pf-translator-tab .save-btn {background:#c1121f;color:#fff;border:none;}
+  #pf-translator-tab .save-btn.saved {background:#2a7a3f;}
+  #pf-translator-tab .copy-btn {background:transparent;color:#fff;border:1px solid #c1121f;}
+  #pf-translator-tab .toast {position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1a1a1a;border:1px solid #c1121f;color:#fff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:8px;z-index:9000;display:none;}
+  #pf-translator-tab .loading, #pf-translator-tab .error {background:#141414;border:1px dashed #333;border-radius:12px;padding:28px 16px;text-align:center;color:#8a8478;font-size:15px;margin-top:20px;}
+  #pf-translator-tab .error {border-color:#c1121f;color:#f5ead6;}
+  #pf-translator-tab .note {font-size:12px;color:#8a8478;margin-top:18px;line-height:1.5;}
+
+</style>
 </head>
 <body>
 <a href="#main" class="pf-skip-link">Skip to main content</a>
@@ -163,7 +207,7 @@
     <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
     <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
     <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
-    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+    <a class="pf-snav-link" href="/karl/?tab=translator"><span class="em">&#x1F310;</span>Translate</a>
   </div>
   <div class="pf-snav-group">
     <span class="pf-snav-kicker">EXPLORE</span>
@@ -211,6 +255,52 @@
 </script>
 
 <main id="main">
+
+<nav class="pf-tabs" aria-label="Karl sections" style="display:flex;gap:8px;padding:12px 16px;max-width:680px;margin:0 auto;">
+  <button type="button" data-tab="ask" class="pf-tab on" style="flex:1;padding:12px;background:#1a1a1a;border:1px solid #c1121f;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;">Ask Karl</button>
+  <button type="button" data-tab="translator" class="pf-tab" style="flex:1;padding:12px;background:#141414;border:1px solid #333;border-radius:8px;color:#b0b0b0;font-weight:700;cursor:pointer;">Translator 🗣️</button>
+</nav>
+<div id="pf-translator-tab" hidden style="max-width:720px;margin:0 auto;padding:0 16px 24px;">
+
+  <div class="hero">
+    <h1>KARL'S TRANSLATOR <span class="red">🗣️</span></h1>
+    <p class="sub">Paste corporate speak. Get the truth.</p>
+    <p class="karl-quote"><b>KARL:</b> "They have entire departments dedicated to making exploitation sound like a wellness retreat. I do the opposite."</p>
+  </div>
+
+  <textarea id="corp-input" placeholder="Paste the press release, the HR memo, the CEO's statement…&#10;&#10;Try: 'We're excited to announce a strategic rightsizing initiative to unlock synergies and optimize our human capital footprint.'&#10;&#10;(Karl is already laughing.)"></textarea>
+  <button class="translate-btn" id="translate-btn">TRANSLATE</button>
+
+  <div id="output" aria-live="polite"></div>
+
+  <p class="note">Translations are Karl's reading of the actual words on the page — not a summary of what they said, a translation of what they meant. Save the receipts, share the decoded version, and never let "synergy" go unchallenged again.</p>
+
+</div>
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.pf-tab');
+  var askEl=document.getElementById('pf-karl');
+  var transEl=document.getElementById('pf-translator-tab');
+  function show(name){
+    var isAsk = name==='ask';
+    if(askEl)askEl.hidden=!isAsk;
+    if(transEl)transEl.hidden=isAsk;
+    tabs.forEach(function(t){
+      var on=t.getAttribute('data-tab')===name;
+      t.classList.toggle('on',on);
+      t.style.background=on?'#1a1a1a':'#141414';
+      t.style.borderColor=on?'#c1121f':'#333';
+      t.style.color=on?'#fff':'#b0b0b0';
+    });
+    try{history.replaceState(null,'','#'+name);}catch(e){}
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.getAttribute('data-tab'));});});
+  var h=(location.hash||'').replace('#','');
+  if(h==='translator')show('translator');
+  var q=location.search.match(/[?&]tab=translator/);
+  if(q)show('translator');
+})();
+</script>
   <div id="pf-karl"></div>
 </main>
 </div>
@@ -430,5 +520,133 @@ try{
 <script src="/assets/engage.js"></script>
 <!-- /PF_ENGAGE_V1 -->
 
+<script>
+
+var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+
+/* PF Dossier — personal collection layer */
+var PFDossier = (function(){
+  var DB='pf_dossier_v1', STORE='items';
+  function open(){ return new Promise(function(res,rej){
+    var r = indexedDB.open(DB,1);
+    r.onupgradeneeded = function(){ r.result.createObjectStore(STORE,{keyPath:'id'}); };
+    r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); };
+  });}
+  function save(item){ return open().then(function(db){ return new Promise(function(res,rej){
+    item.id = item.type+':'+Date.now()+':'+Math.random().toString(36).slice(2,8);
+    item.created_at = Date.now(); item.tags = item.tags||[];
+    var tx = db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(item);
+    tx.oncomplete = function(){ res(item.id); }; tx.onerror = function(){ rej(tx.error); };
+  });});}
+  return {save:save};
+})();
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2200);
+}
+
+function normalizeCaught(raw){
+  // Accept: [{phrase, meaning}] | [{from, to}] | {phrase: meaning} | [{phrase:..}]
+  if(!raw) return [];
+  if(Array.isArray(raw)){
+    return raw.map(function(p){
+      if(typeof p === 'string') return {phrase:p, meaning:''};
+      return {
+        phrase: p.phrase || p.from || p.corporate || p.original || '',
+        meaning: p.meaning || p.to || p.truth || p.translation || ''
+      };
+    }).filter(function(p){ return p.phrase; });
+  }
+  if(typeof raw === 'object'){
+    return Object.keys(raw).map(function(k){ return {phrase:k, meaning:raw[k]}; });
+  }
+  return [];
+}
+
+function renderResult(data, original){
+  var host = document.getElementById('output');
+  var translated = data.translated || data.translation || data.truth || data.result || '';
+  var caught = normalizeCaught(data.caught || data.phrases || data.decoded);
+  if(!translated && !caught.length){
+    host.innerHTML = '<div class="error" role="alert">Karl stared at it, shrugged, and walked away. No translation came back — try again.</div>';
+    return;
+  }
+  var html = '';
+  if(translated){
+    html += '<div class="truth-card"><p class="truth-label">THE TRUTH, ACCORDING TO KARL</p>'+
+      '<p class="truth-text">'+esc(translated)+'</p></div>';
+  }
+  if(caught.length){
+    html += '<p class="caught-title">PHRASES CAUGHT IN THE ACT</p>'+
+      caught.map(function(c){
+        return '<div class="caught"><span class="phrase">'+esc(c.phrase)+'</span>'+
+          '<span class="arrow">→</span><span class="meaning">'+esc(c.meaning||'(Karl declines to elaborate)')+'</span></div>';
+      }).join('');
+  }
+  html += '<div class="actions">'+
+    '<button class="action-btn save-btn" id="btn-save">SAVE TO MY DOSSIER</button>'+
+    '<button class="action-btn copy-btn" id="btn-copy">COPY</button>'+
+  '</div>';
+  host.innerHTML = html;
+  host.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  document.getElementById('btn-save').addEventListener('click', function(){
+    var btn = this; btn.disabled = true;
+    PFDossier.save({
+      type:'translation',
+      title:'Translation: '+(original.length>60 ? original.slice(0,60)+'…' : original),
+      data:{original:original, translated:translated, caught:caught},
+      tags:['translator','karl']
+    }).then(function(){ btn.textContent='SAVED ✓'; btn.classList.add('saved'); })
+      .catch(function(){ btn.disabled=false; toast('Save failed — try again.'); });
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function(){
+    var text = translated || '';
+    if(caught.length){
+      text += '\n\nPHRASES CAUGHT:\n' + caught.map(function(c){ return '• "'+c.phrase+'" → '+c.meaning; }).join('\n');
+    }
+    function done(){ toast('Copied — go start a fight in the group chat.'); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ toast('Copy failed — long-press to copy.'); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); done(); }
+      catch(e){ toast('Copy failed — long-press to copy.'); }
+      document.body.removeChild(ta);
+    }
+  });
+}
+
+document.getElementById('translate-btn').addEventListener('click', function(){
+  var input = document.getElementById('corp-input').value.trim();
+  var btn = document.getElementById('translate-btn');
+  var host = document.getElementById('output');
+  if(!input){ toast('Paste something first. Karl needs material.'); return; }
+  btn.disabled = true; btn.textContent = 'KARL IS DECODING…';
+  host.innerHTML = '<div class="loading">Karl is reading between the lines…</div>';
+  fetch(API+'karl_translate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({text: input})
+  })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(data){ renderResult(data, input); })
+    .catch(function(){
+      host.innerHTML = '<div class="error" role="alert">Karl\'s pen ran out of red ink. The translation service is down — try again.</div>';
+    })
+    .then(function(){ btn.disabled = false; btn.textContent = 'TRANSLATE'; });
+});
+
+</script>
 </body>
 </html>

@@ -46,7 +46,11 @@
   try {
     var _pth = String(window.location.pathname || '');
     if (_pth === '/bounty' || _pth === '/bounty/') {
-      window.location.replace('/data-bounties' + (window.location.search || '') + (window.location.hash || ''));
+      window.location.replace('/dig' + (window.location.search || '') + (window.location.hash || ''));
+      return;
+    }
+    if (_pth === '/data-bounties' || _pth === '/data-bounties/') {
+      window.location.replace('/dig' + (window.location.search || '') + (window.location.hash || ''));
       return;
     }
   } catch (e) {}
@@ -100,20 +104,20 @@
     ['ARCADE', '/arcade'],
     ['CELLS', '/cells'],
     ['CREATE', '/create'],
-    ['BANK', '/bank'],
+    ['BANK', '/money'],
     ['ECONOMY', '/economy'],
     /* SPACE-AUDIT FIX 2 (2026-10-06): /fund was orphaned — zero inbound
        links. FRONT LINES grid is the canonical inbound path (fix 9). */
-    ['FUND', '/fund'],
+    ['FUND', '/money'],
     /* BLOSSOM M3 (2026-10-06): /war-chest folds into /ventures — the
        VENTURES entry now covers the Movement Funds section; no duplicate. */
 /* SPACE-AUDIT FIX 6 (2026-10-06): WAR CHEST pointed at /war-chest, which
        live-redirects to /ventures — wrong theater. The war chest (personal
        bank / XP) lives on /bank now; point straight there. */
-    ['WAR CHEST', '/bank'],
+    ['WAR CHEST', '/money'],
     ['VENTURES', '/ventures'],
     ['EVENTS', '/events'],
-    ['WAR REPORT', '/war-report'],
+    ['WAR REPORT', '/command/?tab=warreport'],
     /* SPACE-AUDIT FIX 3 (2026-10-06): /governance was shadowed under ACT
        (goPillar picks /call-it) — the FRONT LINES grid gives it its own
        inbound path from every page footer. */

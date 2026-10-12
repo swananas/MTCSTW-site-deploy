@@ -162,7 +162,7 @@
     <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
     <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
     <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
-    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+    <a class="pf-snav-link" href="/karl/?tab=translator"><span class="em">&#x1F310;</span>Translate</a>
   </div>
   <div class="pf-snav-group">
     <span class="pf-snav-kicker">EXPLORE</span>
@@ -210,14 +210,44 @@
 </script>
 
 <main id="main">
+  <nav class="pf-tabs" aria-label="Command sections" style="display:flex;gap:8px;padding:12px 16px;max-width:680px;margin:0 auto;">
+    <button type="button" data-tab="command" class="pf-tab on" style="flex:1;padding:12px;background:#1a1a1a;border:1px solid #c1121f;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;">Command</button>
+    <button type="button" data-tab="warroom" class="pf-tab" style="flex:1;padding:12px;background:#141414;border:1px solid #333;border-radius:8px;color:#b0b0b0;font-weight:700;cursor:pointer;">War Room</button>
+    <button type="button" data-tab="warreport" class="pf-tab" style="flex:1;padding:12px;background:#141414;border:1px solid #333;border-radius:8px;color:#b0b0b0;font-weight:700;cursor:pointer;">War Report</button>
+  </nav>
   <div id="pf-command"></div>
+  <div id="pf-warroom" hidden></div>
+  <div id="pf-warreport" hidden></div>
+  <div id="xWarReport" hidden></div>
 </main>
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.pf-tab');
+  var views={command:['pf-command'],warroom:['pf-warroom'],warreport:['pf-warreport','xWarReport']};
+  function show(name){
+    for(var k in views){views[k].forEach(function(id){var el=document.getElementById(id);if(el)el.hidden=(k!==name);});}
+    tabs.forEach(function(t){
+      var on=t.getAttribute('data-tab')===name;
+      t.classList.toggle('on',on);
+      t.style.background=on?'#1a1a1a':'#141414';
+      t.style.borderColor=on?'#c1121f':'#333';
+      t.style.color=on?'#fff':'#b0b0b0';
+    });
+    try{history.replaceState(null,'','#'+name);}catch(e){}
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.getAttribute('data-tab'));});});
+  var h=(location.hash||'').replace('#','');
+  if(views[h])show(h);
+  var q=location.search.match(/[?&]tab=(warroom|warreport|command)/);
+  if(q)show(q[1]);
+})();
+</script>
 </div>
 <script>
 (function(){
   var BASE='/v1.4.3/';
   var CORE='bundle-core.js';
-  var GAMES=["games/bundle-command.js"];
+  var GAMES=["games/bundle-command.js","games/bundle-warroom.js","games/bundle-livemode.js","games/bundle-warreport.js"];
   var PAGES='pages/bundle-pages.js';
   var PWA='pwa/install.js';
   var KARL='core/bundle-karl-companion.js';
@@ -257,6 +287,8 @@
   }
   // Paint skeletons immediately
   skeleton(document.getElementById("pf-command"));
+  skeleton(document.getElementById("pf-warroom"));
+  skeleton(document.getElementById("pf-warreport"));
   // Load sequence: core -> pwa -> games -> pages -> karl (lazy)
   (async function(){
     await load(BASE+'core/'+CORE,false);

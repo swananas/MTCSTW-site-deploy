@@ -260,14 +260,26 @@
         return true;
       }
     } catch (e) {}
-    /* Fallback: plain download + proof prompt. */
+    /* Fallback: plain download + proof prompt.
+       2026-10-12: toBlob + object URL instead of toDataURL — avoids a
+       synchronous ~2MB base64 build on the main thread (mobile jank). */
     try {
-      var a = document.createElement('a');
-      a.href = cv.toDataURL('image/png');
-      a.download = fname;
-      document.body.appendChild(a); a.click();
-      setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} }, 500);
-      done();
+      var doDownload = function (url) {
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = fname;
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { try { a.parentNode.removeChild(a); } catch (e2) {} try { URL.revokeObjectURL(url); } catch (e3) {} }, 500);
+        done();
+      };
+      if (cv.toBlob) {
+        cv.toBlob(function (b) {
+          if (!b) { try { doDownload(cv.toDataURL('image/png')); } catch (e4) { return false; } return; }
+          try { doDownload(URL.createObjectURL(b)); } catch (e5) { return false; }
+        }, 'image/png');
+      } else {
+        doDownload(cv.toDataURL('image/png'));
+      }
       return true;
     } catch (e2) { return false; }
   }

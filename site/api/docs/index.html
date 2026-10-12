@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
+<link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>API Docs — Moved to API</title>
+<meta name="description" content="API documentation moved to the API hub — endpoints, pricing, and getting started all in one place.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.mtcstw.com/api/docs">
+<meta property="og:title" content="Cell War — Moved to Cells">
+<meta property="og:description" content="API documentation moved to the API hub — endpoints, pricing, and getting started all in one place.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cell War — Moved to Cells">
+<meta name="twitter:description" content="API documentation moved to the API hub — endpoints, pricing, and getting started all in one place.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<link rel="canonical" href="https://www.mtcstw.com/api/">
+<meta http-equiv="refresh" content="0;url=/api/">
+<script>window.location.replace("/api/"+(window.location.search||"")+(window.location.hash||""));</script>
+<style>html,body{margin:0;padding:0;background:#0a0a0a;color:#f5ead6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}p{padding:40px 20px;text-align:center;}a{color:#e5383b;}</style>
+<script src="/v1.4.3/core/pf-faces.js" defer></script>
+</head>
+<body>
+<p>API Docs moved to <a href="/api/">API</a> — taking you there now.</p>
+<!-- PF_FIRSTCLAIM_V1 -->
+<style>
+#pf-fc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:99999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:92vw}
+#pf-fc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#pf-fc-card{background:#12060a;border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
+#pf-fc-emoji{font-size:34px;line-height:1}
+#pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
+#pf-fc-label{color:#f5f0e8;font-size:13px;margin-top:4px}
+#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+</style>
+<div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
+<div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>
+<div id="pf-fc-label"></div><div id="pf-fc-xp"></div>
+</div></div>
+<script>
+(function(){
+if(window.__pfFcV1)return;window.__pfFcV1=1;
+function showToast(emoji,title,label,xp){
+  try{
+    var t=document.getElementById('pf-fc-toast');if(!t)return;
+    document.getElementById('pf-fc-emoji').textContent=emoji;
+    document.getElementById('pf-fc-title').textContent=title;
+    document.getElementById('pf-fc-label').textContent=label||'';
+    document.getElementById('pf-fc-xp').textContent=xp?('+'+xp+' XP'):'';
+    t.classList.add('show');
+    setTimeout(function(){t.classList.remove('show');},4200);
+  }catch(e){}
+}
+function scan(obj){
+  if(!obj||typeof obj!=='object')return;
+  try{
+    if(obj.first_claim&&obj.first_claim.bonus_xp){
+      showToast('🥇','FIRST CLAIM!',obj.first_claim.label||'Pioneer bonus',obj.first_claim.bonus_xp);
+    }
+    if(obj.first_up&&obj.first_up.bonus_xp){
+      var s=obj.first_up.streak>1?(' Day '+obj.first_up.streak+' streak!'):'';
+      showToast('🌅','FIRST UP!','You\u2019re the first one here today.'+s,obj.first_up.bonus_xp);
+    }
+  }catch(e){}
+  for(var k in obj){if(obj.hasOwnProperty(k))scan(obj[k]);}
+}
+/* Wrap fetch: inspect JSON POST responses for first_claim / first_up. */
+try{
+  var _fetch=window.fetch;
+  window.fetch=function(url,opts){
+    return _fetch.apply(this,arguments).then(function(res){
+      try{
+        var ct=res.headers.get('content-type')||'';
+        if(ct.indexOf('json')>=0){
+          res.clone().json().then(scan).catch(function(){});
+        }
+      }catch(e){}
+      return res;
+    });
+  };
+}catch(e){}
+/* FIRST UP: claim on app open (once per page load) for users with a callsign. */
+try{
+  var cs=null;
+  try{cs=localStorage.getItem('pf_callsign')||localStorage.getItem('callsign');}catch(e){}
+  var dev=null;
+  try{dev=localStorage.getItem('pf_device')||'';}catch(e2){}
+  if(cs){
+    var apiBase='';
+    try{
+      var m=document.querySelector('meta[name="pf-api"]');
+      if(m)apiBase=m.getAttribute('content')||'';
+    }catch(e3){}
+    if(!apiBase)apiBase='https://pf-api.mtcstw.workers.dev';
+    _fetch(apiBase+'/?action=firstup_claim',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'firstup_claim',callsign:cs,device:dev})})
+      .then(function(r){return r.json();}).then(function(j){
+        if(j&&j.first_up)scan(j);
+      }).catch(function(){});
+  }
+}catch(e4){}
+})();
+</script>
+<!-- /PF_FIRSTCLAIM_V1 -->
+
+</body>
+</html>

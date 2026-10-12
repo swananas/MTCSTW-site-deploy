@@ -427,7 +427,21 @@
       var img = document.createElement('img');
       img.className = 'pf-mss-prev';
       img.alt = 'Share image preview';
-      try { img.src = cv.toDataURL('image/png'); } catch (e) { img.src = ''; }
+      /* 2026-10-12: toBlob + object URL instead of toDataURL — the old path
+         synchronously built a ~2MB base64 string on the main thread, janking
+         mobile. toBlob is async; revoke the old URL to avoid leaks. */
+      try {
+        if (openState.prevUrl) { try { URL.revokeObjectURL(openState.prevUrl); } catch (e2) {} openState.prevUrl = null; }
+        if (cv.toBlob) {
+          cv.toBlob(function (b) {
+            if (!b) { img.src = ''; return; }
+            try { openState.prevUrl = URL.createObjectURL(b); img.src = openState.prevUrl; }
+            catch (e3) { img.src = ''; }
+          }, 'image/png');
+        } else {
+          img.src = cv.toDataURL('image/png');
+        }
+      } catch (e) { img.src = ''; }
       prevWrap.innerHTML = '';
       prevWrap.appendChild(img);
       pubBtn.disabled = false;

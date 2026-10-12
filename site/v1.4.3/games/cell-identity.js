@@ -349,10 +349,17 @@
         var c2=document.createElement("canvas"); c2.width=1080; c2.height=1350;
         var x2=c2.getContext("2d"); x2.drawImage(cv,0,0);
         try{ if(window.PFShare&&PFShare.stampCallsign) PFShare.stampCallsign(c2); }catch(e){}
-        var a=document.createElement("a");
-        a.href=c2.toDataURL("image/png");
-        a.download="cell-banner-"+String((cell&&cell.name)||"cell").toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
-        document.body.appendChild(a); a.click(); a.remove();
+        var dlUrl = function(url){
+          var a=document.createElement("a");
+          a.href=url;
+          a.download="cell-banner-"+String((cell&&cell.name)||"cell").toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
+          document.body.appendChild(a); a.click(); a.remove();
+          /* 2026-10-12: revoke object URLs to avoid leaks (dataURLs need no cleanup). */
+          if(url.indexOf('blob:')===0){ setTimeout(function(){ try{URL.revokeObjectURL(url);}catch(e2){} },4000); }
+        };
+        /* 2026-10-12: toBlob is async — avoids a sync ~2MB base64 build on mobile. */
+        if(c2.toBlob){ c2.toBlob(function(b){ if(b){ try{dlUrl(URL.createObjectURL(b));}catch(e2){toast("Banner download failed on this browser.");} } else { try{dlUrl(c2.toDataURL("image/png"));}catch(e3){toast("Banner download failed on this browser.");} } },"image/png"); }
+        else{ dlUrl(c2.toDataURL("image/png")); }
       }catch(e){ toast("Banner download failed on this browser."); }
     });
     host.appendChild(dl);

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Get your API key — Propaganda Factory Data API</title>
+<meta name="description" content="Create a free Propaganda Factory Data API key in under a minute — 1,000 calls a month, no credit card. Paid tiers unlock on the same key.">
+<style>
+:root{--bg:#0a0a0a;--panel:#141414;--panel2:#1c1c1c;--ink:#e8e8e8;--dim:#a3a3a3;--red:#c1121f;--green:#3ecf6f;--amber:#f5b83d;--line:#2b2b2b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:28px 14px 56px}
+.brand{font-size:13px;letter-spacing:3px;color:var(--red);margin:0;font-weight:900}
+.big{font-size:27px;font-weight:900;margin:8px 0 6px;line-height:1.25}
+.sub{color:var(--dim);line-height:1.55;margin:0 0 20px;font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+label{display:block;font-size:11px;letter-spacing:1.5px;color:var(--dim);font-weight:800;margin:14px 0 6px;text-transform:uppercase}
+label:first-child{margin-top:0}
+select,input[type=text],input[type=email]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:13px;font-size:15px;font-family:inherit}
+.btn{background:var(--red);color:#fff;border:none;font-weight:900;padding:14px;border-radius:12px;font-size:15px;cursor:pointer;width:100%;font-family:inherit;margin-top:18px;display:block;text-align:center;text-decoration:none}
+.btn:disabled{opacity:.45}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.price{font-size:13px;color:var(--dim);margin-top:6px}
+.err{color:#ff8f94;font-size:13px;min-height:18px;margin-top:10px}
+.keybox{background:var(--panel2);border:1px solid var(--green);border-radius:12px;padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:14px;word-break:break-all;line-height:1.5}
+.warn{color:var(--amber);font-size:13px;line-height:1.5}
+.ok{color:var(--green);font-weight:800}
+a{color:#58a6ff}.tiny{font-size:11px;color:var(--dim);line-height:1.6}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="brand">PROPAGANDA FACTORY</p>
+  <div class="big">Get your API key</div>
+  <p class="sub">One key, every dataset — FEC aggregates, lobbying, corporate violations, private equity, health, patents. Free tier is real: 1,000 calls a month, no credit card. Paid tiers unlock on the same key at checkout.</p>
+
+  <div class="card" id="formCard">
+    <label for="tier">Plan</label>
+    <select id="tier">
+      <option value="free" selected>Free — $0</option>
+      <option value="politics">Politics Pack — $69/mo</option>
+      <option value="corporate">Corporate Pack — $69/mo</option>
+      <option value="pe">Private Equity Pack — $99/mo</option>
+      <option value="health">Health Pack — $69/mo</option>
+      <option value="patent">Patent Pack — $69/mo</option>
+      <option value="all_access">All Access — $349/mo</option>
+      <option value="enterprise">Enterprise — $1,499/mo</option>
+    </select>
+    <div class="price" id="price"></div>
+    <div id="billingRow" style="display:none">
+      <label for="billing">Billing</label>
+      <select id="billing"><option value="monthly">Monthly</option><option value="annual">Annual — save 15%</option></select>
+    </div>
+    <label for="label">Key name</label>
+    <input type="text" id="label" placeholder="e.g. newsroom-research" maxlength="80" autocomplete="off">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@yourorg.org" maxlength="160" autocomplete="email">
+    <button class="btn" id="go">Create my free key</button>
+    <div class="err" id="err"></div>
+    <p class="tiny">Aggregated public data only — individual donor identities are never exposed (52 U.S.C. § 30111(a)(4)). By creating a key you agree to the API terms in the <a href="https://pf-api.mtcstw.workers.dev/v1/docs">docs</a>.</p>
+  </div>
+
+  <div class="card hide" id="result">
+    <div class="ok">✓ Your key is live</div>
+    <label>Your API key — shown once</label>
+    <div class="keybox" id="kKey"></div>
+    <button class="btn ghost" id="copyBtn">Copy key</button>
+    <p class="warn">Store this key now — it is never shown again. If you lose it, mint a new one here and stop using the old one.</p>
+    <p class="tiny" id="kMeta"></p>
+    <p class="tiny" id="kNote"></p>
+    <a class="btn hide" id="kCheckout" href="#">Continue to secure checkout →</a>
+    <p class="tiny" style="margin-top:14px">Use it: <span style="font-family:ui-monospace,Menlo,monospace">X-API-Key: YOUR_KEY</span> on any call. <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs &amp; endpoints</a> · <a href="/api/">Plans</a></p>
+  </div>
+
+  <p class="tiny" style="text-align:center">Propaganda Factory Data API · Aggregated public data · <a href="/api/">API Home</a> · <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a></p>
+</div>
+<script>
+var API = 'https://pf-api.mtcstw.workers.dev';
+var TIERS = {
+  free:       { label: 'Free', monthly: 0, annual: 0, quota: '1,000 calls/mo · sample data from all packs' },
+  politics:   { label: 'Politics Pack', monthly: 69, annual: 703, quota: '50,000 calls/mo' },
+  corporate:  { label: 'Corporate Pack', monthly: 69, annual: 703, quota: '50,000 calls/mo' },
+  pe:         { label: 'Private Equity Pack', monthly: 99, annual: 1010, quota: '50,000 calls/mo' },
+  health:     { label: 'Health Pack', monthly: 69, annual: 703, quota: '50,000 calls/mo' },
+  patent:     { label: 'Patent Pack', monthly: 69, annual: 703, quota: '50,000 calls/mo' },
+  all_access: { label: 'All Access', monthly: 349, annual: 3560, quota: '500,000 calls/mo · every pack · webhooks + bulk' },
+  enterprise: { label: 'Enterprise', monthly: 1499, annual: 15290, quota: 'Unlimited calls · SLA · webhooks' }
+};
+function $(i){ return document.getElementById(i); }
+function tier(){ return TIERS[$('tier').value] || TIERS.free; }
+function sync(){
+  var t = tier(), paid = t.monthly > 0;
+  $('billingRow').style.display = paid ? '' : 'none';
+  $('price').textContent = paid ? ('$' + t.monthly + '/mo · $' + t.annual + '/yr (save 15%) · ' + t.quota) : ('Free forever · ' + t.quota);
+  $('go').textContent = paid ? ('Create key & continue to checkout — $' + ($('billing').value === 'annual' ? t.annual : t.monthly)) : 'Create my free key';
+}
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+async function post(path, body, key){
+  var h = { 'Content-Type': 'application/json' };
+  if (key) h['X-API-Key'] = key;
+  var r = await fetch(API + path, { method: 'POST', headers: h, body: JSON.stringify(body || {}) });
+  var j = null; try { j = await r.json(); } catch (e) {}
+  return { status: r.status, j: j };
+}
+async function go(){
+  var t = tier(), email = $('email').value.trim(), label = $('label').value.trim();
+  $('err').textContent = '';
+  if (!label) { $('err').textContent = 'Name your key first — you will recognize it later by this name.'; return; }
+  if (!email || email.indexOf('@') < 0) { $('err').textContent = 'A valid email is required — the key is tied to it for recovery and billing.'; return; }
+  var b = $('go'); b.disabled = true; b.textContent = 'Minting your key…';
+  var s; try { s = await post('/v1/keys/signup', { email: email, label: label }); } catch (e) { s = null; }
+  if (!s || !s.j || !s.j.ok) {
+    b.disabled = false; sync();
+    $('err').textContent = 'Signup failed: ' + ((s && s.j && (s.j.message || s.j.error)) || 'network error') + '. Nothing was created.';
+    return;
+  }
+  var key = s.j.data.api_key, prefix = s.j.data.key_prefix, quota = s.j.data.monthly_quota;
+  if (t.monthly === 0) { showKey(key, prefix, t, quota, null); b.disabled = false; sync(); return; }
+  b.textContent = 'Starting secure checkout…';
+  var c; try { c = await post('/v1/billing/checkout', { pack: $('tier').value, billing: $('billing').value }, key); } catch (e) { c = null; }
+  if (c && c.j && c.j.ok && c.j.data.checkout_url) { showKey(key, prefix, t, quota, c.j.data.checkout_url); }
+  else {
+    showKey(key, prefix, t, quota, null);
+    $('err').textContent = '';
+    $('kNote').innerHTML = 'Your free key below is live, but checkout did not start: ' + esc((c && c.j && (c.j.message || c.j.error)) || 'billing unavailable') + '. You can upgrade later from the same key — nothing is lost.';
+  }
+  b.disabled = false; sync();
+}
+function showKey(key, prefix, t, quota, checkoutUrl){
+  $('formCard').classList.add('hide');
+  $('result').classList.remove('hide');
+  $('kKey').textContent = key;
+  $('kMeta').innerHTML = 'Key <b>' + esc(prefix) + '…</b> · ' + esc(t.label) + ' · ' + (quota < 0 ? 'unlimited' : Number(quota).toLocaleString()) + ' calls/mo';
+  if (checkoutUrl) {
+    var a = $('kCheckout'); a.classList.remove('hide'); a.href = checkoutUrl;
+    $('kNote').innerHTML = 'Your key is created and works on the Free tier now. Finish checkout to unlock <b>' + esc(t.label) + '</b> on this same key — no second key, no re-setup.';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function copyKey(){
+  var k = $('kKey').textContent;
+  function done(){ $('copyBtn').textContent = 'Copied ✓'; }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(k).then(done, done); }
+  else {
+    var ta = document.createElement('textarea'); ta.value = k; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); done();
+  }
+}
+$('tier').addEventListener('change', sync);
+$('billing').addEventListener('change', sync);
+$('go').addEventListener('click', go);
+$('copyBtn').addEventListener('click', copyKey);
+var q = new URLSearchParams(location.search);
+var pre = q.get('pack');
+if (pre && TIERS[pre]) $('tier').value = pre;
+if (q.get('billing') === 'annual') $('billing').value = 'annual';
+sync();
+</script>
+</body>
+</html>

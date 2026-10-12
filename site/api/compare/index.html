@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Best Campaign Finance API 2026: Compared — OpenSecrets, Bloomberg, Propaganda Factory | API Comparison</title>
+<meta name="description" content="Comparing money-in-politics APIs in 2026: OpenSecrets (API discontinued), Bloomberg ($25K/seat), and the Propaganda Factory Data API (free tier). Features, pricing, and data coverage compared.">
+<meta name="keywords" content="best campaign finance API, political data API comparison, OpenSecrets vs Bloomberg, lobbying data API pricing, FEC API comparison, money in politics API review">
+<link rel="canonical" href="https://www.mtcstw.com/api/compare/">
+<meta property="og:title" content="Campaign Finance APIs Compared (2026)">
+<meta property="og:description" content="OpenSecrets killed their API. Bloomberg costs $25K/seat. Here's how the alternatives actually compare.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/api/compare/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Campaign Finance APIs Compared (2026)">
+<meta name="twitter:description" content="Features, pricing, data coverage — the honest comparison.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Table",
+  "about": "Comparison of money-in-politics data APIs available in 2026"
+}
+</script>
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 20px 80px;}
+  h1{font-size:clamp(26px,5vw,40px);line-height:1.15;margin:32px 0 16px;color:#fff;}
+  h1 .red{color:#e5383b;}
+  h2{font-size:clamp(22px,4vw,28px);color:#fff;margin:48px 0 16px;border-bottom:2px solid #c1121f;padding-bottom:8px;}
+  h3{font-size:19px;color:#fff;margin:28px 0 10px;}
+  p,li{font-size:16px;color:#c9c9c9;}
+  a{color:#e5383b;}
+  .lede{font-size:18px;color:#e8e8e8;max-width:750px;}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0;}
+  .btn{display:inline-block;padding:14px 28px;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;}
+  .btn-primary{background:#c1121f;color:#fff;}
+  .btn-primary:hover{background:#e5383b;}
+  table.cmp{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
+  table.cmp th,table.cmp td{padding:12px 10px;text-align:left;border-bottom:1px solid #2a2a2a;vertical-align:top;}
+  table.cmp th{color:#fff;background:#141414;position:sticky;top:0;}
+  table.cmp td{color:#c9c9c9;}
+  table.cmp td.hl{background:rgba(193,18,31,.08);}
+  table.cmp th.hl{background:rgba(193,18,31,.15);color:#fff;}
+  .yes{color:#7ee787;font-weight:700;}
+  .no{color:#e5383b;font-weight:700;}
+  .meh{color:#e8b93e;font-weight:700;}
+  .verdict{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:24px;margin:24px 0;}
+  .verdict h3{margin:0 0 12px;color:#fff;}
+  .verdict p{margin:8px 0;font-size:15px;}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.96);border-bottom:2px solid #c1121f;padding:12px 20px;display:flex;align-items:center;gap:16px;}
+  .topbar a.brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  .topbar a.brand span{color:#c1121f;}
+  .topbar nav{margin-left:auto;display:flex;gap:16px;}
+  .topbar nav a{color:#c9c9c9;text-decoration:none;font-size:14px;font-weight:700;}
+  .topbar nav a:hover{color:#fff;}
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid #2a2a2a;font-size:13px;color:#666;}
+  .scroll-x{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/">PROPAGANDA <span>FACTORY</span></a>
+  <nav>
+    <a href="/api/">API</a>
+    <a href="/api/opensecrets-alternative/">OpenSecrets Alternative</a>
+    <a href="/api/compare/">Compare</a>
+    <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a>
+  </nav>
+</div>
+<div class="wrap">
+
+<h1>Money-in-Politics APIs, <span class="red">Compared</span> (2026)</h1>
+<p class="lede">The landscape changed when OpenSecrets killed their API in April 2025. Here's an honest comparison of what's actually available — features, data coverage, and pricing — so you can pick the right tool.</p>
+
+<h2>Head-to-head</h2>
+<div class="scroll-x">
+<table class="cmp">
+  <tr>
+    <th></th>
+    <th class="hl">Propaganda Factory API</th>
+    <th>OpenSecrets</th>
+    <th>Bloomberg</th>
+    <th>ProPublica APIs</th>
+  </tr>
+  <tr><td><strong>Public API status</strong></td><td class="hl yes">✓ Live (v1)</td><td class="no">✗ Discontinued Apr 2025</td><td class="yes">✓ (Terminal/API)</td><td class="meh">~ Partial (some datasets)</td></tr>
+  <tr><td><strong>Campaign finance</strong></td><td class="hl yes">✓ Aggregates</td><td class="yes">✓ (website only now)</td><td class="yes">✓</td><td class="meh">~ FEC itemizer (archived)</td></tr>
+  <tr><td><strong>Lobbying disclosures</strong></td><td class="hl yes">✓</td><td class="yes">✓ (website)</td><td class="yes">✓</td><td class="no">✗</td></tr>
+  <tr><td><strong>Corporate violations</strong></td><td class="hl yes">✓ 45+ datasets</td><td class="no">✗</td><td class="no">✗</td><td class="meh">~ Nonprofit Explorer only</td></tr>
+  <tr><td><strong>OSHA / wage theft</strong></td><td class="hl yes">✓</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+  <tr><td><strong>Private equity mapping</strong></td><td class="hl yes">✓ 41 firms</td><td class="no">✗</td><td class="meh">~ Via Capital IQ</td><td class="no">✗</td></tr>
+  <tr><td><strong>Patent data</strong></td><td class="hl yes">✓ Evergreening</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+  <tr><td><strong>AI-detected connections</strong></td><td class="hl yes">✓</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
+  <tr><td><strong>Free tier</strong></td><td class="hl yes">✓ 1,000 calls/mo</td><td class="no">✗ Dead API</td><td class="no">✗</td><td class="yes">✓ (limited)</td></tr>
+  <tr><td><strong>Starting price</strong></td><td class="hl yes">$0</td><td class="no">N/A</td><td class="no">$25,000/yr</td><td class="yes">$0 (limited)</td></tr>
+  <tr><td><strong>Pro tier</strong></td><td class="hl">$69/mo</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+  <tr><td><strong>Self-serve signup</strong></td><td class="hl yes">✓ Instant</td><td class="no">✗</td><td class="no">✗ Sales call</td><td class="yes">✓</td></tr>
+  <tr><td><strong>Webhooks</strong></td><td class="hl yes">✓ Team+</td><td class="no">✗</td><td class="meh">~ Enterprise</td><td class="no">✗</td></tr>
+</table>
+</div>
+
+<h2>Our take</h2>
+
+<div class="verdict">
+  <h3>🏆 Best overall: Propaganda Factory API</h3>
+  <p>We're biased, obviously. But on the merits: it's the only live API purpose-built for money-in-politics <em>plus</em> corporate accountability data, with a free tier and self-serve signup. The AI connection layer (donation-to-contract timing, etc.) exists nowhere else.</p>
+</div>
+
+<div class="verdict">
+  <h3>📉 OpenSecrets: great data, dead API</h3>
+  <p>OpenSecrets.org still has the best <em>website</em> for browsing money-in-politics data. But their API is gone and isn't coming back. If you need programmatic access, you need to look elsewhere. <a href="/api/opensecrets-alternative/">Migration guide →</a></p>
+</div>
+
+<div class="verdict">
+  <h3>💰 Bloomberg: powerful, priced for banks</h3>
+  <p>If you're a hedge fund with $25K/seat to spend, Bloomberg's data is excellent. For journalists, researchers, activists, and indie developers, it's not a realistic option.</p>
+</div>
+
+<div class="verdict">
+  <h3>📰 ProPublica: great journalism, limited APIs</h3>
+  <p>ProPublica's data tools (Nonprofit Explorer, etc.) are excellent and free. But they're individual tools, not a unified API — and they don't cover campaign finance or lobbying programmatically.</p>
+</div>
+
+<h2>Which should you choose?</h2>
+<ul>
+  <li><strong>Building an app or dashboard?</strong> → Propaganda Factory API (only live option with a free tier)</li>
+  <li><strong>One-off research?</strong> → OpenSecrets.org website (free, no API needed)</li>
+  <li><strong>Nonprofit lookups?</strong> → ProPublica Nonprofit Explorer (free, specialized)</li>
+  <li><strong>Institutional finance?</strong> → Bloomberg (if budget allows)</li>
+  <li><strong>Migrating off OpenSecrets API?</strong> → <a href="/api/opensecrets-alternative/">Start here</a></li>
+</ul>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Try the API Free</a>
+</div>
+
+<footer>
+  <p>Propaganda Factory Data API · <a href="/api/">API Home</a> · <a href="/api/opensecrets-alternative/">OpenSecrets Alternative</a> · <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a></p>
+  <p>Comparison last updated October 2026. Pricing and features verified against public sources.</p>
+</footer>
+
+</div>
+</body>
+</html>

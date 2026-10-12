@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>OpenSecrets API Alternative — Free Replacement for Developers | Propaganda Factory Data</title>
+<meta name="description" content="OpenSecrets discontinued their API in April 2025. This is the free OpenSecrets API alternative: campaign finance aggregates, lobbying data, and 45+ public datasets via REST API. Migrate in minutes.">
+<meta name="keywords" content="OpenSecrets API alternative, OpenSecrets API replacement, OpenSecrets API discontinued, OpenSecrets API deprecated, migrate from OpenSecrets, campaign finance API free, FEC API alternative">
+<link rel="canonical" href="https://www.mtcstw.com/api/opensecrets-alternative/">
+<meta property="og:title" content="OpenSecrets API Alternative — Migrate in Minutes">
+<meta property="og:description" content="OpenSecrets killed their API. Ours is live, free to start, and covers more data. Migration guide included.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/api/opensecrets-alternative/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenSecrets API Alternative — Free, Live, Better">
+<meta name="twitter:description" content="The OpenSecrets API is gone. Migrate your app in minutes with our free tier.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Propaganda Factory Data API — OpenSecrets Alternative",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Free OpenSecrets API alternative: campaign finance aggregates, lobbying disclosures, and corporate accountability data via REST API.",
+  "url": "https://www.mtcstw.com/api/opensecrets-alternative/",
+  "offers": {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to migrate from the OpenSecrets API",
+  "step": [
+    {"@type": "HowToStep", "name": "Get a free API key", "text": "POST to /v1/keys/signup — no credit card required. 1,000 calls/month free."},
+    {"@type": "HowToStep", "name": "Map your endpoints", "text": "Replace OpenSecrets method calls with our REST equivalents using the mapping table below."},
+    {"@type": "HowToStep", "name": "Update auth", "text": "Swap your OpenSecrets API key for an X-API-Key header."},
+    {"@type": "HowToStep", "name": "Handle donor data", "text": "We return organization-level and geographic aggregates, not individual donor records (federal law). Adjust any per-donor logic."}
+  ]
+}
+</script>
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 20px 80px;}
+  h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:32px 0 16px;color:#fff;}
+  h1 .red{color:#e5383b;}
+  h2{font-size:clamp(22px,4vw,30px);color:#fff;margin:48px 0 16px;border-bottom:2px solid #c1121f;padding-bottom:8px;}
+  h3{font-size:19px;color:#fff;margin:28px 0 10px;}
+  p,li{font-size:16px;color:#c9c9c9;}
+  a{color:#e5383b;}
+  .lede{font-size:19px;color:#e8e8e8;max-width:700px;}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0;}
+  .btn{display:inline-block;padding:14px 28px;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer;border:none;}
+  .btn-primary{background:#c1121f;color:#fff;}
+  .btn-primary:hover{background:#e5383b;}
+  .btn-ghost{background:transparent;color:#fff;border:2px solid #444;}
+  .btn-ghost:hover{border-color:#c1121f;}
+  table.map{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
+  table.map th,table.map td{padding:12px;text-align:left;border-bottom:1px solid #2a2a2a;vertical-align:top;}
+  table.map th{color:#fff;background:#141414;}
+  table.map td{color:#c9c9c9;}
+  table.map code{color:#7ee787;font-size:13px;}
+  .alert{background:#1a1a1a;border-left:4px solid #e5383b;padding:16px 20px;margin:24px 0;border-radius:0 8px 8px 0;}
+  .alert p{margin:0;}
+  .alert strong{color:#fff;}
+  pre{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;color:#7ee787;}
+  .step{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:20px;margin:12px 0;}
+  .step h3{margin:0 0 8px;}
+  .step h3 .n{display:inline-block;background:#c1121f;color:#fff;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:14px;margin-right:10px;}
+  .step p{margin:8px 0 0;font-size:15px;}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.96);border-bottom:2px solid #c1121f;padding:12px 20px;display:flex;align-items:center;gap:16px;}
+  .topbar a.brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  .topbar a.brand span{color:#c1121f;}
+  .topbar nav{margin-left:auto;display:flex;gap:16px;}
+  .topbar nav a{color:#c9c9c9;text-decoration:none;font-size:14px;font-weight:700;}
+  .topbar nav a:hover{color:#fff;}
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid #2a2a2a;font-size:13px;color:#666;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/">PROPAGANDA <span>FACTORY</span></a>
+  <nav>
+    <a href="/api/">API</a>
+    <a href="/api/opensecrets-alternative/">OpenSecrets Alternative</a>
+    <a href="/api/compare/">Compare</a>
+    <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a>
+  </nav>
+</div>
+<div class="wrap">
+
+<h1>Your app broke when <span class="red">OpenSecrets killed their API.</span><br>Here's the fix.</h1>
+<p class="lede">OpenSecrets discontinued their public API in April 2025. If your app, dashboard, or research pipeline depended on it, you're looking for a replacement. This is it — live, free to start, and covering more data than OpenSecrets ever exposed via API.</p>
+
+<div class="alert">
+  <p><strong>What happened:</strong> OpenSecrets (opensecrets.org) shut down their public API in April 2025 following staff layoffs and funding cuts. Existing API keys stopped working. There is no official migration path. This page is the unofficial one.</p>
+</div>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Get a Free API Key</a>
+  <a class="btn btn-ghost" href="/api/">View All Endpoints</a>
+</div>
+
+<h2>Migrate in 4 steps</h2>
+
+<div class="step">
+  <h3><span class="n">1</span> Get a free API key</h3>
+  <p>No credit card. 1,000 calls/month on the free tier.</p>
+  <pre>curl -X POST https://pf-api.mtcstw.workers.dev/v1/keys/signup</pre>
+</div>
+
+<div class="step">
+  <h3><span class="n">2</span> Map your endpoints</h3>
+  <p>Use the mapping table below to swap OpenSecrets method calls for our REST equivalents.</p>
+</div>
+
+<div class="step">
+  <h3><span class="n">3</span> Update authentication</h3>
+  <p>Replace your OpenSecrets API key parameter with an <code>X-API-Key</code> header (or <code>?api_key=</code> query param).</p>
+  <pre>curl -H "X-API-Key: YOUR_KEY" \
+  "https://pf-api.mtcstw.workers.dev/v1/donations/summary?candidate_id=H8CA12345&amp;cycle=2024"</pre>
+</div>
+
+<div class="step">
+  <h3><span class="n">4</span> Adjust donor-data logic</h3>
+  <p>One important difference: we return <strong>organization-level, geographic, and candidate-level aggregates</strong> — not individual donor records. Federal law (52 U.S.C. § 30111(a)(4)) prohibits commercial use of individual contributor identities. If your app displayed per-donor rows, refactor to aggregate views.</p>
+</div>
+
+<h2>Endpoint mapping</h2>
+<table class="map">
+  <tr><th>OpenSecrets (dead)</th><th>Our replacement</th><th>Notes</th></tr>
+  <tr><td><code>getLegislators</code></td><td><code>GET /v1/politician/:id/funding</code></td><td>Funding overview per candidate</td></tr>
+  <tr><td><code>candSummary</code></td><td><code>GET /v1/donations/summary</code></td><td>Totals, donor counts, averages per candidate</td></tr>
+  <tr><td><code>candContrib</code></td><td><code>GET /v1/donations/by-employer</code></td><td>Aggregated by employer org — not individual donors</td></tr>
+  <tr><td><code>candIndustry</code></td><td><code>GET /v1/donations/summary</code></td><td>Industry aggregates included in summary</td></tr>
+  <tr><td><code>congCmteIndus</code></td><td><code>GET /v1/bills/:id/money</code></td><td>Money behind legislation (Pro tier)</td></tr>
+  <tr><td><code>orgSummary</code></td><td><code>GET /v1/donations/by-employer</code></td><td>Organization-level giving totals</td></tr>
+  <tr><td><em>(no equivalent)</em></td><td><code>GET /v1/entity/:id/profile</code></td><td><strong>New:</strong> violations, fines, contracts, jets per entity</td></tr>
+  <tr><td><em>(no equivalent)</em></td><td><code>GET /v1/entity/:id/connections</code></td><td><strong>New:</strong> AI-detected money-politics connections</td></tr>
+  <tr><td><em>(no equivalent)</em></td><td><code>GET /v1/pe/firm</code></td><td><strong>New:</strong> private equity firm profiles</td></tr>
+  <tr><td><em>(no equivalent)</em></td><td><code>GET /v1/lobbying</code></td><td><strong>New:</strong> lobbying disclosure search</td></tr>
+</table>
+
+<h2>What you gain (not just replace)</h2>
+<p>OpenSecrets never exposed these via API. We do:</p>
+<ul>
+  <li><strong>Corporate accountability data</strong> — OSHA violations, EPA actions, CFPB complaints, wage theft records across 45+ datasets</li>
+  <li><strong>Private equity mapping</strong> — 41 firms, 413 portfolio companies, documented layoffs and fee extraction</li>
+  <li><strong>AI-detected connections</strong> — donation-to-contract timing, fine-to-lobbying patterns, sourced and cited</li>
+  <li><strong>Brand-to-entity resolution</strong> — map consumer brands to controlling corporations</li>
+  <li><strong>Patent evergreening</strong> — pharma patent thickets blocking generics</li>
+</ul>
+
+<h2>FAQ</h2>
+<h3>Is this really free?</h3>
+<p>Yes — 1,000 API calls/month, no credit card. Paid tiers start at $69/month for 50K calls.</p>
+<h3>Where does the data come from?</h3>
+<p>Public sources: FEC filings, Senate lobbying disclosures (LDA), SEC EDGAR, USPTO, OSHA, EPA, and 40+ more. All aggregated, all sourced.</p>
+<h3>Why can't I get individual donor names?</h3>
+<p>Federal law prohibits it for commercial use. We enforce this at the data layer — the API physically cannot return individual contributor identities.</p>
+<h3>How reliable is the uptime?</h3>
+<p>Built on Cloudflare's edge network. Enterprise tier includes an SLA.</p>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Start Migrating — Free</a>
+  <a class="btn btn-ghost" href="/api/compare/">Compare All Alternatives</a>
+</div>
+
+<footer>
+  <p>Propaganda Factory Data API · <a href="/api/">API Home</a> · <a href="/api/compare/">Compare</a> · <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a></p>
+</footer>
+
+</div>
+</body>
+</html>

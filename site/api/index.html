@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Money-in-Politics API — OpenSecrets API Alternative | Propaganda Factory Data</title>
+<meta name="description" content="The OpenSecrets API is dead. Our money-in-politics API gives developers campaign finance data, lobbying disclosures, corporate accountability records, and AI-detected connections. Free tier, no credit card.">
+<meta name="keywords" content="OpenSecrets API alternative, OpenSecrets API replacement, campaign finance API, lobbying data API, FEC API, political data API, corporate accountability API, money in politics API">
+<link rel="canonical" href="https://www.mtcstw.com/api/">
+<meta property="og:title" content="Money-in-Politics API — The OpenSecrets API Alternative">
+<meta property="og:description" content="Campaign finance, lobbying, corporate accountability data via API. 19 endpoints. Free tier. The API OpenSecrets killed, rebuilt better.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/api/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Money-in-Politics API — The OpenSecrets API Alternative">
+<meta name="twitter:description" content="19 endpoints. Campaign finance, lobbying, corporate data. Free tier. Built for journalists, researchers, and developers.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Propaganda Factory Data API",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Money-in-politics API: campaign finance aggregates, lobbying disclosures, corporate accountability data, private equity mapping, and AI-detected connections. The OpenSecrets API alternative.",
+  "url": "https://www.mtcstw.com/api/",
+  "offers": [
+    {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "description": "1,000 API calls/month"},
+    {"@type": "Offer", "name": "Pro", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month"},
+    {"@type": "Offer", "name": "Team", "price": "349", "priceCurrency": "USD", "description": "500,000 API calls/month + webhooks"},
+    {"@type": "Offer", "name": "Enterprise", "price": "1499", "priceCurrency": "USD", "description": "Unlimited + SLA"}
+  ],
+  "provider": {"@type": "Organization", "name": "The Propaganda Factory", "url": "https://www.mtcstw.com/"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What happened to the OpenSecrets API?",
+      "acceptedAnswer": {"@type": "Answer", "text": "OpenSecrets discontinued their public API in April 2025 after staff layoffs and funding cuts. Our API is built to fill that gap with campaign finance aggregates, lobbying data, and corporate accountability records."}
+    },
+    {
+      "@type": "Question",
+      "name": "Is individual donor data included?",
+      "acceptedAnswer": {"@type": "Answer", "text": "No. Federal law (52 U.S.C. 30111(a)(4)) prohibits commercial use of individual contributor identities. We return organization-level, geographic, and candidate-level aggregates only."}
+    },
+    {
+      "@type": "Question",
+      "name": "How much does the API cost?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Free tier: 1,000 calls/month. Pro: $69/month (50K calls). Team: $349/month (500K calls + webhooks). Enterprise: $1,499/month (unlimited + SLA)."}
+    }
+  ]
+}
+</script>
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 20px 80px;}
+  h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:32px 0 16px;color:#fff;}
+  h1 .red{color:#e5383b;}
+  h2{font-size:clamp(22px,4vw,30px);color:#fff;margin:48px 0 16px;border-bottom:2px solid #c1121f;padding-bottom:8px;}
+  h3{font-size:19px;color:#fff;margin:28px 0 10px;}
+  p,li{font-size:16px;color:#c9c9c9;}
+  a{color:#e5383b;}
+  .lede{font-size:19px;color:#e8e8e8;max-width:700px;}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0;}
+  .btn{display:inline-block;padding:14px 28px;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer;border:none;}
+  .btn-primary{background:#c1121f;color:#fff;}
+  .btn-primary:hover{background:#e5383b;}
+  .btn-ghost{background:transparent;color:#fff;border:2px solid #444;}
+  .btn-ghost:hover{border-color:#c1121f;}
+  .endpoint{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin:12px 0;}
+  .endpoint code{color:#7ee787;font-size:15px;font-weight:700;}
+  .endpoint .tier{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#1f6feb;color:#fff;margin-left:10px;vertical-align:middle;}
+  .endpoint p{margin:8px 0 0;font-size:14px;}
+  .pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0;}
+  .plan{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:24px;}
+  .plan.featured{border-color:#c1121f;}
+  .plan h3{margin:0 0 8px;color:#fff;}
+  .plan .price{font-size:32px;font-weight:900;color:#fff;margin:8px 0;}
+  .plan .price span{font-size:14px;color:#888;font-weight:400;}
+  .plan ul{list-style:none;padding:0;margin:16px 0 0;}
+  .plan li{font-size:14px;padding:4px 0;color:#c9c9c9;}
+  .plan li:before{content:"✓ ";color:#7ee787;font-weight:700;}
+  table.compare{width:100%;border-collapse:collapse;margin:24px 0;font-size:15px;}
+  table.compare th,table.compare td{padding:12px;text-align:left;border-bottom:1px solid #2a2a2a;}
+  table.compare th{color:#fff;background:#141414;}
+  table.compare td{color:#c9c9c9;}
+  .yes{color:#7ee787;font-weight:700;}
+  .no{color:#e5383b;font-weight:700;}
+  .persona{background:#141414;border-left:4px solid #c1121f;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
+  .persona h3{margin:0 0 8px;}
+  .persona p{margin:0;font-size:15px;}
+  pre{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;color:#7ee787;}
+  .topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.96);border-bottom:2px solid #c1121f;padding:12px 20px;display:flex;align-items:center;gap:16px;}
+  .topbar a.brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  .topbar a.brand span{color:#c1121f;}
+  .topbar nav{margin-left:auto;display:flex;gap:16px;}
+  .topbar nav a{color:#c9c9c9;text-decoration:none;font-size:14px;font-weight:700;}
+  .topbar nav a:hover{color:#fff;}
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid #2a2a2a;font-size:13px;color:#666;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="/">PROPAGANDA <span>FACTORY</span></a>
+  <nav>
+    <a href="/api/">API</a>
+    <a href="/api/opensecrets-alternative/">OpenSecrets Alternative</a>
+    <a href="/api/compare/">Compare</a>
+    <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a>
+  </nav>
+</div>
+<div class="wrap">
+
+<h1>The <span class="red">OpenSecrets API</span> is dead.<br>We built the replacement.</h1>
+<p class="lede">OpenSecrets killed their public API in April 2025. We rebuilt it — bigger. Campaign finance aggregates, lobbying disclosures, corporate accountability records, private equity mapping, patent data, and AI-detected connections across 45+ public datasets. 19 endpoints. Free tier, no credit card.</p>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Get a Free API Key</a>
+  <a class="btn btn-ghost" href="/api/opensecrets-alternative/">Migrating from OpenSecrets?</a>
+</div>
+
+<h2>What you get</h2>
+
+<h3>Campaign Finance API</h3>
+<div class="endpoint">
+  <code>GET /v1/donations/summary</code><span class="tier">FREE</span>
+  <p>Aggregate donation stats per candidate or committee. Organization-level and geographic aggregates — never individual donor identities (federal law).</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/donations/by-employer</code><span class="tier">FREE</span>
+  <p>Which companies' employees fund which candidates. The "follow the money" endpoint.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/donations/by-zip</code><span class="tier">FREE</span>
+  <p>Donation totals by ZIP code. Map the money geographically.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/politician/:id/funding</code><span class="tier">FREE</span>
+  <p>Full funding overview: totals, top employer aggregates, top industry aggregates.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/bills/:id/money</code><span class="tier">PRO</span>
+  <p>The money behind a bill: sponsor funding plus lobbying on related issues.</p>
+</div>
+
+<h3>Lobbying Data API</h3>
+<div class="endpoint">
+  <code>GET /v1/lobbying</code><span class="tier">FREE</span>
+  <p>Lobbying disclosures by client or registrant. Who's paying to influence what.</p>
+</div>
+
+<h3>Corporate Accountability API</h3>
+<div class="endpoint">
+  <code>GET /v1/entity/:id/profile</code><span class="tier">FREE</span>
+  <p>Ghoul Index profile: violations, fines, government contracts, private jets, political donations — one call.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/entity/:id/connections</code><span class="tier">PRO</span>
+  <p>AI-detected connections: donation-to-contract timing, fine-to-lobbying patterns, layoff-to-buyback sequences. Source-cited.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/brand/:name/owner</code><span class="tier">FREE</span>
+  <p>Brand → controlling entity resolution. "Who owns Tide?" → Procter &amp; Gamble + sister brands.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/pe/firm</code><span class="tier">FREE</span>
+  <p>Private equity firm profiles: AUM, portfolio companies, documented layoffs, fee extraction, bankruptcies.</p>
+</div>
+<div class="endpoint">
+  <code>GET /v1/patents/evergreening</code><span class="tier">FREE</span>
+  <p>Pharma patent thickets blocking generics. Evergreening data per drug.</p>
+</div>
+
+<h2>Built for your workflow</h2>
+
+<div class="persona">
+  <h3>📰 Journalists &amp; Newsrooms</h3>
+  <p>Pull funding data for any candidate in one call. Cross-reference donations with lobbying on the bills they sponsor. Free tier covers most investigations.</p>
+</div>
+<div class="persona">
+  <h3>🔬 Researchers &amp; Academics</h3>
+  <p>Bulk-friendly aggregates, stable versioned endpoints, documented methodology. Cite us — attribution is all we ask on the free tier.</p>
+</div>
+<div class="persona">
+  <h3>📊 Fintech &amp; Compliance</h3>
+  <p>PEP screening inputs, corporate ownership graphs, adverse-event signals. Team tier adds webhooks for real-time alerts.</p>
+</div>
+<div class="persona">
+  <h3>🗳️ Campaigns &amp; Advocacy Orgs</h3>
+  <p>Opposition research at API speed. Donor-base analysis, employer giving patterns, bill-money tracking.</p>
+</div>
+
+<h2>Quick start</h2>
+<pre>curl -X POST https://pf-api.mtcstw.workers.dev/v1/keys/signup
+
+# Returns your free API key — 1,000 calls/month, no card required
+
+curl -H "X-API-Key: YOUR_KEY" \
+  "https://pf-api.mtcstw.workers.dev/v1/donations/summary?candidate_id=H8CA12345&amp;cycle=2024"</pre>
+
+<h2>Pricing</h2>
+<div class="pricing">
+  <div class="plan">
+    <h3>Free</h3>
+    <div class="price">$0<span>/mo</span></div>
+    <ul>
+      <li>1,000 calls/month</li>
+      <li>All free-tier endpoints</li>
+      <li>Attribution required</li>
+      <li>Community support</li>
+    </ul>
+  </div>
+  <div class="plan featured">
+    <h3>Pro</h3>
+    <div class="price">$69<span>/mo</span></div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>AI connection endpoints</li>
+      <li>Bill-money tracking</li>
+      <li>No attribution required</li>
+      <li>Priority support</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>Team</h3>
+    <div class="price">$349<span>/mo</span></div>
+    <ul>
+      <li>500,000 calls/month</li>
+      <li>Webhooks + bulk downloads</li>
+      <li>Everything in Pro</li>
+      <li>Shared team keys</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>Enterprise</h3>
+    <div class="price">$1,499<span>/mo</span></div>
+    <ul>
+      <li>Unlimited calls</li>
+      <li>SLA + dedicated support</li>
+      <li>Custom endpoints</li>
+      <li>Everything in Team</li>
+    </ul>
+  </div>
+</div>
+
+<h2>How we compare</h2>
+<table class="compare">
+  <tr><th></th><th>Propaganda Factory API</th><th>OpenSecrets (defunct API)</th><th>Bloomberg</th></tr>
+  <tr><td>Public API</td><td class="yes">✓ Live</td><td class="no">✗ Killed Apr 2025</td><td class="yes">✓ $25K/seat</td></tr>
+  <tr><td>Campaign finance</td><td class="yes">✓ Aggregates</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+  <tr><td>Lobbying data</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+  <tr><td>Corporate violations</td><td class="yes">✓ 45+ datasets</td><td class="no">✗</td><td class="no">✗</td></tr>
+  <tr><td>Private equity mapping</td><td class="yes">✓</td><td class="no">✗</td><td class="yes">✓</td></tr>
+  <tr><td>AI-detected connections</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td></tr>
+  <tr><td>Free tier</td><td class="yes">✓ 1K calls/mo</td><td class="no">✗ Dead</td><td class="no">✗</td></tr>
+  <tr><td>Starting price</td><td class="yes">$0</td><td class="no">—</td><td class="no">$25,000/yr</td></tr>
+</table>
+<p><a href="/api/compare/">Full comparison →</a></p>
+
+<h2>Legal &amp; compliance</h2>
+<p>All data is aggregated from public sources: FEC filings, Senate lobbying disclosures, USPTO, SEC EDGAR, OSHA, EPA, and 40+ more. Individual donor identities are never exposed — federal law (52 U.S.C. § 30111(a)(4)) prohibits commercial use of individual contributor information, and our API enforces this at the data layer. See our <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Terms of Service</a>.</p>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Get Your Free API Key</a>
+  <a class="btn btn-ghost" href="/api/compare/">Compare All Options</a>
+</div>
+
+<footer>
+  <p>Propaganda Factory Data API · Aggregated public data · <a href="https://pf-api.mtcstw.workers.dev/v1/docs">Docs</a> · <a href="/api/opensecrets-alternative/">OpenSecrets Alternative</a> · <a href="/api/compare/">Compare</a></p>
+</footer>
+
+</div>
+</body>
+</html>

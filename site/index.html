@@ -567,6 +567,140 @@
   </div>
 
 </header>
+
+<!-- CAMPAIGN BANNER (fe/campaign-banner): fills #pf-campaign-slot when the
+     ?action=campaign_active endpoint returns an active campaign; renders
+     nothing otherwise. Reusable template slots: any element with
+     data-campaign="<field>" gets its textContent from the active campaign. -->
+<style>
+.pf-campaign-slot:empty{display:none;}
+.pf-campaign{background:#0a0a0a;color:#f5f5f5;border-bottom:2px solid #c1121f;width:100%;}
+.pf-campaign-inner{max-width:1080px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:10px;}
+.pf-campaign-title{margin:0;font-size:clamp(24px,5.5vw,40px);line-height:1.1;font-weight:900;letter-spacing:.01em;text-transform:uppercase;}
+.pf-campaign-sub{margin:0;font-size:15px;line-height:1.5;color:#cfcfcf;}
+.pf-campaign-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px;}
+.pf-campaign-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:12px 28px;border-radius:10px;background:#c1121f;color:#fff !important;text-decoration:none;font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;transition:transform .15s ease,filter .15s ease;}
+.pf-campaign-cta:active{transform:scale(.97);}
+.pf-campaign-dismiss{margin-left:auto;background:none;border:1px solid #3a3a3a;color:#aaa;border-radius:10px;min-width:44px;min-height:44px;font-size:18px;line-height:1;cursor:pointer;transition:color .15s ease,border-color .15s ease;}
+.pf-campaign-dismiss:hover{color:#fff;border-color:#666;}
+@media (min-width:640px){
+  .pf-campaign-inner{flex-direction:row;align-items:center;gap:24px;}
+  .pf-campaign-copy{flex:1;min-width:0;}
+  .pf-campaign-row{margin-top:0;flex-wrap:nowrap;}
+  .pf-campaign-dismiss{margin-left:0;}
+}
+@media (prefers-reduced-motion: reduce){
+  .pf-campaign,.pf-campaign *{transition:none !important;animation:none !important;}
+}
+</style>
+<div id="pf-campaign-slot" class="pf-campaign-slot"></div>
+<script>
+/* ---------- CAMPAIGN BANNER (fe/campaign-banner) ---------- */
+(function(){
+"use strict";
+var API='https://pf-api.mtcstw.workers.dev/?action=';
+var CACHE_MS=5*60*1000; /* 5 min in-memory cache — don't hammer the API */
+var cache={t:0,data:null};
+var DISMISS_KEY='pf_campaign_dismissed';
+
+function validHex(c){ return typeof c==='string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c.trim()); }
+function validUrl(u){
+  try{
+    var url=new URL(String(u));
+    return (url.protocol==='http:'||url.protocol==='https:') ? url.href : null;
+  }catch(e){ return null; }
+}
+function ssGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
+function ssSet(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} }
+
+function fetchCampaign(){
+  var now=Date.now();
+  if(cache.data && (now-cache.t)<CACHE_MS) return Promise.resolve(cache.data);
+  return fetch(API+'campaign_active',{cache:'no-store'}).then(function(r){
+    if(!r.ok) throw new Error('http '+r.status);
+    return r.json();
+  }).then(function(j){
+    cache={t:Date.now(),data:j};
+    return j;
+  }).catch(function(){ return null; }); /* silent fail: no banner, no error noise */
+}
+
+/* Template slots: [data-campaign="hero_title"] etc. filled from the campaign */
+function fillSlots(c){
+  var els=document.querySelectorAll('[data-campaign]');
+  for(var i=0;i<els.length;i++){
+    var k=els[i].getAttribute('data-campaign');
+    if(c && c[k]!==undefined && c[k]!==null &&
+       (typeof c[k]==='string'||typeof c[k]==='number')){
+      els[i].textContent=String(c[k]);
+    }
+  }
+}
+
+function render(res){
+  var c=(res && res.ok) ? res.campaign : null;
+  fillSlots(c);
+  if(!c || !c.hero_title) return; /* null campaign or no title: render nothing */
+  if(ssGet(DISMISS_KEY)===String(c.id)) return; /* dismissed this session */
+
+  var slot=document.getElementById('pf-campaign-slot');
+  if(!slot) return;
+
+  var accent=validHex(c.banner_color) ? c.banner_color.trim() : '#c1121f';
+  var ctaUrl=validUrl(c.cta_url);
+
+  var bar=document.createElement('section');
+  bar.className='pf-campaign';
+  bar.style.borderBottomColor=accent;
+  bar.setAttribute('role','region');
+  bar.setAttribute('aria-label', typeof c.name==='string' ? c.name : 'Campaign');
+
+  var inner=document.createElement('div');
+  inner.className='pf-campaign-inner';
+
+  var copy=document.createElement('div');
+  copy.className='pf-campaign-copy';
+  var h=document.createElement('h2');
+  h.className='pf-campaign-title';
+  h.textContent=String(c.hero_title);
+  copy.appendChild(h);
+  if(c.hero_sub!==undefined && c.hero_sub!==null && String(c.hero_sub).trim()!==''){
+    var sub=document.createElement('p');
+    sub.className='pf-campaign-sub';
+    sub.textContent=String(c.hero_sub);
+    copy.appendChild(sub);
+  }
+  inner.appendChild(copy);
+
+  var row=document.createElement('div');
+  row.className='pf-campaign-row';
+  if(ctaUrl && typeof c.cta_text==='string' && c.cta_text.trim()!==''){
+    /* real link only — never a dead button */
+    var a=document.createElement('a');
+    a.className='pf-campaign-cta';
+    a.textContent=c.cta_text;
+    a.href=ctaUrl;
+    a.style.backgroundColor=accent;
+    row.appendChild(a);
+  }
+  var x=document.createElement('button');
+  x.type='button';
+  x.className='pf-campaign-dismiss';
+  x.setAttribute('aria-label','Dismiss campaign banner');
+  x.textContent='✕';
+  x.addEventListener('click', function(){
+    ssSet(DISMISS_KEY,String(c.id));
+    slot.innerHTML='';
+  });
+  row.appendChild(x);
+  inner.appendChild(row);
+  bar.appendChild(inner);
+  slot.appendChild(bar);
+}
+
+fetchCampaign().then(render);
+})();
+</script>
 <!-- PF-SIDENAV v1 -->
 <style>
 .pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}

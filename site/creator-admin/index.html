@@ -254,6 +254,7 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <button type="button" class="cc-mini" id="admin-refresh">Refresh</button>
   <button type="button" class="cc-mini" id="admin-lock-btn">Lock / change secret</button>
   <div id="admin-msg" class="cc-msg" role="status" aria-live="polite"></div>
+  <p class="cc-meta">Approvals and invite changes are confirmed with Face ID in the <a href="/command-center/">Command Center</a>. This page never asks for a passkey.</p>
 
   <div class="cc-card">
     <h2 style="color:#f5ead6;margin:0 0 8px">Pending applications</h2>
@@ -291,34 +292,22 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
   function sec(){return secret;}
   function showMsg(t,err){var m=document.getElementById('admin-msg');m.className='cc-msg '+(err?'err':'ok');m.textContent=t;}
   function apiGet(q){return fetch(API+'/?'+q,{credentials:'include'}).then(function(r){return r.json();});}
-  /* Triple Wrap (CEO security directive 2026-10-12; contract:
-     specs/triple-wrap-confirmations.md sections 4b/5). Every confirmation
-     on this page (approve, reject, invite create, invite revoke) runs the
-     ceremony: hardened admin session (tw_session_begin at unlock) + fresh
-     WebAuthn passkey step-up (tw_assert_begin/finish) + single-use
-     action-bound confirm_token, executed immediately via POST. No token,
-     no execution \u2014 the backend fails closed and this page shows why.
-     Until a passkey is enrolled, tw_assert_begin refuses and every
-     confirmation stays inert, by design. */
-  function b64uToBuf(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var bin=atob(s),buf=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);return buf.buffer;}
-  function bufToB64u(buf){var bytes=new Uint8Array(buf),bin='';for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  /* Face ID / Triple Wrap confirmations live ONLY in the Command Center
+     (CEO directive 2026-10-12): the passkey is the CEO's, on his confirmed
+     device, at the Command Center door. This page never prompts for a
+     passkey and never executes a confirmation. Approve / reject / invite
+     create / invite revoke are confirmed in the Command Center; the
+     controls here point there. Reads on this page run on the admin
+     secret alone. */
+  var CC_URL='/command-center/';
+  function ccSignpost(el){
+    if(el){el.innerHTML='Confirmations are completed in the <a href="'+CC_URL+'">Command Center</a> \u2014 Face ID lives there, on the CEO\u2019s confirmed device. Nothing was executed here.';}
+    showMsg('Confirmations live in the Command Center (/command-center/) \u2014 nothing executed here.',true);
+  }
   function apiPost(action,body){
     var payload={action:action};for(var k in (body||{}))payload[k]=body[k];
     return fetch(API+'/',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-Admin-Secret':sec()},body:JSON.stringify(payload)}).then(function(r){return r.json();});
   }
-  async function twConfirm(action,target){
-    var b=await apiPost('tw_assert_begin',{action:action,target:target});
-    if(!b||!b.ok)return {denied:b};
-    var cred;
-    try{
-      cred=await navigator.credentials.get({publicKey:{challenge:b64uToBuf(b.options.challenge),rpId:b.options.rpId,allowCredentials:(b.options.allowCredentials||[]).map(function(c){return {type:'public-key',id:b64uToBuf(c.id),transports:c.transports};}),userVerification:'required'}});
-    }catch(e){return {denied:{ok:false,error:'passkey_cancelled',detail:'The passkey step-up was cancelled \u2014 nothing executed.'}};}
-    if(!cred)return {denied:{ok:false,error:'passkey_unavailable',detail:'No passkey response \u2014 nothing executed.'}};
-    var f=await apiPost('tw_assert_finish',{action:action,target:target,credential:{id:cred.id,rawId:bufToB64u(cred.rawId),type:cred.type,response:{clientDataJSON:bufToB64u(cred.response.clientDataJSON),authenticatorData:bufToB64u(cred.response.authenticatorData),signature:bufToB64u(cred.response.signature)}}});
-    if(!f||!f.ok)return {denied:f};
-    return {confirm_token:f.confirm_token};
-  }
-  function denyText(d){return (d&&(d.detail||d.error))?String(d.detail||d.error):'Triple Wrap denied \u2014 nothing executed.';}
   function loadAll(){
     document.getElementById('admin-apps').innerHTML='<p class="cc-meta">Loading\u2026</p>';
     document.getElementById('admin-invites').innerHTML='<p class="cc-meta">Loading\u2026</p>';
@@ -351,51 +340,18 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
     for(var j=0;j<rbs.length;j++){(function(b){b.addEventListener('click',function(){review(b.getAttribute('data-reject'),'rejected');});})(rbs[j]);}
   }
   function review(id,status){
-    var out=document.querySelector('[data-review-out="'+id+'"]');if(out)out.textContent='Working\u2026';
-    var target=String(id)+':'+status;
-    twConfirm('creator_application_review',target).then(function(c){
-      if(c.denied){var t=denyText(c.denied);if(out)out.textContent='Locked: '+t;showMsg('Triple Wrap: '+t,true);return;}
-      apiPost('creator_application_review',{id:Number(id),status:status,_adminSecret:sec(),confirm_token:c.confirm_token})
-       .then(function(d){
-         if(d&&d.ok){
-           var bits=[status==='approved'?'Approved.':'Rejected.'];
-           if(status==='approved'){if(d.hub_built!=null)bits.push('Hub built: '+(d.hub_built?'yes':'no'));if(d.email_sent!=null)bits.push('Claim email sent: '+(d.email_sent?'yes':'no'));}
-           if(out)out.textContent=bits.join(' ');
-           showMsg(bits.join(' '),false);loadAll();
-         }else{if(out)out.textContent=(d&&d.wrap_required)?('Locked: '+denyText(d)):((d&&d.error)?('Failed ('+d.error+').'):'Failed.');showMsg((d&&d.wrap_required)?('Triple Wrap: '+denyText(d)):'Review failed.',true);}
-       }).catch(function(){if(out)out.textContent='Network error.';});
-    });
+    var out=document.querySelector('[data-review-out="'+id+'"]');
+    ccSignpost(out);
   }
   function revoke(token,btn){
-    if(!token)return;btn.disabled=true;
-    twConfirm('creator_invite_revoke',token.slice(0,12)).then(function(c){
-      if(c.denied){showMsg('Triple Wrap: '+denyText(c.denied),true);btn.disabled=false;return;}
-      apiPost('creator_invite_revoke',{token:token,_adminSecret:sec(),confirm_token:c.confirm_token})
-       .then(function(d){if(d&&d.ok){showMsg('Invite revoked.',false);loadAll();}else{showMsg((d&&d.wrap_required)?('Triple Wrap: '+denyText(d)):((d&&d.error)?('Revoke failed ('+d.error+').'):'Revoke failed.'),true);btn.disabled=false;}})
-       .catch(function(){showMsg('Could not reach the server.',true);btn.disabled=false;});
-    });
+    ccSignpost(null);
   }
-  document.getElementById('inv-create').addEventListener('click',async function(){
-    var slugv=(document.getElementById('inv-slug').value||'').trim();var emailv=(document.getElementById('inv-email').value||'').trim();var out=document.getElementById('inv-result');
-    if(!slugv){out.innerHTML='<p class="cc-meta">Enter a creator slug first.</p>';return;}
-    var btn=this;btn.disabled=true;btn.textContent='CONFIRMING\u2026';
-    var c=await twConfirm('creator_invite_create',slugv);
-    if(c.denied){btn.disabled=false;btn.textContent='Create invite';out.innerHTML='<p class="cc-meta">'+esc('Triple Wrap: '+denyText(c.denied))+'</p>';return;}
-    btn.textContent='CREATING\u2026';
-    apiPost('creator_invite_create',{slug:slugv,email:emailv,_adminSecret:sec(),confirm_token:c.confirm_token})
-     .then(function(d){
-       btn.disabled=false;btn.textContent='Create invite';
-       if(d&&d.ok&&d.link){out.innerHTML='<div class="cc-postbox">'+esc(d.link)+'</div><button type="button" class="cc-mini" id="inv-copy">Copy link</button> <span class="cc-small">'+(d.email_sent!=null?('Email sent: '+(d.email_sent?'yes':'no')):'')+'</span>';document.getElementById('inv-copy').addEventListener('click',function(){copyText(d.link,this);});loadAll();}
-       else{out.innerHTML='<p class="cc-meta">'+esc((d&&d.wrap_required)?('Triple Wrap: '+denyText(d)):((d&&d.error)?('Invite failed ('+d.error+').'):'Invite failed.'))+'</p>';}
-     }).catch(function(){btn.disabled=false;btn.textContent='Create invite';out.innerHTML='<p class="cc-meta">Could not reach the server.</p>';});
+  document.getElementById('inv-create').addEventListener('click',function(){
+    ccSignpost(document.getElementById('inv-result'));
   });
   function unlock(s){
     secret=s||'';try{sessionStorage.setItem('pf_admin_secret',secret);}catch(e){}
     lock.style.display='none';body.style.display='block';loadAll();
-    /* Wrap 1: trade the admin secret for the hardened session (cookies).
-       If this fails, reads still work via the secret, but confirmations
-       will deny honestly at the step-up \u2014 nothing executes unwrapped. */
-    try{apiPost('tw_session_begin',{admin_secret:secret}).catch(function(){});}catch(e){}
   }
   document.getElementById('admin-unlock').addEventListener('click',function(){
     var v=document.getElementById('admin-secret').value||'';if(!v){var m=document.getElementById('admin-lock-msg');m.className='cc-msg err';m.textContent='Enter the admin secret.';return;}unlock(v);

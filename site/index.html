@@ -150,14 +150,19 @@
   #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
   #pf-karl-home .pf-explainer{ font-size:14px; line-height:1.45; margin:8px 2px 12px; color:var(--kh-cream); max-width:34ch; }
   #pf-karl-home .pf-explainer strong{ color:#fff; }
-  /* 4-pillar nav (UX sprint ITER-2) */
-  .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:4px 14px 14px; }
-  .pf-pillar-btn{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 4px 10px;
-    background:#141414; border:1px solid #2a2a2a; border-radius:12px; color:#f5ead6;
-    font-size:11px; font-weight:800; letter-spacing:.08em; text-decoration:none;
-    min-height:64px; touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
-  .pf-pillar-btn .em{ font-size:22px; }
-  .pf-pillar-btn:active{ background:#1f1f1f; border-color:#e5383b; }
+  /* 4-pillar nav (UX sprint ITER-2, quieted ITER-5: nav strip, not cards) */
+  .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:2px 14px 12px; }
+  .pf-pillar-btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 4px;
+    background:transparent; border:1px solid #222; border-radius:10px; color:#b0b0b0;
+    font-size:10px; font-weight:700; letter-spacing:.1em; text-decoration:none;
+    min-height:44px; touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
+  .pf-pillar-btn .em{ font-size:15px; }
+  .pf-pillar-btn:active{ background:#1a1a1a; color:#fff; border-color:#e5383b; }
+  /* Karl identity kicker (UX sprint ITER-5) */
+  .kh-karl-kicker{ display:flex; align-items:center; gap:6px; font-size:10px; font-weight:800;
+    letter-spacing:.16em; color:#e5383b; margin:0 2px 6px; }
+  .kh-karl-dot{ width:7px; height:7px; border-radius:50%; background:#e5383b;
+    box-shadow:0 0 8px rgba(229,56,59,.8); }
   /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed */
   #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
@@ -836,6 +841,7 @@ fetchCampaign().then(render);
   <div class="kh-ask kh-ask-compact">
     <h1>Who's <em>robbing</em> you?</h1>
     <p class="pf-explainer">We turn public records into shareable intel — violations, money trails, and payouts in your town.</p>
+    <div class="kh-karl-kicker"><span class="kh-karl-dot"></span>ASK KARL — YOUR INTEL RESEARCHER</div>
     <div class="kh-composer kh-composer-oneline">
       <input id="kh-q" placeholder="Enter your ZIP — see your town's money trails" enterkeyhint="go" autocomplete="off">
       <button class="kh-ask-btn" id="kh-askBtn">ASK</button>

@@ -80,9 +80,25 @@
 
   <div id="lockbanner" class="lockbanner" style="display:none"></div>
 
+  <div class="row" style="flex-wrap:wrap;gap:6px;margin:2px 0 4px">
+    <a class="chip" href="#p-org">Org</a>
+    <a class="chip" href="#p-workers">Workers</a>
+    <a class="chip" href="#p-data">Data</a>
+    <a class="chip" href="#p-rails">Rails</a>
+    <a class="chip" href="#p-money">Money</a>
+    <a class="chip" href="#p-flows">Flows</a>
+    <a class="chip" href="#p-site">Site</a>
+    <a class="chip" href="#p-creators">Creators</a>
+    <a class="chip" href="#p-pk">Promises</a>
+    <a class="chip" href="#p-sec">Security</a>
+  </div>
+
   <div class="card" id="p-org"><h2>The Org At Work</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-workers"><h2>The Workers</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-data"><h2>The Data</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-rails"><h2>The Rails</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-money"><h2>The Money</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-flows"><h2>The Flows</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-site"><h2>The Site</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-creators"><h2>Creator Actions</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-pk"><h2>Promise Keeper</h2><div class="dim small">Loading…</div></div>
@@ -251,6 +267,51 @@ function renderOrg() {
   el.innerHTML = html;
 }
 
+/* ---------------- WORKERS ---------------- */
+function renderWorkers() {
+  var el = $('p-workers'), w = OV && OV.workers;
+  if (!w) { el.innerHTML = '<h2>The Workers</h2><div class="dim small">No reading yet.</div>'; return; }
+  if (!w.ok) { el.innerHTML = '<h2>The Workers</h2><div class="small" style="line-height:1.55">' + esc(w.note || 'Worker registry unavailable.') + '</div>'; return; }
+  var c = w.counts || {};
+  var html = '<h2>The Workers</h2><div class="stats">' +
+    statHtml(w.fresh_active || 0, 'working now') +
+    statHtml((w.blocked || []).length, 'blocked') +
+    statHtml(w.stale_active || 0, 'stale registrations') +
+    statHtml(c.complete || 0, 'completed') + '</div>';
+  var depts = Object.keys(w.by_department || {}).map(function (d) {
+    var x = w.by_department[d];
+    return { d: d, n: (x.active || 0) + (x.blocked || 0), a: x.active || 0, b: x.blocked || 0 };
+  }).sort(function (x, y) { return y.n - x.n; }).slice(0, 6);
+  var dMax = Math.max.apply(null, depts.map(function (x) { return x.n; }).concat([1]));
+  if (depts.length) html += '<div style="margin-top:10px">' + depts.map(function (x) {
+    return '<div class="row small" style="margin-top:4px"><div style="width:110px" class="dim">' + esc(x.d) + '</div><div class="grow">' + barHtml(x.n / dMax * 100, 'b') + '</div><b>' + x.a + '</b>' + (x.b ? '<span class="tag red">' + x.b + ' blocked</span>' : '') + '</div>';
+  }).join('') + '</div>';
+  if ((w.blockers || []).length) {
+    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">OPEN BLOCKERS · ' + w.blockers.length + '</div>' + w.blockers.slice(0, 4).map(function (b) {
+      return '<div class="item small"><span class="dot a"></span><span class="dim">' + esc(b.description) + '</span><div class="tiny dim">' + esc(b.severity || '') + (b.source ? ' · ' + esc(b.source) : '') + ' · raised ' + esc(b.raised_at_human || '—') + '</div></div>';
+    }).join('');
+  }
+  (w.blocked || []).forEach(function (x) {
+    html += '<div class="item"><span class="dot r"></span><b>' + esc(x.id) + '</b> <span class="small">' + esc(x.task) + '</span><div class="tiny dim">' + esc(x.department || '') + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>';
+  });
+  if ((w.active_fresh || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">WORKING NOW</div>' +
+      w.active_fresh.map(function (x) { return workerRow(x, 24); }).join('');
+  }
+  if ((w.active_stale || []).length) {
+    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">STALE — REGISTERED ACTIVE, SILENT OVER 24H · ' + w.stale_active + '</div>' +
+      w.active_stale.slice(0, 8).map(function (x) { return workerRow(x, 24); }).join('') +
+      (w.stale_active > 8 ? '<div class="tiny dim">…and ' + (w.stale_active - 8) + ' more stale registrations, still on record in the registry.</div>' : '');
+  }
+  if ((w.completions_recent || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">RECENTLY DONE</div>' + w.completions_recent.slice(0, 5).map(function (x) {
+      return '<div class="item small"><span class="dot g"></span><b>' + esc(x.id) + '</b> <span class="dim">' + esc(x.task) + '</span><div class="tiny dim">' + esc(x.department || '') + ' · ' + esc(x.at_human || '') + '</div></div>';
+    }).join('');
+  }
+  html += '<div class="tiny dim" style="margin-top:8px">Registry updated ' + esc(w.state_updated_human || '—') + ' · synced ' + ageOf(w.synced_at) + ' · ' + fmtFull(w.total || 0) + ' workers on record</div>';
+  el.innerHTML = html;
+}
+
 /* ---------------- DATA ---------------- */
 function renderData() {
   var el = $('p-data'), d = OV && OV.data;
@@ -284,6 +345,69 @@ function renderData() {
     html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">BACKGROUND RAILS</div><div class="row" style="flex-wrap:wrap;gap:6px;margin-top:4px">' +
       d.cron_rails.map(function (r) { return '<span class="tag">' + esc(r.kind) + ' · ' + ageOf(r.last_at) + '</span>'; }).join('') + '</div>';
   }
+  el.innerHTML = html;
+}
+
+/* ---------------- RAILS ---------------- */
+function renderRails() {
+  var el = $('p-rails'), r = OV && OV.rails;
+  if (!r) { el.innerHTML = '<h2>The Rails</h2><div class="dim small">No reading yet.</div>'; return; }
+  var live = r.live || {};
+  var html = '<h2>The Rails</h2>';
+  var ing = live.ingest || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px">INGEST — DATA IN</div>';
+  if (ing.ok) {
+    html += '<div class="row small" style="margin-top:4px;flex-wrap:wrap;gap:6px">' + Object.keys(ing.by_status || {}).map(function (k) {
+      return '<span class="tag ' + (k === 'ok' ? 'grn' : 'amb') + '">' + esc(k) + ' · ' + ing.by_status[k] + '</span>';
+    }).join('') + (ing.never_pulled ? '<span class="tag amb">never pulled · ' + ing.never_pulled + '</span>' : '') + '</div>';
+    (ing.recent || []).forEach(function (p) {
+      html += '<div class="item row small"><span class="dot ' + (p.status === 'ok' ? 'g' : 'a') + '"></span><div class="grow">' + esc(p.name) + '</div><span class="dim">' + fmtN(p.rows) + ' rows · ' + ageOf(p.at) + '</span></div>';
+    });
+  } else html += '<div class="small dim" style="margin-top:4px">Ingest registry unreadable on this read.</div>';
+  var feed = live.feed || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">FEED ENGINE</div>' +
+    '<div class="item row small"><span class="dot ' + (feed.ok ? (feed.stale ? 'r' : 'g') : 'd') + '"></span><div class="grow">Feed generation</div><span class="dim">' +
+    (feed.ok ? fmtFull(feed.active_cards) + ' cards live · newest ' + (feed.newest_card_age_hours == null || feed.newest_card_age_hours < 0 ? '—' : feed.newest_card_age_hours + 'h old') + (feed.stale ? ' · STALE' : ' · fresh') : 'unavailable') + '</span></div>';
+  var k = live.karl || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">KARL — CONVERSATIONAL RAIL</div>';
+  if (k.measurable) {
+    var keyTag = function (s) { return s === 'keyed' ? '<span class="tag grn">keyed</span>' : '<span class="tag amb">' + esc(s || 'unknown') + '</span>'; };
+    html += '<div class="item small"><div class="row"><div class="grow">Theory store: <b>' + esc(k.theory_store || '—') + '</b>' + (k.corpus_pin ? ' <span class="dim">· corpus ' + esc(k.corpus_pin) + '</span>' : '') + '</div><span class="tag">provider · ' + esc(k.provider || '—') + '</span></div>' +
+      (k.measured_from ? '<div class="tiny dim">measurement mode: serving the ' + esc(k.measured_from) + ' flow through ' + esc(k.provider || '—') + '</div>' : '') + '</div>';
+    html += '<div class="item small"><div class="row"><div class="grow">OpenAI lane <span class="dim">' + esc((k.openai || {}).synthesis_model || '') + ' / ' + esc((k.openai || {}).internal_model || '') + '</span></div>' + keyTag((k.openai || {}).key) + '</div></div>';
+    html += '<div class="item small"><div class="row"><div class="grow">Google free lane <span class="dim">' + esc((k.google || {}).free_model || '') + ' · ' + esc((k.google || {}).free_config || '') + '</span></div>' + keyTag((k.google || {}).free_key) + '</div>' +
+      '<div class="row" style="margin-top:4px"><div class="grow">Google paid overflow <span class="dim">' + esc((k.google || {}).paid_model || '') + ' · ' + esc((k.google || {}).paid_role || '') + '</span></div>' + keyTag((k.google || {}).paid_key) + '</div></div>';
+  } else {
+    html += '<div class="small" style="line-height:1.55;margin-top:4px">' + esc(k.note || 'Karl lane state not measurable on this read.') + '</div>';
+  }
+  var pk = live.packs || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">PACK SERVING</div>' +
+    '<div class="item row small"><span class="dot ' + (pk.ok ? 'g' : 'd') + '"></span><div class="grow">Data-pack platform</div><span class="dim">' + (pk.ok ? pk.keys_active + '/' + pk.keys_total + ' keys active · ' + fmtFull(pk.calls_this_month) + ' calls this month' : 'unavailable') + '</span></div>';
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">DEPLOY RAIL</div>';
+  if (r.ok && (r.deploy_guard || []).length) {
+    html += r.deploy_guard.map(function (g) {
+      var cls = g.verdict === 'PASS' ? 'g' : (g.verdict === 'FAIL' ? 'r' : 'a');
+      var tag = g.verdict === 'PASS' ? 'grn' : (g.verdict === 'FAIL' ? 'red' : 'amb');
+      return '<div class="item row small"><span class="dot ' + cls + '"></span><div class="grow">Guard <span class="dim">' + (g.at ? new Date(g.at).toLocaleString() : esc(g.run_id)) + '</span></div><span class="tag ' + tag + '">' + esc(g.verdict || '—') + '</span>' +
+        (g.regressions ? '<span class="tag red">' + g.regressions + ' regressions</span>' : '') + (g.probe_errors ? '<span class="tag amb">' + g.probe_errors + ' probe errors</span>' : '') + '</div>';
+    }).join('');
+    html += '<div class="tiny dim">Latest frontend build: ' + esc(r.latest_build || '—') + ' · full ship state is in The Site above.</div>';
+  } else if (!r.ok) {
+    html += '<div class="small" style="line-height:1.55;margin-top:4px">' + esc(r.note || 'Deploy rail state has not synced yet.') + '</div>';
+  } else html += '<div class="small dim" style="margin-top:4px">No guard runs recorded yet.</div>';
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">SCHEDULED WORK</div>';
+  if (r.ok && (r.crons || []).length) {
+    html += r.crons.map(function (c) {
+      return '<div class="item row small"><div class="grow"><b>' + esc(c.name) + '</b> <span class="dim">' + esc(c.schedule_label) + '</span></div><span class="dim" style="text-align:right">last ' + (c.last_at ? ageOf(c.last_at) : (c.last_human ? esc(c.last_human) : 'not recorded on the VM')) + '<br>next ' + (c.next_at ? new Date(c.next_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : esc(c.next_label || '—')) + '</span></div>';
+    }).join('');
+    if (r.runonce_past) html += '<div class="tiny dim">+ ' + r.runonce_past + ' one-shot jobs already run and retired (older than a week).</div>';
+  } else if (!r.ok) {
+    html += '<div class="small dim" style="margin-top:4px">Scheduled-work definitions sync with the rails snapshot.</div>';
+  }
+  if ((live.cron_log || []).length) {
+    html += '<div class="tiny dim" style="margin-top:8px">Worker rails last ticked: ' + live.cron_log.map(function (x) { return esc(x.kind) + ' ' + ageOf(x.last_at); }).join(' · ') + '</div>';
+  }
+  html += '<div class="tiny dim" style="margin-top:8px">' + (r.ok ? 'Rails snapshot synced ' + ageOf(r.synced_at) + ' · ' : '') + 'ingest, feed, Karl and packs above were read live just now.</div>';
   el.innerHTML = html;
 }
 
@@ -328,6 +452,54 @@ function renderMoney() {
   if (f.traffic && !f.traffic.measurable) html += '<div class="tiny dim">Traffic: ' + esc(f.traffic.note) + '</div>';
   el.innerHTML = html;
   bindActionButtons(el);
+}
+
+/* ---------------- FLOWS ---------------- */
+function renderFlows() {
+  var el = $('p-flows'), fl = OV && OV.flows;
+  if (!fl) { el.innerHTML = '<h2>The Flows</h2><div class="dim small">No reading yet.</div>'; return; }
+  if (!fl.ok) { el.innerHTML = '<h2>The Flows</h2><div class="dim small">Flow reading unavailable.</div>'; return; }
+  var html = '<h2>The Flows</h2>';
+  var dp = fl.dp || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px">API FLOW — ' + esc(dp.month || '') + '</div>';
+  if (dp.ok === false) {
+    html += '<div class="small dim" style="margin-top:4px">API usage unreadable on this read.</div>';
+  } else {
+    html += '<div class="stats" style="margin-top:6px">' + statHtml(fmtFull(dp.calls_total), 'calls this month') + statHtml(dp.keys_used || 0, 'keys calling') + '</div>';
+    var tiers = dp.by_tier || [];
+    var tMax = Math.max.apply(null, tiers.map(function (t) { return t.calls; }).concat([1]));
+    tiers.forEach(function (t) {
+      html += '<div class="row small" style="margin-top:6px"><span style="width:110px" class="dim">' + esc(t.label || t.tier) + '</span><div class="grow">' + barHtml(t.calls / tMax * 100, 'b') + '</div><b>' + fmtFull(t.calls) + '</b><span class="dim">' + t.keys_used + ' keys</span></div>';
+    });
+    if (dp.per_action && !dp.per_action.measurable) html += '<div class="tiny dim" style="margin-top:6px">' + esc(dp.per_action.note) + '</div>';
+  }
+  var k = fl.karl || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">KARL LANE FLOW</div>';
+  if (k.measurable) {
+    var t = k.totals || {};
+    var totCalls = Math.max(1, (t.openai_calls || 0) + (t.google_free_calls || 0) + (t.google_paid_calls || 0));
+    html += '<div style="margin-top:4px">' +
+      '<div class="row small"><span style="width:110px" class="dim">OpenAI</span><div class="grow">' + barHtml(t.openai_calls / totCalls * 100, 'b') + '</div><b>' + fmtFull(t.openai_calls) + '</b><span class="dim">$' + Number(t.openai_cost_usd || 0).toFixed(4) + '</span></div>' +
+      '<div class="row small"><span style="width:110px" class="dim">Google free</span><div class="grow">' + barHtml(t.google_free_calls / totCalls * 100, 'g') + '</div><b>' + fmtFull(t.google_free_calls) + '</b></div>' +
+      '<div class="row small"><span style="width:110px" class="dim">Google paid</span><div class="grow">' + barHtml(t.google_paid_calls / totCalls * 100, 'a') + '</div><b>' + fmtFull(t.google_paid_calls) + '</b><span class="dim">$' + Number(t.google_paid_cost_usd || 0).toFixed(4) + ' · overflow finals ' + fmtFull(t.overflow_user_final) + '</span></div></div>';
+    var pc = k.provider_calls || {};
+    var pcKeys = Object.keys(pc).filter(function (x) { return pc[x] > 0; });
+    if (pcKeys.length) html += '<div class="tiny dim" style="margin-top:6px">Free-chain calls: ' + pcKeys.map(function (x) { return esc(x) + ' ' + fmtFull(pc[x]); }).join(' · ') + '</div>';
+    if (k.window) html += '<div class="tiny dim">' + esc(k.window) + '</div>';
+  } else {
+    html += '<div class="small" style="line-height:1.55;margin-top:4px">' + esc(k.note || 'Karl lane flow not measurable on this read.') + '</div>';
+  }
+  var ai = fl.ai_spend || {};
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">AI DRAW BY BOT</div>';
+  if (ai.measurable) {
+    (ai.by_bot || []).slice(0, 6).forEach(function (b) {
+      html += '<div class="item row small"><div class="grow">' + esc(b.bot) + '</div><span class="dim">free ' + fmtFull(b.free_calls) + ' · paid ' + fmtFull(b.paid_calls) + (b.paid_cost_cents ? ' · ' + fmtMoney(b.paid_cost_cents) : '') + '</span></div>';
+    });
+    html += '<div class="tiny dim">Dollars, lanes and the paid ceiling live in The Money above · ' + esc(ai.window || '') + '</div>';
+  } else {
+    html += '<div class="small" style="line-height:1.55;margin-top:4px">' + esc(ai.note || 'AI metering not available yet.') + '</div>';
+  }
+  el.innerHTML = html;
 }
 
 /* ---------------- SITE ---------------- */
@@ -593,9 +765,9 @@ function bindActionButtons(root) {
 function renderAll() {
   if (!OV) return;
   $('genAt').textContent = 'read ' + new Date(OV.generated_at).toLocaleTimeString();
-  var ages = [OV.org, OV.promises, OV.deploy].filter(function (s) { return s && s.ok; }).map(function (s) { return s.age_s; });
+  var ages = [OV.org, OV.promises, OV.deploy, OV.workers, OV.rails].filter(function (s) { return s && s.ok && s.age_s != null; }).map(function (s) { return s.age_s; });
   $('syncTag').textContent = ages.length ? 'synced ' + Math.max.apply(null, ages) + 's ago' : 'live reads';
-  renderOrg(); renderData(); renderMoney(); renderSite(); renderPk(); renderSecurity();
+  renderOrg(); renderWorkers(); renderData(); renderRails(); renderMoney(); renderFlows(); renderSite(); renderPk(); renderSecurity();
   if (QUEUE) renderCreators();
 }
 

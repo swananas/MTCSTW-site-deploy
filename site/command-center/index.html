@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0a">
+<title>Command Center — MTCSTW</title>
+<style>
+  :root{--bg:#0a0a0a;--panel:#16140f;--panel2:#1d1a13;--ink:#f5f0e6;--dim:#a39c8b;--faint:#6f6957;--red:#e31b23;--green:#3ecf6f;--amber:#f5b83d;--blue:#58a6ff;--line:#2b2718;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  body{max-width:560px;margin:0 auto;padding:0 12px 48px}
+  h1{font-size:15px;letter-spacing:3px;margin:0;color:var(--red);font-weight:900}
+  h2{font-size:12px;letter-spacing:2px;margin:0 0 10px;color:var(--dim);font-weight:800;text-transform:uppercase}
+  .top{display:flex;align-items:center;gap:10px;padding:16px 2px 10px}
+  .top .sp{flex:1}
+  .chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;display:inline-block}
+  button.chip{cursor:pointer;font-family:inherit}
+  .chip:active{transform:scale(.97)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+  .big{font-size:30px;font-weight:900;line-height:1}
+  .big2{font-size:20px;font-weight:900}
+  .dim{color:var(--dim)} .small{font-size:12px} .tiny{font-size:11px}
+  .row{display:flex;gap:10px;align-items:center}
+  .grow{flex:1;min-width:0}
+  .stats{display:flex;gap:8px;flex-wrap:wrap}
+  .stat{flex:1;min-width:86px;background:var(--panel2);border-radius:12px;padding:10px}
+  .stat .n{font-size:20px;font-weight:900}
+  .stat .l{font-size:10px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-top:2px}
+  .bar{height:8px;background:#26231a;border-radius:99px;overflow:hidden;margin:5px 0 2px}
+  .bar>i{display:block;height:100%;background:var(--red);border-radius:99px}
+  .bar>i.g{background:var(--green)} .bar>i.a{background:var(--amber)} .bar>i.b{background:var(--blue)}
+  .item{padding:9px 0;border-top:1px solid var(--line)}
+  .item:first-of-type{border-top:none}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:99px;margin-right:6px;vertical-align:1px}
+  .dot.g{background:var(--green)} .dot.r{background:var(--red)} .dot.a{background:var(--amber)} .dot.d{background:var(--faint)}
+  .tag{font-size:10px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:99px;background:#26231a;color:var(--dim);white-space:nowrap}
+  .tag.red{background:#3a0d10;color:#ff8f94} .tag.grn{background:#0e2f1a;color:#7de2a3} .tag.amb{background:#33270a;color:#ffd27d}
+  .btn{background:var(--red);color:#fff;border:none;font-weight:900;padding:10px 14px;border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn.sm{padding:7px 11px;font-size:12px;border-radius:10px}
+  .btn:disabled{opacity:.45}
+  .btn:active{transform:scale(.97)}
+  input[type=password],input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:13px;font-size:15px;font-family:inherit}
+  .lockbanner{background:#3a0d10;border:1px solid var(--red);color:#ffb3b7;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:13px;font-weight:700}
+  .okbanner{background:#0e2f1a;border:1px solid var(--green);color:#7de2a3;border-radius:14px;padding:10px 14px;margin:10px 0;font-size:13px;font-weight:700}
+  #toast{position:fixed;left:12px;right:12px;bottom:14px;max-width:536px;margin:0 auto;background:#221f16;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;display:none;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  #toast.show{display:block}
+  .ring{transform:rotate(-90deg)}
+  .mono{font-variant-numeric:tabular-nums}
+  .err{color:#ff8f94;font-size:13px;min-height:18px}
+  .sec3{display:flex;gap:8px}
+  .sec3 .stat{text-align:left}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div style="padding:64px 4px 0">
+    <h1>MTCSTW</h1>
+    <div style="font-size:26px;font-weight:900;margin:6px 0 4px">Command Center</div>
+    <p class="dim" style="line-height:1.55;margin:6px 0 18px">The whole organization on one wall — who's working, what the data is doing, the money, the site, the promises. Master tier. Admin only.</p>
+    <input type="password" id="secret" placeholder="Admin secret" autocomplete="current-password">
+    <div class="err" id="gateErr" style="margin:8px 0"></div>
+    <button class="btn" id="enterBtn" style="width:100%;padding:14px">ENTER</button>
+    <p class="tiny dim" style="margin-top:14px;line-height:1.5">Sign-in starts your hardened Triple Wrap session. Confirmations (approvals, invites, campaign switches, key revokes) additionally require Face ID at the moment you tap — nothing confirms without it.</p>
+  </div>
+</div>
+
+<div id="wall" style="display:none">
+  <div class="top">
+    <h1>COMMAND</h1>
+    <span class="tag" id="syncTag">—</span>
+    <span class="sp"></span>
+    <a class="chip" href="https://www.mtcstw.com/karl/" target="_blank" rel="noopener">Ask Karl</a>
+    <button class="chip" id="refreshBtn">Refresh</button>
+    <button class="chip" id="signOutBtn">Sign out</button>
+  </div>
+
+  <div id="lockbanner" class="lockbanner" style="display:none"></div>
+
+  <div class="card" id="p-org"><h2>The Org At Work</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-data"><h2>The Data</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-money"><h2>The Money</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-site"><h2>The Site</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-creators"><h2>Creator Actions</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-pk"><h2>Promise Keeper</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-sec"><h2>Security — Triple Wrap</h2><div class="dim small">Loading…</div></div>
+
+  <p class="tiny dim" style="text-align:center;margin-top:18px">Master Command Center · readings are live from the warehouse unless a panel says otherwise · <span id="genAt"></span></p>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+var API = 'https://pf-api.mtcstw.workers.dev';
+var secret = '';            /* sessionStorage only (house admin-console pattern) */
+var twSess = '', twDev = ''; /* Triple Wrap header transport — memory only, never stored */
+var OV = null, SEC = null, QUEUE = null, CAMPS = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function fmtN(n) { n = Number(n) || 0; if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'; return String(Math.round(n)); }
+function fmtFull(n) { return String(Number(n) || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmtMoney(c) { return '$' + (Number(c) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+function fmtBytes(b) { if (b == null) return '—'; b = Number(b); if (b >= 1e9) return (b / 1e9).toFixed(2) + ' GB'; if (b >= 1e6) return (b / 1e6).toFixed(1) + ' MB'; return b + ' B'; }
+function ageOf(ts) { var s = Math.max(0, Math.round((Date.now() - Number(ts || 0)) / 1000)); if (!ts) return 'never'; if (s < 90) return s + 's ago'; if (s < 5400) return Math.round(s / 60) + 'm ago'; if (s < 172800) return Math.round(s / 3600) + 'h ago'; return Math.round(s / 86400) + 'd ago'; }
+function toast(msg, ms) { var t = $('toast'); t.innerHTML = msg; t.className = 'show'; clearTimeout(t._h); t._h = setTimeout(function () { t.className = ''; }, ms || 6000); }
+function statHtml(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
+function barHtml(pct, cls) { pct = Math.max(0, Math.min(100, Number(pct) || 0)); return '<div class="bar"><i class="' + (cls || '') + '" style="width:' + pct + '%"></i></div>'; }
+
+function headers() { var h = { 'X-Admin-Secret': secret }; if (twSess) h['X-TW-Session'] = twSess; if (twDev) h['X-TW-Device'] = twDev; return h; }
+async function apiGet(action, params) {
+  var qs = new URLSearchParams(Object.assign({ action: action }, params || {})).toString();
+  var r = await fetch(API + '/?' + qs, { headers: headers(), credentials: 'include' });
+  return await r.json();
+}
+async function apiPost(action, body) {
+  var h = headers(); h['content-type'] = 'application/json';
+  var r = await fetch(API + '/?action=' + encodeURIComponent(action), { method: 'POST', headers: h, credentials: 'include', body: JSON.stringify(body || {}) });
+  return await r.json();
+}
+
+/* ---------------- sign-in + Triple Wrap session (Wrap 1) ---------------- */
+async function enter() {
+  var v = $('secret').value.trim();
+  if (!v) { $('gateErr').textContent = 'Enter the admin secret.'; return; }
+  secret = v;
+  $('gateErr').textContent = '';
+  var probe = await apiGet('cc_overview').catch(function () { return null; });
+  if (!probe || !probe.ok) {
+    secret = '';
+    $('gateErr').textContent = 'That secret did not open the wall. Nothing was shown.';
+    return;
+  }
+  try { sessionStorage.setItem('pf_admin_secret', v); } catch (e) {}
+  OV = probe;
+  /* Start the hardened session (also mints the device binding). Failure
+     here does not block the wall — reads ride the admin rail — but it is
+     surfaced in the Security panel, and confirmations stay closed. */
+  try {
+    var s = await apiPost('tw_session_begin', { admin_secret: secret });
+    if (s && s.ok) { twSess = s.session_token || ''; twDev = s.device_token || twDev; }
+  } catch (e) {}
+  $('gate').style.display = 'none';
+  $('wall').style.display = '';
+  renderAll();
+  loadRest();
+  setInterval(function () { refreshOverview(); }, 60000);
+}
+async function refreshOverview() {
+  var ov = await apiGet('cc_overview').catch(function () { return null; });
+  if (ov && ov.ok) { OV = ov; renderAll(); }
+}
+async function loadRest() {
+  var sec = await apiGet('cc_security').catch(function () { return null; });
+  if (sec && sec.ok) { SEC = sec; renderSecurity(); }
+  var tw = await apiPost('tw_status', { admin_secret: secret }).catch(function () { return null; });
+  if (tw && tw.ok) { window._twStatus = tw; renderSecurity(); }
+  var q = await apiGet('creator_admin_queue').catch(function () { return null; });
+  if (q && q.ok) { QUEUE = q; renderCreators(); }
+  var cl = await apiGet('campaign_list').catch(function () { return null; });
+  if (cl && cl.ok) { CAMPS = cl.campaigns || []; renderCreators(); }
+}
+
+/* ---------------- ORG ---------------- */
+function workerRow(w, staleH) {
+  var ageH = w.updated_at ? (Date.now() - w.updated_at * 1000) / 3600000 : 999;
+  var stale = ageH > staleH;
+  return '<div class="item"' + (stale ? ' style="opacity:.45"' : '') + '><div class="row"><div class="grow"><b>' +
+    esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div>' +
+    (stale ? '<span class="tag amb">stale</span>' : '<span class="tag grn">live</span>') + '</div>' +
+    '<div class="tiny dim">' + esc(w.department || '') + ' · updated ' + esc(w.updated_at_human || ageOf(w.updated_at * 1000)) + '</div></div>';
+}
+function renderOrg() {
+  var el = $('p-org'), o = OV && OV.org;
+  if (!o) { el.innerHTML = '<h2>The Org At Work</h2><div class="dim small">No reading yet.</div>'; return; }
+  if (!o.ok) { el.innerHTML = '<h2>The Org At Work</h2><div class="small" style="line-height:1.55">' + esc(o.note || 'Org state unavailable.') + '</div>'; return; }
+  var c = o.counts || {};
+  var deptAgg = {};
+  (o.workers_active || []).forEach(function (w) { deptAgg[w.department || '—'] = (deptAgg[w.department || '—'] || 0) + 1; });
+  var deptMax = Math.max.apply(null, Object.values(deptAgg).concat([1]));
+  var deptHtml = Object.keys(deptAgg).sort(function (a, b) { return deptAgg[b] - deptAgg[a]; }).slice(0, 6).map(function (d) {
+    return '<div class="row small" style="margin-top:4px"><div style="width:110px" class="dim">' + esc(d) + '</div><div class="grow">' + barHtml(deptAgg[d] / deptMax * 100, 'b') + '</div><b>' + deptAgg[d] + '</b></div>';
+  }).join('');
+  var html = '<h2>The Org At Work</h2><div class="stats">' +
+    statHtml((o.workers_active || []).length, 'working now') +
+    statHtml((o.workers_blocked || []).length, 'blocked') +
+    statHtml(c.complete || 0, 'completed') +
+    statHtml(o.anomalies ? o.anomalies.open : 0, 'anomalies') + '</div>';
+  if (deptHtml) html += '<div style="margin-top:10px">' + deptHtml + '</div>';
+  (o.workers_blocked || []).forEach(function (w) {
+    html += '<div class="item"><span class="dot r"></span><b>' + esc(w.id) + '</b> <span class="small">' + esc(w.task) + '</span><div class="tiny dim">' + esc(w.note || '') + '</div></div>';
+  });
+  (o.workers_active || []).slice(0, 10).forEach(function (w) { html += workerRow(w, 2); });
+  if ((o.recent_complete || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">RECENTLY DONE</div>' +
+      o.recent_complete.slice(0, 4).map(function (w) { return '<div class="item small"><span class="dot g"></span>' + esc(w.id) + ' <span class="dim">' + esc(w.task) + '</span></div>'; }).join('');
+  }
+  html += '<div class="tiny dim" style="margin-top:8px">Org state synced ' + ageOf(o.synced_at) + ' · registry updated ' + esc(o.state_updated_human || '—') + '</div>';
+  el.innerHTML = html;
+}
+
+/* ---------------- DATA ---------------- */
+function renderData() {
+  var el = $('p-data'), d = OV && OV.data;
+  if (!d || !d.ok) { el.innerHTML = '<h2>The Data</h2><div class="dim small">Warehouse reading unavailable.</div>'; return; }
+  var html = '<h2>The Data</h2><div class="stats">' +
+    statHtml(fmtN(d.rows_total), 'rows held') +
+    statHtml(fmtFull(d.tables), 'tables') +
+    statHtml(d.sources_total, 'sources') +
+    statHtml(d.tier2.tables, 'parquet tables') + '</div>';
+  if (d.d1_bytes != null) {
+    var pct = d.d1_bytes / d.d1_cap_bytes * 100;
+    html += '<div style="margin-top:10px"><div class="row small"><span class="dim">D1 footprint</span><span class="grow"></span><b>' + fmtBytes(d.d1_bytes) + '</b><span class="dim">/ ' + fmtBytes(d.d1_cap_bytes) + '</span></div>' + barHtml(pct, pct > 80 ? '' : 'g') + '</div>';
+  } else {
+    html += '<div class="tiny dim" style="margin-top:8px">D1 physical size: the platform refused the probe — registry counts above are the reading.</div>';
+  }
+  var st = d.sources_by_status || {};
+  html += '<div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px">' + Object.keys(st).map(function (k) {
+    return '<span class="tag ' + (k === 'ok' ? 'grn' : 'amb') + '">' + esc(k) + ' · ' + st[k] + '</span>';
+  }).join('') + '</div>';
+  if ((d.recent_pulls || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">LATEST PULLS</div>' + d.recent_pulls.map(function (p) {
+      return '<div class="item row small"><span class="dot ' + (p.status === 'ok' ? 'g' : 'a') + '"></span><div class="grow">' + esc(p.name) + '</div><span class="dim">' + fmtN(p.rows) + ' rows · ' + ageOf(p.at) + '</span></div>';
+    }).join('');
+  }
+  if ((d.stale_sources || []).length) {
+    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">STALE — PAST FRESHNESS SLA</div>' + d.stale_sources.map(function (s) {
+      return '<div class="item row small"><span class="dot a"></span><div class="grow">' + esc(s.name) + '</div><span class="dim">' + s.age_days + 'd old (SLA ' + s.sla_days + 'd)</span></div>';
+    }).join('');
+  }
+  if ((d.cron_rails || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">BACKGROUND RAILS</div><div class="row" style="flex-wrap:wrap;gap:6px;margin-top:4px">' +
+      d.cron_rails.map(function (r) { return '<span class="tag">' + esc(r.kind) + ' · ' + ageOf(r.last_at) + '</span>'; }).join('') + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ---------------- MONEY ---------------- */
+function renderMoney() {
+  var el = $('p-money'), f = OV && OV.financials;
+  if (!f || !f.ok) { el.innerHTML = '<h2>The Money</h2><div class="dim small">Financial reading unavailable.</div>'; return; }
+  var mrr = f.stripe && f.stripe.live ? { v: f.stripe.mrr_cents, l: 'MRR — Stripe live · ' + f.stripe.active_subscriptions + ' active subs' }
+    : { v: f.mrr_on_file_cents, l: 'MRR — subscriptions on file (active keys)' };
+  var html = '<h2>The Money</h2><div class="stats">' +
+    statHtml(fmtMoney(mrr.v), 'run-rate / mo') +
+    statHtml(fmtFull(f.calls_this_month), 'API calls · ' + esc(f.month)) +
+    statHtml(f.keys_active + '/' + f.keys_total, 'keys active') + '</div>' +
+    '<div class="tiny dim" style="margin-top:4px">' + esc(mrr.l) + (f.stripe && !f.stripe.live ? ' · Stripe read: ' + esc(f.stripe.reason || 'unavailable') : '') + '</div>';
+  if ((f.top_keys || []).length) {
+    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">TOP KEYS BY CALLS</div>' + f.top_keys.map(function (k) {
+      return '<div class="item"><div class="row small"><div class="grow mono">' + esc(k.prefix) + ' <span class="tag">' + esc(k.tier) + '</span></div><b>' + fmtFull(k.calls) + '</b>' +
+        '<button class="btn ghost sm" data-act="revoke-key" data-prefix="' + esc(k.prefix) + '">Revoke</button></div>' +
+        (k.quota > 0 ? barHtml(k.pct, k.pct > 90 ? '' : 'b') + '<div class="tiny dim">' + k.pct + '% of ' + fmtN(k.quota) + ' monthly quota</div>' : '<div class="tiny dim">unlimited tier</div>') + '</div>';
+    }).join('');
+  }
+  var tierLine = (f.tiers || []).filter(function (t) { return t.keys > 0; }).map(function (t) {
+    return '<span class="tag">' + esc(t.tier) + ' · ' + t.keys + ' keys · ' + fmtMoney(t.price_cents) + '</span>';
+  }).join('');
+  if (tierLine) html += '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:10px">' + tierLine + '</div>';
+  /* AI lanes — DB-first -> free lane -> paid overflow (spend log metering) */
+  var ai = f.ai_spend || {};
+  html += '<div class="tiny dim" style="margin-top:14px;letter-spacing:1px">AI DRAW — ' + esc(ai.flow || 'DB-first → free lane → paid overflow') + '</div>';
+  if (ai.measurable) {
+    var lf = ai.lanes.free, lp = ai.lanes.paid_overflow, tot = Math.max(1, ai.total_calls);
+    html += '<div style="margin-top:6px"><div class="row small"><span style="width:110px" class="dim">Free lane</span><div class="grow">' + barHtml(lf.calls / tot * 100, 'g') + '</div><b>' + fmtFull(lf.calls) + '</b></div>' +
+      '<div class="row small"><span style="width:110px" class="dim">Paid overflow</span><div class="grow">' + barHtml(lp.calls / tot * 100, 'a') + '</div><b>' + fmtFull(lp.calls) + '</b><span class="dim">' + fmtMoney(ai.paid_cost_cents) + '</span></div></div>';
+    (ai.by_bot || []).forEach(function (b) {
+      html += '<div class="item row small"><div class="grow">' + esc(b.bot) + '</div><span class="dim">free ' + fmtFull(b.free_calls) + ' · paid ' + fmtFull(b.paid_calls) + (b.paid_cost_cents ? ' · ' + fmtMoney(b.paid_cost_cents) : '') + '</span></div>';
+    });
+    html += '<div class="tiny dim">Spend log: ' + esc(ai.table) + ' · ' + esc(ai.window || '') + ' · paid ceiling: Gemini $' + ai.gemini_budget_cap_usd + '/mo</div>';
+  } else {
+    html += '<div class="small" style="line-height:1.55;margin-top:4px">' + esc(ai.note || 'AI metering not available yet.') + '</div>' +
+      '<div class="tiny dim">Paid ceiling when lanes flow: Gemini $' + (ai.gemini_budget_cap_usd || 20) + '/mo.</div>';
+  }
+  html += '<div class="tiny dim" style="margin-top:10px">Platform caps: D1 ' + f.platform_caps.d1_gb + ' GB · rows read ' + f.platform_caps.rows_read_monthly + '/mo · written ' + f.platform_caps.rows_written_monthly + '/mo. ' + esc(f.platform_caps.burn_note || '') + '</div>';
+  if (f.traffic && !f.traffic.measurable) html += '<div class="tiny dim">Traffic: ' + esc(f.traffic.note) + '</div>';
+  el.innerHTML = html;
+  bindActionButtons(el);
+}
+
+/* ---------------- SITE ---------------- */
+function renderSite() {
+  var el = $('p-site'), s = OV && OV.site;
+  if (!s || !s.ok) { el.innerHTML = '<h2>The Site</h2><div class="dim small">Site reading unavailable.</div>'; return; }
+  var feed = s.feed || {};
+  var cr = s.creators || {};
+  var pct = cr.hubs_total ? Math.round(cr.hubs_claimed / cr.hubs_total * 100) : 0;
+  var C = 2 * Math.PI * 26;
+  var html = '<h2>The Site</h2><div class="stats">' +
+    statHtml(feed.ok ? fmtFull(feed.active_cards) : '—', 'feed cards live') +
+    statHtml(s.callsigns == null ? '—' : fmtFull(s.callsigns), 'callsigns') +
+    statHtml(fmtFull(cr.press_packs_today), 'press packs today') +
+    statHtml(fmtFull(cr.rallies_7d), 'rallies · 7d') + '</div>';
+  html += '<div class="item row small"><span class="dot ' + (feed.stale ? 'r' : 'g') + '"></span><div class="grow">Feed engine</div><span class="dim">' +
+    (feed.ok ? ('newest card ' + (feed.newest_card_age_hours < 0 ? '—' : feed.newest_card_age_hours + 'h old') + (feed.stale ? ' · STALE' : ' · fresh')) : 'unavailable') + '</span></div>';
+  html += '<div class="item row small"><span class="dot ' + (s.campaign ? 'g' : 'd') + '"></span><div class="grow">Campaign</div><span class="dim">' +
+    (s.campaign ? esc(s.campaign.name) + ' · ' + fmtFull(s.campaign_creator_joins) + ' creator joins' : 'none active') + '</span></div>';
+  html += '<div class="row" style="margin-top:10px;gap:14px"><svg width="64" height="64" viewBox="0 0 64 64">' +
+    '<circle cx="32" cy="32" r="26" fill="none" stroke="#26231a" stroke-width="7"/>' +
+    '<circle class="ring" cx="32" cy="32" r="26" fill="none" stroke="#e31b23" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - pct / 100)) + '" transform="rotate(-90 32 32)"/></svg>' +
+    '<div><div class="big2">' + fmtFull(cr.hubs_claimed) + ' / ' + fmtFull(cr.hubs_total) + '</div><div class="dim small">creator hubs claimed (' + pct + '%) · ' + fmtFull(cr.applications_pending) + ' applications waiting</div></div></div>';
+  var dep = OV.deploy;
+  if (dep && dep.ok) {
+    html += '<div class="tiny dim" style="margin-top:10px">Live build: ' + esc(dep.frontend_build || '—') + ' · API ' + esc((dep.api || {}).branch || '') + '@' + esc((dep.api || {}).head || '') + ' · site ' + esc((dep.site || {}).branch || '') + '@' + esc((dep.site || {}).head || '') + ' · deploy state synced ' + ageOf(dep.synced_at) + '</div>';
+  } else if (dep) {
+    html += '<div class="tiny dim" style="margin-top:10px">Deploy state: ' + esc(dep.note || 'not synced yet') + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ---------------- CREATOR ACTIONS ---------------- */
+function renderCreators() {
+  var el = $('p-creators');
+  var html = '<h2>Creator Actions</h2>';
+  if (!QUEUE) { el.innerHTML = html + '<div class="dim small">Queue loading…</div>'; return; }
+  var apps = QUEUE.applications || [];
+  html += '<div class="tiny dim" style="letter-spacing:1px">APPLICATIONS WAITING · ' + apps.length + '</div>';
+  if (!apps.length) html += '<div class="small dim" style="padding:6px 0">Nobody waiting. Approvals build the hub and email the claim link automatically.</div>';
+  apps.forEach(function (a) {
+    html += '<div class="item"><div class="row"><div class="grow"><b>' + esc(a.name) + '</b> <span class="dim small">' + esc(a.platform || '') + ' · ' + esc(a.followers || '') + '</span></div></div>' +
+      (a.pitch ? '<div class="small dim" style="margin-top:2px">' + esc(a.pitch) + '</div>' : '') +
+      '<div class="row" style="margin-top:8px"><button class="btn sm" data-act="approve-app" data-id="' + a.id + '">Approve</button>' +
+      '<button class="btn ghost sm" data-act="reject-app" data-id="' + a.id + '">Reject</button></div></div>';
+  });
+  html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">SEND A CLAIM INVITE</div>' +
+    '<div class="row" style="margin-top:6px"><div class="grow"><input type="text" id="invSlug" placeholder="Creator slug (e.g. bona-bones)"></div>' +
+    '<button class="btn sm" id="invCreateBtn">Invite</button></div>' +
+    '<input type="text" id="invEmail" placeholder="Email (optional — sends the claim link)" style="margin-top:8px">';
+  var invs = (QUEUE.invites || []).filter(function (t) { return t.status === 'active'; });
+  if (invs.length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">LIVE INVITES · ' + invs.length + '</div>' + invs.slice(0, 10).map(function (t) {
+      return '<div class="item row small"><div class="grow"><b>' + esc(t.slug) + '</b> <span class="dim">' + (t.hub_claimed ? 'claimed' : 'waiting') + ' · sent ' + (t.last_sent_at ? ageOf(t.last_sent_at) : 'never') + '</span></div>' +
+        '<button class="btn ghost sm" data-act="revoke-invite" data-token="' + esc(t.token) + '" data-slug="' + esc(t.slug) + '">Revoke</button></div>';
+    }).join('');
+  }
+  if (CAMPS && CAMPS.length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:12px">CAMPAIGN SWITCHER</div>' + CAMPS.map(function (c) {
+      return '<div class="item row small"><span class="dot ' + (c.is_active ? 'g' : 'd') + '"></span><div class="grow"><b>' + esc(c.name || c.id) + '</b> <span class="dim">' + (c.days_left != null && c.is_active ? c.days_left + 'd left' : '') + '</span></div>' +
+        (c.is_active ? '<span class="tag grn">live</span>' : '<button class="btn ghost sm" data-act="activate-campaign" data-id="' + esc(c.id) + '" data-name="' + esc(c.name || c.id) + '">Activate</button>') + '</div>';
+    }).join('');
+  }
+  html += '<div class="tiny dim" style="margin-top:10px">Every button here confirms through Triple Wrap: tap → Face ID → done. A denial stops the action — nothing runs on the secret alone.</div>';
+  el.innerHTML = html;
+  bindActionButtons(el);
+  var b = $('invCreateBtn');
+  if (b) b.onclick = function () {
+    var slug = $('invSlug').value.trim().toLowerCase();
+    var email = $('invEmail').value.trim();
+    if (!slug) { toast('Enter a creator slug first.'); return; }
+    confirmAndAct({ twAction: 'creator_invite_create', target: slug, ccAction: 'creator_invite_create',
+      args: { slug: slug, email: email }, label: 'Send claim invite to ' + slug,
+      done: function (r) { if (r.link) toast('Invite live: <span class="mono">' + esc(r.link) + '</span>' + (r.email_sent ? ' · emailed' : ''), 12000); loadRest(); } });
+  };
+}
+
+/* ---------------- PROMISE KEEPER ---------------- */
+function renderPk() {
+  var el = $('p-pk'), p = OV && OV.promises;
+  if (!p) { el.innerHTML = '<h2>Promise Keeper</h2><div class="dim small">No reading yet.</div>'; return; }
+  if (!p.ok) { el.innerHTML = '<h2>Promise Keeper</h2><div class="small" style="line-height:1.55">' + esc(p.note || 'Promise Keeper state unavailable.') + '</div>'; return; }
+  var nl = p.not_live_count || 0;
+  var html = '<h2>Promise Keeper</h2><div class="stats">' +
+    statHtml(fmtFull(p.directives_checked), 'directives checked') +
+    statHtml(nl, 'not live') +
+    statHtml(fmtFull(p.need_human), 'need your eyes') +
+    statHtml(fmtFull(p.escalations_open), 'open escalations') + '</div>';
+  html += nl === 0
+    ? '<div class="okbanner">Every checked directive is live. Nothing is silently dead.</div>'
+    : '<div class="lockbanner">' + nl + ' directive(s) NOT LIVE — see escalations.</div>';
+  if ((p.escalated_top || []).length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:6px">WAITING ON YOU</div>' + p.escalated_top.map(function (e) {
+      return '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span><div class="tiny dim">' + esc(e.state || '') + ' · open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '—') + '</div></div>';
+    }).join('');
+  }
+  html += '<div class="tiny dim" style="margin-top:8px">Last sweep ' + esc(p.at || '—') + ' · PWA: ' + esc(p.pwa_freshness || '—') + ' · synced ' + ageOf(p.synced_at) + '</div>';
+  el.innerHTML = html;
+}
+
+/* ---------------- SECURITY (Triple Wrap) ---------------- */
+function twState() {
+  var t = window._twStatus;
+  if (t && t.ok) return { live: true, enrolled: !!t.enrolled, credentials: t.credentials || [], locked: !!t.locked, lock_until: t.lock_until || 0, session: t.session || null, path: t.confirmation_path || '', audit: t.recent_audit || [] };
+  if (SEC && SEC.ok && SEC.module_live) return { live: true, enrolled: !!SEC.enrolled, credentials: SEC.credentials || [], locked: !!SEC.locked, lock_until: SEC.lock_until || 0, session: null, path: SEC.confirmation_path || '', audit: SEC.recent_audit || [] };
+  return { live: false, enrolled: false, credentials: [], locked: false, lock_until: 0, session: null, path: '', audit: [] };
+}
+function renderSecurity() {
+  var el = $('p-sec'), s = twState();
+  var lb = $('lockbanner');
+  if (s.locked) { lb.style.display = ''; lb.textContent = '⛔ Confirmations are LOCKED until ' + new Date(s.lock_until).toLocaleString() + ' — repeated failed attempts tripped the limit. Every confirmation is paused; reads still work.'; }
+  else lb.style.display = 'none';
+  if (!s.live) {
+    el.innerHTML = '<h2>Security — Triple Wrap</h2><div class="small" style="line-height:1.55">The confirmation module has not answered yet on this worker. Confirmations are closed — approvals, invites and switches will deny rather than run. That is the fail-closed design working.</div>';
+    return;
+  }
+  var html = '<h2>Security — Triple Wrap</h2><div class="sec3 stats">' +
+    statHtml(s.session ? 'ON' : 'off', 'hardened session') +
+    statHtml(s.credentials.filter(function (c) { return !c.revoked; }).length, 'passkeys enrolled') +
+    statHtml(s.locked ? 'LOCKED' : 'clear', 'lock state') + '</div>';
+  html += '<div class="item small"><span class="dot ' + (s.enrolled ? 'g' : 'r') + '"></span>Confirmation path: <b>' + esc(s.path || (s.enrolled ? 'open' : 'CLOSED')) + '</b>' +
+    (s.enrolled ? '' : '<div class="dim small" style="margin-top:2px">No passkey enrolled yet — nothing can confirm until setup. One minute, once.</div>') + '</div>';
+  if (!s.enrolled) html += '<button class="btn" id="enrollBtn" style="width:100%;margin-top:10px">Set up Face ID confirmation</button>';
+  if (s.credentials.length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:10px">PASSKEYS</div>' + s.credentials.map(function (c) {
+      var id = c.cred_id || c.id || '';
+      return '<div class="item row small"><div class="grow"><b>' + esc(c.label || 'Passkey') + '</b> <span class="dim">' + esc(String(id).slice(0, 12)) + ' · added ' + (c.created_at ? new Date(c.created_at).toLocaleDateString() : '—') + (c.revoked ? ' · REVOKED' : '') + '</span></div>' +
+        (c.revoked ? '' : '<button class="btn ghost sm" data-act="revoke-cred" data-id="' + esc(id) + '">Revoke</button>') + '</div>';
+    }).join('');
+  }
+  if (s.audit.length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:10px">CONFIRMATION AUDIT TRAIL</div>' + s.audit.map(function (a) {
+      var ok = a.result === 'ok';
+      return '<div class="item small"><span class="dot ' + (ok ? 'g' : 'r') + '"></span><b>' + esc(a.event || '') + '</b> <span class="dim">' + esc(a.action || '') + (a.target ? ' → ' + esc(a.target) : '') + '</span>' +
+        '<div class="tiny dim">' + (a.ts ? new Date(a.ts).toLocaleString() : '') + (a.layer && a.layer !== 'none' ? ' · decided at ' + esc(a.layer) + ' layer' : '') + (a.detail ? ' · ' + esc(a.detail) : '') + '</div></div>';
+    }).join('');
+  } else {
+    html += '<div class="small dim" style="margin-top:8px">No confirmation attempts yet — the audit trail fills the first time anything is confirmed or denied.</div>';
+  }
+  el.innerHTML = html;
+  bindActionButtons(el);
+  var eb = $('enrollBtn');
+  if (eb) eb.onclick = enroll;
+}
+
+/* ---------------- the confirm ceremony (spec §4b) ---------------- */
+function b64uToBuf(s) {
+  s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s), buf = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+function bufToB64u(buf) {
+  var bytes = new Uint8Array(buf), bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function showDenied(where, r) {
+  var layer = r && r.layer ? ' at the ' + r.layer + ' layer' : '';
+  var err = (r && (r.err || r.error || r.detail)) || 'denied';
+  toast('<b>Not confirmed.</b> ' + esc(where) + ' was denied' + layer + ': ' + esc(err) + '<br><span class="dim">Nothing executed. The attempt is in the audit trail.</span>', 9000);
+}
+async function refreshSecurity() {
+  var tw = await apiPost('tw_status', { admin_secret: secret }).catch(function () { return null; });
+  if (tw && tw.ok) window._twStatus = tw;
+  var sec = await apiGet('cc_security').catch(function () { return null; });
+  if (sec && sec.ok) SEC = sec;
+  renderSecurity();
+}
+async function confirmAndAct(spec) {
+  if (!window.PublicKeyCredential) { toast('This browser cannot do passkey confirmation. Nothing executed.'); return; }
+  var b;
+  try { b = await apiPost('tw_assert_begin', { action: spec.twAction, target: spec.target }); }
+  catch (e) { toast('Confirmation service unreachable. Nothing executed.'); return; }
+  if (!b || !b.ok) { showDenied(spec.label, b); refreshSecurity(); return; }
+  var cred;
+  try {
+    cred = await navigator.credentials.get({ publicKey: {
+      challenge: b64uToBuf(b.options.challenge),
+      rpId: b.options.rpId,
+      allowCredentials: (b.options.allowCredentials || []).map(function (c) { return { type: 'public-key', id: b64uToBuf(c.id), transports: c.transports }; }),
+      userVerification: 'required'
+    } });
+  } catch (e) { toast('Face ID was cancelled or failed. Nothing executed.'); refreshSecurity(); return; }
+  var f;
+  try {
+    f = await apiPost('tw_assert_finish', { action: spec.twAction, target: spec.target, credential: {
+      id: cred.id, rawId: bufToB64u(cred.rawId), type: cred.type,
+      response: { clientDataJSON: bufToB64u(cred.response.clientDataJSON), authenticatorData: bufToB64u(cred.response.authenticatorData), signature: bufToB64u(cred.response.signature) }
+    } });
+  } catch (e) { toast('Confirmation service unreachable at step-up. Nothing executed.'); return; }
+  if (!f || !f.ok) { showDenied(spec.label, f); refreshSecurity(); return; }
+  var r;
+  try { r = await apiPost('cc_act', { action_id: spec.ccAction, args: spec.args || {}, confirm_token: f.confirm_token }); }
+  catch (e) { toast('The action call failed after confirmation — the token is consumed; check the audit trail before retrying.'); refreshSecurity(); return; }
+  if (r && r.ok) { toast('<b>Done.</b> ' + esc(spec.label) + ' — executed and written to the audit trail.'); if (spec.done) spec.done(r); }
+  else if (r && r.wrap_required) { showDenied(spec.label, { layer: 'consumer gate', err: r.detail || r.error || 'wrap denied' }); }
+  else { toast('<b>Confirmed, but the action failed:</b> ' + esc((r && (r.err || r.error)) || 'unknown') + '<br><span class="dim">The confirmation was consumed and the failure is audited.</span>', 9000); if (spec.done) spec.done(r); }
+  refreshSecurity();
+}
+async function enroll() {
+  var b;
+  try { b = await apiPost('tw_enroll_begin', {}); } catch (e) { toast('Enrollment unreachable.'); return; }
+  if (!b || !b.ok) { showDenied('Passkey setup', b); return; }
+  var cred;
+  try {
+    cred = await navigator.credentials.create({ publicKey: {
+      challenge: b64uToBuf(b.options.challenge),
+      rp: b.options.rp,
+      user: { id: b64uToBuf(b.options.user.id), name: b.options.user.name, displayName: b.options.user.displayName },
+      pubKeyCredParams: b.options.pubKeyCredParams,
+      authenticatorSelection: b.options.authenticatorSelection,
+      attestation: b.options.attestation,
+      excludeCredentials: (b.options.excludeCredentials || []).map(function (c) { return { type: 'public-key', id: b64uToBuf(c.id), transports: c.transports }; })
+    } });
+  } catch (e) { toast('Passkey setup was cancelled.'); return; }
+  var f = await apiPost('tw_enroll_finish', { label: 'Shane iPhone', credential: {
+    id: cred.id, rawId: bufToB64u(cred.rawId), type: cred.type,
+    response: { clientDataJSON: bufToB64u(cred.response.clientDataJSON), attestationObject: bufToB64u(cred.response.attestationObject) }
+  } }).catch(function () { return null; });
+  if (f && f.ok) { toast('<b>Passkey enrolled.</b> Confirmations now require your Face ID — on this phone, at the moment you tap.'); }
+  else showDenied('Passkey setup', f);
+  refreshSecurity();
+}
+
+/* ---------------- action buttons ---------------- */
+function bindActionButtons(root) {
+  root.querySelectorAll('[data-act]').forEach(function (btn) {
+    if (btn._bound) return; btn._bound = true;
+    btn.onclick = function () {
+      var act = btn.getAttribute('data-act');
+      if (act === 'approve-app' || act === 'reject-app') {
+        var id = btn.getAttribute('data-id'), ok = act === 'approve-app';
+        confirmAndAct({ twAction: 'creator_application_review', target: id + ':' + (ok ? 'approved' : 'rejected'),
+          ccAction: ok ? 'creator_application_approve' : 'creator_application_reject', args: { id: Number(id) },
+          label: (ok ? 'Approve' : 'Reject') + ' creator application #' + id, done: function () { loadRest(); } });
+      } else if (act === 'revoke-invite') {
+        var token = btn.getAttribute('data-token');
+        confirmAndAct({ twAction: 'creator_invite_revoke', target: token.slice(0, 12),
+          ccAction: 'creator_invite_revoke', args: { token: token },
+          label: 'Revoke the claim invite for ' + btn.getAttribute('data-slug'), done: function () { loadRest(); } });
+      } else if (act === 'activate-campaign') {
+        confirmAndAct({ twAction: 'command_center:campaign_activate', target: btn.getAttribute('data-id'),
+          ccAction: 'campaign_activate', args: { id: btn.getAttribute('data-id') },
+          label: 'Activate campaign ' + btn.getAttribute('data-name'), done: function () { loadRest(); refreshOverview(); } });
+      } else if (act === 'revoke-key') {
+        var prefix = btn.getAttribute('data-prefix');
+        confirmAndAct({ twAction: 'command_center:dp_key_revoke', target: prefix,
+          ccAction: 'dp_key_revoke', args: { key_prefix: prefix },
+          label: 'Revoke API key ' + prefix, done: function () { refreshOverview(); } });
+      } else if (act === 'revoke-cred') {
+        var cid = btn.getAttribute('data-id');
+        apiPost('tw_credential_revoke', { credential_id: cid }).then(function (r) {
+          toast(r && r.ok ? '<b>Passkey revoked.</b> It can no longer confirm anything.' : 'Revoke failed: ' + esc((r && (r.err || r.error)) || 'unknown'));
+          refreshSecurity();
+        });
+      }
+    };
+  });
+}
+
+function renderAll() {
+  if (!OV) return;
+  $('genAt').textContent = 'read ' + new Date(OV.generated_at).toLocaleTimeString();
+  var ages = [OV.org, OV.promises, OV.deploy].filter(function (s) { return s && s.ok; }).map(function (s) { return s.age_s; });
+  $('syncTag').textContent = ages.length ? 'synced ' + Math.max.apply(null, ages) + 's ago' : 'live reads';
+  renderOrg(); renderData(); renderMoney(); renderSite(); renderPk(); renderSecurity();
+  if (QUEUE) renderCreators();
+}
+
+$('enterBtn').onclick = enter;
+$('secret').addEventListener('keydown', function (e) { if (e.key === 'Enter') enter(); });
+$('refreshBtn').onclick = function () { refreshOverview(); loadRest(); };
+$('signOutBtn').onclick = async function () {
+  try { await apiPost('tw_session_end', {}); } catch (e) {}
+  try { sessionStorage.removeItem('pf_admin_secret'); } catch (e) {}
+  secret = ''; twSess = ''; twDev = '';
+  location.reload();
+};
+(function boot() {
+  var v = '';
+  try { v = sessionStorage.getItem('pf_admin_secret') || ''; } catch (e) {}
+  if (v) { $('secret').value = v; enter(); }
+})();
+</script>
+</body>
+</html>

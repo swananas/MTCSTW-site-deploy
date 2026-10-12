@@ -592,6 +592,19 @@
       <span>⚡</span><span id="pf-xp-val">0</span>&nbsp;XP
     </div>
   </div>
+  <script>
+  /* UX sprint ITER-4: hide the XP chip for first-time visitors (no callsign).
+     "0 XP" is noise that raises "am I supposed to log in?" anxiety. */
+  (function(){
+    try{
+      var has = window.PFCallsign && window.PFCallsign();
+      if(!has){
+        var chip = document.getElementById('pf-xp-chip');
+        if(chip) chip.style.display = 'none';
+      }
+    }catch(e){}
+  })();
+  </script>
 
 </header>
 
@@ -957,7 +970,7 @@ fetchCampaign().then(render);
   </div>
 
   <!-- MEDALS + LEADERBOARD (v1: device-local, backend later) -->
-  <div class="kh-feed-head" style="padding-top:6px">
+  <div class="kh-feed-head" style="padding-top:6px" id="pf-medals-head">
     <h2>🏅 Your medals</h2>
     <span class="kh-tick"><i></i>THIS DEVICE</span>
   </div>
@@ -3431,6 +3444,17 @@ function pfRenderMedals(){
   var wrap = document.getElementById('pf-medals-row');
   if(!wrap) return;
   var earned = pfGetMedals();
+  /* UX sprint ITER-4: hide the whole medals section for first-timers with
+     nothing earned — "No medals yet" is dead space below the fold. */
+  var head = document.getElementById('pf-medals-head');
+  var isNew = !(window.PFCallsign && window.PFCallsign()) && !earned.length;
+  if(isNew){
+    wrap.style.display = 'none';
+    if(head) head.style.display = 'none';
+    return;
+  }
+  if(head) head.style.display = '';
+  wrap.style.display = '';
   if(!earned.length){ wrap.innerHTML = '<span style="color:#666;font-size:12px">No medals yet — share intel to earn your first.</span>'; return; }
   var html = '';
   PF_MEDALS.forEach(function(m){

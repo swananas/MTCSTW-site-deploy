@@ -291,6 +291,35 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
   function sec(){return secret;}
   function showMsg(t,err){var m=document.getElementById('admin-msg');m.className='cc-msg '+(err?'err':'ok');m.textContent=t;}
   function apiGet(q){return fetch(API+'/?'+q).then(function(r){return r.json();});}
+  /* Triple Wrap (CEO security directive 2026-10-12): every confirmation on
+     this page (approve, reject, invite create, invite revoke) executes ONLY
+     through the shared Triple Wrap \u2014 hardened admin session + fresh
+     WebAuthn step-up at the moment of confirmation + single-use
+     action-bound signed token. When the wrap client lands
+     (window.PFTripleWrap), tokens are obtained from it here. Until then
+     the backend fails closed and this page shows the reason \u2014 no
+     parallel scheme, no silent fallback. */
+  function wrapQuery(action,target){
+    try{
+      if(window.PFTripleWrap&&typeof window.PFTripleWrap.confirm==='function'){
+        return window.PFTripleWrap.confirm(action,target).then(function(tok){
+          return tok?('&wrap_token='+encodeURIComponent(tok.token||tok)+'&wrap_session='+encodeURIComponent(tok.session||'')+'&wrap_stepup='+encodeURIComponent(tok.stepup||'')):'';
+        }).catch(function(){return '';});
+      }
+    }catch(e){}
+    return Promise.resolve('');
+  }
+  function wrapBody(action,target){
+    try{
+      if(window.PFTripleWrap&&typeof window.PFTripleWrap.confirm==='function'){
+        return window.PFTripleWrap.confirm(action,target).then(function(tok){
+          return tok?{wrap_token:tok.token||tok,wrap_session:tok.session||'',wrap_stepup:tok.stepup||''}:{};
+        }).catch(function(){return {};});
+      }
+    }catch(e){}
+    return Promise.resolve({});
+  }
+  function denyText(d){return (d&&(d.detail||d.error))?String(d.detail||d.error):'Confirmation denied.';}
   function loadAll(){
     document.getElementById('admin-apps').innerHTML='<p class="cc-meta">Loading\u2026</p>';
     document.getElementById('admin-invites').innerHTML='<p class="cc-meta">Loading\u2026</p>';
@@ -324,31 +353,37 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
   }
   function review(id,status){
     var out=document.querySelector('[data-review-out="'+id+'"]');if(out)out.textContent='Working\u2026';
-    apiGet('action=creator_application_review&id='+encodeURIComponent(id)+'&status='+encodeURIComponent(status)+'&_adminSecret='+encodeURIComponent(sec()))
+    wrapQuery('creator_application_review',id+':'+status).then(function(wf){
+    apiGet('action=creator_application_review&id='+encodeURIComponent(id)+'&status='+encodeURIComponent(status)+'&_adminSecret='+encodeURIComponent(sec())+wf)
      .then(function(d){
        if(d&&d.ok){
          var bits=[status==='approved'?'Approved.':'Rejected.'];
          if(status==='approved'){if(d.hub_built!=null)bits.push('Hub built: '+(d.hub_built?'yes':'no'));if(d.email_sent!=null)bits.push('Claim email sent: '+(d.email_sent?'yes':'no'));}
          if(out)out.textContent=bits.join(' ');
          showMsg(bits.join(' '),false);loadAll();
-       }else{if(out)out.textContent=(d&&d.error)?('Failed ('+d.error+').'):'Failed.';showMsg('Review failed.',true);}
+       }else{if(out)out.textContent=(d&&d.wrap_required)?('Locked: '+denyText(d)):((d&&d.error)?('Failed ('+d.error+').'):'Failed.');if(d&&d.wrap_required)showMsg('Triple Wrap: '+denyText(d),true);else showMsg('Review failed.',true);}
      }).catch(function(){if(out)out.textContent='Network error.';});
+    });
   }
   function revoke(token,btn){
     if(!token)return;btn.disabled=true;
-    fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_invite_revoke',token:token,_adminSecret:sec()})})
-     .then(function(r){return r.json();}).then(function(d){if(d&&d.ok){showMsg('Invite revoked.',false);loadAll();}else{showMsg((d&&d.error)?('Revoke failed ('+d.error+').'):'Revoke failed.',true);btn.disabled=false;}})
+    wrapBody('creator_invite_revoke',token.slice(0,12)).then(function(wb){
+    var payload={action:'creator_invite_revoke',token:token,_adminSecret:sec()};for(var k in wb)payload[k]=wb[k];
+    fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+     .then(function(r){return r.json();}).then(function(d){if(d&&d.ok){showMsg('Invite revoked.',false);loadAll();}else{showMsg((d&&d.wrap_required)?('Triple Wrap: '+denyText(d)):((d&&d.error)?('Revoke failed ('+d.error+').'):'Revoke failed.'),true);btn.disabled=false;}})
      .catch(function(){showMsg('Could not reach the server.',true);btn.disabled=false;});
+    });
   }
-  document.getElementById('inv-create').addEventListener('click',function(){
+  document.getElementById('inv-create').addEventListener('click',async function(){
     var slugv=(document.getElementById('inv-slug').value||'').trim();var emailv=(document.getElementById('inv-email').value||'').trim();var out=document.getElementById('inv-result');
     if(!slugv){out.innerHTML='<p class="cc-meta">Enter a creator slug first.</p>';return;}
     var btn=this;btn.disabled=true;btn.textContent='CREATING\u2026';
-    fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_invite_create',slug:slugv,email:emailv,_adminSecret:sec()})})
+    var wf=await wrapBody('creator_invite_create',slugv);var payload={action:'creator_invite_create',slug:slugv,email:emailv,_adminSecret:sec()};for(var k in wf)payload[k]=wf[k];
+    fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
      .then(function(r){return r.json();}).then(function(d){
        btn.disabled=false;btn.textContent='Create invite';
        if(d&&d.ok&&d.link){out.innerHTML='<div class="cc-postbox">'+esc(d.link)+'</div><button type="button" class="cc-mini" id="inv-copy">Copy link</button> <span class="cc-small">'+(d.email_sent!=null?('Email sent: '+(d.email_sent?'yes':'no')):'')+'</span>';document.getElementById('inv-copy').addEventListener('click',function(){copyText(d.link,this);});loadAll();}
-       else{out.innerHTML='<p class="cc-meta">'+esc((d&&d.error)?('Invite failed ('+d.error+').'):'Invite failed.')+'</p>';}
+       else{out.innerHTML='<p class="cc-meta">'+esc((d&&d.wrap_required)?('Triple Wrap: '+denyText(d)):((d&&d.error)?('Invite failed ('+d.error+').'):'Invite failed.'))+'</p>';}
      }).catch(function(){btn.disabled=false;btn.textContent='Create invite';out.innerHTML='<p class="cc-meta">Could not reach the server.</p>';});
   });
   function unlock(s){

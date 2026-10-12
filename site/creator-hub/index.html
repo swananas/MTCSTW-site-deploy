@@ -261,6 +261,21 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
     <div id="h-strengths" class="cc-meta" style="margin-top:10px"></div>
   </div>
 
+  <!-- Ask Karl: the hub's entry into the site-wide ambient Karl layer.
+       In-place ask on the existing karl_query endpoint with creator context
+       (slug, name, stats) — NOT a bespoke Karl page. When the ambient Karl
+       layer lands site-wide, this card is the integration point and the two
+       converge without rework. -->
+  <div class="cc-card" id="h-karl-card">
+    <h2 style="color:#f5ead6;margin:0 0 8px">Ask Karl</h2>
+    <p class="cc-meta">Karl works the Factory's rails. Ask in plain words — the answer lands right here.</p>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input id="karl-q" class="cc-input" type="text" maxlength="300" placeholder="Who profits from private prisons?" aria-label="Ask Karl" style="flex:1;min-width:0">
+      <button type="button" class="cc-btn" id="karl-ask" style="flex:0 0 auto;width:auto;padding:0 22px">ASK</button>
+    </div>
+    <div id="karl-answer" style="margin-top:14px"></div>
+  </div>
+
   <div class="cc-card">
     <h2 style="color:#f5ead6;margin:0 0 8px">Your numbers</h2>
     <div id="h-stats"></div>
@@ -299,8 +314,9 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <div class="cc-card" id="h-press-card" style="display:none">
     <h2 style="color:#f5ead6;margin:0 0 8px">Today's free press pack</h2>
     <p class="cc-meta">One free pack every day, built from the Factory's live data. No charge, ever.</p>
+    <p class="cc-meta" style="margin-top:10px">Pick your fights — tap the causes you post about. The pack builds itself from the Factory's rails underneath.</p>
     <div id="pp-rails" style="margin-top:14px"></div>
-    <div id="pp-rails-note" class="cc-small" style="display:none;margin-top:4px">Claim your page to set your rails.</div>
+    <div id="pp-rails-note" class="cc-small" style="display:none;margin-top:4px">Claim your page to pick your causes.</div>
     <div id="pp-msg" class="cc-msg" role="status" aria-live="polite"></div>
     <div id="pp-action" style="margin-top:14px"></div>
     <div id="pp-pack"></div>
@@ -368,6 +384,47 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
      }else{
        v.innerHTML='<p class="cc-meta">This week\u2019s ballot is the 10 highest propaganda scores \u2014 you\u2019re not on it this week.</p>';
      }
+     // Ask Karl — in-place on the existing karl_query endpoint, with creator
+     // context. This card is the hub's integration point for the site-wide
+     // ambient Karl layer (same endpoint, same in-place pattern).
+     var karlBusy=false;
+     function askKarl(q,fallbackPost){
+       var host=document.getElementById('karl-answer');
+       if(!q||karlBusy)return;
+       karlBusy=true;
+       host.innerHTML='<p class="cc-meta">Karl is working the rails\u2026</p>';
+       var ctx={creator:slug,name:d.name||'',score:d.score||'',platform:d.primary_platform||''};
+       var url=API+'?action=karl_query&q='+encodeURIComponent(q)+'&context='+encodeURIComponent(JSON.stringify(ctx));
+       fetch(url).then(function(r){return r.json();}).then(function(j){
+         karlBusy=false;
+         var html='';
+         if(j&&j.degraded)html+='<p class="cc-small">'+esc(j.degraded_note||'Karl is resting — static answers only.')+'</p>';
+         if(j&&j.facts&&j.facts.length){
+           html+=j.facts.slice(0,4).map(function(f){
+             var src=(f.source&&f.source.name)?('<div class="cc-small" style="margin-top:6px">Source: '+esc(f.source.name)+(f.source.period?(' \u00b7 '+esc(String(f.source.period))):'')+'</div>'):'';
+             return '<div class="cc-pack-item"><div class="cc-small">'+esc(f.label||'Finding')+'</div><div style="font-weight:800;color:#f5ead6">'+esc(f.value_display||'')+'</div>'+(f.note?('<div class="cc-meta">'+esc(f.note)+'</div>'):'')+src+'</div>';
+           }).join('');
+         }else if(j&&j.faq&&j.faq.length){
+           html+='<div class="cc-pack-item"><div class="cc-meta">'+esc(j.faq[0].answer||'')+'</div></div>';
+         }else if(j&&j.prompt&&j.prompt.heading){
+           html+='<div class="cc-pack-item"><div style="font-weight:800;color:#f5ead6">'+esc(j.prompt.heading)+'</div></div>';
+         }
+         if(html){host.innerHTML=html;return;}
+         if(fallbackPost){
+           host.innerHTML='<div class="cc-pack-item"><div class="cc-small">Your post — built from the pack item</div><div class="cc-postbox" style="margin-top:8px">'+esc(fallbackPost)+'</div><button type="button" class="cc-mini" id="karl-post-copy" style="margin-top:8px">Copy post</button></div>';
+           var kb=document.getElementById('karl-post-copy');if(kb)kb.addEventListener('click',function(){copyText(fallbackPost,kb);});
+           return;
+         }
+         host.innerHTML='<p class="cc-meta">Karl has nothing on the rails for that yet \u2014 that\u2019s an honest answer, not a guess.</p>';
+       }).catch(function(){karlBusy=false;host.innerHTML='<p class="cc-meta">The rails didn\u2019t answer \u2014 check your connection and ask again.</p>';});
+     }
+     var karlBtn=document.getElementById('karl-ask');
+     var karlInput=document.getElementById('karl-q');
+     if(karlBtn&&karlInput){
+       karlBtn.addEventListener('click',function(){askKarl(String(karlInput.value||'').trim(),null);});
+       karlInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();askKarl(String(karlInput.value||'').trim(),null);}});
+     }
+     window.__pfAskKarl=askKarl;
      // Share my page
      if(d.share_post)document.getElementById('h-share-post').textContent=d.share_post;
      document.getElementById('h-share').addEventListener('click',function(){
@@ -446,9 +503,9 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
          fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_press_rails_set',slug:slug,callsign:getCallsign(),device:deviceId(),rails:ids})})
           .then(function(r){return r.json();}).then(function(j){
             if(j&&j.ok&&j.rails){selected={};j.rails.forEach(function(rid){selected[rid]=true;});}
-            else{ppShowMsg('Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not save your rails.'),true);}
+            else{ppShowMsg('Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not save your causes.'),true);}
             renderRails();
-          }).catch(function(){ppShowMsg('Could not reach the server \u2014 your rails were not changed.',true);renderRails();});
+          }).catch(function(){ppShowMsg('Could not reach the server \u2014 your causes were not changed.',true);renderRails();});
        }
        var currentPack=null;
        function renderPack(pack){
@@ -488,6 +545,30 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
            if(navigator.share){navigator.share({title:'Today\'s free press pack',text:digest}).catch(function(){});}
            else{copyText(digest,sb);if(sm){sm.className='cc-msg ok';sm.textContent='Pack digest copied \u2014 paste it anywhere.';}}
          });
+         // "Make this a post" \u2014 one tap per item: asks Karl in place (item +
+         // creator context); if Karl has no draft, the post is composed from
+         // the item itself \u2014 pack items are post-ready by design. The answer
+         // renders in the Ask Karl card, in place.
+         var flatItems=[];
+         (pack.rails||[]).forEach(function(r){(r.items||[]).forEach(function(it){flatItems.push(it);});});
+         var itemEls=host.querySelectorAll('.cc-pack-item');
+         for(var ei=0;ei<itemEls.length&&ei<flatItems.length;ei++){
+           (function(el,it){
+             var b=document.createElement('button');
+             b.type='button';b.className='cc-mini';b.textContent='Make this a post';b.style.marginTop='10px';
+             b.addEventListener('click',function(){
+               var post=[it.headline||''];
+               if(it.figure)post.push(String(it.figure));
+               if(it.take)post.push(it.take);
+               if(it.source_name)post.push('Source: '+it.source_name+(it.as_of?(' \u00b7 as of '+it.as_of):''));
+               post.push('JOIN THE FIGHT.');
+               var composed=post.filter(Boolean).join('\n');
+               var kc=document.getElementById('h-karl-card');if(kc)kc.scrollIntoView({behavior:'smooth',block:'start'});
+               if(window.__pfAskKarl)window.__pfAskKarl('Make this a post for '+(d.name||'me')+': '+(it.headline||'')+(it.figure?(' \u2014 '+it.figure):''),composed);
+             });
+             el.appendChild(b);
+           })(itemEls[ei],flatItems[ei]);
+         }
        }
        renderRails();
        if(pp.state==='generated'&&pp.pack){renderPack(pp.pack);}

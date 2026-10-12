@@ -742,7 +742,11 @@ function render(res){
   slot.appendChild(bar);
 }
 
-fetchCampaign().then(render);
+/* UX sprint ITER-10: one-prompt onboarding. The homepage already has the
+   slim #pf-campaign-join card (once-ever, one-tap). Skip the top banner here
+   so visitors get ONE campaign prompt, not two. Other pages unaffected. */
+if(document.getElementById('pf-campaign-join')){ /* skip top banner */ }
+else{ fetchCampaign().then(render); }
 })();
 </script>
 <!-- PF-SIDENAV v1 -->

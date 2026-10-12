@@ -52,6 +52,9 @@
   .err{color:#ff8f94;font-size:13px;min-height:18px}
   .sec3{display:flex;gap:8px}
   .sec3 .stat{text-align:left}
+  .dot.b{background:var(--blue)}
+  .livedot{display:inline-block;width:9px;height:9px;border-radius:99px;background:var(--green);margin-right:7px;vertical-align:1px;animation:lpulse 1.6s ease-in-out infinite}
+  @keyframes lpulse{0%,100%{opacity:1}50%{opacity:.2}}
   a{color:var(--blue)}
 </style>
 </head>
@@ -81,6 +84,8 @@
   <div id="lockbanner" class="lockbanner" style="display:none"></div>
 
   <div class="row" style="flex-wrap:wrap;gap:6px;margin:2px 0 4px">
+    <a class="chip" href="#p-now">Now</a>
+    <a class="chip" href="#p-stream">Stream</a>
     <a class="chip" href="#p-org">Org</a>
     <a class="chip" href="#p-workers">Workers</a>
     <a class="chip" href="#p-data">Data</a>
@@ -93,6 +98,8 @@
     <a class="chip" href="#p-sec">Security</a>
   </div>
 
+  <div class="card" id="p-now"><h2>Now — The Org Alive</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-stream"><h2>Event Stream</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-org"><h2>The Org At Work</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-workers"><h2>The Workers</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-data"><h2>The Data</h2><div class="dim small">Loading…</div></div>
@@ -212,7 +219,8 @@ async function openWall() {
   $('wall').style.display = '';
   renderAll();
   loadRest();
-  setInterval(function () { refreshOverview(); }, 60000);
+  setInterval(function () { refreshOverview(); }, 30000);
+  setInterval(function () { tickPulse(); }, 1000);
 }
 async function refreshOverview() {
   var ov = await apiGet('cc_overview').catch(function () { return null; });
@@ -227,6 +235,56 @@ async function loadRest() {
   if (q && q.ok) { QUEUE = q; renderCreators(); }
   var cl = await apiGet('campaign_list').catch(function () { return null; });
   if (cl && cl.ok) { CAMPS = cl.campaigns || []; renderCreators(); }
+}
+
+/* ---------------- PULSE: NOW + EVENT STREAM ----------------
+   Rides OV.org.pulse, computed by the VM state sync (every 10 min)
+   from the live registry + deploy rail + Promise Keeper: who is
+   working now (every row aged; quiet = no update in >2h, shown
+   aged, never dressed as working), done today, blocked, and the
+   org event stream. The overview re-polls every 30s and relative
+   times tick every second, so the wall moves when the org moves.
+   No pulse in the snapshot = an honest placeholder, never a fake. */
+function relHtml(tsMs) { return '<span data-ts="' + tsMs + '">' + ageOf(tsMs) + '</span>'; }
+function pulseRow(w) {
+  var updMs = (Number(w.updated_at) || 0) * 1000;
+  var ageLine = w.updated_at ? 'last update ' + relHtml(updMs) : 'no update recorded';
+  if (w.quiet) {
+    var hrs = w.age_seconds == null ? '' : ' · no update in ' + Math.max(1, Math.round(w.age_seconds / 3600)) + 'h';
+    return '<div class="item" style="opacity:.45"><div class="row"><div class="grow"><b>' + esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div><span class="tag amb">quiet</span></div>' +
+      '<div class="tiny dim">' + esc(w.department || '') + ' · ' + ageLine + hrs + '</div></div>';
+  }
+  return '<div class="item"><div class="row"><div class="grow"><span class="dot g"></span><b>' + esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div><span class="tag grn">live</span></div>' +
+    '<div class="tiny dim">' + esc(w.department || '') + ' · ' + ageLine + '</div></div>';
+}
+var EVDOT = { complete: 'g', deploy: 'b', started: 'b', sweep: 'd', blocked: 'r', anomaly: 'a' };
+function renderPulse() {
+  var elN = $('p-now'), elS = $('p-stream'), o = OV && OV.org, p = o && o.pulse;
+  if (!p) {
+    elN.innerHTML = '<h2>Now — The Org Alive</h2><div class="dim small">Pulse arrives with the next state sync — nothing shown until it does.</div>';
+    elS.innerHTML = '<h2>Event Stream</h2><div class="dim small">No pulse yet.</div>';
+    return;
+  }
+  var c = p.counts || {};
+  var html = '<h2><span class="livedot"></span>Now — The Org Alive</h2>' +
+    '<div class="tiny dim" style="margin:-4px 0 8px"><span id="pulseLive">LIVE · updated ' + ageOf(p.generated_at) + '</span></div>' +
+    '<div class="stats">' + statHtml(c.active_now || 0, 'working now') + statHtml(c.completed_today || 0, 'done today') + statHtml(c.blocked || 0, 'blocked') + '</div>';
+  var rows = (p.active_now || []).map(pulseRow).join('');
+  html += rows || '<div class="dim small" style="margin-top:8px">Nobody is registered as working right now.</div>';
+  elN.innerHTML = html;
+  var ev = (p.events || []).map(function (e) {
+    return '<div class="item small"><div class="row"><div class="grow"><span class="dot ' + (EVDOT[e.kind] || 'd') + '"></span>' + esc(e.text) + '</div><span class="tiny dim" style="white-space:nowrap">' + relHtml(e.ts) + '</span></div></div>';
+  }).join('');
+  elS.innerHTML = '<h2>Event Stream</h2>' + (ev || '<div class="dim small">No events recorded yet.</div>');
+}
+function tickPulse() {
+  var spans = document.querySelectorAll('[data-ts]');
+  for (var i = 0; i < spans.length; i++) {
+    var ts = Number(spans[i].getAttribute('data-ts')) || 0;
+    if (ts) spans[i].textContent = ageOf(ts);
+  }
+  var pl = $('pulseLive'), p = OV && OV.org && OV.org.pulse;
+  if (pl && p) pl.textContent = 'LIVE · updated ' + ageOf(p.generated_at);
 }
 
 /* ---------------- ORG ---------------- */
@@ -767,7 +825,7 @@ function renderAll() {
   $('genAt').textContent = 'read ' + new Date(OV.generated_at).toLocaleTimeString();
   var ages = [OV.org, OV.promises, OV.deploy, OV.workers, OV.rails].filter(function (s) { return s && s.ok && s.age_s != null; }).map(function (s) { return s.age_s; });
   $('syncTag').textContent = ages.length ? 'synced ' + Math.max.apply(null, ages) + 's ago' : 'live reads';
-  renderOrg(); renderWorkers(); renderData(); renderRails(); renderMoney(); renderFlows(); renderSite(); renderPk(); renderSecurity();
+  renderPulse(); renderOrg(); renderWorkers(); renderData(); renderRails(); renderMoney(); renderFlows(); renderSite(); renderPk(); renderSecurity();
   if (QUEUE) renderCreators();
 }
 

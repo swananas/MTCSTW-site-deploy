@@ -1,0 +1,112 @@
+{
+ "generated_at": 1791847066847,
+ "counts": {
+  "active_now": 68,
+  "completed_today": 38,
+  "blocked": 6
+ },
+ "active_now": [
+  {
+   "id": "cc-live-pulse-20261012",
+   "task": "Command Center live pulse: NOW panel + event stream + auto-refresh (CEO directive 18:13 CDT)",
+   "department": "BUILD",
+   "updated_at": 1791847029,
+   "age_seconds": 37,
+   "quiet": false
+  },
+  {
+   "id": "content-bank-v1-20261012",
+   "task": "Content Bank v1 build: standalone cb_ exchange + provenance (design specs/content-bank-exchange-design.md, all 8 CEO de\u2026",
+   "department": "Backend Pod",
+   "updated_at": 1791846747,
+   "age_seconds": 319,
+   "quiet": false
+  },
+  {
+   "id": "get-a-key-fix-20261012",
+   "task": "API suite get-a-key fix: Get a free API button lands on broken page instead of key maker",
+   "department": "Fix Pod",
+   "updated_at": 1791844589,
+   "age_seconds": 2477,
+   "quiet": false
+  },
+  {
+   "id": "b-ship",
+   "task": "Friday ship integration + QC (ship/friday-20261016-integration)",
+   "department": "delivery",
+   "updated_at": 1791837267,
+   "age_seconds": 9799,
+   "quiet": true
+  },
+  {
+   "id": "B-ALERTS",
+   "task": "Tap5 ZIP alerts rail U6 be/zip-alerts-20261012",
+   "department": "BUILD",
+   "updated_at": 1791835090,
+   "age_seconds": 11976,
+   "quiet": true
+  }
+ ],
+ "events": [
+  {
+   "ts": 1791847035000,
+   "kind": "complete",
+   "text": "Done: Nonprofit Suite integration + LIVE demo deploy (6 branches, migrations renumbered v272-v277) \u00b7 Integration Engineering"
+  },
+  {
+   "ts": 1791847035000,
+   "kind": "complete",
+   "text": "Done: Passkey-only Command Center entry (CEO directive 17:06): assertion sign-in, secret path refuses when credenti\u2026 \u00b7 BUILD"
+  },
+  {
+   "ts": 1791847035000,
+   "kind": "complete",
+   "text": "Done: Command Center live rails coverage: Workers + Rails + Flows panels \u00b7 BUILD"
+  },
+  {
+   "ts": 1791847035000,
+   "kind": "complete",
+   "text": "Done: Face ID scope sweep: WebAuthn confined to Command Center, CEO confirmed device only \u00b7 QC / Audit"
+  },
+  {
+   "ts": 1791847035000,
+   "kind": "complete",
+   "text": "Done: Full audit: API platform suite + enterprise suite \u00b7 QC / Audit"
+  },
+  {
+   "ts": 1791847029000,
+   "kind": "started",
+   "text": "Started: Command Center live pulse: NOW panel + event stream + auto-refresh (CEO directive 18:13 CDT) \u00b7 BUILD"
+  },
+  {
+   "ts": 1791846977000,
+   "kind": "complete",
+   "text": "Done: Free-tier policy build: full breadth, shallow depth (A12 decided) \u2014 build+test on be/api-fix-deploy-20261012,\u2026 \u00b7 Backend Pod"
+  },
+  {
+   "ts": 1791846600000,
+   "kind": "sweep",
+   "text": "Promise Keeper sweep: 61 directives \u00b7 0 not live \u00b7 55 need human verify"
+  },
+  {
+   "ts": 1791846480000,
+   "kind": "deploy",
+   "text": "Deploy: mtcstw-app 3b163b9d \u00b7 gate PASS"
+  },
+  {
+   "ts": 1791846351000,
+   "kind": "started",
+   "text": "Started: Content Bank v1 build: standalone cb_ exchange + provenance (design specs/content-bank-exchange-design.md, al\u2026 \u00b7 Backend Pod"
+  },
+  {
+   "ts": 1791846030214,
+   "kind": "deploy",
+   "text": "Deploy guard PASS \u00b7 140/140 probes"
+  },
+  {
+   "ts": 1791845354772,
+   "kind": "anomaly",
+   "text": "State sync failed: admin_required"
+  }
+ ]
+}

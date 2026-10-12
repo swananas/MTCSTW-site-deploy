@@ -187,6 +187,9 @@ function pfClaimModal(done, opts){
     '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
     '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
     '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
+    /* 2026-10-12 CEO directive: collect email for callsign recovery.
+       Optional but strongly encouraged — enables "find my callsign" via email. */
+    '<input id="pf-cs-email" type="email" maxlength="128" placeholder="email (for callsign recovery)" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:1px solid #444;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
     /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
     '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
     '<button id="pf-cs-btn" style="display:inline-block;background:#c1121f;color:#f5f0e1;font-weight:900;letter-spacing:0.12em;border:none;padding:0.8rem 2.2rem;font-size:1rem;cursor:pointer;font-family:inherit;">CLAIM IT</button>' +
@@ -215,6 +218,10 @@ function pfClaimModal(done, opts){
     setErr('Claiming\u2026'); btn.disabled = true;
     var body = { action:'register', callsign:cs, device:'', age13:1 };
     try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
+    /* 2026-10-12: pass email for recovery (optional). */
+    try{ var _emEl = box.querySelector('#pf-cs-email');
+      if(_emEl){ var _em = String(_emEl.value||'').trim().toLowerCase();
+        if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(_em)) body.email = _em; } }catch(e){}
     try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
     var url = window.PF_BACKEND_URL;
     if(!url){ setErr('Network error. Try again.'); btn.disabled = false; return; }

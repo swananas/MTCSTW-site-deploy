@@ -161,6 +161,19 @@
     display:flex; align-items:baseline; justify-content:space-between;
     padding:26px 20px 4px;
   }
+  /* 2026-10-12 CEO directive: "easy on the eyes, natural" — breathing room,
+     softer hierarchy, feed-first. */
+  #pf-karl-home .kh-feed-head{ padding:32px 20px 8px; }
+  #pf-karl-home .kh-feed-head h2{ font-size:12px; letter-spacing:.22em; }
+  #pf-karl-home{ --kh-card:#101010; }
+  #pf-karl-home .kh-ask-compact{ padding:28px 20px 12px; }
+  #pf-karl-home .kh-ask-compact h1{ font-size:30px; line-height:1.2; margin:0 0 16px; font-weight:700; }
+  #pf-karl-home .kh-chips{ padding:16px 20px 8px; gap:10px; }
+  #pf-karl-home .kh-chip{ padding:10px 16px; font-size:13px; border-radius:999px; }
+  /* Campaign join card entrance */
+  #pf-campaign-join{ animation:pf-cj-in .5s ease-out; }
+  @keyframes pf-cj-in{ from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
+  @media (prefers-reduced-motion:reduce){ #pf-campaign-join{ animation:none; } }
   #pf-karl-home .kh-feed-head h2{ font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--kh-dim); font-weight:700; margin:0; }
   #pf-karl-home .kh-feed-head .kh-tick{ font-size:11px; color:var(--kh-faint); display:flex; align-items:center; gap:6px; }
   #pf-karl-home .kh-feed-head .kh-tick i{ width:6px; height:6px; border-radius:50%; background:var(--kh-green); display:inline-block; animation:none;opacity:1; }
@@ -815,7 +828,54 @@ fetchCampaign().then(render);
     <button class="kh-chip">How rich are the billionaires?</button>
   </div>
 
-
+  <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
+       into the active campaign. Pulls from campaign_active API. After
+       participation, prompts callsign claim if none exists. -->
+  <div id="pf-campaign-join" style="padding:6px 14px 14px;display:none;">
+    <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:block;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:16px;padding:20px;color:#fff;box-shadow:0 6px 24px rgba(193,18,31,.35);">
+      <div id="pf-campaign-join-kicker" style="font-size:11px;font-weight:800;letter-spacing:.14em;opacity:.85;margin-bottom:6px;">🔥 ACTIVE CAMPAIGN</div>
+      <div id="pf-campaign-join-name" style="font-size:22px;font-weight:900;letter-spacing:.02em;margin-bottom:6px;">FIRE GOOFY GUIFOYLE</div>
+      <div id="pf-campaign-join-sub" style="font-size:14px;opacity:.9;line-height:1.45;margin-bottom:14px;">Complete missions. Share intel. Make noise.</div>
+      <div style="display:inline-block;background:#fff;color:#c1121f;font-weight:900;font-size:15px;letter-spacing:.08em;padding:12px 28px;border-radius:999px;">JOIN THE FIGHT →</div>
+    </a>
+  </div>
+  <script>
+  (function(){
+    /* Show campaign join card when a campaign is active. One-tap to participate. */
+    try{
+      var seen = false;
+      try{ seen = !!localStorage.getItem('pf_campaign_joined'); }catch(e){}
+      if(seen) return; /* already participating — don't nag */
+      var el = document.getElementById('pf-campaign-join');
+      if(!el) return;
+      fetch('https://pf-api.mtcstw.workers.dev/?action=campaign_active',{credentials:'omit'})
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if(!j || !j.id) return;
+          var name = document.getElementById('pf-campaign-join-name');
+          var link = document.getElementById('pf-campaign-join-link');
+          var sub = document.getElementById('pf-campaign-join-sub');
+          if(name && j.name) name.textContent = j.name;
+          if(link && j.id) link.href = '/' + j.id + '/';
+          if(sub && j.tagline) sub.textContent = j.tagline;
+          el.style.display = 'block';
+          /* After tap → mark joined, then prompt callsign if none */
+          if(link) link.addEventListener('click', function(){
+            try{ localStorage.setItem('pf_campaign_joined','1'); }catch(e){}
+            setTimeout(function(){
+              try{
+                var has = window.PFCallsign && window.PFCallsign();
+                if(!has && window.PF && PF.requireCallsign){
+                  PF.requireCallsign(function(){}, {context:'to track your campaign missions'});
+                }
+              }catch(e){}
+            }, 2500);
+          });
+        })
+        .catch(function(){});
+    }catch(e){}
+  })();
+  </script>
 
   <div class="kh-feed-head">
     

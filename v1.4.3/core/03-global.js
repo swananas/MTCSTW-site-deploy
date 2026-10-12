@@ -186,6 +186,13 @@ function pfClaimModal(done, opts){
     '<div style="font-size:1.25rem;font-weight:900;letter-spacing:0.14em;color:#c1121f;margin-bottom:0.6rem;">&#9733; CLAIM YOUR CALLSIGN &#9733;</div>' +
     '<div style="font-size:0.9rem;color:#b8ab8e;line-height:1.55;margin-bottom:1rem;">You need a callsign ' + esc(context) + '. Pick one &mdash; it&rsquo;s your name in the fight, and your XP follows it everywhere.</div>' +
     '<input id="pf-cs-input" maxlength="20" placeholder="your_callsign" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #c1121f;padding:0.7rem;font-size:1rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    /* ZIP alerts (U6, 2026-10-12): the one-prompt moment also captures the
+       comeback rail — optional email (recovery + alerts) and ZIP, stored on
+       the SAME callsign by the register handler (no parallel identity).
+       Alerts stay OFF unless the box is ticked: no silent subscriptions. */
+    '<input id="pf-cs-email" type="email" maxlength="128" placeholder="email (optional — recovery + alerts)" autocapitalize="off" autocomplete="email" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #555;padding:0.6rem;font-size:0.95rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    '<input id="pf-cs-zip" maxlength="5" inputmode="numeric" placeholder="ZIP (optional)" autocapitalize="off" autocomplete="postal-code" autocorrect="off" spellcheck="false" style="width:100%;background:#141414;color:#f5f0e1;border:2px solid #555;padding:0.6rem;font-size:0.95rem;font-family:inherit;box-sizing:border-box;margin-bottom:0.5rem;text-align:center;" />' +
+    '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-zipalerts" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">Email me when new payouts &amp; data land for my ZIP (max 1/week, only when it&rsquo;s real).</label>' +
     '<div id="pf-cs-err" style="font-size:0.8rem;color:#ff6b6b;min-height:1.3em;margin-bottom:0.5rem;"></div>' +
     /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
     '<label style="display:block;margin:0 0 0.7rem;font-size:0.8rem;color:#b8ab8e;cursor:pointer;text-align:left;"><input type="checkbox" id="pf-cs-age13" style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">I confirm I am 13 or older.</label>' +
@@ -212,8 +219,24 @@ function pfClaimModal(done, opts){
     /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
     var ageBox = box.querySelector('#pf-cs-age13');
     if(!(ageBox && ageBox.checked)){ setErr('Please confirm you are 13 or older.'); return; }
+    /* ZIP alerts (U6): validate the optional comeback-rail fields before
+       the claim fires — a ticked alerts box needs both a valid email and
+       a 5-digit ZIP, or the rail could never deliver. */
+    var emEl = box.querySelector('#pf-cs-email');
+    var zipEl = box.querySelector('#pf-cs-zip');
+    var zaEl = box.querySelector('#pf-cs-zipalerts');
+    var em = emEl ? String(emEl.value || '').trim().toLowerCase() : '';
+    var zp = zipEl ? String(zipEl.value || '').trim() : '';
+    var za = !!(zaEl && zaEl.checked);
+    if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ setErr('That email doesn\u2019t look right.'); return; }
+    if(zp && !/^\d{5}$/.test(zp)){ setErr('ZIP: 5 digits.'); return; }
+    if(za && !em){ setErr('Add your email to turn on ZIP alerts.'); return; }
+    if(za && !zp){ setErr('Add your ZIP to turn on ZIP alerts.'); return; }
     setErr('Claiming\u2026'); btn.disabled = true;
     var body = { action:'register', callsign:cs, device:'', age13:1 };
+    if(em) body.email = em;
+    if(zp) body.zip = zp;
+    if(za) body.zip_alerts = 1;
     try{ body.device = window.PFDeviceId ? window.PFDeviceId() : ''; }catch(e){}
     try{ var prf = localStorage.getItem('pf_pending_ref'); if(prf && /^[a-z0-9_]{3,20}$/.test(prf)) body.ref = prf; }catch(e){}
     var url = window.PF_BACKEND_URL;

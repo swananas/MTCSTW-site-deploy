@@ -64,6 +64,10 @@ var TYPES=[
   ["marketing","Promotional","Occasional announcements (rare)"]
 ];
 var PREFS=null, MASKED="", CS="", CONTACT_ERR="";
+/* ZIP alerts (U6, 2026-10-12): the Tap-5 comeback rail's settings live
+   here with the rest of the comms prefs — zip_alerts_get/set on the same
+   callsign, no separate settings surface. */
+var ZAPREFS=null;
 function render(){
   var el=document.getElementById("xNotifyPrefs"); if(!el) return;
   var h="";
@@ -84,6 +88,21 @@ function render(){
   h+='</div>';
   /* 2026-10-03 privacy/terms: 13+ self-certification (COPPA/GDPR-K). */
   h+='<label style="display:block;margin:6px 0;font-size:12px;cursor:pointer;"><input type="checkbox" id="npAge13" style="vertical-align:middle;margin-right:6px;">I confirm I am 13 or older</label>';
+  h+='</div>';
+  /* ZIP alerts box: on/off + ZIP, saved on its own contract
+     (zip_alerts_set rides a top-level action, not the notifyq types). */
+  h+='<div class="c-box" style="margin-bottom:12px;">';
+  h+='<div class="c-sub">ZIP ALERTS &mdash; NEW DATA IN YOUR ZIP</div>';
+  h+='<div style="font-size:12px;margin:6px 0;">One email a week, max &mdash; and only when genuinely new payouts or data land for your ZIP. ZIP grain where the dataset is ZIP-keyed; otherwise your district/state, labeled as exactly that.</div>';
+  h+='<div style="display:flex;gap:8px;margin-top:6px;align-items:center;flex-wrap:wrap;">';
+  h+='<input id="npZip" maxlength="5" inputmode="numeric" placeholder="ZIP" value="'+esc(ZAPREFS&&ZAPREFS.zip5?ZAPREFS.zip5:"")+'" style="width:110px;padding:8px;" />';
+  h+='<label style="font-size:13px;cursor:pointer;"><input type="checkbox" id="npZipOn"'+(ZAPREFS&&ZAPREFS.enabled?" checked":"")+' style="vertical-align:middle;margin-right:6px;transform:scale(1.2);">Alerts on</label>';
+  h+='<button class="c-btn" id="npZipBtn" type="button">SAVE ZIP ALERTS</button>';
+  h+='<span id="npZipMsg" style="font-size:12px;"></span>';
+  h+='</div>';
+  if(ZAPREFS&&(ZAPREFS.state||ZAPREFS.district)){
+    h+='<div style="font-size:11px;color:#8a8a8a;margin-top:6px;">Your ZIP resolves to '+esc(ZAPREFS.state||"")+(ZAPREFS.district?" district "+esc(ZAPREFS.district):"")+' for district/state-grain datasets.</div>';
+  }
   h+='</div>';
   h+='<div class="c-sub">MESSAGE TYPES</div>';
   TYPES.forEach(function(t){
@@ -114,6 +133,8 @@ function render(){
   el.innerHTML=h;
   document.getElementById("npSave").addEventListener("click",save);
   document.getElementById("npEmailBtn").addEventListener("click",updateEmail);
+  var zb=document.getElementById("npZipBtn");
+  if(zb) zb.addEventListener("click",saveZipAlerts);
   document.getElementById("npRotate").addEventListener("click",rotateSecret);
   bindPrivacyPanel();
   document.getElementById("npUnsubAll").addEventListener("click",function(e){
@@ -130,9 +151,43 @@ function render(){
       if(j&&j.ok){ PREFS=j.prefs; render(); toast("All emails muted."); }
       else msg("Could not save. "+(PF.errCopy(j,"")));
     });
+    /* "All" means all: ZIP alerts off too (their own contract). */
+    try{
+      var zbody={action:"zip_alerts_set",callsign:CS,zip5:(ZAPREFS&&ZAPREFS.zip5)||"",enabled:0};
+      var zdone=function(j){ if(j&&j.ok){ ZAPREFS={zip5:zbody.zip5,enabled:0}; render(); } };
+      if(window.PF&&PF.authPost){ PF.authPost(BACKEND,zbody,zdone); }
+    }catch(e){}
   });
 }
 function msg(t){ var m=document.getElementById("npMsg"); if(m){ m.textContent=t; } }
+/* ZIP alerts save: zip_alerts_set rides a top-level action field (the
+   backend dispatch is d.action-based, authChecked in-module), so the
+   body is built directly and carried by PF.authPost like every other
+   write here — post() would nest it under a type key instead. */
+function saveZipAlerts(){
+  var zm=document.getElementById("npZipMsg");
+  function zmsg(t){ if(zm) zm.textContent=t; }
+  var zipEl=document.getElementById("npZip"), onEl=document.getElementById("npZipOn");
+  var zp=zipEl?String(zipEl.value||"").trim():"";
+  var on=!!(onEl&&onEl.checked);
+  if(on&&!/^\d{5}$/.test(zp)){ zmsg("Enter a 5-digit ZIP."); return; }
+  if(zp&&!/^\d{5}$/.test(zp)){ zmsg("ZIP: 5 digits."); return; }
+  var b=document.getElementById("npZipBtn"), lbl=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent="SAVING\u2026"; }
+  var body={action:"zip_alerts_set",callsign:CS,zip5:zp,enabled:on?1:0};
+  var done=function(j){
+    if(b){ b.disabled=false; b.textContent=lbl; }
+    if(j&&j.ok){ ZAPREFS={zip5:j.zip5||zp,enabled:j.enabled?1:0}; toast(on?"ZIP alerts on.":"ZIP alerts off."); zmsg(""); render(); }
+    else zmsg("Could not save. "+(PF.errCopy(j,"")));
+  };
+  if(window.PF&&PF.authPost){ PF.authPost(BACKEND,body,done); return; }
+  try{
+    var sec=""; try{ sec=(window.PF&&PF.getAuthSecret)?PF.getAuthSecret():""; }catch(e){}
+    if(sec) body.auth_secret=sec;
+    fetch(BACKEND,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      .then(function(r){ return r.json(); }).then(done).catch(function(){ done(null); });
+  }catch(e){ done(null); }
+}
 /* 2026-10-03 privacy/terms: self-serve data rights. privacyPanelHTML works
    with or without a callsign — callsign-less visitors still get device-only
    export/erase (covers anonymous fan votes). */
@@ -326,7 +381,13 @@ function load(){
       else
         CONTACT_ERR="Could not reach Command to load your preferences. The wire is down &mdash; retry in a bit.";
     }
-    render();
+    if(CONTACT_ERR){ render(); return; }
+    /* ZIP alerts prefs ride the same authed GET pattern; a failure here
+       leaves ZAPREFS null and the box renders empty (honest), never
+       blocking the rest of the surface. */
+    var zcb=function(j){ if(j&&j.ok) ZAPREFS=j; render(); };
+    try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"zip_alerts_get",{callsign:CS},zcb); return; } }catch(e){}
+    api("zip_alerts_get",{callsign:CS},zcb);
   };
   try{ if(window.PF&&PF.authGetJSONP){ PF.authGetJSONP(BACKEND,"contact_get",params,cb); return; } }catch(e){}
   api("contact_get",params,cb);

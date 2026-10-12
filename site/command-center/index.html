@@ -62,10 +62,9 @@
     <h1>MTCSTW</h1>
     <div style="font-size:26px;font-weight:900;margin:6px 0 4px">Command Center</div>
     <p class="dim" style="line-height:1.55;margin:6px 0 18px">The whole organization on one wall — who's working, what the data is doing, the money, the site, the promises. Master tier. Admin only.</p>
-    <input type="password" id="secret" placeholder="Admin secret" autocomplete="current-password">
     <div class="err" id="gateErr" style="margin:8px 0"></div>
-    <button class="btn" id="enterBtn" style="width:100%;padding:14px">ENTER</button>
-    <p class="tiny dim" style="margin-top:14px;line-height:1.5">Sign-in starts your hardened Triple Wrap session. Confirmations (approvals, invites, campaign switches, key revokes) additionally require Face ID at the moment you tap — nothing confirms without it.</p>
+    <button class="btn" id="enterBtn" style="width:100%;padding:14px">Sign in with Face ID</button>
+    <p class="tiny dim" style="margin-top:14px;line-height:1.5">This wall opens only with your enrolled passkey — Face ID on your device, and only yours. Sign-in starts your hardened Triple Wrap session. Confirmations (approvals, invites, campaign switches, key revokes) additionally require Face ID at the moment you tap — nothing confirms without it.</p>
   </div>
 </div>
 
@@ -97,7 +96,6 @@
 <script>
 'use strict';
 var API = 'https://pf-api.mtcstw.workers.dev';
-var secret = '';            /* sessionStorage only (house admin-console pattern) */
 var twSess = '', twDev = ''; /* Triple Wrap header transport — memory only, never stored */
 var OV = null, SEC = null, QUEUE = null, CAMPS = null;
 
@@ -112,7 +110,7 @@ function toast(msg, ms) { var t = $('toast'); t.innerHTML = msg; t.className = '
 function statHtml(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
 function barHtml(pct, cls) { pct = Math.max(0, Math.min(100, Number(pct) || 0)); return '<div class="bar"><i class="' + (cls || '') + '" style="width:' + pct + '%"></i></div>'; }
 
-function headers() { var h = { 'X-Admin-Secret': secret }; if (twSess) h['X-TW-Session'] = twSess; if (twDev) h['X-TW-Device'] = twDev; return h; }
+function headers() { var h = {}; if (twSess) h['X-TW-Session'] = twSess; if (twDev) h['X-TW-Device'] = twDev; return h; }
 async function apiGet(action, params) {
   var qs = new URLSearchParams(Object.assign({ action: action }, params || {})).toString();
   var r = await fetch(API + '/?' + qs, { headers: headers(), credentials: 'include' });
@@ -124,27 +122,76 @@ async function apiPost(action, body) {
   return await r.json();
 }
 
-/* ---------------- sign-in + Triple Wrap session (Wrap 1) ---------------- */
+/* ---------------- sign-in: passkey only (Wrap 1) ----------------
+   Entry law (CEO directive 2026-10-12): the wall opens ONLY with the
+   enrolled passkey. There is no secret field and nothing is stored on
+   this device — a live session resumes from its httpOnly cookie, and
+   signing in runs the Face ID ceremony against tw_signin_*. */
+function b64uToBuf(s) { s = String(s || '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var bin = atob(s); var u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+function bufToB64u(buf) { var u = new Uint8Array(buf || []); var s = ''; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+
 async function enter() {
-  var v = $('secret').value.trim();
-  if (!v) { $('gateErr').textContent = 'Enter the admin secret.'; return; }
-  secret = v;
   $('gateErr').textContent = '';
+  /* A still-live session (cookie from a recent sign-in) reopens the
+     wall with no ceremony — the server's idle rules decide. */
+  if (await resumeIfLive()) return;
+  await faceSignIn();
+}
+
+async function resumeIfLive() {
+  var st = await apiPost('tw_status', {}).catch(function () { return null; });
+  if (st && st.ok && st.session) { window._twStatus = st; openWall(); return true; }
+  return false;
+}
+
+async function faceSignIn() {
+  if (!window.PublicKeyCredential) { $('gateErr').textContent = 'This browser cannot do passkey sign-in. Open the Command Center in Safari or Chrome on your device.'; return; }
+  $('gateErr').textContent = '';
+  var btn = $('enterBtn'); btn.disabled = true; btn.textContent = 'Waiting for Face ID…';
+  try {
+    var b = await apiPost('tw_signin_begin', {});
+    if (!b || !b.ok) {
+      if (b && b.err === 'locked') $('gateErr').textContent = 'Sign-in is locked after repeated denials — it reopens on its own in a few minutes. Nothing was shown.';
+      else if (b && b.err === 'no_passkey_enrolled') $('gateErr').textContent = 'No passkey is enrolled for this wall yet, so there is nothing to sign in with. First enrollment starts from the operator bootstrap — contact the CTO.';
+      else $('gateErr').textContent = 'Sign-in could not start. Nothing was shown.';
+      return;
+    }
+    var cred = null;
+    try {
+      cred = await navigator.credentials.get({ publicKey: {
+        challenge: b64uToBuf(b.options.challenge),
+        rpId: b.options.rpId,
+        allowCredentials: (b.options.allowCredentials || []).map(function (c) { return { type: 'public-key', id: b64uToBuf(c.id), transports: c.transports || ['internal'] }; }),
+        userVerification: b.options.userVerification || 'required',
+        timeout: b.options.timeout || 60000
+      } });
+    } catch (e) { $('gateErr').textContent = 'Face ID was cancelled or no enrolled passkey is available on this device. Nothing was shown.'; return; }
+    if (!cred) { $('gateErr').textContent = 'No passkey was presented. Nothing was shown.'; return; }
+    var f = await apiPost('tw_signin_finish', {
+      signin_state: b.signin_state,
+      credential: {
+        id: cred.id, rawId: bufToB64u(cred.rawId), type: cred.type,
+        response: {
+          clientDataJSON: bufToB64u(cred.response.clientDataJSON),
+          authenticatorData: bufToB64u(cred.response.authenticatorData),
+          signature: bufToB64u(cred.response.signature),
+          userHandle: cred.response.userHandle ? bufToB64u(cred.response.userHandle) : ''
+        }
+      }
+    });
+    if (!f || !f.ok) { $('gateErr').textContent = 'Face ID sign-in was denied. Nothing was shown.'; return; }
+    twSess = f.session_token || ''; twDev = f.device_token || twDev;
+    openWall();
+  } finally { btn.disabled = false; btn.textContent = 'Sign in with Face ID'; }
+}
+
+async function openWall() {
   var probe = await apiGet('cc_overview').catch(function () { return null; });
   if (!probe || !probe.ok) {
-    secret = '';
-    $('gateErr').textContent = 'That secret did not open the wall. Nothing was shown.';
+    $('gateErr').textContent = 'Signed in, but the wall did not open. Nothing was shown.';
     return;
   }
-  try { sessionStorage.setItem('pf_admin_secret', v); } catch (e) {}
   OV = probe;
-  /* Start the hardened session (also mints the device binding). Failure
-     here does not block the wall — reads ride the admin rail — but it is
-     surfaced in the Security panel, and confirmations stay closed. */
-  try {
-    var s = await apiPost('tw_session_begin', { admin_secret: secret });
-    if (s && s.ok) { twSess = s.session_token || ''; twDev = s.device_token || twDev; }
-  } catch (e) {}
   $('gate').style.display = 'none';
   $('wall').style.display = '';
   renderAll();
@@ -158,7 +205,7 @@ async function refreshOverview() {
 async function loadRest() {
   var sec = await apiGet('cc_security').catch(function () { return null; });
   if (sec && sec.ok) { SEC = sec; renderSecurity(); }
-  var tw = await apiPost('tw_status', { admin_secret: secret }).catch(function () { return null; });
+  var tw = await apiPost('tw_status', {}).catch(function () { return null; });
   if (tw && tw.ok) { window._twStatus = tw; renderSecurity(); }
   var q = await apiGet('creator_admin_queue').catch(function () { return null; });
   if (q && q.ok) { QUEUE = q; renderCreators(); }
@@ -344,7 +391,7 @@ function renderCreators() {
         (c.is_active ? '<span class="tag grn">live</span>' : '<button class="btn ghost sm" data-act="activate-campaign" data-id="' + esc(c.id) + '" data-name="' + esc(c.name || c.id) + '">Activate</button>') + '</div>';
     }).join('');
   }
-  html += '<div class="tiny dim" style="margin-top:10px">Every button here confirms through Triple Wrap: tap → Face ID → done. A denial stops the action — nothing runs on the secret alone.</div>';
+  html += '<div class="tiny dim" style="margin-top:10px">Every button here confirms through Triple Wrap: tap → Face ID → done. A denial stops the action — nothing runs without your Face ID.</div>';
   el.innerHTML = html;
   bindActionButtons(el);
   var b = $('invCreateBtn');
@@ -445,7 +492,7 @@ function showDenied(where, r) {
   toast('<b>Not confirmed.</b> ' + esc(where) + ' was denied' + layer + ': ' + esc(err) + '<br><span class="dim">Nothing executed. The attempt is in the audit trail.</span>', 9000);
 }
 async function refreshSecurity() {
-  var tw = await apiPost('tw_status', { admin_secret: secret }).catch(function () { return null; });
+  var tw = await apiPost('tw_status', {}).catch(function () { return null; });
   if (tw && tw.ok) window._twStatus = tw;
   var sec = await apiGet('cc_security').catch(function () { return null; });
   if (sec && sec.ok) SEC = sec;
@@ -553,18 +600,17 @@ function renderAll() {
 }
 
 $('enterBtn').onclick = enter;
-$('secret').addEventListener('keydown', function (e) { if (e.key === 'Enter') enter(); });
 $('refreshBtn').onclick = function () { refreshOverview(); loadRest(); };
 $('signOutBtn').onclick = async function () {
   try { await apiPost('tw_session_end', {}); } catch (e) {}
-  try { sessionStorage.removeItem('pf_admin_secret'); } catch (e) {}
-  secret = ''; twSess = ''; twDev = '';
+  twSess = ''; twDev = '';
   location.reload();
 };
 (function boot() {
-  var v = '';
-  try { v = sessionStorage.getItem('pf_admin_secret') || ''; } catch (e) {}
-  if (v) { $('secret').value = v; enter(); }
+  /* Resume silently if the session cookie is still live; otherwise the
+     gate waits for the Face ID tap (WebAuthn requires a user gesture —
+     it is never auto-prompted). */
+  resumeIfLive();
 })();
 </script>
 </body>

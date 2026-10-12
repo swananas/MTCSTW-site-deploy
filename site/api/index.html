@@ -8,13 +8,13 @@
 <meta name="keywords" content="OpenSecrets API alternative, OpenSecrets API replacement, campaign finance API, lobbying data API, FEC API, political data API, corporate accountability API, money in politics API">
 <link rel="canonical" href="https://www.mtcstw.com/api/">
 <meta property="og:title" content="Money-in-Politics API — The OpenSecrets API Alternative">
-<meta property="og:description" content="Campaign finance, lobbying, corporate accountability data via API. 19 endpoints. Free tier. The API OpenSecrets killed, rebuilt better.">
+<meta property="og:description" content="Campaign finance, lobbying, corporate accountability data via API. 27 endpoints across 5 data packs. Free tier. The API OpenSecrets killed, rebuilt better.">
 <meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta property="og:url" content="https://www.mtcstw.com/api/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Money-in-Politics API — The OpenSecrets API Alternative">
-<meta name="twitter:description" content="19 endpoints. Campaign finance, lobbying, corporate data. Free tier. Built for journalists, researchers, and developers.">
+<meta name="twitter:description" content="27 endpoints across 5 data packs. Campaign finance, lobbying, corporate data. Free tier. Built for journalists, researchers, and developers.">
 <meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
@@ -28,10 +28,14 @@
   "description": "Money-in-politics API: campaign finance aggregates, lobbying disclosures, corporate accountability data, private equity mapping, and AI-detected connections. The OpenSecrets API alternative.",
   "url": "https://www.mtcstw.com/api/",
   "offers": [
-    {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "description": "1,000 API calls/month"},
-    {"@type": "Offer", "name": "Pro", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month"},
-    {"@type": "Offer", "name": "Team", "price": "349", "priceCurrency": "USD", "description": "500,000 API calls/month + webhooks"},
-    {"@type": "Offer", "name": "Enterprise", "price": "1499", "priceCurrency": "USD", "description": "Unlimited + SLA"}
+    {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "description": "1,000 API calls/month across all data packs"},
+    {"@type": "Offer", "name": "Politics Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — FEC aggregates, lobbying, bills"},
+    {"@type": "Offer", "name": "Corporate Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — violations, OSHA, wage theft, Ghoul scores"},
+    {"@type": "Offer", "name": "PE Pack", "price": "99", "priceCurrency": "USD", "description": "50,000 API calls/month — private equity firms, portfolio, impacts"},
+    {"@type": "Offer", "name": "Health Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — nursing homes, drug safety, clinical trials"},
+    {"@type": "Offer", "name": "Patent Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — patents, evergreening, trolls"},
+    {"@type": "Offer", "name": "All Access", "price": "349", "priceCurrency": "USD", "description": "500,000 API calls/month, all packs + webhooks"},
+    {"@type": "Offer", "name": "Enterprise", "price": "1499", "priceCurrency": "USD", "description": "Unlimited + SLA + webhooks"}
   ],
   "provider": {"@type": "Organization", "name": "The Propaganda Factory", "url": "https://www.mtcstw.com/"}
 }
@@ -54,7 +58,7 @@
     {
       "@type": "Question",
       "name": "How much does the API cost?",
-      "acceptedAnswer": {"@type": "Answer", "text": "Free tier: 1,000 calls/month. Pro: $69/month (50K calls). Team: $349/month (500K calls + webhooks). Enterprise: $1,499/month (unlimited + SLA)."}
+      "acceptedAnswer": {"@type": "Answer", "text": "Free: 1,000 calls/month across all data packs. Individual packs (Politics, Corporate, Health, Patent): $69/month (50K calls). PE Pack: $99/month. All Access: $349/month (500K calls + webhooks). Enterprise: $1,499/month (unlimited + SLA)."}
     }
   ]
 }
@@ -120,7 +124,7 @@
 <div class="wrap">
 
 <h1>The <span class="red">OpenSecrets API</span> is dead.<br>We built the replacement.</h1>
-<p class="lede">OpenSecrets killed their public API in April 2025. We rebuilt it — bigger. Campaign finance aggregates, lobbying disclosures, corporate accountability records, private equity mapping, patent data, and AI-detected connections across 45+ public datasets. 19 endpoints. Free tier, no credit card.</p>
+<p class="lede">OpenSecrets killed their public API in April 2025. We rebuilt it — bigger. Campaign finance aggregates, lobbying disclosures, corporate accountability records, private equity mapping, patent data, and AI-detected connections across 45+ public datasets. 27 endpoints across 5 data packs. Free tier, no credit card.</p>
 
 <div class="cta-row">
   <a class="btn btn-primary" href="https://pf-api.mtcstw.workers.dev/v1/docs">Get a Free API Key</a>
@@ -131,51 +135,51 @@
 
 <h3>Campaign Finance API</h3>
 <div class="endpoint">
-  <code>GET /v1/donations/summary</code><span class="tier">FREE</span>
+  <code>GET /v1/donations/summary</code><span class="tier">POLITICS</span>
   <p>Aggregate donation stats per candidate or committee. Organization-level and geographic aggregates — never individual donor identities (federal law).</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/donations/by-employer</code><span class="tier">FREE</span>
+  <code>GET /v1/donations/by-employer</code><span class="tier">POLITICS</span>
   <p>Which companies' employees fund which candidates. The "follow the money" endpoint.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/donations/by-zip</code><span class="tier">FREE</span>
+  <code>GET /v1/donations/by-zip</code><span class="tier">POLITICS</span>
   <p>Donation totals by ZIP code. Map the money geographically.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/politician/:id/funding</code><span class="tier">FREE</span>
+  <code>GET /v1/politician/:id/funding</code><span class="tier">POLITICS</span>
   <p>Full funding overview: totals, top employer aggregates, top industry aggregates.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/bills/:id/money</code><span class="tier">PRO</span>
+  <code>GET /v1/bills/:id/money</code><span class="tier">POLITICS</span>
   <p>The money behind a bill: sponsor funding plus lobbying on related issues.</p>
 </div>
 
 <h3>Lobbying Data API</h3>
 <div class="endpoint">
-  <code>GET /v1/lobbying</code><span class="tier">FREE</span>
+  <code>GET /v1/lobbying</code><span class="tier">POLITICS</span>
   <p>Lobbying disclosures by client or registrant. Who's paying to influence what.</p>
 </div>
 
 <h3>Corporate Accountability API</h3>
 <div class="endpoint">
-  <code>GET /v1/entity/:id/profile</code><span class="tier">FREE</span>
+  <code>GET /v1/entity/:id/profile</code><span class="tier">CORPORATE</span>
   <p>Ghoul Index profile: violations, fines, government contracts, private jets, political donations — one call.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/entity/:id/connections</code><span class="tier">PRO</span>
+  <code>GET /v1/entity/:id/connections</code><span class="tier">ANY PAID</span>
   <p>AI-detected connections: donation-to-contract timing, fine-to-lobbying patterns, layoff-to-buyback sequences. Source-cited.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/brand/:name/owner</code><span class="tier">FREE</span>
+  <code>GET /v1/brand/:name/owner</code><span class="tier">CORPORATE</span>
   <p>Brand → controlling entity resolution. "Who owns Tide?" → Procter &amp; Gamble + sister brands.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/pe/firm</code><span class="tier">FREE</span>
+  <code>GET /v1/pe/firm</code><span class="tier">PE</span>
   <p>Private equity firm profiles: AUM, portfolio companies, documented layoffs, fee extraction, bankruptcies.</p>
 </div>
 <div class="endpoint">
-  <code>GET /v1/patents/evergreening</code><span class="tier">FREE</span>
+  <code>GET /v1/patents/evergreening</code><span class="tier">PATENT</span>
   <p>Pharma patent thickets blocking generics. Evergreening data per drug.</p>
 </div>
 
@@ -206,37 +210,77 @@
 curl -H "X-API-Key: YOUR_KEY" \
   "https://pf-api.mtcstw.workers.dev/v1/donations/summary?candidate_id=H8CA12345&amp;cycle=2024"</pre>
 
-<h2>Pricing</h2>
+<h2>Pricing — Data Packs</h2>
+<p>Buy only the data you need. Every paid pack includes AI-detected connections. Mix and match — a key can hold multiple packs.</p>
 <div class="pricing">
   <div class="plan">
     <h3>Free</h3>
     <div class="price">$0<span>/mo</span></div>
     <ul>
       <li>1,000 calls/month</li>
-      <li>All free-tier endpoints</li>
+      <li>All data packs (sample)</li>
       <li>Attribution required</li>
       <li>Community support</li>
     </ul>
   </div>
   <div class="plan featured">
-    <h3>Pro</h3>
+    <h3>Politics Pack</h3>
     <div class="price">$69<span>/mo</span></div>
     <ul>
       <li>50,000 calls/month</li>
-      <li>AI connection endpoints</li>
-      <li>Bill-money tracking</li>
+      <li>FEC aggregates, lobbying, bills</li>
+      <li>AI connections included</li>
       <li>No attribution required</li>
-      <li>Priority support</li>
     </ul>
   </div>
   <div class="plan">
-    <h3>Team</h3>
+    <h3>Corporate Pack</h3>
+    <div class="price">$69<span>/mo</span></div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>Violations, OSHA, wage theft</li>
+      <li>Ghoul scores + brands</li>
+      <li>AI connections included</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>PE Pack</h3>
+    <div class="price">$99<span>/mo</span></div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>Firms, portfolio, impacts</li>
+      <li>Bankruptcy tracking</li>
+      <li>AI connections included</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>Health Pack</h3>
+    <div class="price">$69<span>/mo</span></div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>Nursing homes, drug safety</li>
+      <li>Clinical trials, health stats</li>
+      <li>AI connections included</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>Patent Pack</h3>
+    <div class="price">$69<span>/mo</span></div>
+    <ul>
+      <li>50,000 calls/month</li>
+      <li>Patent hoarders, evergreening</li>
+      <li>Patent troll profiles</li>
+      <li>AI connections included</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>All Access</h3>
     <div class="price">$349<span>/mo</span></div>
     <ul>
       <li>500,000 calls/month</li>
+      <li>Every data pack</li>
       <li>Webhooks + bulk downloads</li>
-      <li>Everything in Pro</li>
-      <li>Shared team keys</li>
+      <li>Priority support</li>
     </ul>
   </div>
   <div class="plan">
@@ -246,7 +290,7 @@ curl -H "X-API-Key: YOUR_KEY" \
       <li>Unlimited calls</li>
       <li>SLA + dedicated support</li>
       <li>Custom endpoints</li>
-      <li>Everything in Team</li>
+      <li>Everything in All Access</li>
     </ul>
   </div>
 </div>

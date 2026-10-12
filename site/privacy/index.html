@@ -103,6 +103,7 @@
     <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
     <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
     <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>
   </div>
   <div class="pf-snav-group">
     <span class="pf-snav-kicker">ACT</span>
@@ -119,11 +120,16 @@
     <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
     <a class="pf-snav-link" href="/faq/"><span class="em">&#x2753;</span>FAQ</a>
   </div>
-  <div class="pf-snav-group">
+<div class="pf-snav-group">
+    <span class="pf-snav-kicker">BUILD</span>
+    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>
+  </div>
+    <div class="pf-snav-group">
     <span class="pf-snav-kicker">LEGAL</span>
     <a class="pf-snav-link" href="/privacy/"><span class="em">&#x1F512;</span>Privacy Policy</a>
     <a class="pf-snav-link" href="/terms/"><span class="em">&#x1F4DC;</span>Terms of Service</a>
     <a class="pf-snav-link" href="/cookies/"><span class="em">&#x1F36A;</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/api-terms/"><span class="em">&#x1F4E1;</span>API Terms</a>
     <a class="pf-snav-link" href="/accessibility/"><span class="em">&#x267F;</span>Accessibility</a>
   </div>
   <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>&copy; 2026 The Propaganda Factory.<br>Discover your power.</div>
@@ -160,18 +166,23 @@
   </div>
   <div class="doc">
 
-<div class="callout"><strong>The short version:</strong> Your callsign is pseudonymous. We collect the minimum needed to run the machine. We never sell your data, never run ads, never do individual targeting or manipulation scoring. Your activity becomes aggregated movement intelligence &mdash; &ldquo;milk costs $X in Louisiana&rdquo; &mdash; never a dossier on you.</div>
+<div class="callout"><strong>The short version:</strong> Your callsign is pseudonymous. We collect the minimum needed to run the machine: account basics, your activity (prices, check-ins, votes, photos, API usage), and coarse location (ZIP/city — never GPS). We <strong>never</strong> sell your data, share individual data with advertisers, track precise location, or run individual manipulation scoring. Your activity becomes <strong>aggregated movement intelligence</strong> — and we're transparent about that up front.</div>
 
 <h2>WHO <span class="red">WE ARE</span></h2>
-<p>This policy covers <strong>mtcstw.com</strong> and related services operated by <strong>The Propaganda Factory</strong> (&ldquo;we,&rdquo; &ldquo;us&rdquo;). If you have questions about this policy or your data, contact us at <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a>.</p>
-<p><strong>Effective date:</strong> October 11, 2026. We will update this page if the policy changes, and the effective date will change with it.</p>
+<p>This policy covers <strong>mtcstw.com</strong> and related services operated by <strong>The Propaganda Factory</strong> (&ldquo;we,&rdquo; &ldquo;us&rdquo;) — including the site, the PWA, and the <strong>MTCSTW API</strong> platform. If you have questions about this policy or your data, contact us at <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a>.</p>
+<p><strong>Our standing ethics:</strong> your activity powers the movement's intelligence — transparently (we tell you up front), aggregated by default, coarse location only, never sold, and never used for individual manipulation scoring.</p>
+<p><strong>Effective date:</strong> October 2026.</p>
 
 <h2>WHAT WE <span class="red">COLLECT</span></h2>
 <p>We collect only what the machine needs to function:</p>
 <ul>
-<li><strong>Callsign:</strong> the pseudonymous username you choose. This is your identity on the site. Your real name is never required.</li>
-<li><strong>Activity:</strong> votes, check-ins, price submissions, photos you submit to bounties, XP-earning actions, shares.</li>
-<li><strong>Coarse location:</strong> zip code only. <strong>We never collect GPS or precise location data.</strong></li>
+<li><strong>Account info:</strong> your <strong>callsign</strong> (the pseudonymous username you choose) and your <strong>email address</strong>. Your real name is never required.</li>
+<li><strong>Crowdsourced prices:</strong> price submissions you report through Price Detective and related tools — product, price, store, and the coarse location you report them in.</li>
+<li><strong>Check-ins and activity:</strong> daily check-ins, XP-earning actions, streaks, and the missions you complete.</li>
+<li><strong>Votes:</strong> fan votes, polls, and ratings you cast.</li>
+<li><strong>Bounty submissions and photos:</strong> photos and evidence you submit to data bounties — including photo metadata you leave attached. Strip EXIF location data before submitting if you want zero location trace.</li>
+<li><strong>API keys and usage:</strong> if you use the MTCSTW API, we log your API key, endpoints called, call volumes, and error rates to enforce quotas and keep the service alive.</li>
+<li><strong>Coarse location:</strong> ZIP code or city level only. <strong>We never collect GPS or precise device location.</strong></li>
 <li><strong>Notification preferences:</strong> what you want to be told about, and how.</li>
 <li><strong>Contact info you give us:</strong> if you email us, join a waitlist, or submit a form (for example, the Sick Left Radicals application), we keep what you sent so we can respond.</li>
 </ul>
@@ -180,29 +191,38 @@
 <ul>
 <li><strong>Real names</strong> &mdash; not required, not asked for, not stored as part of your account.</li>
 <li><strong>Precise location</strong> &mdash; no GPS, no device location tracking, ever.</li>
-<li><strong>Payment information</strong> &mdash; payments are processed externally by Stripe on Stripe&rsquo;s own checkout pages. We never see, touch, or store your card numbers.</li>
+<li><strong>Payment information</strong> &mdash; payments are processed by <strong>Stripe</strong> on Stripe&rsquo;s own checkout pages. We never see, touch, or store your card numbers. We do receive confirmation that a payment succeeded (and the pack or product it paid for) so we can provision your access.</li>
 <li><strong>Anything for advertising</strong> &mdash; there are no ads on this site and never will be, so there is nothing to build an ad profile from.</li>
 </ul>
 
+<h2>WHAT WE <span class="red">NEVER</span> DO</h2>
+<p>Non-negotiable. These don&rsquo;t change with a policy update:</p>
+<ul>
+<li><strong>We never sell your data</strong> — to anyone, for any price, ever.</li>
+<li><strong>We never share individual data with advertisers</strong> — there are no advertisers, and there never will be.</li>
+<li><strong>We never run precise location tracking</strong> — ZIP/city is the finest we ever know.</li>
+<li><strong>We never do individual manipulation scoring</strong> — we don&rsquo;t score people, we score corporations (see: the Ghoul Index).</li>
+</ul>
+
 <h2>HOW WE <span class="red">USE IT</span></h2>
-<p>Your activity powers the movement&rsquo;s intelligence. Price submissions become regional pricing data. Votes become fan favorites. Bounty completions become verified records. All of it is used <strong>in aggregate</strong>.</p>
+<p>Your activity powers the movement&rsquo;s intelligence. Price submissions become regional pricing data. Votes become fan favorites. Bounty completions become verified records. API usage becomes quota and reliability data.</p>
+<p><strong>Aggregated, anonymized data may power public datasets and the API.</strong> We&rsquo;re transparent about this: statistics derived from many users&rsquo; activity (&ldquo;milk costs $X in Louisiana,&rdquo; violation rates by sector) can appear on public dashboards and be served through the MTCSTW API. These datasets never identify individuals — they describe the economy, not you.</p>
 <p>We do <strong>not</strong>:</p>
 <ul>
-<li>Sell your data &mdash; to anyone, for any price, ever.</li>
-<li>Use your data for advertising &mdash; there are no ads.</li>
-<li>Build individual targeting or manipulation scores &mdash; we don&rsquo;t score people, we score corporations (see: the Ghoul Index).</li>
 <li>Share your personal activity with third parties except as required by law.</li>
+<li>Use individual-level data to personalize content, manipulate behavior, or score any person.</li>
+<li>Feed individual data into third-party AI training pipelines or data brokers.</li>
 </ul>
 
 <h2>WHERE IT <span class="red">LIVES</span></h2>
 <p>Our infrastructure runs on <strong>Cloudflare</strong> (Workers, D1 database, R2 storage). On your device, we use <strong>localStorage</strong> for app state (your callsign, session, preferences) and a <strong>service worker</strong> cache so the app works offline as a PWA. See the <a href="/cookies/">Cookie Policy</a> for the full breakdown.</p>
-<p>We use reasonable technical and organizational safeguards to protect your data, including encrypted connections (HTTPS) and access controls. No system is perfectly secure; if we ever suffer a breach that affects your data, we will tell you.</p>
+<p>We use reasonable technical and organizational safeguards to protect your data, including encrypted connections (HTTPS) and access controls. API keys are stored hashed. No system is perfectly secure; if we ever suffer a breach that affects your data, we will tell you.</p>
 
 <h2>YOUR <span class="red">RIGHTS</span></h2>
 <p>Your data is yours. You can:</p>
 <ul>
-<li><strong>Export it:</strong> request a copy of everything we hold about your callsign.</li>
-<li><strong>Delete it:</strong> request full deletion of your account data. We will confirm when it&rsquo;s gone.</li>
+<li><strong>Export it:</strong> request a copy of everything we hold about your callsign — including your activity history and API usage.</li>
+<li><strong>Delete it:</strong> request full deletion of your account data. We will confirm when it&rsquo;s gone. Deleting your account revokes your API keys; API usage logs older than 90 days roll off automatically.</li>
 <li><strong>Correct it:</strong> tell us what&rsquo;s wrong and we&rsquo;ll fix it.</li>
 </ul>
 <p>To exercise any of these rights, email <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a> from the address associated with your account (or include your callsign). We respond to requests within <strong>30 days</strong>.</p>
@@ -216,7 +236,7 @@
 <h2>TALK <span class="red">TO US</span></h2>
 <p>Privacy questions, export requests, deletion requests &mdash; all of it goes to <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a>. A human reads it.</p>
 
-<p class="updated">Last updated: October 11, 2026.</p>
+<p class="updated">Last updated: October 2026.</p>
 
   </div>
 </main>

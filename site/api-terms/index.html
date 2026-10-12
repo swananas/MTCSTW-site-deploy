@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>API Terms 📡 — Play fair. Build loud.</title>
+<meta name="description" content="Tiers, pricing, quotas, and the rules of the road for building on the MTCSTW API.">
+<meta property="og:title" content="API Terms 📡 — Play fair. Build loud.">
+<meta property="og:description" content="Tiers, pricing, quotas, and the rules of the road for building on the MTCSTW API.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/api-terms">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API Terms 📡 — Play fair. Build loud.">
+<meta name="twitter:description" content="Tiers, pricing, quotas, and the rules of the road for building on the MTCSTW API.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
+  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
+  .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;line-height:1.15;}
+  .hero h1 .red{color:#c1121f;}
+  .sub{color:#b0b0b0;font-size:15px;margin:0 0 20px;}
+  .karl-quote{border-left:3px solid #c1121f;background:#141414;border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:#f5ead6;font-style:italic;margin:0 0 20px;}
+  .karl-quote b{color:#e5383b;font-style:normal;}
+  .doc h2{font-size:19px;margin:30px 0 10px;letter-spacing:.03em;line-height:1.3;}
+  .doc h2 .red{color:#c1121f;}
+  .doc p{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;}
+  .doc ul{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;padding-left:22px;}
+  .doc li{margin-bottom:8px;}
+  .doc a{color:#e5383b;font-weight:600;}
+  .doc strong{color:#fff;}
+  .doc code{color:#f5ead6;background:#1a1a1a;padding:1px 6px;border-radius:4px;font-size:13px;}
+  .callout{background:#141414;border:1px solid #c1121f;border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:15px;line-height:1.6;color:#e8e2d6;}
+  .doc .updated{font-size:12px;color:#8a8478;margin-top:28px;}
+  details.faq{background:#141414;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  details.faq[open]{border-color:#c1121f;}
+  details.faq summary{padding:14px 16px;font-size:15px;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation;min-height:44px;display:flex;align-items:center;gap:10px;color:#fff;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::before{content:'+';color:#c1121f;font-weight:900;font-size:20px;flex-shrink:0;}
+  details.faq[open] summary::before{content:'\2212';}
+  details.faq .faq-body{padding:0 16px 16px;font-size:15px;line-height:1.65;color:#e8e2d6;}
+  details.faq .faq-body p{margin:0 0 12px;}
+  details.faq .faq-body p:last-child{margin-bottom:0;}
+  .faq-body a{color:#e5383b;font-weight:600;}
+</style>
+</head>
+<body>
+<header class="pf-topbar">
+  <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
+    <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
+  </div>
+</header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav-overlay.open{opacity:1;pointer-events:auto}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+    <a class="pf-snav-link" href="/faq/"><span class="em">&#x2753;</span>FAQ</a>
+  </div>
+<div class="pf-snav-group">
+    <span class="pf-snav-kicker">BUILD</span>
+    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>
+  </div>
+    <div class="pf-snav-group">
+    <span class="pf-snav-kicker">LEGAL</span>
+    <a class="pf-snav-link" href="/privacy/"><span class="em">&#x1F512;</span>Privacy Policy</a>
+    <a class="pf-snav-link" href="/terms/"><span class="em">&#x1F4DC;</span>Terms of Service</a>
+    <a class="pf-snav-link" href="/cookies/"><span class="em">&#x1F36A;</span>Cookie Policy</a>
+    <a class="pf-snav-link" href="/api-terms/"><span class="em">&#x1F4E1;</span>API Terms</a>
+    <a class="pf-snav-link" href="/accessibility/"><span class="em">&#x267F;</span>Accessibility</a>
+  </div>
+  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>&copy; 2026 The Propaganda Factory.<br>Discover your power.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+  var sx=null;
+  nav.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; }, {passive:true});
+  nav.addEventListener('touchmove', function(e){
+    if(sx===null) return;
+    var dx=e.touches[0].clientX - sx;
+    if(dx < -60){ close(); sx=null; }
+  }, {passive:true});
+})();
+</script>
+
+<main id="main">
+  <div class="hero">
+    <h1>API TERMS. <span class="red">PLAY FAIR. BUILD LOUD.</span></h1>
+    <p class="sub">Tiers, pricing, quotas, and the rules of the road for building on the MTCSTW API. Binding on every key — free or paid.</p>
+    <p class="karl-quote"><b>KARL:</b> &ldquo;The data is a weapon. We&rsquo;re happy to hand it to you — as long as you don&rsquo;t point it at regular people.&rdquo;</p>
+  </div>
+  <div class="doc">
+
+<div class="callout"><strong>The short version:</strong> Free tier is $0 with 1,000 calls/month and <strong>attribution required</strong>. Paid packs run $69&ndash;$349/mo; Enterprise is $1,499/mo. Hit your quota and you get <strong>HTTP 402</strong>. No reselling our data as a competing API. No FCRA uses. No re-identifying anonymized donors. As-is on every tier except Enterprise. Abuse gets your keys revoked.</div>
+
+<h2>THE <span class="red">DEAL</span></h2>
+<p>These API Terms (&ldquo;API Terms&rdquo;) govern your use of the <strong>MTCSTW API</strong> operated by <strong>The Propaganda Factory</strong> (&ldquo;we,&rdquo; &ldquo;us&rdquo;). They ride on top of the <a href="/terms/">Terms of Service</a> and the <a href="/privacy/">Privacy Policy</a> — by requesting an API key, you agree to all three. If you don&rsquo;t agree, don&rsquo;t use the API.</p>
+<p><strong>Effective date:</strong> October 2026. This is not legal advice — it&rsquo;s a plain-language summary of a binding agreement. Read it like it counts, because it does.</p>
+
+<h2>TIERS &amp; <span class="red">PRICING</span></h2>
+<p>Every pack is a monthly subscription, billed through Stripe. A single key can hold multiple packs. Current tiers:</p>
+<ul>
+<li><strong>Free — $0/mo:</strong> 1,000 calls/month across all data packs (sample data). <strong>Attribution required</strong> — credit MTCSTW visibly wherever the data appears.</li>
+<li><strong>Politics Pack — $69/mo:</strong> 50,000 calls/month. Campaign finance, lobbying, corporate data.</li>
+<li><strong>Labor Pack — $69/mo:</strong> 50,000 calls/month. Violations, OSHA, wage theft, Ghoul scores + brands.</li>
+<li><strong>PE Pack — $99/mo:</strong> 50,000 calls/month. Firms, portfolios, impacts, bankruptcy tracking.</li>
+<li><strong>Health Pack — $69/mo:</strong> 50,000 calls/month. Health-sector corporate data.</li>
+<li><strong>Patent Pack — $69/mo:</strong> 50,000 calls/month. Patent hoarders, evergreening, troll profiles.</li>
+<li><strong>All Access — $349/mo:</strong> 500,000 calls/month. Every data pack, plus webhooks and bulk downloads. Priority support.</li>
+<li><strong>Enterprise — $1,499/mo:</strong> unlimited calls, custom SLAs, dedicated support channel.</li>
+</ul>
+<p>All paid packs include AI-detected connections. Prices are in USD and may change with 30 days&rsquo; notice — your current billing period always finishes at the price you paid.</p>
+
+<h2>QUOTAS &amp; <span class="red">OVERAGE</span></h2>
+<p>Quotas are per calendar month and per pack. When you exceed your quota, the API returns <strong>HTTP 402 (Payment Required)</strong> until you <strong>upgrade your pack</strong> or the <strong>month resets</strong>. We don&rsquo;t silently bill overage — you stay dark until you make a move.</p>
+<p>Rate limits apply per key on top of monthly quotas. Abusing rate limits (bursting, rotating throwaway keys to dodge quotas, sharing keys across unrelated parties) is a Terms violation — see Termination.</p>
+
+<h2>ATTRIBUTION <span class="red">RULES</span></h2>
+<ul>
+<li><strong>Free tier:</strong> visible attribution is mandatory — &ldquo;Data via <strong>MTCSTW</strong>&rdquo; with a link to <a href="https://www.mtcstw.com/api/">mtcstw.com/api</a>, wherever our data is displayed or published.</li>
+<li><strong>Paid tiers:</strong> attribution is appreciated but not required. (Keep it anyway. Solidarity.)</li>
+<li>Don&rsquo;t imply we endorse your product. Don&rsquo;t strip attribution that was required when you were free.</li>
+</ul>
+
+<h2>WHAT&rsquo;S <span class="red">PROHIBITED</span></h2>
+<p>Your keys die and your access ends if you:</p>
+<ul>
+<li><strong>Resell raw bulk data as a competing API</strong> — building a product on our data is fine; white-labeling our datasets into a competing data API is not.</li>
+<li><strong>Use the data for FCRA-prohibited purposes</strong> — no credit, employment, housing, or insurance eligibility decisions. Tenant screening, hiring screens, lending models, underwriting: hard no.</li>
+<li><strong>Attempt to re-identify anonymized individuals</strong> — donor identities are withheld from our datasets (see <a href="/terms/">Terms</a>, campaign-finance section). Cross-referencing or de-anonymizing is an instant, permanent ban.</li>
+<li><strong>Violate source terms of service</strong> — if you combine our data with other sources, you&rsquo;re responsible for complying with those sources&rsquo; terms too. Don&rsquo;t drag us into your ToS violations.</li>
+<li><strong>Scrape endpoints at abusive volume, share or sell keys, or probe private/internal endpoints.</strong></li>
+</ul>
+
+<h2>DATA <span class="red">REALITY</span></h2>
+<p>Our datasets are aggregated from public sources (FEC filings, Senate lobbying records, OSHA data, and more) plus crowdsourced movement data. They&rsquo;re powerful and they&rsquo;re honest — but no dataset is complete or error-free. Verify before you publish or act on what you pull. What you build with the data is your responsibility.</p>
+
+<h2>SLA &amp; <span class="red">AS-IS</span></h2>
+<p><strong>Enterprise tier:</strong> comes with a service-level commitment — uptime targets and a support channel, defined in your Enterprise agreement. <strong>Every other tier:</strong> the API is provided <strong>&ldquo;as-is&rdquo;</strong> without warranties of any kind. We aim for high availability and we&rsquo;ll tell you about scheduled maintenance, but we don&rsquo;t owe uptime guarantees on non-Enterprise tiers. To the maximum extent permitted by law, our liability is limited to the fees you paid in the current billing period.</p>
+
+<h2>KEYS &amp; <span class="red">SECURITY</span></h2>
+<ul>
+<li>Keep your keys secret. Treat a key like a password — don&rsquo;t commit it to public repos, don&rsquo;t embed it in client-side code, don&rsquo;t share it.</li>
+<li>You&rsquo;re responsible for traffic under your key. Rotate immediately if it leaks — you can rotate from your dashboard without contacting us.</li>
+<li>We may rotate or revoke keys we believe are compromised, no warning needed.</li>
+</ul>
+
+<h2>TERMINATION</h2>
+<p>You can cancel anytime — paid packs run to the end of the billing period, then stop; your keys go dark with them. <strong>We can suspend or terminate your API access</strong>, with or without warning depending on severity, for: prohibited uses (resale, FCRA uses, re-identification attempts), quota fraud, security violations, or any breach of these API Terms or the main Terms of Service. No refunds for terminated-for-cause accounts.</p>
+
+<h2>CHANGES</h2>
+<p>We may update these API Terms. Material changes get posted here with a new effective date and flagged in the feed. Continued use after changes means you accept the updated terms. Questions: <a href="mailto:mtcstw@gmail.com">mtcstw@gmail.com</a>.</p>
+
+<p class="updated">Last updated: October 2026.</p>
+
+  </div>
+</main>
+<!-- PF BOTTOM NAV (site-wide hard nav) -->
+<style>
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
+.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a:active{opacity:.7;}
+</style>
+<nav class="pf-bnav" aria-label="Main navigation">
+<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>
+<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;&#xFE0F;</span>MODEL</a>
+<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>
+<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>
+<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>
+</nav>
+<script>
+(function(){try{var p=location.pathname;var ls=document.querySelectorAll('.pf-bnav a');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute('data-p');if(p===d||(d!=='/'&&p.indexOf(d)===0)){ls[i].classList.add('on');break;}}}catch(e){}})();
+</script>
+</body>
+</html>

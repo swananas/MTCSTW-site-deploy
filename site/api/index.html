@@ -31,7 +31,7 @@
     {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD", "description": "1,000 API calls/month across all data packs"},
     {"@type": "Offer", "name": "Politics Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — FEC aggregates, lobbying, bills"},
     {"@type": "Offer", "name": "Corporate Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — violations, OSHA, wage theft, Ghoul scores"},
-    {"@type": "Offer", "name": "PE Pack", "price": "99", "priceCurrency": "USD", "description": "50,000 API calls/month — private equity firms, portfolio, impacts"},
+    {"@type": "Offer", "name": "Private Equity Pack", "price": "99", "priceCurrency": "USD", "description": "50,000 API calls/month — private equity firms, portfolio, impacts"},
     {"@type": "Offer", "name": "Health Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — nursing homes, drug safety, clinical trials"},
     {"@type": "Offer", "name": "Patent Pack", "price": "69", "priceCurrency": "USD", "description": "50,000 API calls/month — patents, evergreening, trolls"},
     {"@type": "Offer", "name": "All Access", "price": "349", "priceCurrency": "USD", "description": "500,000 API calls/month, all packs + webhooks"},
@@ -58,7 +58,7 @@
     {
       "@type": "Question",
       "name": "How much does the API cost?",
-      "acceptedAnswer": {"@type": "Answer", "text": "Free: 1,000 calls/month across all data packs. Individual packs (Politics, Corporate, Health, Patent): $69/month (50K calls). PE Pack: $99/month. All Access: $349/month (500K calls + webhooks). Enterprise: $1,499/month (unlimited + SLA)."}
+      "acceptedAnswer": {"@type": "Answer", "text": "Free: 1,000 calls/month across all data packs. Individual packs (Politics, Corporate, Health, Patent): $69/month (50K calls), or $703/yr annual. Private Equity Pack: $99/month, or $1,010/yr annual. Pick 2 bundle: $123/month ($153 with Private Equity). Pick 3 bundle: $192/month ($222 with Private Equity). All Access: $349/month (500K calls + webhooks). Enterprise: $1,499/month (unlimited + SLA). Annual billing saves 15% on every plan."}
     }
   ]
 }
@@ -246,6 +246,7 @@ curl -H "X-API-Key: YOUR_KEY" \
   <div class="plan featured">
     <h3>Politics Pack</h3>
     <div class="price">$69<span>/mo</span></div>
+    <div class="annual">$703/yr — save 15%</div>
     <ul>
       <li>50,000 calls/month</li>
       <li>FEC aggregates, lobbying, bills</li>
@@ -256,6 +257,7 @@ curl -H "X-API-Key: YOUR_KEY" \
   <div class="plan">
     <h3>Corporate Pack</h3>
     <div class="price">$69<span>/mo</span></div>
+    <div class="annual">$703/yr — save 15%</div>
     <ul>
       <li>50,000 calls/month</li>
       <li>Violations, OSHA, wage theft</li>
@@ -264,8 +266,9 @@ curl -H "X-API-Key: YOUR_KEY" \
     </ul>
   </div>
   <div class="plan">
-    <h3>PE Pack</h3>
+    <h3>Private Equity Pack</h3>
     <div class="price">$99<span>/mo</span></div>
+    <div class="annual">$1,010/yr — save 15%</div>
     <ul>
       <li>50,000 calls/month</li>
       <li>Firms, portfolio, impacts</li>
@@ -276,6 +279,7 @@ curl -H "X-API-Key: YOUR_KEY" \
   <div class="plan">
     <h3>Health Pack</h3>
     <div class="price">$69<span>/mo</span></div>
+    <div class="annual">$703/yr — save 15%</div>
     <ul>
       <li>50,000 calls/month</li>
       <li>Nursing homes, drug safety</li>
@@ -286,6 +290,7 @@ curl -H "X-API-Key: YOUR_KEY" \
   <div class="plan">
     <h3>Patent Pack</h3>
     <div class="price">$69<span>/mo</span></div>
+    <div class="annual">$703/yr — save 15%</div>
     <ul>
       <li>50,000 calls/month</li>
       <li>Patent hoarders, evergreening</li>
@@ -294,8 +299,31 @@ curl -H "X-API-Key: YOUR_KEY" \
     </ul>
   </div>
   <div class="plan">
+    <h3>Pick 2 Bundle</h3>
+    <div class="price">$123<span>/mo</span></div>
+    <div class="annual">$1,255/yr — save 15%</div>
+    <ul>
+      <li>Any 2 packs ($15 off)</li>
+      <li>$153/mo with Private Equity</li>
+      <li>AI connections included</li>
+      <li>Mix and match</li>
+    </ul>
+  </div>
+  <div class="plan">
+    <h3>Pick 3 Bundle</h3>
+    <div class="price">$192<span>/mo</span></div>
+    <div class="annual">$1,958/yr — save 15%</div>
+    <ul>
+      <li>Any 3 packs ($15 off)</li>
+      <li>$222/mo with Private Equity</li>
+      <li>AI connections included</li>
+      <li>Mix and match</li>
+    </ul>
+  </div>
+  <div class="plan">
     <h3>All Access</h3>
     <div class="price">$349<span>/mo</span></div>
+    <div class="annual">$3,560/yr — save 15%</div>
     <ul>
       <li>500,000 calls/month</li>
       <li>Every data pack</li>
@@ -306,6 +334,7 @@ curl -H "X-API-Key: YOUR_KEY" \
   <div class="plan">
     <h3>Enterprise</h3>
     <div class="price">$1,499<span>/mo</span></div>
+    <div class="annual">$15,290/yr — save 15%</div>
     <ul>
       <li>Unlimited calls</li>
       <li>SLA + dedicated support</li>
@@ -314,6 +343,7 @@ curl -H "X-API-Key: YOUR_KEY" \
     </ul>
   </div>
 </div>
+<p class="billing-note">Annual billing saves 15% on every plan. Bundle pricing: Pick 2 is $123/mo ($153/mo with Private Equity Pack); Pick 3 is $192/mo ($222/mo with Private Equity Pack) — $15 off individual pack prices either way.</p>
 
 <h2>How we compare</h2>
 <table class="compare">

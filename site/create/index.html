@@ -4,7 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Create — Propaganda Engine</title>
-<meta name="description" content="Strike breaking intel or build your own receipt. Turn corruption into propaganda in seconds.">
+<meta name="description" content="Strike breaking intel or build your own receipt. The Create Studio turns corruption into shareable propaganda in seconds. Make it. Spread it.">
+<link rel="canonical" href="https://www.mtcstw.com/create">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.mtcstw.com/create">
+<meta property="og:title" content="Create — Propaganda Engine">
+<meta property="og:description" content="Strike breaking intel or build your own receipt. The Create Studio turns corruption into shareable propaganda in seconds. Make it. Spread it.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Create — Propaganda Engine">
+<meta name="twitter:description" content="Strike breaking intel or build your own receipt. The Create Studio turns corruption into shareable propaganda in seconds. Make it. Spread it.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
 <style>
@@ -134,6 +144,26 @@
   #crt-toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--red);color:var(--cream);padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20000;max-width:90vw;text-align:center;}
   #crt-toast.show{opacity:1;}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.mtcstw.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Create",
+      "item": "https://www.mtcstw.com/create"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <header class="pf-topbar"><div class="pf-topbar-inner">
@@ -196,7 +226,11 @@
     <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
     <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>
   </div>
-  <div class="pf-snav-group">
+<div class="pf-snav-group">
+    <span class="pf-snav-kicker">BUILD</span>
+    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>
+  </div>
+    <div class="pf-snav-group">
     <span class="pf-snav-kicker">LEGAL</span>
     <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>
     <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>

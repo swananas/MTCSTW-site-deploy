@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BARCODE SCAN 📷 — Scan it. Know the ghoul behind it.</title>
+<meta name="description" content="Point your camera at any barcode. We pull the product, find the company behind it, and hit them with the receipts — ghoul score, recalls, CEO pay.">
+<link rel="canonical" href="https://www.mtcstw.com/scan">
+<meta property="og:title" content="BARCODE SCAN 📷 — Scan it. Know the ghoul behind it.">
+<meta property="og:description" content="Point your camera at any barcode. We pull the product, find the company behind it, and hit them with the receipts — ghoul score, recalls, CEO pay.">
+<meta property="og:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta property="og:url" content="https://www.mtcstw.com/scan">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BARCODE SCAN 📷 — Scan it. Know the ghoul behind it.">
+<meta name="twitter:description" content="Point your camera at any barcode. We pull the product, find the company behind it, and hit them with the receipts — ghoul score, recalls, CEO pay.">
+<meta name="twitter:image" content="https://www.mtcstw.com/v1.4.3/pwa/icon-512.png">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
+<link rel="apple-touch-icon" href="/v1.4.3/pwa/apple-touch-icon.png">
+<link rel="manifest" href="/v1.4.3/pwa/manifest.json">
+<style>
+  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand span{color:#c1121f;}
+  .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
+  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
+  .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;}
+  .hero h1 .red{color:#c1121f;}
+  .sub{color:#b0b0b0;font-size:15px;margin:0 0 20px;}
+  .card{background:#141414;border:1px solid #232323;border-radius:12px;padding:16px;margin-bottom:14px;}
+  .cam-wrap{position:relative;background:#000;border-radius:10px;overflow:hidden;margin-bottom:12px;display:none;}
+  .cam-wrap.on{display:block;}
+  #cam-video{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;}
+  .cam-frame{position:absolute;inset:12%;border:2px solid #c1121f;border-radius:10px;pointer-events:none;box-shadow:0 0 0 4000px rgba(0,0,0,.35);}
+  .cam-hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#fff;font-size:12px;font-weight:700;text-shadow:0 1px 4px #000;pointer-events:none;}
+  .run-btn{width:100%;background:#c1121f;color:#fff;border:none;border-radius:10px;font-weight:900;font-size:16px;letter-spacing:.06em;padding:14px;cursor:pointer;touch-action:manipulation;margin-top:4px;}
+  .run-btn:active{transform:scale(.98);}
+  .run-btn:disabled{opacity:.5;}
+  .ghost-btn{width:100%;background:transparent;color:#fff;border:1px solid #555;border-radius:10px;font-weight:800;font-size:14px;padding:12px;cursor:pointer;touch-action:manipulation;margin-top:8px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;color:#8a8478;margin-bottom:6px;}
+  .field input{width:100%;box-sizing:border-box;background:#0a0a0a;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px;padding:12px;font-family:inherit;letter-spacing:.1em;}
+  .field input:focus{outline:none;border-color:#c1121f;}
+  .form-note{font-size:12px;color:#8a8478;margin-top:10px;line-height:1.5;}
+  #results{margin-top:20px;}
+  .prod-head{display:flex;gap:12px;align-items:center;}
+  .prod-img{width:72px;height:72px;object-fit:contain;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;flex-shrink:0;}
+  .prod-name{font-size:17px;font-weight:900;margin:0 0 4px;}
+  .prod-brand{color:#b0b0b0;font-size:13px;margin:0;}
+  .prod-brand b{color:#fff;}
+  .score-hero{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px;}
+  .score-num{font-size:44px;font-weight:900;color:#e5383b;letter-spacing:-.02em;}
+  .score-rank{font-size:14px;color:#b0b0b0;font-weight:700;}
+  .score-bar{height:8px;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:6px;overflow:hidden;margin:6px 0 12px;}
+  .score-bar i{display:block;height:100%;background:linear-gradient(90deg,#7a0d14,#c1121f,#e5383b);}
+  .bd-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #1f1f1f;font-size:13px;}
+  .bd-row:first-child{border-top:none;}
+  .bd-row .k{color:#8a8478;}
+  .bd-row .v{font-weight:800;text-align:right;}
+  .bd-row .v.bad{color:#e5383b;}
+  .kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:#8a8478;margin:0 0 8px;}
+  .pay-big{font-size:34px;font-weight:900;color:#fff;margin:2px 0 6px;}
+  .pay-big .red{color:#e5383b;}
+  .r-list{list-style:none;margin:0;padding:0;}
+  .r-list li{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;}
+  .r-class{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.08em;border-radius:4px;padding:2px 7px;margin-right:6px;vertical-align:1px;}
+  .r-class.c1{background:#c1121f;color:#fff;}
+  .r-class.c2{background:#7a4d0d;color:#fff;}
+  .r-class.c3{background:#333;color:#bbb;}
+  .r-date{color:#8a8478;font-size:11px;display:block;margin-top:5px;}
+  .r-link{color:#e5383b;font-size:12px;font-weight:700;}
+  .miss-banner{background:#1a1a1a;border:1px dashed #555;border-radius:8px;padding:14px;font-size:14px;line-height:1.55;margin-bottom:14px;}
+  .miss-banner b{color:#fff;}
+  .bounty-cta{display:block;text-align:center;background:#c1121f;color:#fff;font-weight:900;font-size:14px;letter-spacing:.04em;border-radius:10px;padding:13px;text-decoration:none;margin-top:10px;}
+  .bounty-cta:active{transform:scale(.98);}
+  .receipts{list-style:none;margin:8px 0 0;padding:0;}
+  .receipts li{margin-bottom:6px;}
+  .receipts a{color:#e5383b;font-size:13px;font-weight:700;text-decoration:none;}
+  .receipts a:active{text-decoration:underline;}
+  .actions{display:flex;gap:10px;margin-top:6px;}
+  .action-btn{flex:1;border-radius:10px;font-weight:800;font-size:13px;letter-spacing:.04em;padding:12px;cursor:pointer;touch-action:manipulation;}
+  .save-btn{background:#c1121f;color:#fff;border:none;}
+  .save-btn.saved{background:#2a7a3f;}
+  .share-btn{background:transparent;color:#fff;border:1px solid #c1121f;}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1a1a1a;border:1px solid #c1121f;color:#fff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:8px;z-index:9000;display:none;max-width:86vw;text-align:center;}
+  .loading,.error{background:#141414;border:1px dashed #333;border-radius:12px;padding:28px 16px;text-align:center;color:#8a8478;font-size:15px;}
+  .error{border-color:#c1121f;color:#f5ead6;}
+  .note{font-size:12px;color:#8a8478;margin-top:18px;line-height:1.5;}
+</style>
+</head>
+<body>
+<header class="pf-topbar">
+  <div class="pf-topbar-inner">
+    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>
+    <a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>
+    <nav class="pf-pillars-nav" aria-label="Mission pillars">
+      <a class="pf-pillar" href="/create">CREATE</a>
+      <a class="pf-pillar" href="/sick-left-radicals">CONNECT</a>
+      <a class="pf-pillar" href="/cells">COORDINATE</a>
+      <a class="pf-pillar" href="/money">CAPITAL</a>
+    </nav>
+  </div>
+</header>
+<!-- PF-SIDENAV v1 -->
+<style>
+.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav.open{transform:translateX(0)}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.pf-snav-brand span{color:#c1121f}
+.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-group{padding:12px 0 4px}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+</style>
+<div class="pf-snav-overlay" id="pf-snav-overlay"></div>
+<nav class="pf-snav" id="pf-snav" aria-label="Site tools">
+  <div class="pf-snav-head">
+    <div class="pf-snav-brand">MTC<span>STW</span></div>
+    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">INVESTIGATE</span>
+    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>
+    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>
+    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>
+    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>
+    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">ACT</span>
+    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>
+    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>
+    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>
+    <a class="pf-snav-link" href="/translate/"><span class="em">&#x1F310;</span>Translate</a>
+  </div>
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">EXPLORE</span>
+    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>
+    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>
+    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>
+    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>
+  </div>
+<div class="pf-snav-group">
+    <span class="pf-snav-kicker">BUILD</span>
+    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>
+  </div>
+    <div class="pf-snav-foot">Discover your power.<br>Stop waiting for the government to fix itself.</div>
+</nav>
+<script>
+(function(){
+  if(window.__pfSnavInit) return; window.__pfSnavInit = true;
+  var toggle = document.getElementById('pf-snav-toggle');
+  var nav = document.getElementById('pf-snav');
+  var overlay = document.getElementById('pf-snav-overlay');
+  var closeBtn = document.getElementById('pf-snav-close');
+  if(!toggle || !nav || !overlay) return;
+  function open(){ nav.classList.add('open'); overlay.classList.add('open'); toggle.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+  function close(){ nav.classList.remove('open'); overlay.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+  toggle.addEventListener('click', function(){ nav.classList.contains('open') ? close() : open(); });
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && nav.classList.contains('open')) close(); });
+  var sx=null;
+  nav.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; }, {passive:true});
+  nav.addEventListener('touchmove', function(e){
+    if(sx===null) return;
+    var dx=e.touches[0].clientX - sx;
+    if(dx < -60){ close(); sx=null; }
+  }, {passive:true});
+})();
+</script>
+
+<main id="main">
+  <div class="hero">
+    <h1>BARCODE SCAN <span class="red">📷</span></h1>
+    <p class="sub">Point your camera at any barcode. We find the company behind the product — and hit them with the receipts.</p>
+  </div>
+
+  <div class="card">
+    <p class="kicker">CAMERA</p>
+    <div class="cam-wrap" id="cam-wrap">
+      <video id="cam-video" playsinline muted></video>
+      <div class="cam-frame"></div>
+      <div class="cam-hint">Line up the barcode in the red frame</div>
+    </div>
+    <button class="run-btn" id="btn-cam">START CAMERA</button>
+    <button class="ghost-btn" id="btn-cam-stop" style="display:none">STOP CAMERA</button>
+    <p class="form-note" id="cam-note">On-device scanning — no video ever leaves your phone. If your browser can't scan, type the digits below.</p>
+  </div>
+
+  <div class="card">
+    <p class="kicker">OR TYPE THE DIGITS</p>
+    <form id="manual-form">
+      <div class="field">
+        <label for="f-code">BARCODE (UPC / EAN)</label>
+        <input id="f-code" inputmode="numeric" pattern="[0-9]*" maxlength="14" placeholder="049000028904" autocomplete="off">
+      </div>
+      <button class="run-btn" id="btn-manual" type="submit">LOOK IT UP</button>
+    </form>
+    <p class="form-note">Try it: <b>049000028904</b> (Coca-Cola). Product data comes from the free OpenFoodFacts database — our accountability data is all in-house.</p>
+  </div>
+
+  <div id="results" aria-live="polite"></div>
+
+  <p class="note">Ghoul scores come from our daily corporate-accountability ranking — documented fines, violations, recalls, pay ratios, and donations. No rumors, no vibes. Dispute a score? Bring a receipt.</p>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+var API = 'https://pf-api.mtcstw.workers.dev/?action=';
+
+/* PF Dossier — personal collection layer (shared schema with sibling pages) */
+var PFDossier = (function(){
+  var DB='pf_dossier_v1', STORE='items';
+  function open(){ return new Promise(function(res,rej){
+    var r = indexedDB.open(DB,1);
+    r.onupgradeneeded = function(){ r.result.createObjectStore(STORE,{keyPath:'id'}); };
+    r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); };
+  });}
+  function save(item){ return open().then(function(db){ return new Promise(function(res,rej){
+    item.id = item.type+':'+Date.now()+':'+Math.random().toString(36).slice(2,8);
+    item.created_at = Date.now(); item.tags = item.tags||[];
+    var tx = db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(item);
+    tx.oncomplete = function(){ res(item.id); }; tx.onerror = function(){ rej(tx.error); };
+  });});}
+  return {save:save};
+})();
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+function toast(m){
+  var t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(function(){ t.style.display='none'; }, 2600);
+}
+function money(n){
+  n = Number(n); if(!isFinite(n)) return '—';
+  if(n >= 1e9) return '$'+(n/1e9).toFixed(2)+'B';
+  if(n >= 1e6) return '$'+(n/1e6).toFixed(1)+'M';
+  if(n >= 1e3) return '$'+(n/1e3).toFixed(0)+'K';
+  return '$'+Math.round(n).toLocaleString();
+}
+function int(n){ n = Number(n); return isFinite(n) ? Math.round(n).toLocaleString() : '—'; }
+
+/* ---------------- Camera scanning ---------------- */
+var scanState = { stream:null, running:false, detector:null, zxing:null, raf:0, last:0 };
+
+function stopCamera(){
+  scanState.running = false;
+  cancelAnimationFrame(scanState.raf);
+  if(scanState.stream){ scanState.stream.getTracks().forEach(function(t){ try{t.stop();}catch(e){} }); scanState.stream = null; }
+  if(scanState.zxing){ try{ scanState.zxing.reset(); }catch(e){} }
+  document.getElementById('cam-wrap').classList.remove('on');
+  document.getElementById('btn-cam').style.display = '';
+  document.getElementById('btn-cam-stop').style.display = 'none';
+}
+
+function onBarcode(code){
+  code = String(code||'').replace(/\D/g,'');
+  if(!/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/.test(code)) return;
+  toast('Got it — pulling the receipts…');
+  stopCamera();
+  document.getElementById('f-code').value = code;
+  lookup(code);
+}
+
+function nativeLoop(){
+  if(!scanState.running) return;
+  function tick(){
+    if(!scanState.running) return;
+    scanState.raf = requestAnimationFrame(tick);
+    if(Date.now() - scanState.last < 400) return;
+    var v = document.getElementById('cam-video');
+    if(!v || v.readyState < 2) return;
+    scanState.last = Date.now();
+    try{
+      scanState.detector.detect(v).then(function(bars){
+        if(bars && bars.length && bars[0].rawValue){ onBarcode(bars[0].rawValue); }
+      }).catch(function(){});
+    }catch(e){}
+  }
+  tick();
+}
+
+function loadZXing(done){
+  if(window.ZXing && window.ZXing.BrowserMultiFormatReader){ done(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+  s.onload = function(){ done(); };
+  s.onerror = function(){ toast('Scanner library failed to load — type the digits instead.'); };
+  document.head.appendChild(s);
+}
+
+async function startCamera(){
+  var btn = document.getElementById('btn-cam');
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast('No camera API in this browser — type the digits instead.');
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'STARTING…';
+  var stream = null;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }, audio:false
+    });
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'START CAMERA';
+    toast('Camera blocked — allow access or type the digits instead.');
+    return;
+  }
+  scanState.stream = stream; scanState.running = true;
+  var v = document.getElementById('cam-video');
+  v.srcObject = stream;
+  try{ await v.play(); }catch(e){}
+  document.getElementById('cam-wrap').classList.add('on');
+  btn.style.display = 'none';
+  document.getElementById('btn-cam-stop').style.display = '';
+  btn.disabled = false; btn.textContent = 'START CAMERA';
+
+  /* Path 1: native BarcodeDetector (Chrome/Edge/modern Safari, zero bytes). */
+  if('BarcodeDetector' in window){
+    try{
+      var fmts = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
+      try{
+        var sup = await BarcodeDetector.getSupportedFormats();
+        if(sup && sup.length) fmts = fmts.filter(function(f){ return sup.indexOf(f) !== -1; });
+      }catch(e){}
+      scanState.detector = new BarcodeDetector({ formats: fmts });
+      nativeLoop();
+      return;
+    }catch(e){ /* fall through to ZXing */ }
+  }
+  /* Path 2: ZXing via CDN, loaded only when native is missing. */
+  document.getElementById('cam-note').textContent = 'Loading scanner library…';
+  loadZXing(function(){
+    if(!scanState.running) return;
+    try{
+      var reader = new ZXing.BrowserMultiFormatReader();
+      scanState.zxing = reader;
+      reader.decodeFromVideoDevice(null, 'cam-video', function(result, err){
+        if(result && result.getText){ onBarcode(result.getText()); }
+      });
+      document.getElementById('cam-note').textContent = 'On-device scanning — no video ever leaves your phone.';
+    }catch(e){
+      toast('Scanner failed to start — type the digits instead.');
+      stopCamera();
+    }
+  });
+}
+
+document.getElementById('btn-cam').addEventListener('click', startCamera);
+document.getElementById('btn-cam-stop').addEventListener('click', stopCamera);
+
+/* ---------------- Lookup + render ---------------- */
+document.getElementById('manual-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var code = document.getElementById('f-code').value.replace(/\D/g,'');
+  if(!/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/.test(code)){
+    toast('Enter 8–14 digits — the number under the barcode.');
+    return;
+  }
+  lookup(code);
+});
+
+var lastResult = null;
+
+async function lookup(code){
+  var host = document.getElementById('results');
+  host.innerHTML = '<div class="loading">Pulling the receipts on '+esc(code)+'…</div>';
+  host.scrollIntoView({behavior:'smooth', block:'start'});
+  var data = null;
+  try{
+    var r = await fetch(API + 'barcode_lookup&code=' + encodeURIComponent(code), {cache:'no-store'});
+    data = await r.json();
+  }catch(e){
+    host.innerHTML = '<div class="error">Network hiccup — the API didn\'t answer. Try again.</div>';
+    return;
+  }
+  if(!data || !data.ok){
+    var note = (data && (data.note || data.error)) || 'Lookup failed.';
+    host.innerHTML = '<div class="error">'+esc(note)+'</div>';
+    return;
+  }
+  lastResult = { code: code, data: data };
+  host.innerHTML = render(data, code);
+  wireActions();
+}
+
+function bdRow(k, v, bad){
+  if(v == null || v === '' || v === '—') return '';
+  return '<div class="bd-row"><span class="k">'+esc(k)+'</span><span class="v'+(bad?' bad':'')+'">'+esc(v)+'</span></div>';
+}
+
+function ghoulCard(g){
+  if(!g) return '';
+  var pct = Math.min(100, Math.round(12 * Math.log10(1 + Number(g.score||0))));
+  var h = '<div class="card"><p class="kicker">GHOUL SCORE '+(g.lite?'· PARTIAL':'')+'</p>';
+  h += '<div class="score-hero"><span class="score-num">'+esc(String(g.score))+'</span>';
+  if(g.rank) h += '<span class="score-rank">RANK #'+esc(String(g.rank))+(g.in_top100?'':' · outside top 100')+'</span>';
+  h += '</div><div class="score-bar"><i style="width:'+pct+'%"></i></div>';
+  if(g.matched_company) h += '<p class="prod-brand" style="margin-bottom:10px">Matched to: <b>'+esc(g.matched_company)+'</b>'+(g.match_note?' <span style="color:#e5383b">('+esc(g.match_note)+')</span>':'')+'</p>';
+  h += '<div>';
+  h += bdRow('EPA fines', money(g.fines_total), g.fines_total > 0);
+  h += bdRow('EPA enforcement actions', int(g.epa_actions), g.epa_actions > 0);
+  h += bdRow('NLRB union-busting cases', int(g.nlrb_count), g.nlrb_count > 0);
+  h += bdRow('CEO pay ratio', g.pay_ratio ? Math.round(g.pay_ratio)+' : 1' : null, g.pay_ratio > 300);
+  h += bdRow('CFPB consumer complaints', int(g.cfpb_complaints), g.cfpb_complaints > 0);
+  h += bdRow('FDA recalls', int(g.fda_recalls), g.fda_recalls > 0);
+  h += bdRow('CPSC recalls', int(g.cpsc_recalls), g.cpsc_recalls > 0);
+  h += bdRow('Effective tax rate', g.tax_rate != null ? g.tax_rate+'%' : null, g.tax_rate != null && g.tax_rate < 15);
+  h += bdRow('Lobbying spend', money(g.lobbying_spend), g.lobbying_spend > 0);
+  h += bdRow('Stolen wages (DOL)', money(g.wage_theft), g.wage_theft > 0);
+  h += bdRow('OSHA penalties', money(g.osha_penalties), g.osha_penalties > 0);
+  h += bdRow('Workers laid off', int(g.layoff_workers), g.layoff_workers > 0);
+  h += bdRow('Federal contracts', money(g.gov_contracts));
+  h += bdRow('Political donations (FEC)', money(g.fec_donations), g.fec_donations > 0);
+  h += '</div>';
+  if(g.note) h += '<p class="form-note">'+esc(g.note)+'</p>';
+  h += '</div>';
+  return h;
+}
+
+function payCard(pay){
+  if(!pay) return '';
+  var h = '<div class="card"><p class="kicker">CEO PAY RATIO</p>';
+  h += '<div class="pay-big">'+int(pay.ratio)+' <span class="red">: 1</span></div>';
+  h += '<p class="prod-brand" style="margin-bottom:8px">'+esc(pay.company)+(pay.ticker?' · <b>'+esc(pay.ticker)+'</b>':'')+'</p><div>';
+  h += bdRow('CEO pay', money(pay.ceo_pay));
+  h += bdRow('Median worker pay', money(pay.median_worker_pay));
+  h += '</div></div>';
+  return h;
+}
+
+function recallCard(rec){
+  if(!rec) return '';
+  var n = rec.fda.length + rec.cpsc.length;
+  var h = '<div class="card"><p class="kicker">RECALLS ON RECORD · '+n+'</p>';
+  if(!n){ h += '<p class="prod-brand">No recalls on file for this company. Clean — for now.</p></div>'; return h; }
+  if(rec.fda.length){
+    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:6px 0 8px">FDA</p><ul class="r-list">';
+    rec.fda.forEach(function(r){
+      var cls = String(r.classification||'').toLowerCase();
+      var cb = cls.indexOf('i') === 0 && cls.indexOf('ii') !== 0 ? 'c1' : (cls.indexOf('ii') === 0 ? 'c2' : 'c3');
+      h += '<li><span class="r-class '+cb+'">'+esc(String(r.classification||'RECALL'))+'</span>'+esc(r.product_description||'Product')+
+        (r.reason_for_recall?'<br><span style="color:#b0b0b0">'+esc(r.reason_for_recall)+'</span>':'')+
+        '<span class="r-date">'+esc(r.recalling_firm||'')+(r.recall_initiation_date?' · '+esc(r.recall_initiation_date):'')+(r.status?' · '+esc(r.status):'')+'</span></li>';
+    });
+    h += '</ul>';
+  }
+  if(rec.cpsc.length){
+    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:6px 0 8px">CPSC</p><ul class="r-list">';
+    rec.cpsc.forEach(function(r){
+      h += '<li><span class="r-class c2">SAFETY</span>'+esc(r.title||'Product')+
+        (r.hazards?'<br><span style="color:#b0b0b0">'+esc(r.hazards)+'</span>':'')+
+        '<span class="r-date">'+esc(r.manufacturers||'')+(r.recall_date?' · '+esc(r.recall_date):'')+'</span>'+
+        (r.url?' <a class="r-link" href="'+esc(r.url)+'" target="_blank" rel="noopener">Recall notice →</a>':'')+'</li>';
+    });
+    h += '</ul>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function fecCard(fec){
+  if(!fec) return '';
+  return '<div class="card"><p class="kicker">POLITICAL DONATIONS (FEC)</p>' +
+    '<div class="pay-big">'+money(fec.total)+'</div>' +
+    '<p class="prod-brand">'+int(fec.count)+' itemized donations from company employees on file.</p></div>';
+}
+
+function render(data, code){
+  var h = '';
+  if(data.miss === 'no_product'){
+    return '<div class="card"><div class="miss-banner"><b>Not in the product database.</b><br>'+
+      esc(data.note || 'Try manual entry to double-check the digits.')+'</div></div>';
+  }
+  var p = data.product || {};
+  h += '<div class="card"><div class="prod-head">';
+  if(p.image) h += '<img class="prod-img" src="'+esc(p.image)+'" alt="">';
+  h += '<div><p class="prod-name">'+esc(p.name || 'Unknown product')+'</p>'+
+    '<p class="prod-brand">'+(p.brands?'Brand: <b>'+esc(p.brands)+'</b>':'')+(p.owner?' · Owner: <b>'+esc(p.owner)+'</b>':'')+
+    '<br><span style="color:#8a8478">UPC '+esc(code)+'</span></p></div></div></div>';
+
+  var c = data.company;
+  if(data.miss === 'no_company_data'){
+    h += '<div class="card"><div class="miss-banner"><b>We don\'t have data on this company yet</b> — '+
+      'here\'s what we found on the product above.'+(c && c.miss_note ? '<br>'+esc(c.miss_note) : '')+'</div>'+
+      '<a class="bounty-cta" href="/dig/">📸 HELP US TRACK THIS COMPANY</a></div>';
+  } else if(c && c.matched){
+    h += ghoulCard(c.ghoul) + payCard(c.pay) + fecCard(c.fec) + recallCard(c.recalls);
+  }
+
+  if(data.receipts && data.receipts.length){
+    h += '<div class="card"><p class="kicker">RECEIPTS</p><ul class="receipts">'+
+      data.receipts.map(function(r){
+        return '<li><a href="'+esc(r.url)+'" target="_blank" rel="noopener">🧾 '+esc(r.label)+' →</a></li>';
+      }).join('')+'</ul></div>';
+  }
+
+  h += '<div class="card"><div class="actions">'+
+    '<button class="action-btn save-btn" id="btn-save">SAVE TO MY DOSSIER</button>'+
+    '<button class="action-btn share-btn" id="btn-share">SHARE</button>'+
+    '</div></div>';
+  return h;
+}
+
+function wireActions(){
+  var sb = document.getElementById('btn-save');
+  if(sb) sb.addEventListener('click', function(){
+    var btn = this; btn.disabled = true;
+    PFDossier.save({
+      type:'scan',
+      title:'Barcode scan: '+(((lastResult.data||{}).product||{}).name || lastResult.code),
+      data:{ code:lastResult.code, result:lastResult.data },
+      tags:['scan', (((lastResult.data||{}).company||{}).name)||'unknown']
+    }).then(function(){ btn.textContent='SAVED ✓'; btn.classList.add('saved'); })
+      .catch(function(){ btn.disabled=false; toast('Save failed — try again.'); });
+  });
+  var hb = document.getElementById('btn-share');
+  if(hb) hb.addEventListener('click', shareResult);
+}
+
+/* ---------------- SHARE: canvas image, JOIN THE FIGHT. + MTCSTW.COM ---------------- */
+function shareResult(){
+  if(!lastResult){ return; }
+  var d = lastResult.data, p = d.product || {}, c = d.company || {};
+  var cv = document.createElement('canvas');
+  cv.width = 1080; cv.height = 1350;
+  var x = cv.getContext('2d');
+  x.fillStyle = '#0a0a0a'; x.fillRect(0,0,1080,1350);
+  x.fillStyle = '#c1121f'; x.fillRect(0,0,1080,14);
+  function wrap(text, font, maxW){
+    x.font = font;
+    var words = String(text||'').split(' '), lines = [], line = '';
+    words.forEach(function(w){
+      var t = line ? line+' '+w : w;
+      if(x.measureText(t).width > maxW && line){ lines.push(line); line = w; }
+      else line = t;
+    });
+    if(line) lines.push(line);
+    return lines;
+  }
+  var y = 110;
+  x.fillStyle = '#8a8478'; x.font = '700 30px sans-serif';
+  x.fillText('BARCODE SCAN · MTCSTW', 70, y); y += 70;
+  var nm = p.name || 'Unknown product';
+  wrap(nm, '900 64px sans-serif', 940).slice(0,3).forEach(function(l){
+    x.fillStyle = '#ffffff'; x.font = '900 64px sans-serif'; x.fillText(l, 70, y); y += 76;
+  });
+  y += 10;
+  var brand = [p.brands, p.owner].filter(Boolean).join(' · ');
+  if(brand){ x.fillStyle = '#b0b0b0'; x.font = '400 34px sans-serif'; x.fillText(brand.slice(0,60), 70, y); y += 60; }
+  x.fillStyle = '#8a8478'; x.font = '400 28px sans-serif';
+  x.fillText('UPC ' + lastResult.code, 70, y); y += 80;
+
+  var g = c.ghoul;
+  if(g && !g.lite){
+    x.fillStyle = '#e5383b'; x.font = '900 150px sans-serif';
+    x.fillText(String(g.score), 70, y); y += 40;
+    x.fillStyle = '#ffffff'; x.font = '700 36px sans-serif';
+    x.fillText('GHOUL SCORE' + (g.rank ? ' · RANK #' + g.rank : ''), 70, y); y += 70;
+    var rows = [
+      ['EPA fines', money(g.fines_total)],
+      ['NLRB union-busting cases', int(g.nlrb_count)],
+      ['CEO pay ratio', g.pay_ratio ? Math.round(g.pay_ratio)+' : 1' : '—'],
+      ['FDA recalls', int(g.fda_recalls)],
+      ['CPSC recalls', int(g.cpsc_recalls)],
+      ['Political donations', money(g.fec_donations)]
+    ];
+    rows.forEach(function(rw){
+      x.fillStyle = '#8a8478'; x.font = '400 30px sans-serif'; x.fillText(rw[0], 70, y);
+      x.fillStyle = '#ffffff'; x.font = '800 30px sans-serif';
+      var w = x.measureText(rw[1]).width;
+      x.fillText(rw[1], 1010 - w, y); y += 52;
+    });
+    y += 20;
+  } else if(g && g.lite){
+    x.fillStyle = '#e5383b'; x.font = '900 110px sans-serif';
+    x.fillText(String(g.score), 70, y); y += 40;
+    x.fillStyle = '#ffffff'; x.font = '700 36px sans-serif';
+    x.fillText('PARTIAL GHOUL SCORE', 70, y); y += 60;
+    x.fillStyle = '#8a8478'; x.font = '400 28px sans-serif';
+    wrap('Not in today\u2019s full ranking — partial score from recalls, pay, and complaints.', '400 28px sans-serif', 940).forEach(function(l){ x.fillText(l, 70, y); y += 40; });
+    y += 30;
+  } else {
+    x.fillStyle = '#ffffff'; x.font = '700 40px sans-serif';
+    wrap('No accountability data on this company yet.', '700 40px sans-serif', 940).forEach(function(l){ x.fillText(l, 70, y); y += 52; });
+    y += 20;
+  }
+
+  /* CTA standard: JOIN THE FIGHT. (red, bold) + MTCSTW.COM */
+  y = Math.max(y + 40, 1080);
+  x.fillStyle = '#c1121f'; x.font = '900 72px sans-serif';
+  x.fillText('JOIN THE FIGHT.', 70, y); y += 80;
+  x.fillStyle = '#ffffff'; x.font = '900 54px sans-serif';
+  x.fillText('MTCSTW.COM/scan', 70, y);
+
+  var text = 'BARCODE SCAN: ' + nm + (brand ? ' (' + brand + ')' : '') +
+    (g ? ' — Ghoul Score ' + g.score + (g.rank ? ', rank #' + g.rank : '') : ' — no data on file yet') +
+    '. Scan yours: https://www.mtcstw.com/scan';
+  cv.toBlob(function(blob){
+    if(!blob){ fallbackShare(text); return; }
+    var file = new File([blob], 'barcode-scan.png', {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], title:'Barcode Scan', text:text}).catch(function(){});
+    } else if(navigator.share){
+      navigator.share({title:'Barcode Scan', text:text}).catch(function(){ fallbackShare(text); });
+    } else {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'barcode-scan.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      toast('Image saved — spread the receipts.');
+    }
+  }, 'image/png');
+}
+function fallbackShare(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast('Copied — spread the receipts.'); })
+      .catch(function(){ toast('Copy failed — long-press to copy.'); });
+  } else { toast('Sharing not available in this browser.'); }
+}
+</script>
+</body>
+</html>

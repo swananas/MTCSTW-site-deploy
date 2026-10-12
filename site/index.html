@@ -148,6 +148,8 @@
   #pf-karl-home .kh-composer-oneline input::placeholder{ color:var(--kh-faint); }
   #pf-karl-home .kh-composer-oneline .kh-ask-btn{ padding:10px 20px; font-size:14px; flex-shrink:0; }
   #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
+  #pf-karl-home .pf-explainer{ font-size:14px; line-height:1.45; margin:8px 2px 12px; color:var(--kh-cream); max-width:34ch; }
+  #pf-karl-home .pf-explainer strong{ color:#fff; }
   /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed */
   #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
   #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
@@ -812,8 +814,9 @@ fetchCampaign().then(render);
 <div id="pf-karl-home">
   <div class="kh-ask kh-ask-compact">
     <h1>Who's <em>robbing</em> you?</h1>
+    <p class="pf-explainer">We turn public records into shareable intel — violations, money trails, and payouts in your town.</p>
     <div class="kh-composer kh-composer-oneline">
-      <input id="kh-q" placeholder="Ask anything…" enterkeyhint="go" autocomplete="off">
+      <input id="kh-q" placeholder="Try your ZIP, a company, or hospital…" enterkeyhint="go" autocomplete="off">
       <button class="kh-ask-btn" id="kh-askBtn">ASK</button>
     </div>
     <p class="pf-mission">Stop waiting for the government to fix itself. <strong>Discover your power.</strong></p>

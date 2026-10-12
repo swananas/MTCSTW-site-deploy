@@ -824,7 +824,7 @@ fetchCampaign().then(render);
     <h1>Who's <em>robbing</em> you?</h1>
     <p class="pf-explainer">We turn public records into shareable intel — violations, money trails, and payouts in your town.</p>
     <div class="kh-composer kh-composer-oneline">
-      <input id="kh-q" placeholder="Try your ZIP, a company, or hospital…" enterkeyhint="go" autocomplete="off">
+      <input id="kh-q" placeholder="Enter your ZIP — see your town's money trails" enterkeyhint="go" autocomplete="off">
       <button class="kh-ask-btn" id="kh-askBtn">ASK</button>
     </div>
     <p class="pf-mission">Stop waiting for the government to fix itself. <strong>Discover your power.</strong></p>
@@ -851,12 +851,11 @@ fetchCampaign().then(render);
   <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
        into the active campaign. Pulls from campaign_active API. After
        participation, prompts callsign claim if none exists. -->
-  <div id="pf-campaign-join" style="padding:6px 14px 14px;display:none;">
-    <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:block;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:16px;padding:20px;color:#fff;box-shadow:0 6px 24px rgba(193,18,31,.35);">
-      <div id="pf-campaign-join-kicker" style="font-size:11px;font-weight:800;letter-spacing:.14em;opacity:.85;margin-bottom:6px;">🔥 ACTIVE CAMPAIGN</div>
-      <div id="pf-campaign-join-name" style="font-size:22px;font-weight:900;letter-spacing:.02em;margin-bottom:6px;">FIRE GOOFY GUIFOYLE</div>
-      <div id="pf-campaign-join-sub" style="font-size:14px;opacity:.9;line-height:1.45;margin-bottom:14px;">Complete missions. Share intel. Make noise.</div>
-      <div style="display:inline-block;background:#fff;color:#c1121f;font-weight:900;font-size:15px;letter-spacing:.08em;padding:12px 28px;border-radius:999px;">JOIN THE FIGHT →</div>
+  <div id="pf-campaign-join" style="padding:6px 14px 12px;display:none;">
+    <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:flex;align-items:center;gap:10px;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:12px;padding:11px 14px;color:#fff;">
+      <div id="pf-campaign-join-kicker" style="font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.85;white-space:nowrap;">🔥 CAMPAIGN</div>
+      <div id="pf-campaign-join-name" style="font-size:14px;font-weight:900;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">FIRE GOOFY GUIFOYLE</div>
+      <div style="background:#fff;color:#c1121f;font-weight:900;font-size:13px;letter-spacing:.04em;padding:8px 16px;border-radius:999px;white-space:nowrap;flex:none;">JOIN →</div>
     </a>
   </div>
   <script>

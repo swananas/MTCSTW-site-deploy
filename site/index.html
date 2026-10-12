@@ -247,6 +247,7 @@
   #pf-karl-home .kh-inter-cq .pf-cq-kicker em{ color:#e5383b; font-style:normal; }
   #pf-karl-home .kh-inter-cq .pf-cq{ margin:0; border:0; padding:0; background:transparent; }
   #pf-karl-home .kh-card .kh-q{ font-size:15px; font-weight:600; margin-bottom:8px; color:var(--kh-cream); }
+  #pf-karl-home .kh-card-img{ width:100%; height:auto; display:block; border-radius:12px; margin:2px 0 10px; }
   #pf-karl-home .kh-card .kh-a{ font-size:14px; color:var(--kh-dim); line-height:1.55; }
   #pf-karl-home .kh-card .kh-a b{ color:var(--kh-red-bright); font-weight:700; }
   #pf-karl-home .kh-card-meta{
@@ -1225,6 +1226,7 @@ function cardEl(d){
       : '<div class="kh-rbadge">⚡ ROBBERY REPORT</div>'));
   el.innerHTML =
     badge+
+    (d.image_url ? '<img class="kh-card-img" src="'+esc(d.image_url)+'" alt="" loading="lazy">' : '')+
     '<div class="kh-q">'+esc(d.q)+'</div>'+
     '<div class="kh-a">'+d.a+'</div>'+
     '<div class="kh-proof">'+
@@ -1797,6 +1799,7 @@ function apiCardToData(c){
     src: '\u25B8 RECEIPTS \u2014 ' + (c.source_name || 'Karl rails'),
     source_url: c.source_url || '', who: c.who || '',
     provenance: c.provenance || '', _tag: tag,
+    image_url: c.image_url || '',
     card_id: c.id || null,
     cta_type: c.cta_type || null, cta_label: c.cta_label || null,
     cta_url: c.cta_url || null, enemy_name: c.enemy_name || null,

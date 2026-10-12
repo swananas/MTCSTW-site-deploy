@@ -1,0 +1,203 @@
+/* pf-faces.css — Face system + shared components
+   Base never changes; only --pf-accent* shift per face.
+
+   Contrast on #0a0a0a (checked):
+     #f5f0e6 17.4:1 · #8a8478 5.3:1 (AA ok)
+     #c1121f 3.2:1  -> large text / borders / fills only, NOT small text
+     #e5383b 4.7:1  -> FIGHT small-text accent (--pf-accent-ink)
+     #2fbf71 8.3:1 · #ffb703 11.3:1
+*/
+
+:root,
+[data-face="fight"] {
+  --pf-accent: #c1121f;
+  --pf-accent-ink: #e5383b;   /* accent used as text < 24px */
+  --pf-on-accent: #f5f0e6;    /* text on accent fills: 5.5:1 */
+}
+[data-face="build"] {
+  --pf-accent: #2fbf71;
+  --pf-accent-ink: #2fbf71;
+  --pf-on-accent: #0a0a0a;
+}
+[data-face="scale"] {
+  --pf-accent: #ffb703;
+  --pf-accent-ink: #ffb703;
+  --pf-on-accent: #0a0a0a;
+}
+
+:root {
+  --pf-bg: #0a0a0a;
+  --pf-fg: #f5f0e6;
+  --pf-muted: #8a8478;
+  --pf-line: #2a2824;
+  --pf-raise: #141311;
+  --pf-tap: 44px;
+  --pf-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pf-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ---------- FaceSwitcher ---------- */
+.pf-faces {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+  background: var(--pf-line);
+  border-radius: 6px;
+  font-family: var(--pf-font);
+}
+.pf-faces a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--pf-tap);
+  padding: 4px 10px;
+  background: var(--pf-bg);
+  color: var(--pf-muted);
+  text-decoration: none;
+  border-radius: 4px;
+  line-height: 1.1;
+}
+.pf-faces a:first-child { border-radius: 4px 2px 2px 4px; }
+.pf-faces a:last-child  { border-radius: 2px 4px 4px 2px; }
+.pf-faces__name { font-weight: 700; font-size: 13px; letter-spacing: .04em; }
+.pf-faces__sub  { font-size: 11px; margin-top: 2px; }
+.pf-faces a:hover { color: var(--pf-fg); }
+.pf-faces a[aria-current="page"] {
+  background: var(--pf-accent);
+  color: var(--pf-on-accent);
+}
+.pf-faces a:focus-visible {
+  outline: 2px solid var(--pf-fg);
+  outline-offset: 2px;
+}
+/* Mobile: compact control under topbar, labels hidden but kept for AT */
+@media (max-width: 719px) {
+  .pf-faces--topbar { display: none; }
+  .pf-faces--mobile { margin: 8px 12px 0; }
+  .pf-faces--mobile .pf-faces__sub { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+@media (min-width: 720px) {
+  .pf-faces--mobile { display: none; }
+  .pf-faces--topbar { display: inline-grid; min-width: 330px; }
+}
+/* Auto-injected switcher (when page has no [data-pf-faces] markup) */
+.pf-faces--auto {
+  margin: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--pf-line);
+}
+.pf-faces--auto a { border-radius: 0; }
+
+/* ---------- CorePulse ---------- */
+.pf-pulse {
+  font-family: var(--pf-font);
+  font-size: 12px;
+  color: var(--pf-muted);
+  background: var(--pf-raise);
+  border-bottom: 1px solid var(--pf-line);
+  border-top: 2px solid var(--pf-accent);
+}
+.pf-pulse__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 12px;
+  min-height: 32px;
+}
+.pf-pulse__item { white-space: nowrap; }
+.pf-pulse__item b { color: var(--pf-fg); font-weight: 600; }
+.pf-pulse__health { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.pf-pulse__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+}
+.pf-pulse__health[data-state="ok"]       { color: #2fbf71; }
+.pf-pulse__health[data-state="degraded"] { color: #ffb703; }
+.pf-pulse__health[data-state="down"],
+.pf-pulse__health[data-state="stale"]    { color: var(--pf-muted); }
+.pf-pulse__toggle {
+  display: none;
+  background: none; border: 0; color: inherit; font: inherit;
+  min-height: var(--pf-tap); width: 100%; padding: 0 12px;
+  text-align: left; cursor: pointer;
+}
+.pf-pulse__toggle:focus-visible { outline: 2px solid var(--pf-fg); outline-offset: -2px; }
+
+@media (max-width: 719px) {
+  .pf-pulse__toggle { display: flex; align-items: center; gap: 8px; }
+  .pf-pulse__bar { display: none; flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 12px 10px; }
+  .pf-pulse[data-open="true"] .pf-pulse__bar { display: flex; }
+  .pf-pulse__health { margin-left: 0; }
+}
+
+/* ---------- Stat ---------- */
+.pf-stat { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+/* ---------- CoreBadge ---------- */
+.pf-corebadge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-family: var(--pf-font);
+  font-size: 12px;
+  color: var(--pf-muted);
+  padding-top: 10px;
+  border-top: 1px solid var(--pf-line);
+}
+.pf-corebadge code { font-family: var(--pf-mono); color: var(--pf-fg); font-size: 12px; }
+.pf-corebadge__copy {
+  margin-left: auto;
+  min-height: var(--pf-tap);
+  padding: 0 12px;
+  background: none;
+  color: var(--pf-accent-ink);
+  border: 1px solid var(--pf-line);
+  border-radius: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+.pf-corebadge__copy:focus-visible { outline: 2px solid var(--pf-fg); outline-offset: 2px; }
+
+/* ---------- PackCard ---------- */
+.pf-pack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--pf-raise);
+  border: 1px solid var(--pf-line);
+  border-left: 3px solid var(--pf-accent);
+  border-radius: 4px;
+  font-family: var(--pf-font);
+  color: var(--pf-fg);
+}
+.pf-pack__name { margin: 0; font-size: 18px; font-weight: 700; }
+.pf-pack__desc { margin: 0; color: var(--pf-muted); font-size: 14px; line-height: 1.45; }
+.pf-pack__price { font-size: 28px; font-weight: 700; }
+.pf-pack__price small { font-size: 14px; font-weight: 400; color: var(--pf-muted); }
+.pf-pack__live { display: flex; gap: 16px; font-size: 13px; color: var(--pf-muted); }
+.pf-pack__live b { color: var(--pf-fg); }
+.pf-pack__cta {
+  display: flex; align-items: center; justify-content: center;
+  min-height: var(--pf-tap);
+  background: var(--pf-accent);
+  color: var(--pf-on-accent);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-top: auto;
+}
+.pf-pack__cta:focus-visible { outline: 2px solid var(--pf-fg); outline-offset: 2px; }
+
+/* ---------- Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .pf-faces *, .pf-pulse *, .pf-pack *, .pf-corebadge *, .pf-stat {
+    animation: none !important;
+    transition: none !important;
+  }
+}

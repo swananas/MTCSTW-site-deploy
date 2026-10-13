@@ -323,15 +323,23 @@ function truthCounts() {
   var w = OV && OV.workers;
   var tc = w && w.truth_counts;
   if (tc) return { working: Number(tc.working) || 0, quiet: Number(tc.quiet) || 0, blocked: Number(tc.blocked) || 0, done_today: Number(tc.done_today) || 0 };
-  var working = (w && (w.working || w.active_fresh)) || [];
-  var quiet = (w && (w.quiet || w.active_stale)) || [];
-  var blocked = (w && w.blocked) || [];
-  var done = 0;
-  if (w && w.recent_complete) {
-    var dayStart = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
-    done = w.recent_complete.filter(function (x) { return (Number(x.updated_at) || 0) >= dayStart; }).length;
+  if (w && (w.working || w.active_fresh || w.quiet || w.active_stale || w.blocked || w.recent_complete)) {
+    var working = w.working || w.active_fresh || [];
+    var quiet = w.quiet || w.active_stale || [];
+    var blocked = w.blocked || [];
+    var done = 0;
+    if (w.recent_complete) {
+      var dayStart = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+      done = w.recent_complete.filter(function (x) { return (Number(x.updated_at) || 0) >= dayStart; }).length;
+    }
+    return { working: working.length, quiet: quiet.length, blocked: blocked.length, done_today: done };
   }
-  return { working: working.length, quiet: quiet.length, blocked: blocked.length, done_today: done };
+  /* Last resort: the workers section is absent from this overview —
+     read the pulse counts (the same numbers by contract) rather than
+     printing zeros next to a healthy event stream. */
+  var pc = (OV && OV.org && OV.org.pulse && OV.org.pulse.counts) || null;
+  if (pc) return { working: Number(pc.working_now != null ? pc.working_now : pc.active_now) || 0, quiet: Number(pc.quiet) || 0, blocked: Number(pc.blocked) || 0, done_today: Number(pc.completed_today) || 0 };
+  return { working: 0, quiet: 0, blocked: 0, done_today: 0 };
 }
 var EVDOT = { complete: 'g', deploy: 'b', started: 'b', sweep: 'd', blocked: 'r', anomaly: 'a' };
 function renderPulse() {

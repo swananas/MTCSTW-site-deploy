@@ -122,6 +122,14 @@ var OVFIX = {
     counts: { complete: 272 },
     fresh_active: 3, active_fresh: [W4, W1, W3],
     stale_active: 1, active_stale: [W2],
+    /* v2.1 contract shape: working/quiet are the SAME lists under the
+       new keys, and truth_counts is the one counts object every view
+       reads. It deliberately differs from the pulse fixture counts
+       (68/38/6) so the tests prove which source each number came from;
+       production payloads keep pulse counts == truth_counts. */
+    working: [W4, W1, W3],
+    quiet: [W2],
+    truth_counts: { working: 3, quiet: 1, blocked: 1, done_today: 2, registered_active: 4, total: 411 },
     blocked: [WB],
     recent_complete: [WD1, WD2],
     blockers: [{ description: 'API key missing', severity: 'high', source: 'watchdog', raised_at_human: '2026-10-13 01:00 CDT' }],
@@ -194,18 +202,27 @@ var TWFIX = {
 };
 var SECFIX = { ok: true, module_live: true, enrolled: true, credentials: TWFIX.credentials, locked: false, lock_until: 0, confirmation_path: 'open', recent_audit: [] };
 
+var APICALLS = [];
+var PING_FAIL = false;
 function fetchStub(url, opts) {
   var action = '';
   var mm = String(url).match(/[?&]action=([a-z_]+)/);
   if (mm) action = mm[1];
+  var bodyIn = null;
+  try { bodyIn = (opts && opts.body) ? JSON.parse(opts.body) : null; } catch (e) {}
+  APICALLS.push({ action: action, body: bodyIn });
   var body = { ok: false };
   if (action === 'cc_overview') body = OVFIX;
   else if (action === 'cc_security') body = SECFIX;
   else if (action === 'tw_status') body = TWFIX;
   else if (action === 'creator_admin_queue') body = QUEUEFIX;
   else if (action === 'campaign_list') body = CAMPSFIX;
+  else if (action === 'cc_ping') body = PING_FAIL ? { ok: false, error: 'admin_required' } : { ok: true, id: 42 };
+  else if (action === 'cc_act') body = { ok: true };
   return Promise.resolve({ json: function () { return Promise.resolve(body); } });
 }
+function callsTo(action) { return APICALLS.filter(function (c) { return c.action === action; }); }
+function flush() { return new Promise(function (r) { setTimeout(r, 15); }); }
 
 var intervals = [];
 var sandbox = {
@@ -243,6 +260,10 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   });
   ok('decision strip container present', page.indexOf('id="decisions"') >= 0);
   ok('live tag present', page.indexOf('id="liveTag"') >= 0);
+  ok('v2.1 ping compose bar present (pingText/pingSend)', page.indexOf('id="pingText"') >= 0 && page.indexOf('id="pingSend"') >= 0);
+  ok('v2.1 worker summary card present', page.indexOf('id="p-workersummary"') >= 0);
+  ok('v2.1 cc_ping + cc_decide wired', src.indexOf('cc_ping') >= 0 && src.indexOf('cc_decide') >= 0);
+  ok('v2.1 legacy Now worker-row renderers removed', src.indexOf('function pulseRow') < 0 && src.indexOf('function workerRow') < 0);
   ['p-now', 'p-stream', 'p-org', 'p-workers', 'p-data', 'p-rails', 'p-money', 'p-flows', 'p-site', 'p-creators', 'p-pk', 'p-sec'].forEach(function (id) {
     ok('original panel #' + id + ' preserved', page.indexOf('id="' + id + '"') >= 0);
   });
@@ -271,11 +292,17 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
 
   /* ---------- Now view (default) ---------- */
   ok('Now is the default view', els['view-now'].className === 'view on' && els['view-workers'].className === 'view');
-  ok('NOW counts from pulse', html('p-now').indexOf('>' + pulse.counts.active_now + '<') >= 0 && html('p-now').indexOf('done today') >= 0);
-  var freshRow = pulse.active_now.filter(function (w) { return !w.quiet; })[0];
-  var quietRow = pulse.active_now.filter(function (w) { return w.quiet; })[0];
-  ok('NOW lists fresh worker with live tag', html('p-now').indexOf(escT(freshRow.id)) >= 0 && html('p-now').indexOf('tag grn') >= 0);
-  ok('NOW marks quiet worker quiet + aged', html('p-now').indexOf(escT(quietRow.id)) >= 0 && html('p-now').indexOf('quiet') >= 0);
+  ok('NOW counts come from truth_counts (working/done/blocked)', html('p-now').indexOf('>3<') >= 0 && html('p-now').indexOf('>2<') >= 0 && html('p-now').indexOf('>1<') >= 0 && html('p-now').indexOf('working now') >= 0 && html('p-now').indexOf('done today') >= 0,
+    html('p-now').slice(0, 300));
+  ok('NOW counts are NOT the pulse counts (68/38/6 stay out)', html('p-now').indexOf('>68<') < 0 && html('p-now').indexOf('>38<') < 0 && html('p-now').indexOf('>6<') < 0);
+  ok('worker summary card shows the same truth counts', html('p-workersummary').indexOf('Working 3') >= 0 && html('p-workersummary').indexOf('Quiet 1') >= 0 && html('p-workersummary').indexOf('Blocked 1') >= 0,
+    html('p-workersummary').slice(0, 300));
+  ok('worker summary card is tappable to Workers', typeof els['p-workersummary'].onclick === 'function');
+  var nowAll = html('p-now') + html('p-org') + html('p-stream');
+  ok('DEDUPE: no worker rows anywhere on Now', nowAll.indexOf('data-wkb-row') < 0 && nowAll.indexOf('wkb-row') < 0 &&
+    nowAll.indexOf('cc-live-pulse-20261012') < 0 && nowAll.indexOf('b-ship') < 0 &&
+    nowAll.indexOf('w-fresh') < 0 && nowAll.indexOf('w-blocked') < 0 && nowAll.indexOf('w-done') < 0,
+    'pulse/org/stream must carry counts + events only');
   var streamRows = (html('p-stream').match(/class="item small"/g) || []).length;
   ok('STREAM capped at 15 rows (fixture has ' + pulse.events.length + ')', streamRows === 15, 'rows=' + streamRows);
   ok('STREAM notes the cap + offers Work jump', html('p-stream').indexOf('Newest 15 of ' + pulse.events.length + ' events') >= 0 && typeof els.streamWorkBtn.onclick === 'function');
@@ -286,7 +313,7 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   ok('LIVE tag green/amber by real age', els.liveTag.textContent === '● LIVE · ' + ageExpect(GEN) && els.liveTag.className === 'tag amb',
     els.liveTag.textContent + ' / ' + els.liveTag.className);
   ok('decision strip shown from PK escalations', els.decisions.style.display === '' && html('decisions').indexOf('Waiting on you') >= 0 && html('decisions').indexOf('Ship the Friday bundle') >= 0);
-  ok('workers tab badge = blocked count', String(els['badge-workers'].textContent) === String(pulse.counts.blocked) && els['badge-workers'].style.display === '');
+  ok('workers tab badge = truth_counts blocked (same number as summary + chips)', String(els['badge-workers'].textContent) === '1' && els['badge-workers'].style.display === '');
   ok('work tab badge = decisions count', String(els['badge-work'].textContent) === '2' && els['badge-work'].style.display === '');
 
   /* ---------- Workers view ---------- */
@@ -313,7 +340,7 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   ok('WKB Done filter shows only recent_complete', wh.indexOf('data-wkb-row="w-done-a"') >= 0 && wh.indexOf('data-wkb-row="w-done-b"') >= 0 && wh.indexOf('data-wkb-row="w-blocked"') < 0 && wh.indexOf('RECENTLY DONE \u00b7 2') >= 0);
   sandbox.wkbSetFilter('stale');
   wh = html('p-workers');
-  ok('WKB Quiet filter shows only stale list', wh.indexOf('data-wkb-row="w-stale"') >= 0 && wh.indexOf('data-wkb-row="w-fresh"') < 0 && wh.indexOf('STALE') >= 0);
+  ok('WKB Quiet filter shows only quiet list (2h definition)', wh.indexOf('data-wkb-row="w-stale"') >= 0 && wh.indexOf('data-wkb-row="w-fresh"') < 0 && wh.indexOf('QUIET \u2014 REGISTERED ACTIVE, NO UPDATE IN OVER 2H') >= 0);
   sandbox.wkbSetFilter('fresh');
 
   sandbox.wkbSetQuery('zebra');
@@ -403,6 +430,137 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   sandbox.renderAll();
   ok('decision strip returns with escalations', els.decisions.style.display === '');
 
+  /* ---------- v2.1: worker rows ONLY in the Workers view ---------- */
+  sandbox.showView('now'); sandbox.renderAll();
+  var nonWorkerHtml = '';
+  ['work', 'data', 'money'].forEach(function (v) { sandbox.showView(v); });
+  els['seg-site'].onclick(); els['seg-creators'].onclick(); els['seg-security'].onclick(); els['seg-money'].onclick();
+  ['p-pk', 'p-deploy', 'p-data', 'p-rails', 'p-flows', 'p-money', 'p-site', 'p-creators', 'p-sec', 'p-now', 'p-org', 'p-stream', 'p-workersummary'].forEach(function (id) { nonWorkerHtml += html(id); });
+  ok('DEDUPE: worker-row markup renders in NO other view', nonWorkerHtml.indexOf('data-wkb-row') < 0 && nonWorkerHtml.indexOf('wkb-row') < 0);
+  sandbox.showView('workers');
+  ok('DEDUPE: worker rows DO render in the Workers view', html('p-workers').indexOf('data-wkb-row="w-fresh"') >= 0);
+  sandbox.showView('now');
+
+  /* ---------- v2.1: Ping Muse (compose bar) ---------- */
+  els.pingText.value = '  Check the Friday ship status  ';
+  await els.pingSend.onclick(); await flush();
+  var pings = callsTo('cc_ping');
+  ok('ping send posts cc_ping with the trimmed typed body, no ref', pings.length === 1 && pings[0].body && pings[0].body.body === 'Check the Friday ship status' && !('ref' in pings[0].body),
+    JSON.stringify(pings[0] && pings[0].body));
+  ok('ping success clears the field + toasts the ~1 minute landing', els.pingText.value === '' && els.toast.innerHTML.indexOf('Lands with Muse in about a minute') >= 0, els.toast.innerHTML);
+  els.pingText.value = '   ';
+  await els.pingSend.onclick(); await flush();
+  ok('empty ping makes NO call and warns gently', callsTo('cc_ping').length === 1 && els.toast.innerHTML.indexOf('empty ping files nothing') >= 0, els.toast.innerHTML);
+  PING_FAIL = true;
+  els.pingText.value = 'keep this text';
+  await els.pingSend.onclick(); await flush();
+  ok('failed ping keeps the text + toasts the error', els.pingText.value === 'keep this text' && els.toast.innerHTML.indexOf('Ping not sent') >= 0 && els.toast.innerHTML.indexOf('admin_required') >= 0, els.toast.innerHTML);
+  PING_FAIL = false;
+  els.pingText.value = '';
+
+  /* ---------- v2.1: worker detail actions (ping / nudge / close out) ---------- */
+  sandbox.showView('workers');
+  sandbox.wkbToggle('w-fresh');
+  var dwh = html('p-workers');
+  ok('worker detail carries ping input + Ping/Nudge/Close out buttons', dwh.indexOf('data-wkb-ping="w-fresh"') >= 0 && dwh.indexOf('data-wkb-pingsend="w-fresh"') >= 0 && dwh.indexOf('data-wkb-nudge="w-fresh"') >= 0 && dwh.indexOf('data-wkb-close="w-fresh"') >= 0);
+  vm.runInContext('WKPING["w-fresh"] = "status please"', sandbox);
+  var pingN = callsTo('cc_ping').length;
+  await sandbox.wkbPingSend('w-fresh'); await flush();
+  pings = callsTo('cc_ping');
+  ok('worker ping posts cc_ping {body, ref: workerId}', pings.length === pingN + 1 && pings[pings.length - 1].body.body === 'status please' && pings[pings.length - 1].body.ref === 'w-fresh',
+    JSON.stringify(pings[pings.length - 1].body));
+  ok('worker ping clears its draft after send', vm.runInContext('WKPING["w-fresh"]', sandbox) === '');
+  vm.runInContext('WKPING["w-fresh"] = "and hurry"', sandbox);
+  await sandbox.wkbNudge('w-fresh'); await flush();
+  pings = callsTo('cc_ping');
+  ok('nudge posts the nudge body + appended detail text, ref = worker', pings[pings.length - 1].body.body === 'Nudge: check in / update status \u2014 and hurry' && pings[pings.length - 1].body.ref === 'w-fresh',
+    JSON.stringify(pings[pings.length - 1].body));
+  await sandbox.wkbNudge('w-fresh2'); await flush();
+  pings = callsTo('cc_ping');
+  ok('nudge with no draft posts the plain nudge body', pings[pings.length - 1].body.body === 'Nudge: check in / update status' && pings[pings.length - 1].body.ref === 'w-fresh2');
+  var pingN2 = callsTo('cc_ping').length;
+  await sandbox.wkbPingSend('w-blocked'); await flush();
+  ok('empty worker ping makes NO call', callsTo('cc_ping').length === pingN2 && els.toast.innerHTML.indexOf('empty ping files nothing') >= 0);
+
+  /* ---------- v2.1: Confirm / Reject + Close out via the TW ceremony ---------- */
+  var TW_CALLS = [];
+  var realConfirm = sandbox.confirmAndAct;
+  sandbox.confirmAndAct = function (spec) {
+    TW_CALLS.push(spec);
+    /* mirror the real confirmAndAct's final call shape */
+    return Promise.resolve(sandbox.apiPost('cc_act', { action_id: spec.ccAction, args: spec.args || {}, confirm_token: 'tok-stub' }))
+      .then(function (r) { if (spec.done) spec.done(r); return r; });
+  };
+  sandbox.decideItem('dir-20261012-1', 'confirm'); await flush();
+  ok('Confirm runs the existing ceremony helper with the cc_decide spec', TW_CALLS.length === 1 && TW_CALLS[0].ccAction === 'cc_decide' &&
+    TW_CALLS[0].twAction === 'command_center:cc_decide' && TW_CALLS[0].target === 'dir-20261012-1:confirm',
+    JSON.stringify(TW_CALLS[0] && { a: TW_CALLS[0].twAction, t: TW_CALLS[0].target, c: TW_CALLS[0].ccAction }));
+  var actCalls = callsTo('cc_act');
+  var lastAct = actCalls[actCalls.length - 1];
+  ok('Confirm lands as cc_act {action_id cc_decide, args {type cc_decide, item_ref, decision confirm}, confirm_token}',
+    !!lastAct && lastAct.body.action_id === 'cc_decide' && lastAct.body.confirm_token === 'tok-stub' &&
+    lastAct.body.args.type === 'cc_decide' && lastAct.body.args.item_ref === 'dir-20261012-1' && lastAct.body.args.decision === 'confirm',
+    JSON.stringify(lastAct && lastAct.body));
+  sandbox.decideItem('dir-20261012-1', 'reject'); await flush();
+  actCalls = callsTo('cc_act');
+  ok('Reject posts decision reject for the same item', actCalls[actCalls.length - 1].body.args.decision === 'reject' && actCalls[actCalls.length - 1].body.args.item_ref === 'dir-20261012-1');
+  var twN = TW_CALLS.length;
+  sandbox.decideItem('dir-20261012-1', 'bogus'); await flush();
+  ok('decideItem refuses unknown decisions (no ceremony, no call)', TW_CALLS.length === twN);
+  sandbox.wkbClose('w-fresh'); await flush();
+  var closeSpec = TW_CALLS[TW_CALLS.length - 1];
+  ok('Close out runs the ceremony with item_ref worker:<id> + decision close', closeSpec.ccAction === 'cc_decide' &&
+    closeSpec.args.type === 'cc_decide' && closeSpec.args.item_ref === 'worker:w-fresh' && closeSpec.args.decision === 'close' &&
+    closeSpec.target === 'worker:w-fresh:close', JSON.stringify(closeSpec && closeSpec.args));
+  ok('Close out toasts the ~1 minute apply note', els.toast.innerHTML.indexOf('Close-out sent') >= 0 && els.toast.innerHTML.indexOf('about a minute') >= 0, els.toast.innerHTML);
+  sandbox.confirmAndAct = realConfirm;
+
+  /* ---------- v2.1: decided items annotate + stop counting as waiting ---------- */
+  var OVDEC = JSON.parse(JSON.stringify(OVFIX));
+  OVDEC.promises.escalated_top = [
+    { id: 'dir-decided-1', directive: 'Already handled item', state: 'not_live', age_h: 9, ceo_decision: 'confirm', ceo_decision_at: nowS - 3600 },
+    { id: 'dir-waiting-1', directive: 'Fresh item needing eyes', state: 'not_live', age_h: 2 }
+  ];
+  OVDEC.promises.need_human = 2; OVDEC.promises.escalations_open = 2;
+  sandbox.OV = OVDEC;
+  sandbox.showView('now'); sandbox.renderAll();
+  var dh = html('decisions');
+  ok('strip counts ONLY undecided items as waiting', dh.indexOf('Waiting on you \u2014 1 decision') >= 0 && String(els['badge-work'].textContent) === '1', dh.slice(0, 160) + ' / badge=' + els['badge-work'].textContent);
+  ok('decided item renders annotated with relative time', dh.indexOf('Confirmed by you') >= 0 && dh.indexOf(ageExpect((nowS - 3600) * 1000)) >= 0, dh.slice(dh.indexOf('dir-decided-1'), dh.indexOf('dir-decided-1') + 400));
+  ok('decided item has NO buttons; waiting item has Confirm + Reject', dh.indexOf('data-item-ref="dir-decided-1"') < 0 &&
+    dh.indexOf('data-decide="confirm" data-item-ref="dir-waiting-1"') >= 0 && dh.indexOf('data-decide="reject" data-item-ref="dir-waiting-1"') >= 0);
+  sandbox.showView('work');
+  ok('PK view annotates the decided item too', html('p-pk').indexOf('Confirmed by you') >= 0);
+  var OVDONE = JSON.parse(JSON.stringify(OVFIX));
+  OVDONE.promises.escalated_top = [
+    { id: 'dir-decided-2', directive: 'Rejected earlier item', state: 'not_live', age_h: 30, ceo_decision: 'reject', ceo_decision_at: nowS - 7200 }
+  ];
+  OVDONE.promises.need_human = 1; OVDONE.promises.escalations_open = 1;
+  sandbox.OV = OVDONE;
+  sandbox.showView('now'); sandbox.renderAll();
+  dh = html('decisions');
+  ok('all-decided strip shows annotations, zero waiting, badge hidden', els.decisions.style.display === '' && dh.indexOf('Rejected by you') >= 0 && dh.indexOf('all caught up') >= 0 && els['badge-work'].style.display === 'none',
+    dh.slice(0, 160));
+  sandbox.OV = OVFIX;
+  sandbox.renderAll();
+  ok('strip returns to waiting state with the live fixture', els.decisions.style.display === '' && html('decisions').indexOf('data-decide="confirm" data-item-ref="dir-20261012-1"') >= 0);
+
+  /* ---------- v2.1: worker text is escaped in the Workers view ---------- */
+  var OVEVIL = {
+    ok: true, generated_at: fakeNow,
+    workers: {
+      ok: true, synced_at: fakeNow, age_s: 1, total: 1, state_updated_human: 'x', counts: {}, by_department: {}, blockers: [],
+      working: [{ id: 'evil-w', task: 'x <script>alert(1)</script>', department: 'QA', status: 'active', started_at: nowS - 60, updated_at: nowS - 30, updated_at_human: 'now', note: '' }],
+      quiet: [], blocked: [], recent_complete: [],
+      truth_counts: { working: 1, quiet: 0, blocked: 0, done_today: 0, registered_active: 1, total: 1 }
+    }
+  };
+  sandbox.OV = OVEVIL;
+  sandbox.showView('workers'); sandbox.renderAll();
+  ok('worker task text is escaped in Workers rows', html('p-workers').indexOf('&lt;script&gt;') >= 0 && html('p-workers').indexOf('<script>alert') < 0);
+  sandbox.OV = OVFIX;
+  sandbox.showView('now'); sandbox.renderAll();
+
   /* ---------- ticker ages the LIVE tag ---------- */
   fakeNow += 3600000;
   intervals.filter(function (i) { return i.ms === 1000; }).forEach(function (i) { i.fn(); });
@@ -417,7 +575,7 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   sandbox.OV = { ok: true, generated_at: fakeNow, org: { ok: true, pulse: FIX2 } };
   sandbox.showView('now');
   sandbox.renderAll();
-  ok('task text is escaped in NOW rows', html('p-now').indexOf('&lt;script&gt;') >= 0 && html('p-now').indexOf('<script>alert') < 0);
+  ok('v2.1: pulse worker rows never render on Now (evil fixture stays out entirely)', html('p-now').indexOf('evil-1') < 0 && html('p-now').indexOf('<script>alert') < 0 && html('p-now').indexOf('&lt;script&gt;') < 0);
   sandbox.OV = { ok: true, generated_at: fakeNow, org: { ok: true } };
   sandbox.renderAll();
   ok('missing pulse renders the honest placeholder', html('p-now').indexOf('Pulse arrives with the next state sync') >= 0);

@@ -252,16 +252,14 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
 <div id="hub-loading" class="cc-card">Checking your creator session\u2026</div>
 <div id="hub-error" class="cc-msg err" role="alert" style="display:none"></div>
 <div id="hub-signin" class="cc-card" style="display:none">
-  <div class="cc-name" style="margin-top:0">Creator sign-in</div>
-  <p class="cc-meta">Creators only. This door is yours alone \u2014 it doesn\u2019t use your callsign or anything from the public site.</p>
+  <div class="cc-name" style="margin-top:0">CREATORS ONLY.</div>
   <label class="cc-label" for="si-id">Creator ID</label>
-  <input id="si-id" class="cc-input" type="text" autocomplete="username" placeholder="crd_\u2026">
+  <input id="si-id" class="cc-input" type="text" autocomplete="username" autocapitalize="characters" spellcheck="false" placeholder="YOUR CODENAME" style="text-transform:uppercase">
   <label class="cc-label" for="si-secret">Creator Key</label>
-  <input id="si-secret" class="cc-input" type="password" autocomplete="current-password" placeholder="Your creator key">
+  <input id="si-secret" class="cc-input" type="password" autocomplete="current-password" placeholder="Creator Key">
   <div id="si-msg" class="cc-msg" role="alert"></div>
   <button type="button" class="cc-btn" id="si-btn">SIGN IN</button>
   <button type="button" class="cc-btn secondary" id="si-passkey">SIGN IN WITH A PASSKEY</button>
-  <p class="cc-small" style="margin-top:14px">Your ID and key were issued once, when you claimed your page. No key yet? Keys ride the claim link \u2014 claim first. Lost it? Keys are re-issued by hand \u2014 that\u2019s deliberate. Message the Factory.</p>
 </div>
 <div id="hub-body" style="display:none">
   <div id="hub-unclaimed" class="cc-banner" style="display:none">This page hasn\u2019t been claimed by its creator yet.</div>
@@ -672,7 +670,7 @@ function bufToB64u(buf){var b=new Uint8Array(buf||[]);var str='';for(var k=0;k<b
       var beginBody={action:'creator_passkey_signin_begin'};
       if(idEl.value.trim())beginBody.credential_id=idEl.value.trim();
       else if(wantSlug)beginBody.slug=wantSlug;
-      else{simsg('Enter your Creator ID first \u2014 or open your hub from your claim link.');return;}
+      else{simsg('Enter your Creator ID first.');return;}
       msg.className='cc-msg';msg.style.display='none';btn.disabled=true;
       capi(beginBody).then(function(j){
         if(!j||!j.ok){btn.disabled=false;simsg('No passkey on file for that creator \u2014 sign in with your key this time, then add a passkey inside.');return null;}

@@ -301,14 +301,13 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <div class="cc-name">Already claimed</div>
   <p class="cc-meta">This page has already been claimed by its creator.</p>
   <div id="claimed-key" style="display:none;margin-top:16px">
-    <div style="border:2px solid #e8b400;border-radius:8px;padding:14px;background:#0a0a0a">
-      <div style="color:#e8b400;font-weight:900;letter-spacing:1px">YOUR CREATOR KEY \u2014 SAVE IT NOW</div>
-      <p class="cc-meta" style="margin-top:8px">Your claim predates Creator Hub sign-in, so your key is issued here \u2014 once. It signs you in to your Creator Hub, and only there. Save it in your password manager or a safe note.</p>
+    <div style="border:1px solid #333;border-top:6px solid #c1121f;border-radius:8px;padding:14px;background:#050505">
+      <div style="color:#e5383b;font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY \u2014 SHOWN ONCE</div>
       <div class="cc-label">Creator ID</div>
-      <div style="display:flex;gap:8px"><input id="ckey-id" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="ckey-id-copy">Copy</button></div>
+      <div style="display:flex;gap:8px"><input id="ckey-id" class="cc-input" readonly style="flex:1;min-width:0;text-transform:uppercase"><button type="button" class="cc-mini" id="ckey-id-copy">Copy</button></div>
       <div class="cc-label">Creator Key</div>
-      <div style="display:flex;gap:8px"><input id="ckey-secret" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="ckey-secret-copy">Copy</button></div>
-      <p class="cc-meta" style="margin-top:10px">Inside the hub you can also add a passkey and sign in with your face or fingerprint.</p>
+      <div style="display:flex;gap:8px"><input id="ckey-secret" class="cc-input" type="password" readonly style="flex:1;min-width:0;filter:blur(6px)"><button type="button" class="cc-mini" id="ckey-secret-copy">Copy</button></div>
+      <button type="button" class="cc-btn" id="ckey-seal">BREAK THE SEAL</button>
     </div>
   </div>
   <a class="cc-btn" id="claimed-hub" href="/creator-hub/">Open my hub</a>
@@ -318,14 +317,13 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <div class="cc-name">Page claimed ✓</div>
   <p class="cc-meta" id="success-msg">Your page is yours. Your hub is ready.</p>
   <div id="success-key" style="display:none;margin-top:16px">
-    <div style="border:2px solid #e8b400;border-radius:8px;padding:14px;background:#0a0a0a">
-      <div style="color:#e8b400;font-weight:900;letter-spacing:1px">YOUR CREATOR KEY — SAVE IT NOW</div>
-      <p class="cc-meta" style="margin-top:8px">This signs you in to your Creator Hub — and only there. It is separate from everything on the public site. It is shown <strong>once</strong>: save it in your password manager or a safe note.</p>
+    <div style="border:1px solid #333;border-top:6px solid #c1121f;border-radius:8px;padding:14px;background:#050505">
+      <div style="color:#e5383b;font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY — SHOWN ONCE</div>
       <div class="cc-label">Creator ID</div>
-      <div style="display:flex;gap:8px"><input id="key-id" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="key-id-copy">Copy</button></div>
+      <div style="display:flex;gap:8px"><input id="key-id" class="cc-input" readonly style="flex:1;min-width:0;text-transform:uppercase"><button type="button" class="cc-mini" id="key-id-copy">Copy</button></div>
       <div class="cc-label">Creator Key</div>
-      <div style="display:flex;gap:8px"><input id="key-secret" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="key-secret-copy">Copy</button></div>
-      <p class="cc-meta" style="margin-top:10px">Lost it later? Keys are re-issued by hand — that's deliberate. Message the Factory. Inside the hub you can also add a passkey and sign in with your face or fingerprint.</p>
+      <div style="display:flex;gap:8px"><input id="key-secret" class="cc-input" type="password" readonly style="flex:1;min-width:0;filter:blur(6px)"><button type="button" class="cc-mini" id="key-secret-copy">Copy</button></div>
+      <button type="button" class="cc-btn" id="key-seal">BREAK THE SEAL</button>
     </div>
   </div>
   <a class="cc-btn" id="success-hub" href="/creator-hub/">Open my hub</a>
@@ -341,8 +339,13 @@ function deviceId(){try{var k='pf_device_v1',id=localStorage.getItem(k);if(!id){
 function getCallsign(){try{var cs=String((JSON.parse(localStorage.getItem('pf_identity_v1')||'{}')).callsign||'');if(cs)return cs;}catch(e){}try{return String(localStorage.getItem('pf_callsign')||'');}catch(e){return '';}}
 function storeCallsign(cs){if(!cs)return;try{var ik='pf_identity_v1',cur={};try{cur=JSON.parse(localStorage.getItem(ik)||'{}');}catch(e){}cur.callsign=cs;localStorage.setItem(ik,JSON.stringify(cur));}catch(e){}try{localStorage.setItem('pf_callsign',cs);}catch(e){}}
 function qs(n){try{return new URLSearchParams(location.search).get(n)||'';}catch(e){return '';}}
+var sealTimers={};
+function maskSeal(sid,bid){var el=document.getElementById(sid),b=document.getElementById(bid);if(!el)return;el.type='password';el.style.filter='blur(6px)';if(b)b.style.display='';clearTimeout(sealTimers[sid]);}
+function breakSeal(sid,bid){var el=document.getElementById(sid),b=document.getElementById(bid);if(!el)return;el.type='text';el.style.filter='';if(b)b.style.display='none';clearTimeout(sealTimers[sid]);sealTimers[sid]=setTimeout(function(){maskSeal(sid,bid);},30000);}
+function wireSeal(sid,bid){var b=document.getElementById(bid);if(b)b.addEventListener('click',function(){breakSeal(sid,bid);});maskSeal(sid,bid);}
 function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textContent='Copied \u2713';setTimeout(function(){btn.textContent=o;},1800);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();done();});}else{fallback();done();}function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}catch(e){}}}
 
+wireSeal('ckey-secret','ckey-seal');wireSeal('key-secret','key-seal');
   var token=qs('t')||qs('token');
   var loading=document.getElementById('join-loading'), errBox=document.getElementById('join-error');
   var preview=document.getElementById('join-preview'), step2=document.getElementById('join-step2');
@@ -366,12 +369,12 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
           .then(function(r){return r.json();})
           .then(function(cd){
             if(cd&&cd.ok&&cd.creator_credential&&cd.creator_credential.credential_id&&cd.creator_credential.secret){
-              document.getElementById('ckey-id').value=cd.creator_credential.credential_id;
+              document.getElementById('ckey-id').value=String(cd.creator_credential.credential_id).toUpperCase();
               document.getElementById('ckey-secret').value=cd.creator_credential.secret;
               document.getElementById('claimed-key').style.display='block';
               var cc1=document.getElementById('ckey-id-copy'),cc2=document.getElementById('ckey-secret-copy');
-              if(cc1)cc1.addEventListener('click',function(){copyText(cd.creator_credential.credential_id,cc1);});
-              if(cc2)cc2.addEventListener('click',function(){copyText(cd.creator_credential.secret,cc2);});
+              if(cc1)cc1.addEventListener('click',function(){copyText(document.getElementById('ckey-id').value,cc1);});
+              if(cc2)cc2.addEventListener('click',function(){copyText(cd.creator_credential.secret,cc2);maskSeal('ckey-secret','ckey-seal');});
             }
           }).catch(function(){});
         return;
@@ -407,12 +410,12 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
           document.getElementById('success-hub').href=d.hub_url||('/creator-hub/?slug='+encodeURIComponent(s));
           if(d.callsign)document.getElementById('success-msg').textContent='Your page is yours, '+d.callsign+'. Your hub is ready.';
           if(d.creator_credential&&d.creator_credential.credential_id&&d.creator_credential.secret){
-            document.getElementById('key-id').value=d.creator_credential.credential_id;
+            document.getElementById('key-id').value=String(d.creator_credential.credential_id).toUpperCase();
             document.getElementById('key-secret').value=d.creator_credential.secret;
             document.getElementById('success-key').style.display='block';
             var kc1=document.getElementById('key-id-copy'),kc2=document.getElementById('key-secret-copy');
-            if(kc1)kc1.addEventListener('click',function(){copyText(d.creator_credential.credential_id,kc1);});
-            if(kc2)kc2.addEventListener('click',function(){copyText(d.creator_credential.secret,kc2);});
+            if(kc1)kc1.addEventListener('click',function(){copyText(document.getElementById('key-id').value,kc1);});
+            if(kc2)kc2.addEventListener('click',function(){copyText(d.creator_credential.secret,kc2);maskSeal('key-secret','key-seal');});
           }
           step2.style.display='none';document.getElementById('join-success').style.display='block';
         }else{

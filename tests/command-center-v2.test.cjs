@@ -100,9 +100,13 @@ var doc = {
 /* ---- overview fixture in the exact cc_overview section shapes ---- */
 var pulse = JSON.parse(JSON.stringify(PULSE));
 for (var i = 0; i < 8; i++) pulse.events.push({ ts: GEN - (i + 20) * 60000, kind: 'complete', text: 'Extra stream event ' + i });
-var W1 = { id: 'w-fresh', task: 'Fresh worker task', department: 'Frontend Pod', updated_at: nowS - 600, updated_at_human: 'just now', note: '' };
-var W2 = { id: 'w-stale', task: 'Stale worker task', department: 'Backend Pod', updated_at: nowS - 90000, updated_at_human: 'long ago', note: '' };
-var WB = { id: 'w-blocked', task: 'Blocked worker task', department: 'Data', updated_at: nowS - 300, updated_at_human: 'now', note: 'waiting on API key' };
+var W1 = { id: 'w-fresh', task: 'Fresh worker task', department: 'Frontend Pod', status: 'active', started_at: nowS - 7200, updated_at: nowS - 600, updated_at_human: 'just now', note: 'fresh note alpha' };
+var W2 = { id: 'w-stale', task: 'Stale worker task', department: 'Backend Pod', status: 'active', started_at: nowS - 100000, updated_at: nowS - 90000, updated_at_human: 'long ago', note: 'quiet note beta' };
+var WB = { id: 'w-blocked', task: 'Blocked worker task', department: 'Data', status: 'blocked', started_at: nowS - 4000, updated_at: nowS - 300, updated_at_human: 'now', note: 'waiting on API key' };
+var W3 = { id: 'w-fresh2', task: 'Zebra ingest repair', department: 'Backend Pod', status: 'active', started_at: nowS - 3600, updated_at: nowS - 300, updated_at_human: '2026-10-13 01:55 CDT', note: 'zebra note delta' };
+var W4 = { id: 'w-fresh-old', task: 'Older frontend task', department: 'Frontend Pod', status: 'active', started_at: nowS - 9000, updated_at: nowS - 5000, updated_at_human: '2026-10-13 00:30 CDT', note: '' };
+var WD1 = { id: 'w-done-a', task: 'Shipped the bundle', department: 'Frontend Pod', status: 'complete', started_at: nowS - 86400, updated_at: nowS - 1800, updated_at_human: '2026-10-13 01:30 CDT', note: 'done note gamma' };
+var WD2 = { id: 'w-done-b', task: 'Loaded the table', department: 'Data', status: 'complete', started_at: nowS - 90000, updated_at: nowS - 2400, updated_at_human: '2026-10-13 01:20 CDT', note: '' };
 var OVFIX = {
   ok: true, generated_at: GEN + 120000,
   org: {
@@ -116,9 +120,10 @@ var OVFIX = {
   workers: {
     ok: true, synced_at: GEN + 120000, age_s: 5, total: 411, state_updated_human: '2026-10-13 01:40 CDT',
     counts: { complete: 272 },
-    fresh_active: 1, active_fresh: [W1],
+    fresh_active: 3, active_fresh: [W4, W1, W3],
     stale_active: 1, active_stale: [W2],
     blocked: [WB],
+    recent_complete: [WD1, WD2],
     blockers: [{ description: 'API key missing', severity: 'high', source: 'watchdog', raised_at_human: '2026-10-13 01:00 CDT' }],
     by_department: { 'Frontend Pod': { active: 2, blocked: 1 }, 'Backend Pod': { active: 1, blocked: 0 } },
     completions_recent: [{ id: 'w-done', task: 'Finished thing', department: 'Frontend Pod', at_human: '2026-10-13 01:30 CDT' }]
@@ -288,7 +293,64 @@ function html(id) { return els[id] ? els[id].innerHTML : ''; }
   els['tab-workers'].onclick();
   ok('tab click switches to Workers only', els['view-workers'].className === 'view on' && els['view-now'].className === 'view' && els['tab-workers'].className === 'tab on');
   ok('WORKERS renders stats + departments', html('p-workers').indexOf('The Workers') >= 0 && html('p-workers').indexOf('Frontend Pod') >= 0);
-  ok('WORKERS shows fresh + stale + blockers', html('p-workers').indexOf('WORKING NOW') >= 0 && html('p-workers').indexOf('STALE') >= 0 && html('p-workers').indexOf('OPEN BLOCKERS') >= 0);
+  ok('WORKERS shows fresh list + stale chip + blockers', html('p-workers').indexOf('WORKING NOW') >= 0 && html('p-workers').indexOf('data-wkb-filter="stale"') >= 0 && html('p-workers').indexOf('OPEN BLOCKERS') >= 0);
+
+  /* ---------- Workers browser: filters / search / groups / detail ---------- */
+  var wh = html('p-workers');
+  ok('WKB chips render for all four lists', ['fresh', 'stale', 'blocked', 'done'].every(function (k) { return wh.indexOf('data-wkb-filter="' + k + '"') >= 0; }));
+  ok('WKB chips show list counts', wh.indexOf('Working \u00b7 3') >= 0 && wh.indexOf('Quiet \u00b7 1') >= 0 && wh.indexOf('Blocked \u00b7 1') >= 0 && wh.indexOf('Done \u00b7 2') >= 0,
+    wh.slice(wh.indexOf('BROWSE WORKERS'), wh.indexOf('BROWSE WORKERS') + 400));
+  ok('WKB default filter is Working', wh.indexOf('data-wkb-row="w-fresh"') >= 0 && wh.indexOf('data-wkb-row="w-stale"') < 0 && wh.indexOf('data-wkb-row="w-blocked"') < 0);
+  ok('WKB group headers by department, sorted', wh.indexOf('BACKEND POD \u00b7 1') >= 0 && wh.indexOf('FRONTEND POD \u00b7 2') >= 0 && wh.indexOf('BACKEND POD') < wh.indexOf('FRONTEND POD'));
+  ok('WKB rows freshest-first inside a group', wh.indexOf('data-wkb-row="w-fresh"') < wh.indexOf('data-wkb-row="w-fresh-old"'));
+  ok('WKB search input renders empty by default', wh.indexOf('data-wkb-search') >= 0 && wh.indexOf('value=""') >= 0);
+
+  sandbox.wkbSetFilter('blocked');
+  wh = html('p-workers');
+  ok('WKB Blocked filter shows only blocked list', wh.indexOf('data-wkb-row="w-blocked"') >= 0 && wh.indexOf('data-wkb-row="w-fresh"') < 0 && wh.indexOf('BLOCKED \u00b7 1') >= 0);
+  sandbox.wkbSetFilter('done');
+  wh = html('p-workers');
+  ok('WKB Done filter shows only recent_complete', wh.indexOf('data-wkb-row="w-done-a"') >= 0 && wh.indexOf('data-wkb-row="w-done-b"') >= 0 && wh.indexOf('data-wkb-row="w-blocked"') < 0 && wh.indexOf('RECENTLY DONE \u00b7 2') >= 0);
+  sandbox.wkbSetFilter('stale');
+  wh = html('p-workers');
+  ok('WKB Quiet filter shows only stale list', wh.indexOf('data-wkb-row="w-stale"') >= 0 && wh.indexOf('data-wkb-row="w-fresh"') < 0 && wh.indexOf('STALE') >= 0);
+  sandbox.wkbSetFilter('fresh');
+
+  sandbox.wkbSetQuery('zebra');
+  wh = html('p-workers');
+  ok('WKB search narrows by task substring', wh.indexOf('data-wkb-row="w-fresh2"') >= 0 && wh.indexOf('data-wkb-row="w-fresh"') < 0 && wh.indexOf('data-wkb-row="w-fresh-old"') < 0);
+  ok('WKB search query survives re-render', wh.indexOf('value="zebra"') >= 0);
+  sandbox.wkbSetQuery('FRONTEND');
+  wh = html('p-workers');
+  ok('WKB search is case-insensitive + matches department', wh.indexOf('data-wkb-row="w-fresh"') >= 0 && wh.indexOf('data-wkb-row="w-fresh-old"') >= 0 && wh.indexOf('data-wkb-row="w-fresh2"') < 0);
+  sandbox.wkbSetFilter('stale');
+  wh = html('p-workers');
+  ok('WKB search + filter compose (no match)', wh.indexOf('data-wkb-row="w-stale"') < 0 && wh.indexOf('No workers match') >= 0 && wh.indexOf('FRONTEND') >= 0);
+  sandbox.wkbSetQuery('stale worker');
+  wh = html('p-workers');
+  ok('WKB search + filter compose (match)', wh.indexOf('data-wkb-row="w-stale"') >= 0);
+  sandbox.wkbSetFilter('fresh');
+  sandbox.wkbSetQuery('');
+
+  sandbox.wkbToggle('w-fresh');
+  wh = html('p-workers');
+  ok('WKB tap expands detail with note + status + times', wh.indexOf('wkb-detail') >= 0 && wh.indexOf('fresh note alpha') >= 0 && wh.indexOf('Status: active') >= 0 && wh.indexOf('Last update: just now') >= 0 && wh.indexOf('Started:') >= 0);
+  sandbox.wkbToggle('w-fresh2');
+  wh = html('p-workers');
+  ok('WKB only one row expanded at a time', wh.indexOf('zebra note delta') >= 0 && wh.indexOf('fresh note alpha') < 0);
+  sandbox.wkbToggle('w-fresh2');
+  wh = html('p-workers');
+  ok('WKB tap again collapses detail', wh.indexOf('wkb-detail') < 0 && wh.indexOf('zebra note delta') < 0);
+
+  var OVW = JSON.parse(JSON.stringify(OVFIX));
+  OVW.workers.recent_complete = [];
+  sandbox.OV = OVW;
+  sandbox.wkbSetFilter('done');
+  wh = html('p-workers');
+  ok('WKB empty list renders honest none line', wh.indexOf('None in this list right now.') >= 0 && wh.indexOf('data-wkb-row=') < 0);
+  sandbox.OV = OVFIX;
+  sandbox.wkbSetFilter('fresh');
+  ok('WKB state reset to default Working list', html('p-workers').indexOf('data-wkb-row="w-fresh"') >= 0);
 
   /* ---------- Work view ---------- */
   els['tab-work'].onclick();

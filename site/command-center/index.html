@@ -380,6 +380,128 @@ function renderOrg() {
 }
 
 /* ---------------- WORKERS ---------------- */
+/* Workers browser (v2 depth): filter chips over the four lists the
+   workers snapshot already carries (active_fresh / active_stale /
+   blocked / recent_complete), client-side search over id/task/
+   department, group headers BY DEPARTMENT, and tap-to-expand row
+   detail (task, department, status, started, last update, note).
+   Grouping is by department ONLY: registry department strings are
+   free-text and the payload carries no flow-division field, so no
+   division map is invented. All state is client-side (WKB) and
+   survives the 30s poll re-render; no new fetches, no new data. */
+var WKB = { filter: 'fresh', query: '', expanded: null, _focusSearch: false };
+var WKB_FILTERS = [
+  { key: 'fresh', label: 'Working', list: 'active_fresh', heading: 'WORKING NOW', tag: 'live', tagCls: 'grn' },
+  { key: 'stale', label: 'Quiet', list: 'active_stale', heading: 'STALE \u2014 REGISTERED ACTIVE, SILENT OVER 24H', tag: 'quiet', tagCls: 'amb' },
+  { key: 'blocked', label: 'Blocked', list: 'blocked', heading: 'BLOCKED', tag: 'blocked', tagCls: 'red' },
+  { key: 'done', label: 'Done', list: 'recent_complete', heading: 'RECENTLY DONE', tag: 'done', tagCls: '' }
+];
+function wkbFilterDef(key) {
+  for (var i = 0; i < WKB_FILTERS.length; i++) if (WKB_FILTERS[i].key === key) return WKB_FILTERS[i];
+  return WKB_FILTERS[0];
+}
+function wkbList(w, key) { return (w && w[wkbFilterDef(key).list]) || []; }
+function wkbVisible(w) {
+  var rows = wkbList(w, WKB.filter).slice();
+  var q = WKB.query.trim().toLowerCase();
+  if (q) rows = rows.filter(function (x) {
+    return String(x.id || '').toLowerCase().indexOf(q) >= 0 ||
+      String(x.task || '').toLowerCase().indexOf(q) >= 0 ||
+      String(x.department || '').toLowerCase().indexOf(q) >= 0;
+  });
+  rows.sort(function (a, b) { return (b.updated_at || 0) - (a.updated_at || 0); });
+  return rows;
+}
+function wkbRow(x) {
+  var f = wkbFilterDef(WKB.filter);
+  var open = !!WKB.expanded && WKB.expanded === x.id;
+  var html = '<div class="item wkb-row" data-wkb-row="' + esc(x.id) + '" style="cursor:pointer">' +
+    '<div class="row"><div class="grow"><b>' + esc(x.id) + '</b> <span class="dim small">' + esc(x.task) + '</span></div>' +
+    '<span class="tag ' + f.tagCls + '">' + f.tag + '</span></div>' +
+    '<div class="tiny dim">' + esc(x.department || '\u2014') + ' \u00b7 updated ' + esc(x.updated_at_human || (x.updated_at ? ageOf(x.updated_at * 1000) : '\u2014')) + (open ? ' \u00b7 tap to close' : '') + '</div>';
+  if (open) {
+    html += '<div class="wkb-detail" style="margin-top:7px;background:var(--panel2);border-radius:10px;padding:9px 11px">' +
+      '<div class="small" style="line-height:1.5"><span class="dim">Task</span> \u2014 ' + esc(x.task || '\u2014') + '</div>' +
+      '<div class="tiny dim" style="margin-top:5px;line-height:1.6">' +
+      'Department: ' + esc(x.department || '\u2014') + '<br>' +
+      'Status: ' + esc(x.status || f.tag) + '<br>' +
+      'Started: ' + (x.started_at ? esc(new Date(x.started_at * 1000).toLocaleString()) + ' \u00b7 ' + ageOf(x.started_at * 1000) : '\u2014') + '<br>' +
+      'Last update: ' + esc(x.updated_at_human || '\u2014') + (x.updated_at ? ' \u00b7 ' + ageOf(x.updated_at * 1000) : '') +
+      (x.note ? '<br>Note: ' + esc(x.note) : '') +
+      '</div></div>';
+  }
+  return html + '</div>';
+}
+function wkbListHtml(w) {
+  var f = wkbFilterDef(WKB.filter);
+  var rows = wkbVisible(w);
+  var html = '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">' + f.heading + ' \u00b7 ' + rows.length + '</div>';
+  if (!rows.length) {
+    html += '<div class="dim small wkb-none" style="margin-top:8px">' +
+      (WKB.query.trim() ? 'No workers match \u201c' + esc(WKB.query.trim()) + '\u201d in this list.' : 'None in this list right now.') + '</div>';
+    return html;
+  }
+  var groups = {}, order = [];
+  rows.forEach(function (x) {
+    var d = x.department || '\u2014';
+    if (!groups[d]) { groups[d] = []; order.push(d); }
+    groups[d].push(x);
+  });
+  order.sort(function (a, b) { return a.localeCompare(b); });
+  html += order.map(function (d) {
+    return '<div class="tiny wkb-dept" style="margin-top:10px;letter-spacing:1px;color:var(--blue)">' + esc(d.toUpperCase()) + ' \u00b7 ' + groups[d].length + '</div>' +
+      groups[d].map(wkbRow).join('');
+  }).join('');
+  return html;
+}
+function wkbBrowserHtml(w) {
+  var chips = WKB_FILTERS.map(function (f) {
+    return '<button class="segbtn' + (WKB.filter === f.key ? ' on' : '') + '" data-wkb-filter="' + f.key + '">' + f.label + ' \u00b7 ' + wkbList(w, f.key).length + '</button>';
+  }).join('');
+  return '<div style="margin-top:12px"><div class="tiny dim" style="letter-spacing:1px">BROWSE WORKERS</div>' +
+    '<div class="seg" role="group" aria-label="Worker lists">' + chips + '</div>' +
+    '<input type="text" data-wkb-search placeholder="Search id, task, or department" value="' + esc(WKB.query) + '" style="margin-top:8px">' +
+    wkbListHtml(w) + '</div>';
+}
+function bindWorkerBrowser(el) {
+  if (!el || !el.querySelectorAll) return;
+  el.querySelectorAll('[data-wkb-filter]').forEach(function (b) {
+    if (b._wkbBound) return; b._wkbBound = true;
+    b.onclick = function () { wkbSetFilter(b.getAttribute('data-wkb-filter')); };
+  });
+  el.querySelectorAll('[data-wkb-row]').forEach(function (r) {
+    if (r._wkbBound) return; r._wkbBound = true;
+    r.onclick = function () { wkbToggle(r.getAttribute('data-wkb-row')); };
+  });
+  el.querySelectorAll('[data-wkb-search]').forEach(function (inp) {
+    if (inp._wkbBound) return; inp._wkbBound = true;
+    inp.oninput = function () { wkbSetQuery(inp.value, true); };
+  });
+  if (WKB._focusSearch) {
+    WKB._focusSearch = false;
+    var inp2 = el.querySelectorAll('[data-wkb-search]')[0];
+    if (inp2 && inp2.focus) {
+      inp2.focus();
+      if (inp2.setSelectionRange) { try { inp2.setSelectionRange(inp2.value.length, inp2.value.length); } catch (e) {} }
+    }
+  }
+}
+function wkbSetFilter(f) {
+  var known = WKB_FILTERS.some(function (x) { return x.key === f; });
+  if (!known) return;
+  WKB.filter = f; WKB.expanded = null;
+  renderWorkers();
+}
+function wkbSetQuery(q, fromInput) {
+  WKB.query = String(q == null ? '' : q);
+  if (fromInput) WKB._focusSearch = true;
+  renderWorkers();
+}
+function wkbToggle(id) {
+  if (!id) return;
+  WKB.expanded = (WKB.expanded === id) ? null : id;
+  renderWorkers();
+}
 function renderWorkers() {
   var el = $('p-workers'), w = OV && OV.workers;
   if (!w) { el.innerHTML = '<h2>The Workers</h2><div class="dim small">No reading yet.</div>'; return; }
@@ -390,38 +512,23 @@ function renderWorkers() {
     statHtml((w.blocked || []).length, 'blocked') +
     statHtml(w.stale_active || 0, 'stale registrations') +
     statHtml(c.complete || 0, 'completed') + '</div>';
+  html += wkbBrowserHtml(w);
   var depts = Object.keys(w.by_department || {}).map(function (d) {
     var x = w.by_department[d];
     return { d: d, n: (x.active || 0) + (x.blocked || 0), a: x.active || 0, b: x.blocked || 0 };
   }).sort(function (x, y) { return y.n - x.n; }).slice(0, 6);
   var dMax = Math.max.apply(null, depts.map(function (x) { return x.n; }).concat([1]));
-  if (depts.length) html += '<div style="margin-top:10px">' + depts.map(function (x) {
+  if (depts.length) html += '<div style="margin-top:14px"><div class="tiny dim" style="letter-spacing:1px">BY DEPARTMENT</div>' + depts.map(function (x) {
     return '<div class="row small" style="margin-top:4px"><div style="width:110px" class="dim">' + esc(x.d) + '</div><div class="grow">' + barHtml(x.n / dMax * 100, 'b') + '</div><b>' + x.a + '</b>' + (x.b ? '<span class="tag red">' + x.b + ' blocked</span>' : '') + '</div>';
   }).join('') + '</div>';
   if ((w.blockers || []).length) {
-    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">OPEN BLOCKERS · ' + w.blockers.length + '</div>' + w.blockers.slice(0, 4).map(function (b) {
-      return '<div class="item small"><span class="dot a"></span><span class="dim">' + esc(b.description) + '</span><div class="tiny dim">' + esc(b.severity || '') + (b.source ? ' · ' + esc(b.source) : '') + ' · raised ' + esc(b.raised_at_human || '—') + '</div></div>';
+    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">OPEN BLOCKERS \u00b7 ' + w.blockers.length + '</div>' + w.blockers.slice(0, 4).map(function (b) {
+      return '<div class="item small"><span class="dot a"></span><span class="dim">' + esc(b.description) + '</span><div class="tiny dim">' + esc(b.severity || '') + (b.source ? ' \u00b7 ' + esc(b.source) : '') + ' \u00b7 raised ' + esc(b.raised_at_human || '\u2014') + '</div></div>';
     }).join('');
   }
-  (w.blocked || []).forEach(function (x) {
-    html += '<div class="item"><span class="dot r"></span><b>' + esc(x.id) + '</b> <span class="small">' + esc(x.task) + '</span><div class="tiny dim">' + esc(x.department || '') + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>';
-  });
-  if ((w.active_fresh || []).length) {
-    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">WORKING NOW</div>' +
-      w.active_fresh.map(function (x) { return workerRow(x, 24); }).join('');
-  }
-  if ((w.active_stale || []).length) {
-    html += '<div class="tiny" style="margin-top:10px;letter-spacing:1px;color:var(--amber)">STALE — REGISTERED ACTIVE, SILENT OVER 24H · ' + w.stale_active + '</div>' +
-      w.active_stale.slice(0, 8).map(function (x) { return workerRow(x, 24); }).join('') +
-      (w.stale_active > 8 ? '<div class="tiny dim">…and ' + (w.stale_active - 8) + ' more stale registrations, still on record in the registry.</div>' : '');
-  }
-  if ((w.completions_recent || []).length) {
-    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">RECENTLY DONE</div>' + w.completions_recent.slice(0, 5).map(function (x) {
-      return '<div class="item small"><span class="dot g"></span><b>' + esc(x.id) + '</b> <span class="dim">' + esc(x.task) + '</span><div class="tiny dim">' + esc(x.department || '') + ' · ' + esc(x.at_human || '') + '</div></div>';
-    }).join('');
-  }
-  html += '<div class="tiny dim" style="margin-top:8px">Registry updated ' + esc(w.state_updated_human || '—') + ' · synced ' + ageOf(w.synced_at) + ' · ' + fmtFull(w.total || 0) + ' workers on record</div>';
+  html += '<div class="tiny dim" style="margin-top:8px">Registry updated ' + esc(w.state_updated_human || '\u2014') + ' \u00b7 synced ' + ageOf(w.synced_at) + ' \u00b7 ' + fmtFull(w.total || 0) + ' workers on record</div>';
   el.innerHTML = html;
+  bindWorkerBrowser(el);
 }
 
 /* ---------------- DATA ---------------- */

@@ -135,6 +135,19 @@
     color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #pf-karl-home .kh-entry .kh-entry-go{ font-size:20px; font-weight:900; color:#e5383b; flex-shrink:0; }
   #pf-karl-home .kh-entry:active{ border-color:#c1121f; background:#1a1a1a; }
+  /* Karl entry panel (r5, CEO 2026-10-13 02:18): the slim line expands
+     inline — a real ask box, answer rendered under the line, same
+     pipeline as the in-feed ask card. Idle state stays the r3 line. */
+  #pf-karl-home .kh-entry-wrap{ margin:0 14px 10px; }
+  #pf-karl-home .kh-entry-wrap .kh-entry{ margin:0; width:100%; cursor:pointer; font:inherit; text-align:left; appearance:none; -webkit-appearance:none; }
+  #pf-karl-home .kh-entry-panel{ margin-top:8px; background:#101010; border:1px solid #2a2a2a; border-radius:12px; padding:12px; }
+  #pf-karl-home .kh-entry-askrow{ display:flex; gap:8px; }
+  #pf-karl-home .kh-entry-answer{ margin-top:10px; }
+  #pf-karl-home .kh-entry-answer:empty{ margin-top:0; }
+  #pf-karl-home .kh-entry-answer .kh-card{ margin:0; cursor:default; }
+  #pf-karl-home .kh-entry-full{ display:inline-flex; align-items:center; min-height:44px; margin-top:6px;
+    font-size:12.5px; font-weight:700; letter-spacing:.06em; color:var(--kh-dim); text-decoration:none; }
+  #pf-karl-home .kh-entry-full:active{ color:#fff; }
   /* Curiosity cards render as feed cards (interleave); carousel retired. */
   #pf-karl-home .kh-feed-head{
     display:flex; align-items:baseline; justify-content:space-between;
@@ -416,15 +429,6 @@
     color:#e8b923; text-decoration:none; padding:10px 2px; min-height:44px; box-sizing:border-box;
   }
   #pf-karl-home .kh-deeplink:active{ color:#fff; }
-  #pf-karl-home .kh-more-wrap{ text-align:center; padding:6px 20px 34px; }
-  #pf-karl-home .kh-more{
-    background:transparent; color:var(--kh-red-bright); border:1.5px solid var(--kh-red);
-    border-radius:999px; padding:13px 34px; font-size:13px; font-weight:800; letter-spacing:.16em;
-    cursor:pointer; transition:transform .1s ease-out, background .2s; touch-action:manipulation;
-    min-height:48px;
-  }
-  #pf-karl-home .kh-more:active{ transform:scale(.96); background:rgba(193,18,31,.12); }
-  #pf-karl-home .kh-more:disabled{ opacity:.4; }
   #pf-karl-home .kh-quiet{
     text-align:center; color:var(--kh-faint); font-size:13px; padding:18px 24px; line-height:1.6;
   }
@@ -437,40 +441,6 @@
   #pf-karl-home .kh-form-cell{ flex:1 1 100%; text-decoration:none; display:block; text-align:center; border-color:rgba(47,191,113,.55); background:rgba(47,191,113,.08); }
   #pf-karl-home .kh-form-cell:active{ background:rgba(47,191,113,.2); }
   /* ============ CELLS → HQ INTEGRATION (dir-20261010-135720-3916) ============ */
-  #pf-karl-home .kh-cell-widget{ padding:2px 14px 0; }
-  #pf-karl-home .kh-cell-card{
-    background:var(--kh-card); border:1px solid rgba(193,18,31,.4); border-radius:16px;
-    padding:16px; animation:none;
-  }
-  #pf-karl-home .kh-cell-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  #pf-karl-home .kh-cell-kicker{
-    font-family:ui-monospace,Menlo,monospace; font-size:10.5px; font-weight:700; letter-spacing:.22em;
-    color:var(--kh-red-bright);
-  }
-  #pf-karl-home .kh-cell-open{ font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--kh-dim); text-decoration:none; }
-  #pf-karl-home .kh-cell-open:active{ color:#fff; }
-  #pf-karl-home .kh-cell-title{ font-size:16px; font-weight:700; color:var(--kh-cream); margin-bottom:6px; }
-  #pf-karl-home .kh-cell-sub{ font-size:13.5px; color:var(--kh-dim); line-height:1.55; margin-bottom:12px; }
-  #pf-karl-home .kh-cell-cta{
-    display:inline-block; background:var(--kh-red); color:#fff; border:0; border-radius:999px;
-    padding:11px 26px; font-size:14px; font-weight:800; letter-spacing:.06em; text-decoration:none;
-    touch-action:manipulation;
-  }
-  #pf-karl-home .kh-cell-cta:active{ transform:scale(.96); }
-  #pf-karl-home .kh-cell-meta{ display:flex; gap:16px; margin-bottom:12px; }
-  #pf-karl-home .kh-cell-meta span{ font-size:13px; color:var(--kh-dim); }
-  #pf-karl-home .kh-cell-meta b{ color:var(--kh-cream); font-variant-numeric:tabular-nums; }
-  #pf-karl-home .kh-cell-act{
-    display:flex; gap:12px; align-items:flex-start;
-    background:var(--kh-card); border:1px solid var(--kh-line); border-radius:14px;
-    padding:13px 14px; animation:none;
-  }
-  #pf-karl-home .kh-cell-act .dot{
-    width:8px; height:8px; border-radius:50%; background:var(--kh-green); flex:0 0 auto; margin-top:6px;
-  }
-  #pf-karl-home .kh-cell-act .t{ font-size:13.5px; color:var(--kh-cream); line-height:1.5; }
-  #pf-karl-home .kh-cell-act .t b{ color:var(--kh-red-bright); }
-  #pf-karl-home .kh-cell-act .w{ font-size:11.5px; color:var(--kh-faint); margin-top:3px; }
   #pf-karl-home .kh-proof-row .v{ cursor:pointer; border-bottom:1px dotted rgba(193,18,31,.6); }
   #pf-karl-home .kh-proof-row .v:active{ color:#c1121f; }
   #pf-karl-home .kh-live-ev{ margin-top:12px; padding:12px; background:rgba(193,18,31,.06); border:1px solid rgba(193,18,31,.25); border-radius:10px; }
@@ -616,8 +586,15 @@ var DISMISS_KEY='pf_campaign_dismissed';
 
 function validHex(c){ return typeof c==='string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c.trim()); }
 function validUrl(u){
+  if(typeof u!=='string') return null;
+  var s=u.trim();
+  if(!s) return null;
+  /* r5: campaign cta_url is root-relative (e.g. /fire-goofy-guifoyle/) —
+     the campaign's real destination. The old absolute-only check dropped
+     it, so the strip rendered with NO link at all ("isn't clickable"). */
+  if(s.charAt(0)==='/' && s.charAt(1)!=='/') return s;
   try{
-    var url=new URL(String(u));
+    var url=new URL(s);
     return (url.protocol==='http:'||url.protocol==='https:') ? url.href : null;
   }catch(e){ return null; }
 }
@@ -669,8 +646,19 @@ function render(res){
   var inner=document.createElement('div');
   inner.className='pf-campaign-inner';
 
-  var copy=document.createElement('div');
+  /* r5: title + hook are the tap target — the whole copy block links to
+     the campaign destination. CTA pill + dismiss stay separate controls
+     (siblings, never nested anchors). No valid URL -> plain div, as before. */
+  var copy=document.createElement(ctaUrl ? 'a' : 'div');
   copy.className='pf-campaign-copy';
+  if(ctaUrl){
+    copy.href=ctaUrl;
+    copy.style.textDecoration='none';
+    copy.style.color='inherit';
+    copy.style.cursor='pointer';
+    copy.setAttribute('aria-label',(typeof c.name==='string' ? c.name : 'Campaign')+
+      (typeof c.cta_text==='string' && c.cta_text.trim()!=='' ? ' \u2014 '+c.cta_text : ''));
+  }
   var h=document.createElement('h2');
   h.className='pf-campaign-title';
   h.textContent=String(c.hero_title);
@@ -825,13 +813,25 @@ else{ fetchCampaign().then(render); }
     <a class="pf-pillar-btn" href="/money/"><span class="em">💰</span>Capital</a>
   </nav>
 
-  <!-- KARL ENTRY (r3): one slim line under the pillars; whole line taps
-       through to /karl/. id="ask" keeps /#ask deep-links landing here. -->
-  <a class="kh-entry" id="ask" href="/karl/" aria-label="Ask Karl — your intel researcher">
-    <span class="kh-entry-em">🧠</span>
-    <span class="kh-entry-txt">Ask Karl</span>
-    <span class="kh-entry-go">→</span>
-  </a>
+  <!-- KARL ENTRY (r3 slim line; r5 works in place, CEO 2026-10-13 02:18):
+       tap expands a real ask box inline — same karlAnswerCard pipeline
+       as the in-feed ask card, answer renders in the panel under the line.
+       id="ask" keeps /#ask deep-links landing here. Full Karl stays /karl/. -->
+  <div class="kh-entry-wrap" id="ask">
+    <button class="kh-entry" id="kh-entry-toggle" type="button" aria-expanded="false" aria-controls="kh-entry-panel" aria-label="Ask Karl — your intel researcher">
+      <span class="kh-entry-em">🧠</span>
+      <span class="kh-entry-txt">Ask Karl</span>
+      <span class="kh-entry-go">→</span>
+    </button>
+    <div class="kh-entry-panel" id="kh-entry-panel" hidden>
+      <div class="kh-entry-askrow">
+        <input id="kh-entry-q" class="kh-inter-input" type="text" placeholder="Ask Karl anything" enterkeyhint="go" autocomplete="off" aria-label="Ask Karl a question">
+        <button id="kh-entry-go" class="kh-inter-btn" type="button">ASK</button>
+      </div>
+      <div class="kh-entry-answer" id="kh-entry-answer" aria-live="polite"></div>
+      <a class="kh-entry-full" href="/karl/">FULL KARL — HISTORY, CHIPS &amp; FOLLOW-UPS →</a>
+    </div>
+  </div>
 
   <!-- CAMPAIGN JOIN CARD: one-tap entry into the active campaign
        (campaign_active API); prompts callsign claim after joining. -->
@@ -889,67 +889,15 @@ else{ fetchCampaign().then(render); }
        Karl rails, anchors, seeds, discoveries, UGC. Sentinel triggers next batch. -->
   <div id="kh-feed-sentinel" aria-hidden="true"></div>
 
-  <!-- MODELING SUITE Phase 1 (ux/modeling-suite-20261010): "Model this data" CTA from the homepage feed -->
-  <div class="kh-more-wrap" style="padding-top:0">
-    <a href="/model/" class="kh-model-cta" style="display:block;text-decoration:none;background:#c1121f;color:#fff;border-radius:14px;padding:16px;font-size:14px;font-weight:800;letter-spacing:.08em;text-align:center;">⚒ MODEL THE DATA <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.85;margin-top:4px;">Hospitals, banks, FEC, prisons, housing — query it all yourself</span></a>
-  </div>
+  <!-- BELOW-FEED CLEANUP (r5, CEO 2026-10-13 02:18): the homepage ends
+       with the feed — no widget tail. Removed from this page only; every
+       feature keeps living on its own surface: MODEL THE DATA CTA (/model/),
+       Tools row (/ghouls/, /detective/, /slumlord/), My Cell widget + cell
+       activity (/cells/ — the activity items were hardcoded seed text,
+       never wired live), medals row (medals are still earned + toasted;
+       the rack lives with the user surfaces). -->
 
-  <!-- TOOLS (discoverability 20261011): Ghoul Index, Price Detective, Slumlord Dossier -->
-  <div class="kh-feed-head" style="padding-top:6px">
-    <h2>🛠 Tools</h2>
-    <span class="kh-tick"><i></i>INVESTIGATE</span>
-  </div>
-  <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:10px" id="pf-tools-row">
-    <a href="/ghouls/" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:14px 16px;">
-      <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.02em;">👹 THE GHOUL INDEX</div>
-      <div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">Daily ranking of the worst corporate actors — NLRB violations, CEO pay ratios, enforcement records.</div>
-      <div style="font-size:12px;color:#c1121f;font-weight:700;margin-top:6px;letter-spacing:.06em;">SEE THE RANKING →</div>
-    </a>
-    <a href="/detective/" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:14px 16px;">
-      <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.02em;">🔍 PRICE DETECTIVE</div>
-      <div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">Trace where your money goes — gas, groceries, rent, healthcare. Every price has a paper trail.</div>
-      <div style="font-size:12px;color:#c1121f;font-weight:700;margin-top:6px;letter-spacing:.06em;">TRACE YOUR MONEY →</div>
-    </a>
-    <a href="/slumlord/" style="display:block;text-decoration:none;background:#1a1a1a;border:1px solid #333;border-radius:14px;padding:14px 16px;">
-      <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.02em;">🏚️ SLUMLORD DOSSIER</div>
-      <div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">Enter any address. See violations, complaints, ownership. Know who you're really paying rent to.</div>
-      <div style="font-size:12px;color:#c1121f;font-weight:700;margin-top:6px;letter-spacing:.06em;">LOOK UP YOUR LANDLORD →</div>
-    </a>
-  </div>
-
-  <!-- CELLS → HQ: My Cell widget moved below feed (declutter 20261011) -->
-  <div class="kh-cell-widget" id="kh-cell-widget">
-    <div class="kh-cell-card">
-      <div class="kh-cell-top"><span class="kh-cell-kicker">⚑ COORDINATE</span><a class="kh-cell-open" href="/cells">OPEN CELLS →</a></div>
-      <div class="kh-cell-body" id="kh-cell-body">
-        <div class="kh-cell-title">Not in a cell yet</div>
-        <div class="kh-cell-sub">Cells are small crews that turn intel into action. Find yours, or start one.</div>
-        <a class="kh-cell-cta" href="/cells">FIND YOUR CELL</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- CELLS → HQ (dir-20261010-135720-3916): cell activity — seed data, wired to live API later -->
-  <div class="kh-feed-head" style="padding-top:6px">
-    <h2>Cell activity</h2>
-    <span class="kh-tick"><i></i>THIS WEEK</span>
-  </div>
-  <div class="kh-feed" id="kh-cell-activity" style="padding-bottom:14px">
-    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>Bayou Cell</b> formed around the Boeing $2.5B fraud story — 12 comrades coordinating drops.</div><div class="w">2h ago &middot; via /cells</div></div></div>
-    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>NOLA Mutual Aid</b> is tracking hospital ER markups in their parish — 27K hospitals in the data.</div><div class="w">6h ago &middot; via /cells</div></div></div>
-    <div class="kh-cell-act"><span class="dot"></span><div><div class="t"><b>3 cells</b> picked up the GEO Group private-prison intel for local FOIA pushes.</div><div class="w">1d ago &middot; via /cells</div></div></div>
-  </div>
-
-  <!-- MEDALS + LEADERBOARD (v1: device-local, backend later) -->
-  <div class="kh-feed-head" style="padding-top:6px" id="pf-medals-head">
-    <h2>🏅 Your medals</h2>
-    <span class="kh-tick"><i></i>THIS DEVICE</span>
-  </div>
-  <div style="padding:0 14px 14px" id="pf-medals-row">
-    <span style="color:#666;font-size:12px">No medals yet — share intel to earn your first.</span>
-  </div>
-
-  <div class="kh-foot">
+  <div class="kh-foot" style="visibility:hidden">
     <span><b id="kh-stat-wealth">&mdash;</b> tracked</span>
     <span><b id="kh-stat-rows">&mdash;</b> records</span>
     <span><b id="kh-stat-creators">&mdash;</b> creators</span>
@@ -1307,24 +1255,17 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
     if(w && d.wealth_display) w.textContent = d.wealth_display;
     if(rr && d.rows_display) rr.textContent = d.rows_display;
     if(cc && d.creators) cc.textContent = fmt(d.creators);
+    /* r5: stats line stays hidden until real numbers land — never
+       visible as stale placeholder dashes during load. */
+    var foot=document.querySelector('.kh-foot');
+    if(foot) foot.style.visibility='visible';
     var hint=document.getElementById('kh-hint');
     if(hint && d.rows_display) hint.innerHTML = esc(d.rows_display)+' records &middot; sourced answers';
   }).catch(function(){});
 })();
 
-/* CELLS → HQ (dir-20261010-135720-3916): swap My Cell widget to member state if localStorage has pf_my_cell {name, members, lastActivity} */
-(function cellWidget(){
-  var body = document.getElementById('kh-cell-body');
-  if(!body) return;
-  var c = null;
-  try{ c = JSON.parse(localStorage.getItem('pf_my_cell')||'null'); }catch(e){}
-  if(!c || !c.name) return;
-  body.innerHTML =
-    '<div class="kh-cell-title">'+esc(c.name)+'</div>'+
-    '<div class="kh-cell-meta"><span><b>'+fmt(c.members||0)+'</b> members</span><span>last activity <b>'+esc(c.lastActivity||'today')+'</b></span></div>'+
-    '<div class="kh-cell-sub">Your crew is live. Coordinate the next move.</div>'+
-    '<a class="kh-cell-cta" href="/cells">OPEN MY CELL</a>';
-})();
+/* My Cell widget homepage hydration REMOVED (r5): the widget left
+   the homepage with the below-feed cleanup; cells live on /cells/. */
 
 /* Generic fact renderer for live karl_query results */function factsToCard(q, r){
   var facts = r.facts||[];
@@ -1407,6 +1348,36 @@ if(qInput) qInput.addEventListener('keydown', function(e){
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doAsk(); }
 });
 
+/* Shared Karl answer pipeline (r5 refactor of doAsk's tail): live
+   karl_query -> card object (factsToCard, canned-seed fallback, honest
+   no-match / offline cards). doAsk renders it at the feed top; the
+   Karl entry panel renders it inline. One pipeline, two mounts. */
+function karlAnswerCard(text){
+  return new Promise(function(resolve){
+    fetch(API+'karl_query&q='+encodeURIComponent(text), {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var card = (d && d.ok!==false) ? factsToCard(text, d) : null;
+        if(card){ resolve(card); return; }
+        /* fallback to canned keyword match */
+        var hit = SEED.find(function(s){
+          var kws = s.q.toLowerCase().split(/\s+/).filter(function(w){return w.length>4;});
+          return kws.some(function(k){ return text.toLowerCase().indexOf(k)>-1; });
+        });
+        if(hit){ resolve(Object.assign({}, hit, {q:text, when:"now"})); return; }
+        resolve({ q:text,
+          a:"Karl searched the live rails and found <b>no direct match</b> — try naming a company, person, or industry.",
+          rows:[["Template", d&&d.template?d.template:"unknown"],["Rails checked","27"]],
+          src:"▸ RECEIPTS — Karl rails", deploys:0, when:"now" });
+      })
+      .catch(function(){
+        resolve({ q:text,
+          a:"The rails didn't answer — check your connection and try again.",
+          rows:[["Status","offline"]], src:"▸ Karl", deploys:0, when:"now" });
+      });
+  });
+}
+
 function doAsk(textArg){
   var text = (typeof textArg === 'string') ? textArg.trim() : (qInput ? qInput.value.trim() : '');
   if(!text || (askBtn && askBtn.disabled)) return;
@@ -1443,27 +1414,7 @@ function doAsk(textArg){
     }catch(e){}
   };
 
-  fetch(API+'karl_query&q='+encodeURIComponent(text), {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var card = (d && d.ok!==false) ? factsToCard(text, d) : null;
-      if(card){ done(card); return; }
-      /* fallback to canned keyword match */
-      var hit = SEED.find(function(s){
-        var kws = s.q.toLowerCase().split(/\s+/).filter(function(w){return w.length>4;});
-        return kws.some(function(k){ return text.toLowerCase().indexOf(k)>-1; });
-      });
-      if(hit){ done(Object.assign({}, hit, {q:text, when:"now"})); return; }
-      done({ q:text,
-        a:"Karl searched the live rails and found <b>no direct match</b> — try naming a company, person, or industry.",
-        rows:[["Template", d&&d.template?d.template:"unknown"],["Rails checked","27"]],
-        src:"▸ RECEIPTS — Karl rails", deploys:0, when:"now" });
-    })
-    .catch(function(){
-      done({ q:text,
-        a:"The rails didn't answer — check your connection and try again.",
-        rows:[["Status","offline"]], src:"▸ Karl", deploys:0, when:"now" });
-    });
+  karlAnswerCard(text).then(done);
 }
 
 /* stagger cards on first paint — REMOVED (FeedManager sets animationDelay per batch) */
@@ -1485,6 +1436,49 @@ function doAsk(textArg){
 /* KILL: ?pf_off=beefy-feed or localStorage pf_disabled_v1='["beefy-feed"]'
    In the infinite-feed world this only disables the rail + anchor sources —
    the FeedManager still boots with seeds/discoveries. */
+/* KARL ENTRY (r5): the slim top line expands inline. Runs the same
+   answer pipeline as doAsk (karlAnswerCard -> cardEl) but renders the
+   card in the entry panel under the line — a working ask on the
+   homepage itself, not a redirect dressed up as one. */
+var khEntryToggle = document.getElementById('kh-entry-toggle');
+var khEntryPanel = document.getElementById('kh-entry-panel');
+var khEntryQ = document.getElementById('kh-entry-q');
+var khEntryGoBtn = document.getElementById('kh-entry-go');
+var khEntryAnswer = document.getElementById('kh-entry-answer');
+var khEntryBusy = false;
+function khEntrySetOpen(open){
+  if(!khEntryPanel || !khEntryToggle) return;
+  khEntryPanel.hidden = !open;
+  khEntryToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(open && khEntryQ) khEntryQ.focus();
+}
+function khEntryAsk(){
+  var text = khEntryQ ? khEntryQ.value.trim() : '';
+  if(!text){ if(khEntryQ) khEntryQ.focus(); return; }
+  if(khEntryBusy) return;
+  khEntryBusy = true;
+  if(khEntryGoBtn){ khEntryGoBtn.disabled = true; khEntryGoBtn.textContent = '\u2026'; }
+  var load = document.createElement('div');
+  load.className = 'kh-card';
+  load.innerHTML = '<div class="kh-q">'+esc(text)+'</div><div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div>';
+  if(khEntryAnswer){ khEntryAnswer.innerHTML = ''; khEntryAnswer.appendChild(load); }
+  karlAnswerCard(text).then(function(card){
+    var el = cardEl(card);
+    el.classList.add('kh-open');
+    load.replaceWith(el);
+    if(khEntryQ) khEntryQ.value = '';
+    khEntryBusy = false;
+    if(khEntryGoBtn){ khEntryGoBtn.disabled = false; khEntryGoBtn.textContent = 'ASK'; }
+  });
+}
+if(khEntryToggle && khEntryPanel){
+  khEntryToggle.addEventListener('click', function(){ khEntrySetOpen(khEntryPanel.hidden); });
+}
+if(khEntryGoBtn) khEntryGoBtn.addEventListener('click', khEntryAsk);
+if(khEntryQ) khEntryQ.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); khEntryAsk(); }
+  if(e.key === 'Escape'){ khEntrySetOpen(false); if(khEntryToggle) khEntryToggle.focus(); }
+});
 var beefyKilled = false;
 try{
   var __bq = location.search.match(/[?&]pf_off=([^&]+)/);
@@ -4057,11 +4051,11 @@ try{
 })();
 </script>
 <!-- /PF_FIRSTCLAIM_V1 -->
-<!-- PF_ENGAGE_V1: streaks, rank progress, mystery drops, social proof (truthful only) -->
-<div id="pf-engage-mount"></div>
-<div id="pf-curiosity-mount"></div>
-<script src="/assets/engage.js"></script>
-<!-- /PF_ENGAGE_V1 -->
+<!-- PF_ENGAGE_V1 UNMOUNTED from the homepage (r5, CEO 2026-10-13 02:18):
+     streaks / rank / mystery drop / curiosity teasers rendered BELOW the
+     footer here — the stale-button tail the CEO flagged — and the
+     script + its API fan-out taxed every homepage load. engage.js still
+     ships and runs on /cells/, /create/, /dig/, /karl/. -->
 
 </body>
 </html>

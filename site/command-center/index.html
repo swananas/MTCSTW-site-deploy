@@ -894,11 +894,12 @@ function showView(v) {
   renderView(v);
   if (window.scrollTo) window.scrollTo(0, 0);
 }
+var SUBPANE = { money: 'p-money', site: 'p-site', creators: 'p-creators', security: 'p-sec' };
 function showSub(s2) {
   if (SUBS.indexOf(s2) < 0) s2 = 'money';
   curSub = s2;
   SUBS.forEach(function (x) {
-    $('p-' + x).style.display = x === s2 ? '' : 'none';
+    $(SUBPANE[x]).style.display = x === s2 ? '' : 'none';
     $('seg-' + x).className = 'segbtn' + (x === s2 ? ' on' : '');
   });
   renderView('money');

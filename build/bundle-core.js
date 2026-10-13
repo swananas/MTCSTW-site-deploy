@@ -180,9 +180,10 @@ var CORE_FILES = [
      Page-conditional (self-gates on the #pf-v2 homepage shell + no
      callsign), like 22-routemarch.js — bundled in core, never shown off-page. */
   'core/24-first-minute.js',
-  /* commend (W5-7, 2026-10-04): Battle Commendations — ticker-item kudos
-     buttons + daily progress chip + standalone commend-a-callsign form. */
-  'core/commend.js',
+  /* commend REMOVED 2026-10-12 (CEO directive, fe/uniform-shell-20261012):
+     the site-wide commend chip/form + ticker kudos buttons come off every
+     page — uniform bare-minimum shell. core/commend.js stays in the repo
+     unbundled; backend commend_status/commend_give untouched. */
   /* oparc (W5-10, 2026-10-04): operation arc reader — PF.opArc(), no DOM. */
   'core/oparc.js',
   /* read-xp (read/create XP, 2026-10-05): article reader (visibility-aware
@@ -520,8 +521,8 @@ var BUNDLES = {
     /* routemarch (S1, 2026-10-04): route strip on v1.1.0-branch pages too —
        stop pages like /bank and /political-hq ride this bundle. */
     'core/22-routemarch.js',
-    /* commend (W5-7, 2026-10-04): commend buttons + chip on v1.1.0 pages too. */
-    'core/commend.js',
+    /* commend REMOVED 2026-10-12 (CEO directive, fe/uniform-shell-20261012):
+       no commend chip/buttons on v1.1.0 pages either — one uniform shell. */
     /* oparc (W5-10, 2026-10-04): PF.opArc() reader on v1.1.0 pages too. */
     'core/oparc.js',
     /* mobile-nav-trim (CEO directive 2026-10-07 ~11:33 CDT): 5-item mobile

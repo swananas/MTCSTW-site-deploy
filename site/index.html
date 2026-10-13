@@ -110,21 +110,19 @@
     max-width:560px; margin:0 auto; min-height:60vh;
     -webkit-font-smoothing:antialiased; line-height:1.5;
   }
-  #pf-karl-home .kh-ask{ padding:26px 20px 10px; }
-  #pf-karl-home .kh-ask h1{
-    font-family:Georgia,serif; font-size:34px; line-height:1.15; font-weight:700;
-    margin:0 0 18px; letter-spacing:-.01em; color:var(--kh-cream);
+  /* MASTHEAD (homepage rework r2, CEO 2026-10-13 00:37): the H1 hero is
+     demoted to one slim line directly above the pillars — the feed is the
+     first substantial thing on the page. The phrase stays; the bulk goes.
+     The ask box lives on /karl/ — see .kh-entry under the pillars. */
+  #pf-karl-home .kh-masthead{ padding:12px 16px 2px; }
+  #pf-karl-home .kh-masthead h1{
+    font-family:Georgia,serif; font-size:19px; line-height:1.25; font-weight:700;
+    margin:0; letter-spacing:-.01em; color:var(--kh-cream);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  #pf-karl-home .kh-ask h1 em{ color:var(--kh-red-bright); font-style:normal; }
-  /* Hero composer CSS removed 20261013 (homepage rework): the ask box
-     lives on /karl/ now — see .kh-entry under the pillars. */
-  /* COMPACT hero (declutter 20261011) */
-  #pf-karl-home .kh-ask-compact{ padding:20px 16px 8px; }
-  #pf-karl-home .kh-ask-compact h1{ font-size:28px; margin:0 0 12px; }
-  #pf-karl-home .pf-explainer{ font-size:17px; line-height:1.4; margin:6px 2px 12px; color:#fff; max-width:32ch; font-weight:500; }
-  #pf-karl-home .pf-explainer strong{ color:#fff; }
+  #pf-karl-home .kh-masthead h1 em{ color:var(--kh-red-bright); font-style:normal; }
   /* 4-pillar nav (UX sprint ITER-2, quieted ITER-5: nav strip, not cards) */
-  .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:2px 14px 12px; }
+  .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:6px 14px 8px; }
   .pf-pillar-btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 4px;
     background:transparent; border:1px solid #222; border-radius:10px; color:#b0b0b0;
     font-size:10px; font-weight:700; letter-spacing:.1em; text-decoration:none;
@@ -133,7 +131,7 @@
   .pf-pillar-btn:active{ background:#1a1a1a; color:#fff; border-color:#e5383b; }
   /* Karl entry line (homepage rework 20261013): one slim row under the
      pillars — the full ask box + chips live on /karl/, not stacked here. */
-  #pf-karl-home .kh-entry{ display:flex; align-items:center; gap:10px; margin:0 14px 14px; padding:12px 14px;
+  #pf-karl-home .kh-entry{ display:flex; align-items:center; gap:10px; margin:0 14px 10px; padding:10px 14px;
     background:#141414; border:1px solid #2a2a2a; border-radius:12px; text-decoration:none; color:#eee;
     touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
   #pf-karl-home .kh-entry .kh-entry-em{ font-size:18px; flex-shrink:0; }
@@ -149,11 +147,9 @@
   }
   /* 2026-10-12 CEO directive: "easy on the eyes, natural" — breathing room,
      softer hierarchy, feed-first. */
-  #pf-karl-home .kh-feed-head{ padding:32px 20px 8px; }
+  #pf-karl-home .kh-feed-head{ padding:14px 20px 6px; }
   #pf-karl-home .kh-feed-head h2{ font-size:12px; letter-spacing:.22em; }
   #pf-karl-home{ --kh-card:#101010; }
-  #pf-karl-home .kh-ask-compact{ padding:28px 20px 12px; }
-  #pf-karl-home .kh-ask-compact h1{ font-size:30px; line-height:1.2; margin:0 0 16px; font-weight:700; }
   /* Campaign join card entrance */
   #pf-campaign-join{ animation:pf-cj-in .5s ease-out; }
   @keyframes pf-cj-in{ from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
@@ -590,22 +586,20 @@
      nothing otherwise. Reusable template slots: any element with
      data-campaign="<field>" gets its textContent from the active campaign. -->
 <style>
+/* Campaign strip (homepage rework r2, CEO 2026-10-13 00:37): sleek
+   single-band ticker — one line (name + hook), compact CTA, small
+   dismiss. Presentation only; render JS + dismiss behavior unchanged. */
 .pf-campaign-slot:empty{display:none;}
-.pf-campaign{background:#0a0a0a;color:#f5f5f5;border-bottom:2px solid #c1121f;width:100%;}
-.pf-campaign-inner{max-width:1080px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:10px;}
-.pf-campaign-title{margin:0;font-size:clamp(24px,5.5vw,40px);line-height:1.1;font-weight:900;letter-spacing:.01em;text-transform:uppercase;}
-.pf-campaign-sub{margin:0;font-size:15px;line-height:1.5;color:#cfcfcf;}
-.pf-campaign-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px;}
-.pf-campaign-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:12px 28px;border-radius:10px;background:#c1121f;color:#fff !important;text-decoration:none;font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;transition:transform .15s ease,filter .15s ease;}
+.pf-campaign{background:#0a0a0a;color:#f5f5f5;border-bottom:1px solid #c1121f;width:100%;}
+.pf-campaign-inner{max-width:1080px;margin:0 auto;padding:8px 12px 8px 16px;display:flex;flex-direction:row;align-items:center;gap:10px;}
+.pf-campaign-copy{display:flex;align-items:baseline;gap:8px;flex:1;min-width:0;}
+.pf-campaign-title{margin:0;font-size:13px;line-height:1.25;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.pf-campaign-sub{margin:0;font-size:12.5px;line-height:1.25;color:#bdbdbd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.pf-campaign-row{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-top:0;flex-shrink:0;}
+.pf-campaign-cta{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:6px 14px;border-radius:999px;background:#c1121f;color:#fff !important;text-decoration:none;font-weight:800;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;transition:transform .15s ease,filter .15s ease;}
 .pf-campaign-cta:active{transform:scale(.97);}
-.pf-campaign-dismiss{margin-left:auto;background:none;border:1px solid #3a3a3a;color:#aaa;border-radius:10px;min-width:44px;min-height:44px;font-size:18px;line-height:1;cursor:pointer;transition:color .15s ease,border-color .15s ease;}
-.pf-campaign-dismiss:hover{color:#fff;border-color:#666;}
-@media (min-width:640px){
-  .pf-campaign-inner{flex-direction:row;align-items:center;gap:24px;}
-  .pf-campaign-copy{flex:1;min-width:0;}
-  .pf-campaign-row{margin-top:0;flex-wrap:nowrap;}
-  .pf-campaign-dismiss{margin-left:0;}
-}
+.pf-campaign-dismiss{margin-left:0;background:none;border:none;color:#999;border-radius:8px;width:30px;height:30px;min-width:30px;min-height:30px;padding:0;font-size:14px;line-height:1;cursor:pointer;transition:color .15s ease;}
+.pf-campaign-dismiss:hover{color:#fff;}
 @media (prefers-reduced-motion: reduce){
   .pf-campaign,.pf-campaign *{transition:none !important;animation:none !important;}
 }
@@ -820,13 +814,13 @@ else{ fetchCampaign().then(render); }
 
 <main id="main">
 <div id="pf-karl-home">
-  <!-- HERO (homepage rework 20261013, CEO): H1 + one subhead line only.
-       Karl is de-layered from the top — the ask box + suggestion chips
-       live on the Karl surface (/karl/); one compact entry line sits
-       under the pillars below. -->
-  <div class="kh-ask kh-ask-compact">
+  <!-- MASTHEAD (homepage rework r2, CEO 2026-10-13 00:37): the H1 is
+       demoted to one slim line — no hero sizing, no subhead paragraph.
+       The feed is the first substantial thing on the page. Karl stays
+       de-layered: the ask box lives on /karl/, one compact entry line
+       sits under the pillars below. -->
+  <div class="kh-masthead">
     <h1>Who's <em>robbing</em> you?</h1>
-    <p class="pf-explainer">We turn public records into shareable intel — violations, money trails, and payouts in your town.</p>
   </div>
 
   <!-- 4 PILLARS NAV (UX sprint ITER-2): the mission backbone as visible nav.
@@ -850,8 +844,8 @@ else{ fetchCampaign().then(render); }
   <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
        into the active campaign. Pulls from campaign_active API. After
        participation, prompts callsign claim if none exists. -->
-  <div id="pf-campaign-join" style="padding:6px 14px 12px;display:none;">
-    <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:flex;align-items:center;gap:10px;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:12px;padding:11px 14px;color:#fff;">
+  <div id="pf-campaign-join" style="padding:2px 14px 10px;display:none;">
+    <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:flex;align-items:center;gap:10px;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:12px;padding:10px 14px;color:#fff;">
       <div id="pf-campaign-join-kicker" style="font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.85;white-space:nowrap;">🔥 CAMPAIGN</div>
       <div id="pf-campaign-join-name" style="font-size:14px;font-weight:900;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">FIRE GOOFY GUIFOYLE</div>
       <div style="background:#fff;color:#c1121f;font-weight:900;font-size:13px;letter-spacing:.04em;padding:8px 16px;border-radius:999px;white-space:nowrap;flex:none;">JOIN →</div>

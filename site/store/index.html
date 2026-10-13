@@ -62,6 +62,9 @@
   .pf-note{margin-top:48px;padding:20px;border-top:1px solid #2a2a2a;color:#777;font-size:13px;line-height:1.6;}
   .pf-note strong{color:#aaa;}
   .pf-xp-zero{display:inline-block;background:#1a2a1a;border:1px solid #2d5a2d;color:#7dca7d;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:12px;}
+  .pf-feats{list-style:none;margin:0 0 20px;padding:0;color:#aaa;font-size:14px;line-height:1.6;flex:1;}
+  .pf-feats li{margin:0 0 4px;}
+  .pf-inflight{display:inline-block;background:#2a210a;border:1px solid #8a6d00;color:#e8b400;font-size:10px;font-weight:800;letter-spacing:.08em;padding:1px 6px;border-radius:10px;vertical-align:middle;margin-left:4px;}
 
   /* Uniform PF header (4-pillar) — added 2026-10-09 */
   .pf-topbar{
@@ -323,6 +326,127 @@
       </div>
     </div>
 
+    <div class="pf-section">
+      <h2>Nonprofit Suite</h2>
+      <p class="pf-sub">Grant intelligence for nonprofits — funder matching, pipeline, and impact reporting in one tool. Monthly or yearly. Cancel anytime.</p>
+      <p class="pf-sub" style="font-size:12.5px;margin-top:2px;">IN FLIGHT = in development — included in your tier at no extra price when it ships.</p>
+      <div class="pf-toggle" role="tablist" aria-label="Nonprofit Suite billing period">
+        <button id="btn-suite-monthly" class="active" onclick="pfSuiteBilling('monthly')">Monthly</button>
+        <button id="btn-suite-yearly" onclick="pfSuiteBilling('yearly')">Yearly</button>
+      </div>
+      <div class="pf-grid" id="suite-monthly">
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE — FREE</div>
+          <h3>Scout</h3>
+          <div class="pf-price">$0</div>
+          <ul class="pf-feats">
+            <li>✓ Core funder matching</li>
+            <li>✓ 10 saves</li>
+            <li>✓ Directory profile</li>
+            <li>✓ Impact reporting (M6) activity preview</li>
+          </ul>
+          <a class="pf-btn ghost" href="/api/">Get a free Scout key</a>
+        </div>
+        <div class="pf-card featured">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Pro</h3>
+          <div class="pf-price">$29<span>/mo</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Scout</li>
+            <li>✓ Grants pipeline</li>
+            <li>✓ Campaigns</li>
+            <li>Opportunities <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>Alerts <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>Watch <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>✓ Comms kits</li>
+            <li>✓ Full 3-layer impact reporting</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/dRm00jcJd8bI8wN6jYcbC0a">Subscribe $29/mo</a>
+        </div>
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Team</h3>
+          <div class="pf-price">$79<span>/mo</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Pro</li>
+            <li>✓ 5 seats</li>
+            <li>✓ Shared boards</li>
+            <li>✓ Team digests</li>
+            <li>✓ API key (50K quota)</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/14A8wP6kPdw23ctdMqcbC0c">Subscribe $79/mo</a>
+        </div>
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Enterprise</h3>
+          <div class="pf-price">$299<span>/mo</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Team</li>
+            <li>✓ Multi-org rollups</li>
+            <li>✓ White-label embed</li>
+            <li>✓ Raised quotas</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/cNi5kD10v77E6oF5fUcbC0e">Subscribe $299/mo</a>
+        </div>
+      </div>
+      <div class="pf-grid" id="suite-yearly" style="display:none">
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE — FREE</div>
+          <h3>Scout</h3>
+          <div class="pf-price">$0</div>
+          <ul class="pf-feats">
+            <li>✓ Core funder matching</li>
+            <li>✓ 10 saves</li>
+            <li>✓ Directory profile</li>
+            <li>✓ Impact reporting (M6) activity preview</li>
+          </ul>
+          <a class="pf-btn ghost" href="/api/">Get a free Scout key</a>
+        </div>
+        <div class="pf-card featured">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Pro</h3>
+          <div class="pf-price">$249<span>/yr</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Scout</li>
+            <li>✓ Grants pipeline</li>
+            <li>✓ Campaigns</li>
+            <li>Opportunities <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>Alerts <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>Watch <span class="pf-inflight">IN FLIGHT</span></li>
+            <li>✓ Comms kits</li>
+            <li>✓ Full 3-layer impact reporting</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/5kQ5kDdNh0JgfZfeQucbC0b">Subscribe $249/yr</a>
+        </div>
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Team</h3>
+          <div class="pf-price">$790<span>/yr</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Pro</li>
+            <li>✓ 5 seats</li>
+            <li>✓ Shared boards</li>
+            <li>✓ Team digests</li>
+            <li>✓ API key (50K quota)</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/fZu7sL9x1gIe4gxgYCcbC0d">Subscribe $790/yr</a>
+        </div>
+        <div class="pf-card">
+          <div class="pf-tier">NONPROFIT SUITE</div>
+          <h3>Enterprise</h3>
+          <div class="pf-price">$2,990<span>/yr</span></div>
+          <ul class="pf-feats">
+            <li>✓ Everything in Team</li>
+            <li>✓ Multi-org rollups</li>
+            <li>✓ White-label embed</li>
+            <li>✓ Raised quotas</li>
+          </ul>
+          <a class="pf-btn" href="https://buy.stripe.com/aFacN5gZt4ZwbIZ0ZEcbC0f">Subscribe $2,990/yr</a>
+        </div>
+      </div>
+      <p class="pf-sub" style="margin-top:16px;">Current Donor Pack subscribers: your plan stays valid — nothing about your access changes. (Other pre-launch keys are covered by 90-day grandfathering, with the date shown in the tool.)</p>
+    </div>
+
     <div class="pf-note">
       <strong>Radical transparency:</strong> The Factory costs roughly $2,000/month to run — infrastructure, tools, data feeds. Every dollar goes to keeping it independent. We publish what we spend.<br><br>
       <strong>No pay-to-win.</strong> Subscriptions and War Bonds fund the movement. They don't buy XP, ranks, or advantages. Real money = zero XP, always.<br><br>
@@ -348,6 +472,12 @@ function pfBilling(which){
   document.getElementById('subs-yearly').style.display = which==='yearly'?'grid':'none';
   document.getElementById('btn-monthly').className = which==='monthly'?'active':'';
   document.getElementById('btn-yearly').className = which==='yearly'?'active':'';
+}
+function pfSuiteBilling(which){
+  document.getElementById('suite-monthly').style.display = which==='monthly'?'grid':'none';
+  document.getElementById('suite-yearly').style.display = which==='yearly'?'grid':'none';
+  document.getElementById('btn-suite-monthly').className = which==='monthly'?'active':'';
+  document.getElementById('btn-suite-yearly').className = which==='yearly'?'active':'';
 }
 </script>
 

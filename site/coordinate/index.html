@@ -415,9 +415,11 @@ function loadCampaigns(){
     items.forEach(function(c){
       var title = c.title || c.name || 'Untitled campaign';
       var meta = [c.members? c.members+' in':'', c.goal? 'Goal: '+c.goal:'', c.status? c.status:''].filter(Boolean).join(' · ');
+      /* COMPETITOR STEAL: 5 Calls' 5-minute framing — lower the barrier to action */
+      var timeEst = c.time_estimate || c.eta || '⏱ ~5 min';
       var el = document.createElement('div');
       el.innerHTML = cardShell(title,
-        (meta? esc(meta)+'<br>':'') + esc(c.description || c.blurb || 'No description yet.'),
+        (meta? esc(meta)+'<br>':'') + '<span style="color:#2fbf71;font-weight:600;font-size:12.5px;">'+esc(timeEst)+'</span><br>' + esc(c.description || c.blurb || 'No description yet.'),
         '<button data-join-campaign="'+esc(c.id||c.title||'')+'" style="'+JOIN+'">JOIN MISSION</button>');
       box.appendChild(el);
     });

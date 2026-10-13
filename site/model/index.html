@@ -116,6 +116,40 @@
   .loading{display:flex;align-items:center;gap:10px;padding:24px 16px;color:var(--dim);font-size:14px;}
   .loading .spin{width:20px;height:20px;border:2px solid var(--line);border-top-color:var(--rbright);border-radius:50%;animation:sp 0.8s linear infinite;}
   @keyframes sp{to{transform:rotate(360deg);}}
+  /* Power networks visualizer (LittleSis) */
+  .nv-row{display:flex;gap:8px;margin-bottom:10px;}
+  .nv-row input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--cream);padding:14px 16px;font-size:15px;outline:none;min-width:0;}
+  .nv-row input:focus{border-color:var(--red);}
+  .nv-row .nv-go{flex:0 0 110px;}
+  .nv-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .nv-chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:999px;color:var(--dim);padding:10px 14px;font-size:12px;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;}
+  .nv-chip.on{border-color:var(--red);color:var(--cream);background:rgba(193,18,31,.1);}
+  .nv-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  #nv-results{margin:0 0 4px;}
+  .nv-hit{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:6px;cursor:pointer;color:var(--cream);touch-action:manipulation;}
+  .nv-hit:active{transform:scale(.985);border-color:var(--red);}
+  .nv-hit .t{font-weight:800;font-size:15px;}
+  .nv-hit .s{font-size:12px;color:var(--dim);margin-top:2px;line-height:1.4;}
+  .nv-stage{position:relative;margin-top:6px;}
+  #nv-canvas{width:100%;height:58vh;min-height:320px;max-height:540px;background:#0d0d0d;border:1px solid var(--line);border-radius:14px;touch-action:none;cursor:grab;display:block;}
+  .nv-ctl{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;}
+  .nv-ctl button{width:42px;height:42px;border-radius:10px;background:rgba(17,17,17,.9);border:1px solid var(--line);color:var(--cream);font-size:20px;font-weight:800;cursor:pointer;touch-action:manipulation;}
+  .nv-ctl button:active{border-color:var(--red);}
+  #nv-status{margin:10px 0 0;font-size:13px;color:var(--dim);min-height:20px;}
+  #nv-status.nv-err{color:var(--rbright);}
+  .nv-detail{position:relative;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:12px;padding:14px 16px;margin-top:10px;}
+  .nv-detail h3{margin:0 24px 4px 0;font-size:16px;}
+  .nv-detail .m{font-size:13px;color:var(--dim);line-height:1.5;margin:4px 0;}
+  .nv-detail .m b{color:var(--cream);}
+  .nv-x{position:absolute;top:6px;right:6px;background:transparent;border:0;color:var(--dim);font-size:22px;cursor:pointer;min-width:44px;min-height:44px;}
+  .nv-x:active{color:var(--rbright);}
+  .nv-edges{list-style:none;margin:8px 0 0;padding:0;}
+  .nv-edges li{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--dim);padding:6px 0;border-top:1px solid #1c1c1c;line-height:1.45;}
+  .nv-edges li .nv-dot{margin-top:4px;}
+  .nv-edges li b{color:var(--cream);}
+  .nv-spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--rbright);border-radius:50%;animation:sp .8s linear infinite;vertical-align:-1px;}
+  .nv-src{font-size:11px;color:var(--faint);}
+  .nv-src a{color:var(--rbright);text-decoration:none;}
 </style>
 </head>
 <body>
@@ -132,6 +166,13 @@
     <div class="kicker">THE DATA WAR ROOM</div>
     <h1>Model the <em>data.</em></h1>
     <p>Every table in our rails, queryable. Pick one, pick your columns, hit <span class="live">RUN</span>. <span class="live" id="msl-rows">…</span> live rows and counting.</p>
+  </div>
+
+  <!-- COMPETITOR STEAL: ProPublica's "look up yourself first" — personal relevance as hook -->
+  <div class="sec" id="lookup-you-sec">
+    <h2>🔍 Look up <em style="color:var(--rbright);font-style:normal;">YOUR</em> world</h2>
+    <p style="color:var(--dim);font-size:14px;margin:0 0 12px;">Start with what's personal. Then go deeper.</p>
+    <div class="presets" id="lookup-you"></div>
   </div>
 
   <!-- 1. LIVE FROM THE DATA: real computed stats, never hardcoded -->
@@ -151,6 +192,33 @@
   <div class="sec">
     <h2>One-tap starters</h2>
     <div class="presets" id="presets"></div>
+  </div>
+
+  <!-- POWER NETWORKS: LittleSis corruption-network visualizer -->
+  <div class="sec" id="power-networks">
+    <h2>🕸️ Power networks</h2>
+    <p style="color:var(--dim);font-size:14px;margin:0 0 12px;">Search a name — a billionaire, a corporation, a politician — tap a node, watch the money map itself.</p>
+    <div class="nv-row">
+      <input id="nv-q" type="search" placeholder="e.g. ExxonMobil, Elon Musk…" autocomplete="off" aria-label="Search LittleSis for a person or organization">
+      <button class="btn primary nv-go" id="nv-go" type="button">MAP IT</button>
+    </div>
+    <div id="nv-filters" class="nv-filters" aria-label="Relationship type filters"></div>
+    <div id="nv-results"></div>
+    <div class="nv-stage">
+      <canvas id="nv-canvas" aria-label="Interactive power network graph"></canvas>
+      <div class="nv-ctl">
+        <button id="nv-zin" type="button" aria-label="Zoom in">+</button>
+        <button id="nv-zout" type="button" aria-label="Zoom out">&minus;</button>
+        <button id="nv-zreset" type="button" aria-label="Reset view">&#10227;</button>
+      </div>
+    </div>
+    <div id="nv-status" role="status"></div>
+    <div class="btnrow">
+      <button class="btn" id="nv-clear" type="button">&#10005; CLEAR</button>
+      <button class="btn primary" id="nv-share" type="button">&#128228; SHARE AS IMAGE</button>
+    </div>
+    <div id="nv-detail" class="nv-detail" hidden></div>
+    <div class="note">Board seats, donations, lobbying — the ties that run the country. Power-network data: <a href="https://littlesis.org" target="_blank" rel="noopener" style="color:var(--rbright)">LittleSis.org</a> (CC BY-SA 4.0).</div>
   </div>
 
   <div class="sec">
@@ -240,6 +308,39 @@ function renderPresets(){
     b.type='button';b.className='preset';b.textContent='⚡ '+p.t;
     if(!t||!t.available){b.disabled=true;b.title='Table not yet ingested';}
     else b.addEventListener('click',function(){applyPreset(p);});
+    host.appendChild(b);
+  });
+}
+/* COMPETITOR STEAL: ProPublica's "look up yourself first" — personal relevance hooks */
+var LOOKUP_YOU=[
+ {t:'🏥 Look up your hospital', table:'cms_hospital_prices', q:'Is MY hospital price-gouging?'},
+ {t:'🏦 Look up your bank', table:'dim_cfpb_company', q:'How many complaints does MY bank have?'},
+ {t:'🏛️ Look up your congressman', table:'stock_trades', q:'Is MY congressman trading stocks?'},
+ {t:'⚖️ Look up your employer', table:'fact_keyvex_enforcement', q:'Has MY employer been busted?'}
+];
+function renderLookupYou(){
+  var host=$id('lookup-you');if(!host)return;host.innerHTML='';
+  LOOKUP_YOU.forEach(function(p){
+    var t=tableByName(p.table);
+    var b=document.createElement('button');
+    b.type='button';b.className='preset';
+    b.style.borderColor='rgba(193,18,31,.5)';b.textContent=p.t;
+    if(!t||!t.available){b.disabled=true;b.title='Table not yet ingested';b.style.opacity='.4';}
+    else b.addEventListener('click',function(){
+      selectTable(p.table);
+      /* Pre-fill a name filter if the table has a name-like column */
+      var tbl=tableByName(p.table);
+      var nameCol=null;
+      (tbl.columns||[]).forEach(function(c){
+        var n=(c.name||'').toLowerCase();
+        if(!nameCol && (n.indexOf('hospital')>-1||n.indexOf('company_name')>-1||n.indexOf('member_name')>-1||n.indexOf('name')===0)) nameCol=c.name;
+      });
+      if(nameCol){
+        var v=prompt(p.q+'\n\nType a name to search:');
+        if(v){ state.filters=[{col:nameCol,op:'like',value:v}]; renderFilters(); }
+      }
+      $id('tbl-detail-sec').scrollIntoView({behavior:'smooth',block:'start'});
+    });
     host.appendChild(b);
   });
 }
@@ -510,10 +611,11 @@ apiGet('model_tables',{}).then(function(d){
   catalog=d.tables||[];
   var total=0;(d.tables||[]).forEach(function(t){if(t.available)total+=t.rows;});
   $id('msl-rows').textContent=total.toLocaleString('en-US');
-  renderPresets();renderTables('');
+  renderPresets();renderLookupYou();renderTables('');
   status(catalog.filter(function(t){return t.available;}).length+' live tables · '+total.toLocaleString('en-US')+' rows. Pick one to start modeling.');
 }).catch(function(){status('Catalog failed to load — check your connection.',true);});
 })();
 </script>
+<script src="network-viz.js"></script>
 </body>
 </html>

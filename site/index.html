@@ -465,7 +465,7 @@
   #pf-karl-home .kh-tab.kh-active{ background:#c1121f; border-color:#c1121f; color:#fff; }
 
 </style>
-<script>window.__PF_BUILD="20261013-0745-b3f5c9f2";</script>
+<script>window.__PF_BUILD="20261013-0901-45a520a0";</script>
 <script>(function(){
   try{
     var cur = window.__PF_BUILD; if(!cur) return;
@@ -573,6 +573,23 @@
 @media (prefers-reduced-motion: reduce){
   .pf-campaign,.pf-campaign *{transition:none !important;animation:none !important;}
 }
+/* People's CPI ticker (fe/cpi-ticker-20261013): the SAME band rotates
+   ticker_items — one item at a time, no second band, no new height.
+   The item carries the band padding so the whole band stays the tap
+   target (>=44px) while total band height matches the strip (~47px). */
+.pf-ticker-inner{padding:0;}
+.pf-ticker-item{display:none;align-items:center;gap:8px;flex:1;min-width:0;min-height:44px;box-sizing:border-box;padding:8px 12px 8px 16px;color:inherit;text-decoration:none;}
+a.pf-ticker-item{cursor:pointer;}
+.pf-ticker-item.pf-ticker-on{display:flex;animation:pf-tick-in .35s ease-out;}
+@keyframes pf-tick-in{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.pf-ticker-label{font-size:13px;line-height:1.25;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.pf-ticker-move{font-size:13px;font-weight:900;white-space:nowrap;flex-shrink:0;}
+.pf-ticker-up{color:#ff6b5e;}
+.pf-ticker-dn{color:#4ade80;}
+.pf-ticker-detail{font-size:12.5px;line-height:1.25;color:#bdbdbd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.pf-ticker-meta{font-size:10.5px;color:#8a8a8a;white-space:nowrap;flex-shrink:0;margin-left:auto;}
+.pf-ticker--breaking .pf-ticker-label{color:#ffb3ab;}
+.pf-ticker-campaign{cursor:default;}
 </style>
 <div id="pf-campaign-slot" class="pf-campaign-slot"></div>
 <script>
@@ -701,7 +718,234 @@ function render(res){
    slim #pf-campaign-join card (once-ever, one-tap). Skip the top banner here
    so visitors get ONE campaign prompt, not two. Other pages unaffected. */
 if(document.getElementById('pf-campaign-join')){ /* skip top banner */ }
-else{ fetchCampaign().then(render); }
+else{ fetchCampaign().then(function(res){
+  render(res);
+  /* People's CPI ticker (fe/cpi-ticker-20261013): hand the campaign
+     result to the tape script below, which rotates ticker_items
+     through this same band with the campaign as item #1. Fail-soft:
+     no ticker script (or a failed ticker fetch) leaves this strip
+     exactly as rendered here. */
+  window.__pfCampaignRes=res;
+  if(typeof window.__pfTickerBoot==='function') window.__pfTickerBoot(res);
+}); }
+})();
+</script>
+<script>
+/* ---------- PEOPLE'S CPI TICKER (fe/cpi-ticker-20261013) ----------
+   Generalizes the campaign band above into a rotating tape fed by
+   ?action=ticker_items (same API base + call pattern as the campaign
+   fetch). Items render in API order — never re-sorted — campaign
+   first when an active, un-dismissed campaign exists. FAIL-SOFT: if
+   ticker_items fails / not-ok / empty, the DOM is never touched and
+   the band behaves exactly as the standalone campaign strip. */
+(function(){
+"use strict";
+var API='https://pf-api.mtcstw.workers.dev/?action=';
+var DISMISS_KEY='pf_campaign_dismissed'; /* same key as the strip above */
+var ROTATE_MS=4500;
+var MAX_ITEMS=12;
+var booted=false;
+
+function ssGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
+function ssSet(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} }
+function validHex(c){ return typeof c==='string' && /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c.trim()); }
+function validUrl(u){
+  if(typeof u!=='string') return null;
+  var s=u.trim();
+  if(!s) return null;
+  if(s.charAt(0)==='/' && s.charAt(1)!=='/') return s;
+  try{
+    var url=new URL(s);
+    return (url.protocol==='http:'||url.protocol==='https:') ? url.href : null;
+  }catch(e){ return null; }
+}
+function txt(v){ return (typeof v==='string'||typeof v==='number') ? String(v) : ''; }
+
+function fetchTicker(){
+  return fetch(API+'ticker_items',{cache:'no-store'}).then(function(r){
+    if(!r.ok) throw new Error('http '+r.status);
+    return r.json();
+  }).catch(function(){ return null; }); /* silent fail: band unchanged */
+}
+
+function fmtPct(p){
+  if(typeof p==='number' && isFinite(p)) return (p>0?'+':'')+p.toFixed(1)+'%';
+  return txt(p);
+}
+
+/* One tape item from a ticker_items entry. The whole item is the tap
+   target when it carries a valid href; otherwise a plain div — never
+   a dead link. All API strings go through textContent. */
+function buildItem(it){
+  var href=validUrl(it.href);
+  var el=document.createElement(href ? 'a' : 'div');
+  el.className='pf-ticker-item'+(it.kind==='breaking' ? ' pf-ticker--breaking' : '');
+  if(href) el.href=href;
+  el.setAttribute('data-kind', txt(it.kind)||'price');
+  var label=document.createElement('span');
+  label.className='pf-ticker-label';
+  var co=txt(it.company);
+  label.textContent= co ? txt(it.label)+' \u2014 '+co : txt(it.label);
+  el.appendChild(label);
+  var pct=fmtPct(it.pct);
+  if(pct){
+    var dir=txt(it.direction);
+    var mv=document.createElement('span');
+    mv.className='pf-ticker-move'+(dir==='up' ? ' pf-ticker-up' : dir==='down' ? ' pf-ticker-dn' : '');
+    mv.textContent=(dir==='up' ? '\u25B2 ' : dir==='down' ? '\u25BC ' : '')+pct;
+    el.appendChild(mv);
+  }
+  var detail=txt(it.detail);
+  if(detail){
+    var d=document.createElement('span');
+    d.className='pf-ticker-detail';
+    d.textContent=detail;
+    el.appendChild(d);
+  }
+  var src=txt(it.source), asof=txt(it.as_of);
+  if(src || asof){
+    var meta=document.createElement('span');
+    meta.className='pf-ticker-meta';
+    meta.textContent=(src && asof) ? src+' \u00B7 '+asof : (src||asof);
+    el.appendChild(meta);
+  }
+  return el;
+}
+
+/* Campaign tape item: same DOM/classes as the standalone strip above
+   (r5: copy block is the tap target, CTA + dismiss sibling controls,
+   per-campaign session dismiss). Dismiss removes ONLY this item. */
+function buildCampaignItem(c, onDismiss){
+  var accent=validHex(c.banner_color) ? c.banner_color.trim() : '#c1121f';
+  var ctaUrl=validUrl(c.cta_url);
+  var wrap=document.createElement('div');
+  wrap.className='pf-ticker-item pf-ticker-campaign';
+  wrap.setAttribute('data-kind','campaign');
+  var copy=document.createElement(ctaUrl ? 'a' : 'div');
+  copy.className='pf-campaign-copy';
+  if(ctaUrl){
+    copy.href=ctaUrl;
+    copy.style.textDecoration='none';
+    copy.style.color='inherit';
+    copy.style.cursor='pointer';
+    copy.setAttribute('aria-label',(typeof c.name==='string' ? c.name : 'Campaign')+
+      (typeof c.cta_text==='string' && c.cta_text.trim()!=='' ? ' \u2014 '+c.cta_text : ''));
+  }
+  var h=document.createElement('h2');
+  h.className='pf-campaign-title';
+  h.textContent=String(c.hero_title);
+  copy.appendChild(h);
+  if(c.hero_sub!==undefined && c.hero_sub!==null && String(c.hero_sub).trim()!==''){
+    var sub=document.createElement('p');
+    sub.className='pf-campaign-sub';
+    sub.textContent=String(c.hero_sub);
+    copy.appendChild(sub);
+  }
+  wrap.appendChild(copy);
+  var row=document.createElement('div');
+  row.className='pf-campaign-row';
+  if(ctaUrl && typeof c.cta_text==='string' && c.cta_text.trim()!==''){
+    var a=document.createElement('a');
+    a.className='pf-campaign-cta';
+    a.textContent=c.cta_text;
+    a.href=ctaUrl;
+    a.style.backgroundColor=accent;
+    row.appendChild(a);
+  }
+  var x=document.createElement('button');
+  x.type='button';
+  x.className='pf-campaign-dismiss';
+  x.setAttribute('aria-label','Dismiss campaign banner');
+  x.textContent='\u2715';
+  x.addEventListener('click', function(){
+    ssSet(DISMISS_KEY,String(c.id));
+    onDismiss(wrap);
+  });
+  row.appendChild(x);
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function boot(campRes){
+  if(booted) return;
+  booted=true;
+  var slot=document.getElementById('pf-campaign-slot');
+  if(!slot) return;
+  fetchTicker().then(function(j){
+    if(!j || !j.ok || !Array.isArray(j.items)) return; /* fail-soft */
+    var items=[];
+    for(var i=0;i<j.items.length && items.length<MAX_ITEMS;i++){
+      var it=j.items[i];
+      if(!it || typeof it!=='object') continue;
+      if(it.kind==='campaign') continue; /* campaign item is built from campaign_active, below */
+      if(!txt(it.label)) continue;
+      items.push(it);
+    }
+    var c=(campRes && campRes.ok) ? campRes.campaign : null;
+    var hasCampaign=!!(c && c.hero_title && ssGet(DISMISS_KEY)!==String(c.id));
+    if(!items.length) return; /* campaign-only or nothing: strip as rendered today */
+
+    var bar=document.createElement('section');
+    bar.className='pf-campaign pf-ticker';
+    bar.setAttribute('role','region');
+    bar.setAttribute('aria-label',"People's CPI ticker");
+    if(hasCampaign && validHex(c.banner_color)) bar.style.borderBottomColor=c.banner_color.trim();
+    var inner=document.createElement('div');
+    inner.className='pf-campaign-inner pf-ticker-inner';
+    bar.appendChild(inner);
+
+    var els=[];
+    var idx=0, timer=null, paused=false;
+    function show(n){
+      if(!els.length) return;
+      idx=((n%els.length)+els.length)%els.length;
+      for(var m=0;m<els.length;m++){
+        var on=(m===idx);
+        if(on) els[m].classList.add('pf-ticker-on'); else els[m].classList.remove('pf-ticker-on');
+        els[m].setAttribute('aria-hidden', on ? 'false' : 'true');
+      }
+    }
+    function tick(){ if(!paused && !document.hidden && els.length>1) show(idx+1); }
+    function start(){
+      if(timer || els.length<2) return;
+      if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; /* static */
+      timer=setInterval(tick, ROTATE_MS);
+    }
+    function removeItem(el){
+      var p=els.indexOf(el);
+      if(p<0) return;
+      els.splice(p,1);
+      if(el.parentNode) el.parentNode.removeChild(el);
+      if(!els.length){ /* tape empty: band gone, like a dismissed strip */
+        if(timer){ clearInterval(timer); timer=null; }
+        slot.innerHTML='';
+        return;
+      }
+      if(els.length<2 && timer){ clearInterval(timer); timer=null; }
+      show(p<idx ? idx-1 : Math.min(idx, els.length-1));
+    }
+
+    if(hasCampaign) els.push(buildCampaignItem(c, removeItem)); /* item #1 */
+    for(var k=0;k<items.length;k++) els.push(buildItem(items[k])); /* API order preserved */
+    for(var q=0;q<els.length;q++) inner.appendChild(els[q]);
+
+    bar.addEventListener('mouseenter', function(){ paused=true; });
+    bar.addEventListener('mouseleave', function(){ paused=false; });
+    bar.addEventListener('focusin', function(){ paused=true; });
+    bar.addEventListener('focusout', function(e){ if(!bar.contains(e.relatedTarget)) paused=false; });
+    bar.addEventListener('touchstart', function(){ paused=true; }, {passive:true});
+    bar.addEventListener('touchend', function(){ paused=false; }, {passive:true});
+
+    slot.innerHTML='';
+    slot.appendChild(bar);
+    show(0);
+    start();
+  });
+}
+
+window.__pfTickerBoot=boot;
+/* Race guard: the campaign fetch may have resolved before this script ran. */
+if('__pfCampaignRes' in window) boot(window.__pfCampaignRes);
 })();
 </script>
 <!-- PF-SIDENAV v1 -->

@@ -10,9 +10,9 @@
   :root{--bg:#0a0a0a;--panel:#16140f;--panel2:#1d1a13;--ink:#f5f0e6;--dim:#a39c8b;--faint:#6f6957;--red:#e31b23;--green:#3ecf6f;--amber:#f5b83d;--blue:#58a6ff;--line:#2b2718;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-  body{max-width:560px;margin:0 auto;padding:0 12px 48px}
+  body{max-width:560px;margin:0 auto;padding:0 12px 96px}
   h1{font-size:15px;letter-spacing:3px;margin:0;color:var(--red);font-weight:900}
-  h2{font-size:12px;letter-spacing:2px;margin:0 0 10px;color:var(--dim);font-weight:800;text-transform:uppercase}
+  h2{font-size:13px;letter-spacing:2px;margin:0 0 10px;color:var(--dim);font-weight:800;text-transform:uppercase}
   .top{display:flex;align-items:center;gap:10px;padding:16px 2px 10px}
   .top .sp{flex:1}
   .chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;display:inline-block}
@@ -21,7 +21,7 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
   .big{font-size:30px;font-weight:900;line-height:1}
   .big2{font-size:20px;font-weight:900}
-  .dim{color:var(--dim)} .small{font-size:12px} .tiny{font-size:11px}
+  .dim{color:var(--dim)} .small{font-size:13px} .tiny{font-size:11px}
   .row{display:flex;gap:10px;align-items:center}
   .grow{flex:1;min-width:0}
   .stats{display:flex;gap:8px;flex-wrap:wrap}
@@ -45,7 +45,7 @@
   input[type=password],input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:13px;font-size:15px;font-family:inherit}
   .lockbanner{background:#3a0d10;border:1px solid var(--red);color:#ffb3b7;border-radius:14px;padding:12px 14px;margin:10px 0;font-size:13px;font-weight:700}
   .okbanner{background:#0e2f1a;border:1px solid var(--green);color:#7de2a3;border-radius:14px;padding:10px 14px;margin:10px 0;font-size:13px;font-weight:700}
-  #toast{position:fixed;left:12px;right:12px;bottom:14px;max-width:536px;margin:0 auto;background:#221f16;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;display:none;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  #toast{position:fixed;left:12px;right:12px;bottom:84px;max-width:536px;margin:0 auto;background:#221f16;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;display:none;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.6)}
   #toast.show{display:block}
   .ring{transform:rotate(-90deg)}
   .mono{font-variant-numeric:tabular-nums}
@@ -56,6 +56,33 @@
   .livedot{display:inline-block;width:9px;height:9px;border-radius:99px;background:var(--green);margin-right:7px;vertical-align:1px;animation:lpulse 1.6s ease-in-out infinite}
   @keyframes lpulse{0%,100%{opacity:1}50%{opacity:.2}}
   a{color:var(--blue)}
+  /* ---- v2 app shell: tabs, views, decision strip ---- */
+  #decisions{background:#2a0d10;border:1px solid var(--red);border-radius:14px;padding:12px 14px;margin:10px 0}
+  #decisions h2{color:#ff8f94}
+  #tabbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;background:#12100b;border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .tab{flex:1;background:transparent;border:none;color:var(--dim);font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.5px;padding:9px 2px;border-radius:10px;cursor:pointer;text-transform:uppercase;position:relative}
+  .tab.on{color:var(--ink);background:var(--panel2)}
+  .tab.on:before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:99px;background:var(--red)}
+  .tab:active{transform:scale(.97)}
+  .tbadge{display:inline-block;min-width:18px;background:var(--red);color:#fff;border-radius:99px;font-size:10px;font-weight:900;padding:1px 5px;margin-left:4px;vertical-align:2px}
+  .tbadge.amb{background:var(--amber);color:#221a05}
+  .view{display:none}
+  .view.on{display:block;animation:vfade .18s ease-out}
+  @keyframes vfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
+  .segbtn{border:1px solid var(--line);background:var(--panel);color:var(--dim);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer}
+  .segbtn.on{color:var(--ink);background:var(--panel2);border-color:var(--faint)}
+  .segbtn:active{transform:scale(.97)}
+  #liveTag.grn{background:#0e2f1a;color:#7de2a3} #liveTag.amb{background:#33270a;color:#ffd27d} #liveTag.red{background:#3a0d10;color:#ff8f94}
+  @media (min-width:900px){
+    body{max-width:1160px;padding-bottom:48px}
+    #toast{bottom:14px}
+    .shell{display:flex;gap:18px;align-items:flex-start}
+    #tabbar{position:sticky;top:16px;bottom:auto;left:auto;right:auto;width:192px;flex:none;flex-direction:column;gap:4px;background:transparent;border-top:none;padding:0}
+    .tab{text-align:left;font-size:13px;padding:12px 14px}
+    .tab.on:before{top:22%;bottom:22%;left:0;right:auto;width:3px;height:auto}
+    #views{flex:1;min-width:0}
+  }
 </style>
 </head>
 <body>
@@ -75,6 +102,7 @@
   <div class="top">
     <h1>COMMAND</h1>
     <span class="tag" id="syncTag">—</span>
+    <span class="tag" id="liveTag">● —</span>
     <span class="sp"></span>
     <a class="chip" href="https://www.mtcstw.com/karl/" target="_blank" rel="noopener">Ask Karl</a>
     <button class="chip" id="refreshBtn">Refresh</button>
@@ -83,33 +111,53 @@
 
   <div id="lockbanner" class="lockbanner" style="display:none"></div>
 
-  <div class="row" style="flex-wrap:wrap;gap:6px;margin:2px 0 4px">
-    <a class="chip" href="#p-now">Now</a>
-    <a class="chip" href="#p-stream">Stream</a>
-    <a class="chip" href="#p-org">Org</a>
-    <a class="chip" href="#p-workers">Workers</a>
-    <a class="chip" href="#p-data">Data</a>
-    <a class="chip" href="#p-rails">Rails</a>
-    <a class="chip" href="#p-money">Money</a>
-    <a class="chip" href="#p-flows">Flows</a>
-    <a class="chip" href="#p-site">Site</a>
-    <a class="chip" href="#p-creators">Creators</a>
-    <a class="chip" href="#p-pk">Promises</a>
-    <a class="chip" href="#p-sec">Security</a>
-  </div>
+  <div id="decisions" style="display:none"></div>
 
+  <div class="shell">
+  <nav id="tabbar" aria-label="Command Center views">
+    <button class="tab on" id="tab-now">Now</button>
+    <button class="tab" id="tab-workers">Workers<span class="tbadge" id="badge-workers" style="display:none"></span></button>
+    <button class="tab" id="tab-work">Work<span class="tbadge amb" id="badge-work" style="display:none"></span></button>
+    <button class="tab" id="tab-data">Data &amp; Rails</button>
+    <button class="tab" id="tab-money">Money</button>
+  </nav>
+
+  <main id="views">
+  <section class="view on" id="view-now">
   <div class="card" id="p-now"><h2>Now — The Org Alive</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-stream"><h2>Event Stream</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-org"><h2>The Org At Work</h2><div class="dim small">Loading…</div></div>
+  </section>
+
+  <section class="view" id="view-workers">
   <div class="card" id="p-workers"><h2>The Workers</h2><div class="dim small">Loading…</div></div>
+  </section>
+
+  <section class="view" id="view-work">
+  <div class="card" id="p-pk"><h2>Promise Keeper</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-deploy"><h2>Ships &amp; Deploys</h2><div class="dim small">Loading…</div></div>
+  </section>
+
+  <section class="view" id="view-data">
   <div class="card" id="p-data"><h2>The Data</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-rails"><h2>The Rails</h2><div class="dim small">Loading…</div></div>
-  <div class="card" id="p-money"><h2>The Money</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-flows"><h2>The Flows</h2><div class="dim small">Loading…</div></div>
-  <div class="card" id="p-site"><h2>The Site</h2><div class="dim small">Loading…</div></div>
-  <div class="card" id="p-creators"><h2>Creator Actions</h2><div class="dim small">Loading…</div></div>
-  <div class="card" id="p-pk"><h2>Promise Keeper</h2><div class="dim small">Loading…</div></div>
-  <div class="card" id="p-sec"><h2>Security — Triple Wrap</h2><div class="dim small">Loading…</div></div>
+  </section>
+
+  <section class="view" id="view-money">
+  <div class="seg" id="moneySeg">
+    <button class="segbtn on" id="seg-money">Money</button>
+    <button class="segbtn" id="seg-site">Site</button>
+    <button class="segbtn" id="seg-creators">Creators</button>
+    <button class="segbtn" id="seg-security">Security</button>
+  </div>
+  <div class="card subpane" id="p-money"><h2>The Money</h2><div class="dim small">Loading…</div></div>
+  <div class="card subpane" id="p-site" style="display:none"><h2>The Site</h2><div class="dim small">Loading…</div></div>
+  <div class="card subpane" id="p-creators" style="display:none"><h2>Creator Actions</h2><div class="dim small">Loading…</div></div>
+  <div class="card subpane" id="p-sec" style="display:none"><h2>Security — Triple Wrap</h2><div class="dim small">Loading…</div></div>
+  </section>
+  </main>
+  </div>
 
   <p class="tiny dim" style="text-align:center;margin-top:18px">Master Command Center · readings are live from the warehouse unless a panel says otherwise · <span id="genAt"></span></p>
 </div>
@@ -121,6 +169,7 @@
 var API = 'https://pf-api.mtcstw.workers.dev';
 var twSess = '', twDev = ''; /* Triple Wrap header transport — memory only, never stored */
 var OV = null, SEC = null, QUEUE = null, CAMPS = null;
+var curView = 'now', curSub = 'money'; /* v2 app shell state */
 
 function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -272,10 +321,14 @@ function renderPulse() {
   var rows = (p.active_now || []).map(pulseRow).join('');
   html += rows || '<div class="dim small" style="margin-top:8px">Nobody is registered as working right now.</div>';
   elN.innerHTML = html;
-  var ev = (p.events || []).map(function (e) {
+  var allEv = p.events || [];
+  var ev = allEv.slice(0, 15).map(function (e) {
     return '<div class="item small"><div class="row"><div class="grow"><span class="dot ' + (EVDOT[e.kind] || 'd') + '"></span>' + esc(e.text) + '</div><span class="tiny dim" style="white-space:nowrap">' + relHtml(e.ts) + '</span></div></div>';
   }).join('');
-  elS.innerHTML = '<h2>Event Stream</h2>' + (ev || '<div class="dim small">No events recorded yet.</div>');
+  elS.innerHTML = '<h2>Event Stream</h2>' + (ev || '<div class="dim small">No events recorded yet.</div>') +
+    (allEv.length > 15 ? '<div class="tiny dim" style="margin-top:6px">Newest 15 of ' + allEv.length + ' events.</div><button class="chip" id="streamWorkBtn" style="margin-top:8px">Ships &amp; promises \u2192 Work</button>' : '');
+  var swb = $('streamWorkBtn');
+  if (swb) swb.onclick = function () { showView('work'); };
 }
 function tickPulse() {
   var spans = document.querySelectorAll('[data-ts]');
@@ -285,6 +338,7 @@ function tickPulse() {
   }
   var pl = $('pulseLive'), p = OV && OV.org && OV.org.pulse;
   if (pl && p) pl.textContent = 'LIVE · updated ' + ageOf(p.generated_at);
+  updateLiveTag();
 }
 
 /* ---------------- ORG ---------------- */
@@ -820,15 +874,132 @@ function bindActionButtons(root) {
   });
 }
 
+/* ---------------- v2 APP SHELL ----------------
+   One view at a time, switched by the tab bar (bottom on mobile,
+   left rail on desktop). Nothing was deleted: the 12 original panels
+   live inside 5 views; Money carries a segmented sub-menu
+   (Money | Site | Creators | Security). Rendering is per-view:
+   the 30s poll re-renders chrome + the visible view only. */
+var VIEWS = ['now', 'workers', 'work', 'data', 'money'];
+var SUBS = ['money', 'site', 'creators', 'security'];
+function showView(v) {
+  if (VIEWS.indexOf(v) < 0) v = 'now';
+  curView = v;
+  VIEWS.forEach(function (x) {
+    var sec = $('view-' + x);
+    sec.style.display = x === v ? '' : 'none';
+    sec.className = 'view' + (x === v ? ' on' : '');
+    $('tab-' + x).className = 'tab' + (x === v ? ' on' : '');
+  });
+  renderView(v);
+  if (window.scrollTo) window.scrollTo(0, 0);
+}
+function showSub(s2) {
+  if (SUBS.indexOf(s2) < 0) s2 = 'money';
+  curSub = s2;
+  SUBS.forEach(function (x) {
+    $('p-' + x).style.display = x === s2 ? '' : 'none';
+    $('seg-' + x).className = 'segbtn' + (x === s2 ? ' on' : '');
+  });
+  renderView('money');
+}
+function renderView(v) {
+  if (!OV) return;
+  if (v === 'now') { renderPulse(); renderOrg(); }
+  else if (v === 'workers') { renderWorkers(); }
+  else if (v === 'work') { renderPk(); renderDeploy(); }
+  else if (v === 'data') { renderData(); renderRails(); renderFlows(); }
+  else if (v === 'money') {
+    if (curSub === 'money') renderMoney();
+    else if (curSub === 'site') renderSite();
+    /* creators + security panes are rendered by the loadRest /
+       renderAll paths (they also drive the lock banner) */
+  }
+}
+/* Top-bar LIVE tag: real snapshot age from the pulse generated_at
+   (fallback: overview generated_at). Green <=2m, amber <=10m, red after. */
+function updateLiveTag() {
+  var el = $('liveTag');
+  if (!el) return;
+  var p = OV && OV.org && OV.org.pulse;
+  var ts = (p && p.generated_at) || (OV && OV.generated_at) || 0;
+  if (!ts) { el.textContent = '\u25cf \u2014'; el.className = 'tag'; return; }
+  var ageS = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  el.textContent = '\u25cf LIVE \u00b7 ' + ageOf(ts);
+  el.className = 'tag ' + (ageS <= 120 ? 'grn' : (ageS <= 600 ? 'amb' : 'red'));
+}
+/* Decision strip: rendered ONLY from OV.promises — Promise Keeper
+   escalations (escalated_top) + need_human count are the only
+   CEO-reserved "waiting on you" source in the overview payload.
+   No other data is invented or fetched for this strip. */
+function renderDecisions() {
+  var el = $('decisions');
+  var p = OV && OV.promises;
+  var top = (p && p.escalated_top) || [];
+  var need = (p && Number(p.need_human)) || 0;
+  var open = (p && Number(p.escalations_open)) || 0;
+  if (!p || !p.ok || (!top.length && !need && !open)) { el.style.display = 'none'; el.innerHTML = ''; return 0; }
+  var n = Math.max(need, top.length, open);
+  var html = '<h2>\u2691 Waiting on you \u2014 ' + n + ' decision' + (n === 1 ? '' : 's') + '</h2>';
+  html += top.map(function (e) {
+    return '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span><div class="tiny dim">' + esc(e.state || '') + ' \u00b7 open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '\u2014') + '</div></div>';
+  }).join('');
+  if (need) html += '<div class="small" style="margin-top:4px">' + need + ' Promise Keeper item' + (need === 1 ? '' : 's') + ' need your eyes \u2014 detail in the Work view.</div>';
+  el.innerHTML = html;
+  el.style.display = '';
+  return n;
+}
+function renderChrome() {
+  updateLiveTag();
+  var dec = renderDecisions();
+  var pc = OV && OV.org && OV.org.pulse && OV.org.pulse.counts;
+  var blocked = 0;
+  if (pc && pc.blocked != null) blocked = Number(pc.blocked) || 0;
+  else if (OV && OV.workers && OV.workers.blocked) blocked = OV.workers.blocked.length;
+  else if (OV && OV.org && OV.org.workers_blocked) blocked = OV.org.workers_blocked.length;
+  var bw = $('badge-workers');
+  if (blocked > 0) { bw.textContent = blocked; bw.style.display = ''; } else { bw.style.display = 'none'; }
+  var bk = $('badge-work');
+  if (dec > 0) { bk.textContent = dec; bk.style.display = ''; } else { bk.style.display = 'none'; }
+}
+/* Ships & Deploys (Work view): built ONLY from OV.deploy and
+   OV.rails.deploy_guard — the same payload sections The Site and
+   The Rails already read. No new calls, no new data. */
+function renderDeploy() {
+  var el = $('p-deploy'), dep = OV && OV.deploy, r = OV && OV.rails;
+  var html = '<h2>Ships &amp; Deploys</h2>';
+  if (dep && dep.ok) {
+    html += '<div class="item small"><span class="dot g"></span>Live build: <b>' + esc(dep.frontend_build || '\u2014') + '</b></div>' +
+      '<div class="item small dim">API ' + esc((dep.api || {}).branch || '') + '@' + esc((dep.api || {}).head || '') + ' \u00b7 site ' + esc((dep.site || {}).branch || '') + '@' + esc((dep.site || {}).head || '') + '</div>' +
+      '<div class="tiny dim" style="margin-top:6px">Deploy state synced ' + ageOf(dep.synced_at) + '</div>';
+  } else if (dep) {
+    html += '<div class="small" style="line-height:1.55">Deploy state: ' + esc(dep.note || 'not synced yet') + '</div>';
+  } else {
+    html += '<div class="dim small">No deploy reading yet.</div>';
+  }
+  if (r && r.ok && (r.deploy_guard || []).length) {
+    html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:10px">DEPLOY GUARD \u2014 LATEST RUNS</div>' + r.deploy_guard.slice(0, 6).map(function (g) {
+      var cls = g.verdict === 'PASS' ? 'g' : (g.verdict === 'FAIL' ? 'r' : 'a');
+      var tag = g.verdict === 'PASS' ? 'grn' : (g.verdict === 'FAIL' ? 'red' : 'amb');
+      return '<div class="item row small"><span class="dot ' + cls + '"></span><div class="grow">Guard <span class="dim">' + (g.at ? new Date(g.at).toLocaleString() : esc(g.run_id)) + '</span></div><span class="tag ' + tag + '">' + esc(g.verdict || '\u2014') + '</span></div>';
+    }).join('');
+  }
+  el.innerHTML = html;
+}
+
 function renderAll() {
   if (!OV) return;
   $('genAt').textContent = 'read ' + new Date(OV.generated_at).toLocaleTimeString();
   var ages = [OV.org, OV.promises, OV.deploy, OV.workers, OV.rails].filter(function (s) { return s && s.ok && s.age_s != null; }).map(function (s) { return s.age_s; });
   $('syncTag').textContent = ages.length ? 'synced ' + Math.max.apply(null, ages) + 's ago' : 'live reads';
-  renderPulse(); renderOrg(); renderWorkers(); renderData(); renderRails(); renderMoney(); renderFlows(); renderSite(); renderPk(); renderSecurity();
+  renderChrome();
+  renderSecurity(); /* lock banner + security pane stay fresh on every view */
   if (QUEUE) renderCreators();
+  renderView(curView);
 }
 
+VIEWS.forEach(function (v) { $('tab-' + v).onclick = function () { showView(v); }; });
+SUBS.forEach(function (s2) { $('seg-' + s2).onclick = function () { showSub(s2); }; });
 $('enterBtn').onclick = enter;
 $('refreshBtn').onclick = function () { refreshOverview(); loadRest(); };
 $('signOutBtn').onclick = async function () {

@@ -116,38 +116,11 @@
     margin:0 0 18px; letter-spacing:-.01em; color:var(--kh-cream);
   }
   #pf-karl-home .kh-ask h1 em{ color:var(--kh-red-bright); font-style:normal; }
-  #pf-karl-home .kh-composer{
-    background:var(--kh-card2); border:1px solid var(--kh-line); border-radius:16px;
-    padding:4px; transition:border-color .2s, box-shadow .2s;
-  }
-  #pf-karl-home .kh-composer:focus-within{ border-color:var(--kh-red); box-shadow:0 0 0 3px rgba(193,18,31,.18); }
-  #pf-karl-home .kh-composer textarea{
-    width:100%; background:transparent; border:0; outline:0; resize:none;
-    color:var(--kh-cream); font-size:17px; padding:14px 14px 6px; min-height:64px;
-    font-family:inherit; line-height:1.45;
-  }
-  #pf-karl-home .kh-composer textarea::placeholder{ color:var(--kh-faint); }
-  #pf-karl-home .kh-composer-foot{ display:flex; align-items:center; justify-content:space-between; padding:6px 10px 10px 14px; }
-  #pf-karl-home .kh-composer-hint{ font-size:12px; color:var(--kh-faint); }
-  #pf-karl-home .kh-ask-btn{
-    background:var(--kh-red); color:#fff; border:0; border-radius:999px;
-    padding:11px 26px; font-size:15px; font-weight:700; letter-spacing:.04em;
-    cursor:pointer; transition:transform .12s, background .2s, box-shadow .2s;
-    box-shadow:0 4px 18px rgba(193,18,31,.35); touch-action:manipulation;
-  }
-  #pf-karl-home .kh-ask-btn:active{ transform:scale(.95); }
-  #pf-karl-home .kh-ask-btn:disabled{ opacity:.55; box-shadow:none; }
-  /* COMPACT: one-line composer (declutter 20261011) */
+  /* Hero composer CSS removed 20261013 (homepage rework): the ask box
+     lives on /karl/ now — see .kh-entry under the pillars. */
+  /* COMPACT hero (declutter 20261011) */
   #pf-karl-home .kh-ask-compact{ padding:20px 16px 8px; }
   #pf-karl-home .kh-ask-compact h1{ font-size:28px; margin:0 0 12px; }
-  #pf-karl-home .kh-composer-oneline{ display:flex; align-items:center; gap:8px; padding:6px 6px 6px 16px; }
-  #pf-karl-home .kh-composer-oneline input{
-    flex:1; min-width:0; background:transparent; border:0; outline:0;
-    color:var(--kh-cream); font-size:16px; font-family:inherit; padding:10px 0;
-  }
-  #pf-karl-home .kh-composer-oneline input::placeholder{ color:var(--kh-faint); }
-  #pf-karl-home .kh-composer-oneline .kh-ask-btn{ padding:10px 20px; font-size:14px; flex-shrink:0; }
-  #pf-karl-home .kh-ask-compact .pf-mission{ font-size:13px; margin:10px 2px 0; color:var(--kh-dim); }
   #pf-karl-home .pf-explainer{ font-size:17px; line-height:1.4; margin:6px 2px 12px; color:#fff; max-width:32ch; font-weight:500; }
   #pf-karl-home .pf-explainer strong{ color:#fff; }
   /* 4-pillar nav (UX sprint ITER-2, quieted ITER-5: nav strip, not cards) */
@@ -158,18 +131,18 @@
     min-height:44px; touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
   .pf-pillar-btn .em{ font-size:15px; }
   .pf-pillar-btn:active{ background:#1a1a1a; color:#fff; border-color:#e5383b; }
-  /* Karl identity kicker (UX sprint ITER-5, de-glowed ITER-9) */
-  .kh-karl-kicker{ font-size:10px; font-weight:800;
-    letter-spacing:.16em; color:#8a8a8a; margin:0 2px 6px; }
-  /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed */
-  #pf-karl-home .kh-chips{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; }
-  #pf-karl-home .kh-chips::-webkit-scrollbar{ display:none; }
-  #pf-karl-home .kh-chip{
-    flex:0 0 auto; background:var(--kh-card); border:1px solid var(--kh-line); color:var(--kh-cream);
-    border-radius:999px; padding:9px 15px; font-size:13.5px; cursor:pointer;
-    transition:border-color .2s, transform .12s; white-space:nowrap; touch-action:manipulation;
-  }
-  #pf-karl-home .kh-chip:active{ transform:scale(.95); border-color:var(--kh-red); }
+  /* Karl entry line (homepage rework 20261013): one slim row under the
+     pillars — the full ask box + chips live on /karl/, not stacked here. */
+  #pf-karl-home .kh-entry{ display:flex; align-items:center; gap:10px; margin:0 14px 14px; padding:12px 14px;
+    background:#141414; border:1px solid #2a2a2a; border-radius:12px; text-decoration:none; color:#eee;
+    touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
+  #pf-karl-home .kh-entry .kh-entry-em{ font-size:18px; flex-shrink:0; }
+  #pf-karl-home .kh-entry .kh-entry-txt{ flex:1; min-width:0; font-size:14px; color:#ccc; }
+  #pf-karl-home .kh-entry .kh-entry-txt b{ color:#fff; letter-spacing:.06em; }
+  #pf-karl-home .kh-entry .kh-entry-go{ font-size:12px; font-weight:800; letter-spacing:.08em; color:#e5383b; flex-shrink:0; }
+  #pf-karl-home .kh-entry:active{ border-color:#c1121f; transform:scale(.99); }
+  /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed.
+     Hero kicker + suggestion-chip CSS removed 20261013 (homepage rework). */
   #pf-karl-home .kh-feed-head{
     display:flex; align-items:baseline; justify-content:space-between;
     padding:26px 20px 4px;
@@ -181,8 +154,6 @@
   #pf-karl-home{ --kh-card:#101010; }
   #pf-karl-home .kh-ask-compact{ padding:28px 20px 12px; }
   #pf-karl-home .kh-ask-compact h1{ font-size:30px; line-height:1.2; margin:0 0 16px; font-weight:700; }
-  #pf-karl-home .kh-chips{ padding:16px 20px 8px; gap:10px; }
-  #pf-karl-home .kh-chip{ padding:10px 16px; font-size:13px; border-radius:999px; }
   /* Campaign join card entrance */
   #pf-campaign-join{ animation:pf-cj-in .5s ease-out; }
   @keyframes pf-cj-in{ from{ opacity:0; transform:translateY(12px);} to{ opacity:1; transform:none;} }
@@ -582,6 +553,7 @@
   ]
 }
 </script>
+<script>window.__PF_NO_FACE_SWITCHER=true;/* CEO 2026-10-13: FIGHT/BUILD/SCALE moved into the hamburger on the homepage — pf-faces must not auto-inject the bar here. */</script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <script src="/v1.4.3/core/03-global.js" defer></script>
 </head>
@@ -802,10 +774,16 @@ else{ fetchCampaign().then(render); }
     <a class="pf-snav-link" href="/features/"><span class="em">🗺️</span>All Features</a>
     <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>
   </div>
-<div class="pf-snav-group">
-    <span class="pf-snav-kicker">BUILD</span>
-    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>
-    <a class="pf-snav-link" href="/enterprise/"><span class="em">🏢</span>Enterprise</a>
+  <!-- FIGHT · BUILD · SCALE (homepage rework 20261013, CEO): the tier
+       switcher moved off the homepage top layer into the menu — same
+       destinations, same face behavior. Creator Hub rides with BUILD
+       (CEO 2026-10-13 00:23: the hub lives inside the builder tier). -->
+  <div class="pf-snav-group">
+    <span class="pf-snav-kicker">FIGHT · BUILD · SCALE</span>
+    <a class="pf-snav-link" href="/" aria-current="page"><span class="em">✊</span>FIGHT — Movement</a>
+    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>BUILD — Developer</a>
+    <a class="pf-snav-link" href="/creator-hub/"><span class="em">&#x1F39B;&#xFE0F;</span>Creator Hub</a>
+    <a class="pf-snav-link" href="/enterprise/"><span class="em">🏢</span>SCALE — Enterprise</a>
   </div>
     <div class="pf-snav-group">
     <span class="pf-snav-kicker">LEGAL</span>
@@ -842,21 +820,13 @@ else{ fetchCampaign().then(render); }
 
 <main id="main">
 <div id="pf-karl-home">
+  <!-- HERO (homepage rework 20261013, CEO): H1 + one subhead line only.
+       Karl is de-layered from the top — the ask box + suggestion chips
+       live on the Karl surface (/karl/); one compact entry line sits
+       under the pillars below. -->
   <div class="kh-ask kh-ask-compact">
     <h1>Who's <em>robbing</em> you?</h1>
     <p class="pf-explainer">We turn public records into shareable intel — violations, money trails, and payouts in your town.</p>
-    <div class="kh-karl-kicker">ASK KARL — YOUR INTEL RESEARCHER</div>
-    <div class="kh-composer kh-composer-oneline">
-      <input id="kh-q" placeholder="Enter your ZIP — see your town's money trails" enterkeyhint="go" autocomplete="off">
-      <button class="kh-ask-btn" id="kh-askBtn">FIND</button>
-    </div>
-  </div>
-
-  <div class="kh-chips" id="kh-chips">
-    <button class="kh-chip">Is my hospital charging above average?</button>
-    <button class="kh-chip">Who funds my congressman?</button>
-    <button class="kh-chip">Which defense contractor paid the most in penalties?</button>
-    <button class="kh-chip">Worst for-profit college?</button>
   </div>
 
   <!-- 4 PILLARS NAV (UX sprint ITER-2): the mission backbone as visible nav.
@@ -867,6 +837,15 @@ else{ fetchCampaign().then(render); }
     <a class="pf-pillar-btn" href="/cells/"><span class="em">⚑</span>Coordinate</a>
     <a class="pf-pillar-btn" href="/money/"><span class="em">💰</span>Capital</a>
   </nav>
+
+  <!-- KARL ENTRY (homepage rework 20261013): one compact line under the
+       pillars. id="ask" keeps the /#ask deep-links (ticker items) landing
+       on Karl's door now that the hero composer is gone. -->
+  <a class="kh-entry" id="ask" href="/karl/" aria-label="Ask Karl — your intel researcher">
+    <span class="kh-entry-em">🧠</span>
+    <span class="kh-entry-txt"><b>ASK KARL</b> — your intel researcher</span>
+    <span class="kh-entry-go">ASK →</span>
+  </a>
 
   <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
        into the active campaign. Pulls from campaign_active API. After
@@ -1424,26 +1403,29 @@ try{ pfUpdateXPChip(); pfRenderMedals(); }catch(e){}
   };
 }
 
-/* Ask flow — live karl_query */
+/* Ask flow — live karl_query. Homepage rework 20261013 (CEO): the hero
+   ask box + chips moved to the Karl surface (/karl/) — kh-q / kh-askBtn /
+   kh-chips no longer exist on this page. All wiring below is null-guarded
+   and doAsk() takes the question directly, so the in-feed ask card and
+   card follow-ups keep working without the hero composer. */
 var qInput = document.getElementById('kh-q');
 var askBtn = document.getElementById('kh-askBtn');
-document.getElementById('kh-chips').addEventListener('click', function(e){
+var khChips = document.getElementById('kh-chips');
+if(khChips) khChips.addEventListener('click', function(e){
   var t = e.target;
   if(!t.classList || !t.classList.contains('kh-chip')) return;
-  qInput.value = t.textContent;
-  qInput.focus();
+  if(qInput){ qInput.value = t.textContent; qInput.focus(); }
   doAsk();
 });
-askBtn.addEventListener('click', doAsk);
-qInput.addEventListener('keydown', function(e){
+if(askBtn) askBtn.addEventListener('click', function(){ doAsk(); });
+if(qInput) qInput.addEventListener('keydown', function(e){
   if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); doAsk(); }
 });
 
-function doAsk(){
-  var text = qInput.value.trim();
-  if(!text || askBtn.disabled) return;
-  askBtn.disabled = true;
-  askBtn.textContent = '…';
+function doAsk(textArg){
+  var text = (typeof textArg === 'string') ? textArg.trim() : (qInput ? qInput.value.trim() : '');
+  if(!text || (askBtn && askBtn.disabled)) return;
+  if(askBtn){ askBtn.disabled = true; askBtn.textContent = '…'; }
   var load = document.createElement('div');
   load.className = 'kh-card';
   load.innerHTML = '<div class="kh-q">'+esc(text)+'</div><div class="kh-shimmer"></div><div class="kh-shimmer" style="width:70%"></div>';
@@ -1454,9 +1436,8 @@ function doAsk(){
     var el = cardEl(card);
     el.classList.add('kh-open');
     load.replaceWith(el);
-    qInput.value = '';
-    askBtn.disabled = false;
-    askBtn.textContent = 'FIND';
+    if(qInput) qInput.value = '';
+    if(askBtn){ askBtn.disabled = false; askBtn.textContent = 'FIND'; }
     showToast('Answer ready — tap DEPLOY to spread it');
     /* UX sprint ITER-8: come-back trigger. After the visitor's FIRST Karl
        answer, prompt callsign claim once ever — so their intel is saved and
@@ -2884,9 +2865,8 @@ function fmAskCard(){
   var inp = el.querySelector("input"), btn = el.querySelector("button");
   var go = function(){
     var t = inp.value.trim(); if(!t){ inp.focus(); return; }
-    qInput.value = t;
-    qInput.scrollIntoView({behavior:"auto", block:"center"});
-    doAsk(); /* reuses the hero ask flow: answer card lands at feed top */
+    inp.value = '';
+    doAsk(t); /* answer card lands at feed top; doAsk scrolls it into view */
   };
   btn.addEventListener("click", go);
   inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); go(); } });
@@ -3620,8 +3600,7 @@ var KHD = {
             e.stopPropagation();
             var c = related[parseInt(rc.dataset.relIdx)];
             /* scroll to top and ask Karl */
-            var qi = $id('kh-q');
-            if(qi){ qi.value = c.q; qi.focus(); if(typeof doAsk==='function') doAsk(); }
+            if(typeof doAsk==='function') doAsk(c.q);
           });
         });
       } else {
@@ -3643,8 +3622,7 @@ var KHD = {
           b.textContent = fq;
           b.addEventListener('click', function(){
             closeModal();
-            var qi = $id('kh-q');
-            if(qi){ qi.value = fq; if(typeof doAsk==='function') doAsk(); qi.scrollIntoView({behavior:'smooth',block:'center'}); }
+            if(typeof doAsk==='function') doAsk(fq);
           });
           body.appendChild(b);
         });

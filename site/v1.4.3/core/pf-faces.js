@@ -97,8 +97,15 @@
     });
   }
 
+  /* Homepage rework 20261013 (CEO): the FIGHT/BUILD/SCALE switcher moved
+     into the sidenav. A page sets window.__PF_NO_FACE_SWITCHER before this
+     file loads to opt out of the switcher entirely (bar + auto-inject);
+     Stat / CorePulse / CoreBadge / PackCard are unaffected. */
+  function facesOff() { return !!window.__PF_NO_FACE_SWITCHER; }
+
   /* Auto-inject switcher when page has no [data-pf-faces] markup */
   function autoInjectSwitcher() {
+    if (facesOff()) return;
     if (document.querySelector("[data-pf-faces]")) return;
     var nav = el("nav", "pf-faces pf-faces--auto");
     nav.setAttribute("data-pf-faces", "");
@@ -245,10 +252,12 @@
   }
 
   function init() {
-    autoInjectSwitcher();
-    Array.prototype.forEach.call(document.querySelectorAll("[data-pf-faces]"), function (nav) {
-      if (!nav.hasAttribute("data-pf-init")) { nav.setAttribute("data-pf-init", "1"); FaceSwitcher(nav); }
-    });
+    if (!facesOff()) {
+      autoInjectSwitcher();
+      Array.prototype.forEach.call(document.querySelectorAll("[data-pf-faces]"), function (nav) {
+        if (!nav.hasAttribute("data-pf-init")) { nav.setAttribute("data-pf-init", "1"); FaceSwitcher(nav); }
+      });
+    }
     Array.prototype.forEach.call(document.querySelectorAll("[data-pf-pulse]"), CorePulse);
     Array.prototype.forEach.call(document.querySelectorAll("[data-pf-corebadge]"), CoreBadge);
   }

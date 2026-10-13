@@ -342,9 +342,17 @@
     var last = null;
     for (var i = idx.length - 1; i >= 0; i--) { if (okIndexWeek(idx[i])) { last = idx[i]; break; } }
     if (!last) {
-      /* Honest empty state (spec §1.3.1) — never a figure, never an estimate. */
+      /* Honest empty state (spec §1.3.1) — never a figure, never an estimate.
+         ZUCK BUTTER (WS-A, WS-D A2.9): ship the affordance, not the numbers —
+         a tappable skeleton trains the tap-a-number gesture before the data
+         lands. The sheet explains honestly what will live here. */
       el.innerHTML = shell('<div class="pf-cpi-empty">' + badge +
         '<div style="margin:10px 0;">Not enough reports yet to publish a national number. Report a price and be part of the first count.</div>' +
+        '<div style="margin:14px auto;max-width:340px;"><div class="bt-shimmer" style="height:44px;border-radius:10px;" ' +
+        'data-pf-fig="\u2014" data-pf-unit="people\u2019s median (national composite)" ' +
+        'data-pf-source="crowdsourced price reports" data-pf-asOf="not yet" ' +
+        'data-pf-chain="This is where the people\u2019s median will land|Comrades report prices they paid in stores|The median of real reports becomes the number \u2014 no estimates, ever|Report a price below and be part of the first count"></div>' +
+        '<div style="font-size:11px;color:#8f887a;margin-top:6px;letter-spacing:.08em;">TAP THE SKELETON \u2014 THIS IS WHERE THE NUMBER LIVES</div></div>' +
         '<a class="pf-cpi-btn" href="/economy#pf-inflation-checkin">REPORT A PRICE</a></div>');
       return;
     }

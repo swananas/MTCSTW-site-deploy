@@ -91,6 +91,16 @@ var CORE_FILES = [
   'core/04-ledger.js',
   'core/05-tally.js',
   'core/08-dopamine.js',
+  /* ZUCK BUTTER SITE-WIDE (WS-A, dir-20261010-010215-1757): WS-D butter spec
+     §B1 as runtime — ripple, mount stagger, tappable-figure convention,
+     toast, burst. After 08-dopamine (extends the Psych-cleared dopamine
+     mechanics, never duplicates). Fail-open. Kill: ?pf_off=butter-sitewide. */
+  'core/45-butter-sitewide.js',
+  /* DRILL-DOWN SHEET (WS-A): PF.drillSheet — WS-D §B2 bottom sheet for
+     tappable numbers (figure → why-chain → split bars → time chips →
+     compare → DEPLOY/Ask Karl). After 45 (45 auto-wires figures into it).
+     Zero XP, fail-closed on data. Kill: ?pf_off=drill-sheet. */
+  'core/46-drill-sheet.js',
   /* UGC dopamine layer (CEO directive, 2026-10-06): celebration moments,
      quorum progress bars, contributor streaks, TOP HANDS spotlight strip,
      leaderboard pulses, stacked-leg apex celebrations. Cross-cutting hooks
@@ -510,7 +520,11 @@ var BUNDLES = {
     /* mobile-nav-trim (CEO directive 2026-10-07 ~11:33 CDT): 5-item mobile
        nav cap on v1.1.0-branch pages too — the hamburger menu is site
        chrome, same precedent as crossnav. */
-    'core/42-mobile-nav-trim.js'
+    'core/42-mobile-nav-trim.js',
+    /* butter site-wide (WS-A): ripple/stagger/fig-wire on v1.1.0 pages too. */
+    'core/45-butter-sitewide.js',
+    /* drill-down sheet (WS-A): B2 sheet on v1.1.0 pages too. */
+    'core/46-drill-sheet.js'
   ]
 };
 

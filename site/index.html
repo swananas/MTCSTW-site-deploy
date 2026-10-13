@@ -1513,15 +1513,8 @@ function railOf(key){
 
 /* Anchor cards — AUDITED FIGURES ONLY. live:false. */
 var ANCHORS = [
-  { rail:'billionaires', kind:'inference',
-    q:'3,428 billionaires hold $20.1T — a separate economy.',
-    a:'The average billionaire is worth <b>$5.9B</b> — Karl\u2019s best read from the Forbes-2026 roll. That\u2019s not wealth, it\u2019s a country of its own.',
-    figures:[
-      {label:'Billionaires tracked', value:'3,428', source:'Forbes-2026', chain:['Forbes-2026 billionaire roll, published figures','Count of individuals with $1B+ net worth','Excludes hidden offshore wealth — the real number is higher']},
-      {label:'Combined net worth', value:'$20.1T', source:'Forbes-2026', chain:['Forbes-2026 valuations summed','Public holdings + disclosed assets','Private valuations are estimates, not filings']},
-      {label:'Average net worth', value:'$5.9B', source:'Karl\u2019s best read', chain:['$20.1T \u00F7 3,428 billionaires','Arithmetic on audited figures, not a filing','Averages hide the skew — the top 10 hold far more']}
-    ],
-    src:'\u25B8 RECEIPTS \u2014 Forbes-2026', when:'audited', deep:'/follow-the-money' },
+  /* billionaires anchor MOVED to the feed pool (r4): promoted via
+     ?action=karl_promote as a karl_inference feed card — no embedded leads. */
   { rail:'hospitals', kind:'inference',
     q:'Is your hospital charging above average?',
     a:'The average ER visit is billed at <b>$2,200</b> (CPT 99285). Karl tracks 6,000 hospitals\u2019 posted prices.',
@@ -3037,7 +3030,7 @@ function fmSetTab(tab){
   if(feed.querySelectorAll('.kh-card:not([style*="none"])').length < 3 && !fmAllExhausted()) fmLoadBatch();
 }
 
-/* ---- boot: rank the sync pool for 2 above-the-fold cards, then lazy ---- */
+/* ---- boot error card (the live-feed boot itself is at the IIFE tail) ---- */
 function fmBootError(){
   if(feed.querySelector('.kh-feed-err')) return;
   var err = document.createElement('div');
@@ -3049,51 +3042,71 @@ function fmBootError(){
     err.remove(); fmEnded = false; fmLoading = false; fmLoadBatch();
   });
 }
-try{
-  fmBuildTabs();
-}catch(e){ console.log('[FM] boot: fmBuildTabs failed:', e.message); }
-if(FM_DEBUG) console.log('[FM] boot: requesting 2 sync cards');
-try{
-fmNextBatch(2, true).then(function(cards){
-  if(FM_DEBUG) console.log('[FM] boot: got ' + cards.length + ' cards');
-  if(!cards.length){
-    /* sync pool empty — try async immediately instead of waiting */
-    if(FM_DEBUG) console.log('[FM] boot: sync empty, trying async batch');
-    fmLoadBatch();
-    return;
-  }
-  cards.forEach(function(item, i){
-    try{
-      feed.appendChild(fmRenderCard(item, i));
-      fmAfterRender(item);
-      fmInterleave();
-    }catch(e){ if(FM_DEBUG) console.log('[FM] boot render error:', e.message); }
-  });
-  fmObserve();
-  fmNudge(); /* observer may not fire in flaky webviews — nudge forces first check */
-  try{ fvRefreshCounts(); }catch(e){} /* crowdsourced fact-checking: fetch vote counts for boot cards */
-  /* watchdog: if nothing rendered in 5s, force a batch (iOS PWA safety net) */
+/* ---- boot (r4, CEO 2026-10-13 01:40): THE LIVE FEED LEADS.
+   Slot #1 = feed_cards position 0, first batch in API order. The old boot
+   rendered 2 SYNC cards first from the page-embedded pool, and the baked-in
+   Forbes-2026 anchor owned position 0 permanently. Anchors/seeds/rails now
+   enter only via the ranked refill BELOW the stream head. Fail-open:
+   stream dead/empty/stalled -> fmBootLegacy(). ---- */
+function fmBootWatchdog(){ /* 5s no-render safety net (iOS PWA) */
   setTimeout(function(){
     if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded){
       if(FM_DEBUG) console.log('[FM] watchdog: no cards, forcing batch');
       fmLoadBatch();
-      /* second watchdog: if still nothing after 10s, show error */
-      setTimeout(function(){
+      setTimeout(function(){ /* still nothing: show error */
         if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded) fmBootError();
       }, 8000);
     }
   }, 5000);
-}).catch(function(e){
-  console.log('[FM] boot failed:', e.message);
-  fmLoadBatch();
-  setTimeout(function(){
-    if(!feed.querySelector('.kh-card') && !feed.querySelector('.kh-inter') && !fmEnded) fmBootError();
-  }, 10000);
-});
-}catch(e){
-  console.log('[FM] boot exception:', e.message);
-  fmBootError();
 }
+function fmBootLegacy(){
+  /* fallback: only when the stream cannot lead. */
+  if(FM_DEBUG) console.log('[FM] boot(fallback): ranked pool boot');
+  fmLoadBatch();
+  fmBootWatchdog();
+}
+function fmBootLead(){
+  var settled = false;
+  fmSkeletons(3);
+  var timer = setTimeout(function(){
+    if(settled) return; settled = true;
+    if(FM_DEBUG) console.log('[FM] boot: stream stalled >4s, falling back');
+    fmClearSkeletons();
+    fmBootLegacy();
+  }, 4000);
+  FM_SOURCES.feedCards.loadMore(5).then(function(items){
+    if(settled) return; settled = true; clearTimeout(timer);
+    fmClearSkeletons();
+    if(!items || !items.length){
+      if(FM_DEBUG) console.log('[FM] boot: stream empty, falling back');
+      fmBootLegacy();
+      return;
+    }
+    if(FM_DEBUG) console.log('[FM] boot: stream leads, first = ' + ((items[0].d || {}).q || ''));
+    items.forEach(function(item, i){
+      item._src = 'feedCards';
+      fmIdSrc[fmCardId(item)] = 'feedCards';
+      try{
+        feed.appendChild(fmRenderCard(item, i));
+        fmAfterRender(item);
+        fmInterleave();
+      }catch(e){ if(FM_DEBUG) console.log('[FM] boot render error:', e.message); }
+    });
+    fmObserve();
+    fmNudge(); /* flaky-webview safety: force first check */
+    try{ fvRefreshCounts(); }catch(e){}
+    fmBootWatchdog();
+  }).catch(function(e){
+    if(settled) return; settled = true; clearTimeout(timer);
+    console.log('[FM] boot: stream fetch failed, falling back:', e.message);
+    fmClearSkeletons();
+    fmBootLegacy();
+  });
+}
+try{
+  fmBuildTabs();
+}catch(e){ console.log('[FM] boot: fmBuildTabs failed:', e.message); }
+try{ fmBootLead(); }catch(e){ console.log('[FM] boot exception:', e.message); fmBootError(); }
 
 /* feed boot moved into beefy IIFE tail (FeedManager) */
 })();

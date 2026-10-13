@@ -110,11 +110,12 @@
     max-width:560px; margin:0 auto; min-height:60vh;
     -webkit-font-smoothing:antialiased; line-height:1.5;
   }
-  /* MASTHEAD REMOVED (homepage rework r3, CEO 2026-10-13 00:48): "Who's
-     robbing you?" came off the homepage entirely — even slimmed, it took
-     attention away from the feed. Top of page is now: campaign strip →
-     pillars → Karl entry → feed. The phrase lives on /karl/ and in the
-     feed's own cards, not as a homepage header. */
+  /* MASTHEAD REMOVED (r3, CEO 2026-10-13): "Who's robbing you?" came off
+     the homepage — it took attention from the feed. Stack: campaign →
+     pillars → Karl entry → feed. */
+  /* F/B/S bar never renders here: gated pf-faces injects nothing (flag in
+     <head>); this also hides --auto if a stale pre-gate copy executes. */
+  nav.pf-faces--auto{ display:none !important; }
   /* 4-pillar nav (UX sprint ITER-2, quieted ITER-5: nav strip, not cards) */
   .pf-pillars{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:6px 14px 8px; }
   .pf-pillar-btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 4px;
@@ -123,23 +124,18 @@
     min-height:44px; touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
   .pf-pillar-btn .em{ font-size:15px; }
   .pf-pillar-btn:active{ background:#1a1a1a; color:#fff; border-color:#e5383b; }
-  /* Karl entry (homepage rework r3, CEO 2026-10-13 00:48): Karl is the
-     front door AND an accessibility tool — one unmistakable full-width
-     entry under the pillars: 60px+ tap target, plain label, high
-     contrast, solid red ASK pill. Slim in the stack, impossible to miss
-     or mis-tap. The full ask box + chips live on /karl/. */
-  #pf-karl-home .kh-entry{ display:flex; align-items:center; gap:12px; margin:0 14px 12px; padding:14px 16px;
-    min-height:60px; box-sizing:border-box;
-    background:#161616; border:1px solid #3d3d3d; border-radius:14px; text-decoration:none; color:#fff;
+  /* Karl entry (r3, CEO 2026-10-13 00:57): ONE slim line — brain +
+     "Ask Karl" + arrow, whole line is the tap target (~52px). */
+  #pf-karl-home .kh-entry{ display:flex; align-items:center; gap:10px; margin:0 14px 10px; padding:10px 16px;
+    min-height:52px; box-sizing:border-box;
+    background:#141414; border:1px solid #2a2a2a; border-radius:12px; text-decoration:none; color:#fff;
     touch-action:manipulation; -webkit-tap-highlight-color:rgba(193,18,31,.3); }
-  #pf-karl-home .kh-entry .kh-entry-em{ font-size:26px; flex-shrink:0; }
-  #pf-karl-home .kh-entry .kh-entry-txt{ flex:1; min-width:0; font-size:16px; color:#e8e2d4; }
-  #pf-karl-home .kh-entry .kh-entry-txt b{ color:#fff; font-size:17px; letter-spacing:.05em; }
-  #pf-karl-home .kh-entry .kh-entry-go{ font-size:15px; font-weight:900; letter-spacing:.06em; color:#fff;
-    background:#c1121f; border-radius:999px; padding:10px 18px; flex-shrink:0; }
-  #pf-karl-home .kh-entry:active{ border-color:#c1121f; background:#1d1d1d; transform:scale(.99); }
-  /* CURIOSITY CARDS: now rendered as feed cards (interleave) — carousel removed.
-     Hero kicker + suggestion-chip CSS removed 20261013 (homepage rework). */
+  #pf-karl-home .kh-entry .kh-entry-em{ font-size:22px; flex-shrink:0; }
+  #pf-karl-home .kh-entry .kh-entry-txt{ flex:1; min-width:0; font-size:16px; font-weight:700; letter-spacing:.02em;
+    color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #pf-karl-home .kh-entry .kh-entry-go{ font-size:20px; font-weight:900; color:#e5383b; flex-shrink:0; }
+  #pf-karl-home .kh-entry:active{ border-color:#c1121f; background:#1a1a1a; }
+  /* Curiosity cards render as feed cards (interleave); carousel retired. */
   #pf-karl-home .kh-feed-head{
     display:flex; align-items:baseline; justify-content:space-between;
     padding:26px 20px 4px;
@@ -549,6 +545,11 @@
 }
 </script>
 <script>window.__PF_NO_FACE_SWITCHER=true;/* CEO 2026-10-13: FIGHT/BUILD/SCALE moved into the hamburger on the homepage — pf-faces must not auto-inject the bar here. */</script>
+<script>
+/* CEO 2026-10-13: kill any auto-injected F/B/S bar on sight — covers
+   stale pre-gate pf-faces copies that ignore the flag above. */
+(function(){function k(){var n=document.querySelectorAll("nav.pf-faces--auto");for(var i=0;i<n.length;i++)if(n[i].parentNode)n[i].parentNode.removeChild(n[i]);}var m=null;function a(){if(m||!document.documentElement||!window.MutationObserver)return;m=new MutationObserver(k);m.observe(document.documentElement,{childList:true,subtree:true});setTimeout(function(){if(m){m.disconnect();m=null;}k();},6000);}a();document.addEventListener("DOMContentLoaded",function(){k();a();});window.addEventListener("load",k);})();
+</script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <script src="/v1.4.3/core/03-global.js" defer></script>
 </head>
@@ -813,9 +814,7 @@ else{ fetchCampaign().then(render); }
 
 <main id="main">
 <div id="pf-karl-home">
-  <!-- No masthead (homepage rework r3, CEO 2026-10-13 00:48): the feed
-       leads. Stack: campaign strip (shell slot above) → pillars → Karl
-       entry → campaign join card → feed. -->
+  <!-- No masthead (r3): the feed leads. -->
 
   <!-- 4 PILLARS NAV (UX sprint ITER-2): the mission backbone as visible nav.
        Create / Connect / Coordinate / Capital — four ways in. -->
@@ -826,18 +825,16 @@ else{ fetchCampaign().then(render); }
     <a class="pf-pillar-btn" href="/money/"><span class="em">💰</span>Capital</a>
   </nav>
 
-  <!-- KARL ENTRY (homepage rework 20261013): one compact line under the
-       pillars. id="ask" keeps the /#ask deep-links (ticker items) landing
-       on Karl's door now that the hero composer is gone. -->
+  <!-- KARL ENTRY (r3): one slim line under the pillars; whole line taps
+       through to /karl/. id="ask" keeps /#ask deep-links landing here. -->
   <a class="kh-entry" id="ask" href="/karl/" aria-label="Ask Karl — your intel researcher">
     <span class="kh-entry-em">🧠</span>
-    <span class="kh-entry-txt"><b>ASK KARL</b> — your intel researcher</span>
-    <span class="kh-entry-go">ASK →</span>
+    <span class="kh-entry-txt">Ask Karl</span>
+    <span class="kh-entry-go">→</span>
   </a>
 
-  <!-- CAMPAIGN PARTICIPATION CARD (2026-10-12 CEO directive): one-tap entry
-       into the active campaign. Pulls from campaign_active API. After
-       participation, prompts callsign claim if none exists. -->
+  <!-- CAMPAIGN JOIN CARD: one-tap entry into the active campaign
+       (campaign_active API); prompts callsign claim after joining. -->
   <div id="pf-campaign-join" style="padding:2px 14px 10px;display:none;">
     <a id="pf-campaign-join-link" href="/fire-goofy-guifoyle/" style="display:flex;align-items:center;gap:10px;text-decoration:none;background:linear-gradient(135deg,#c1121f 0%,#8a0d16 100%);border-radius:12px;padding:10px 14px;color:#fff;">
       <div id="pf-campaign-join-kicker" style="font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.85;white-space:nowrap;">🔥 CAMPAIGN</div>

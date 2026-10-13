@@ -249,10 +249,30 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
 
   <div class="cc-wrap" id="pf-hub">
 <h1>CREATOR HUB</h1>
-<div id="hub-loading" class="cc-card">Loading this hub\u2026</div>
+<div id="hub-loading" class="cc-card">Checking your creator session\u2026</div>
 <div id="hub-error" class="cc-msg err" role="alert" style="display:none"></div>
+<div id="hub-signin" class="cc-card" style="display:none">
+  <div class="cc-name" style="margin-top:0">Creator sign-in</div>
+  <p class="cc-meta">Creators only. This door is yours alone \u2014 it doesn\u2019t use your callsign or anything from the public site.</p>
+  <label class="cc-label" for="si-id">Creator ID</label>
+  <input id="si-id" class="cc-input" type="text" autocomplete="username" placeholder="crd_\u2026">
+  <label class="cc-label" for="si-secret">Creator Key</label>
+  <input id="si-secret" class="cc-input" type="password" autocomplete="current-password" placeholder="Your creator key">
+  <div id="si-msg" class="cc-msg" role="alert"></div>
+  <button type="button" class="cc-btn" id="si-btn">SIGN IN</button>
+  <button type="button" class="cc-btn secondary" id="si-passkey">SIGN IN WITH A PASSKEY</button>
+  <p class="cc-small" style="margin-top:14px">Your ID and key were issued once, when you claimed your page. No key yet? Keys ride the claim link \u2014 claim first. Lost it? Keys are re-issued by hand \u2014 that\u2019s deliberate. Message the Factory.</p>
+</div>
 <div id="hub-body" style="display:none">
   <div id="hub-unclaimed" class="cc-banner" style="display:none">This page hasn\u2019t been claimed by its creator yet.</div>
+  <div class="cc-card" id="h-ownerbar" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <span id="h-signedin-as" class="cc-meta" style="margin:0">Signed in</span>
+      <button type="button" class="cc-mini" id="h-signout" style="flex:0 0 auto">Sign out</button>
+    </div>
+    <div id="h-passkey-zone" style="margin-top:12px"></div>
+  </div>
+  
   <div class="cc-card">
     <img id="h-photo" class="cc-photo" alt="" style="display:none">
     <div id="h-name" class="cc-name"></div>
@@ -341,15 +361,22 @@ function getCallsign(){try{var cs=String((JSON.parse(localStorage.getItem('pf_id
 function storeCallsign(cs){if(!cs)return;try{var ik='pf_identity_v1',cur={};try{cur=JSON.parse(localStorage.getItem(ik)||'{}');}catch(e){}cur.callsign=cs;localStorage.setItem(ik,JSON.stringify(cur));}catch(e){}try{localStorage.setItem('pf_callsign',cs);}catch(e){}}
 function qs(n){try{return new URLSearchParams(location.search).get(n)||'';}catch(e){return '';}}
 function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textContent='Copied \u2713';setTimeout(function(){btn.textContent=o;},1800);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(function(){fallback();done();});}else{fallback();done();}function fallback(){try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}catch(e){}}}
+var CSKEY='pf_creator_session';
+function ctok(){try{return localStorage.getItem(CSKEY)||'';}catch(e){return '';}}
+function setTok(t){try{if(t)localStorage.setItem(CSKEY,t);}catch(e){}}
+function clrTok(){try{localStorage.removeItem(CSKEY);}catch(e){}}
+function authHeaders(){var t=ctok();return t?{'X-Creator-Session':t}:{};}
+function capi(body){return fetch(API+'/',{method:'POST',credentials:'include',headers:Object.assign({'Content-Type':'application/json'},authHeaders()),body:JSON.stringify(body)}).then(function(r){return r.json();});}
+function b64uToBuf(x){x=String(x).replace(/-/g,'+').replace(/_/g,'/');while(x.length%4)x+='=';var bin=atob(x);var b=new Uint8Array(bin.length);for(var k=0;k<bin.length;k++)b[k]=bin.charCodeAt(k);return b.buffer;}
+function bufToB64u(buf){var b=new Uint8Array(buf||[]);var str='';for(var k=0;k<b.length;k++)str+=String.fromCharCode(b[k]);return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 
-  var slug=qs('slug');
+  var wantSlug=qs('slug');
+  var slug='';
+  var pkEnrolled=false;
   var loading=document.getElementById('hub-loading'),errBox=document.getElementById('hub-error');
   function fail(m){loading.style.display='none';errBox.style.display='block';errBox.textContent=m;}
-  if(!slug){fail('No creator page was specified. Check the link and try again.');return;}
   var hubData=null;
-  fetch(API+'/?action=creator_hub&slug='+encodeURIComponent(slug))
-   .then(function(r){return r.json();})
-   .then(function(d){
+  function renderHubData(d){
      if(!d||!d.ok){fail((d&&d.error)?('Could not load this hub ('+d.error+').'):'Could not load this hub.');return;}
      hubData=d;loading.style.display='none';document.getElementById('hub-body').style.display='block';
      if(!d.claimed)document.getElementById('hub-unclaimed').style.display='block';
@@ -444,10 +471,9 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
        var jb=document.getElementById('camp-join');
        if(jb)jb.addEventListener('click',function(){
          jb.disabled=true;jb.textContent='JOINING\u2026';var msg=document.getElementById('h-campaign-msg');msg.className='cc-msg';msg.style.display='none';
-         fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_campaign_join',slug:slug,campaign_id:camp.id,callsign:getCallsign(),device:deviceId()})})
-          .then(function(r){return r.json();}).then(function(j){
+         capi({action:'creator_campaign_join',slug:slug,campaign_id:camp.id}).then(function(j){
             if(j&&j.ok){c.innerHTML='<div class="cc-name" style="font-size:20px;margin-top:0">'+esc(camp.title||'Campaign')+'</div>'+(camp.blurb?('<p class="cc-meta">'+esc(camp.blurb)+'</p>'):'')+'<p class="cc-meta" style="color:#7bc47f;font-weight:800">You\u2019re in \u2713</p>';}
-            else{msg.className='cc-msg err';msg.innerHTML='Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):'');jb.disabled=false;jb.textContent='I\u2019m in';}
+            else{msg.className='cc-msg err';msg.innerHTML='Your creator session ended \u2014 sign in again to run your hub.'+((j&&j.error)?(' ('+esc(j.error)+')'):'');jb.disabled=false;jb.textContent='I\u2019m in';}
           }).catch(function(){msg.className='cc-msg err';msg.textContent='Could not reach the server \u2014 check your connection and try again.';jb.disabled=false;jb.textContent='I\u2019m in';});
        });
      }
@@ -461,15 +487,14 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
        document.getElementById('rally-btn').addEventListener('click',function(){
          var btn=this;btn.disabled=true;btn.textContent='RALLYING\u2026';var msg=document.getElementById('rally-msg');msg.className='cc-msg';msg.style.display='none';
          var val=ta.value||'';var copy=val.trim()?val:'';
-         fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_rally',slug:slug,callsign:getCallsign(),device:deviceId(),copy:copy})})
-          .then(function(r){return r.json();}).then(function(j){
+         capi({action:'creator_rally',slug:slug,copy:copy}).then(function(j){
             if(j&&j.ok){
               var rh='<p class="cc-meta" style="color:#7bc47f;font-weight:800">Rally sent \u2713</p>';
               if(j.results&&j.results.length){rh+=j.results.map(function(res){var line='<div class="cc-row"><span>'+esc(res.channel||'')+'</span><span>'+(res.ok?esc(res.detail||'Done'):('<span class="cc-small">'+esc(res.detail||'Did not fire')+'</span>'))+'</span></div>';if(res.ok&&res.url){line+='<p style="margin:8px 0"><a class="cc-mini" href="'+escUrl(res.url)+'">Open asset</a> <button type="button" class="cc-mini" data-copy-url="'+escUrl(res.url)+'">Copy link</button></p>';}return line;}).join('');}
               document.getElementById('h-rally-body').innerHTML=rh;
               var cbs=document.querySelectorAll('[data-copy-url]');for(var i=0;i<cbs.length;i++){(function(b){b.addEventListener('click',function(){copyText(b.getAttribute('data-copy-url'),b);});})(cbs[i]);}
             }else{
-              msg.className='cc-msg err';msg.innerHTML='Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):'');btn.disabled=false;btn.textContent='RALLY';
+              msg.className='cc-msg err';msg.innerHTML='Your creator session ended \u2014 sign in again to run your hub.'+((j&&j.error)?(' ('+esc(j.error)+')'):'');btn.disabled=false;btn.textContent='RALLY';
             }
           }).catch(function(){msg.className='cc-msg err';msg.textContent='Could not reach the server \u2014 check your connection and try again.';btn.disabled=false;btn.textContent='RALLY';});
        });
@@ -478,7 +503,7 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
      if(d.claimed&&d.press_pack){
        document.getElementById('h-press-card').style.display='block';
        var pp=d.press_pack;
-       var claimedHere=!!getCallsign();
+       var claimedHere=true; /* owner view renders only inside a verified creator session */
        var ppMsg=document.getElementById('pp-msg');
        var selected={};
        (pp.rails||[]).forEach(function(r){if(r.selected)selected[r.id]=true;});
@@ -500,10 +525,9 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
          var ids=(pp.rails||[]).map(function(r){return r.id;}).filter(function(rid){return next[rid];});
          var chips=document.querySelectorAll('#pp-rails [data-rail]');for(var i=0;i<chips.length;i++)chips[i].disabled=true;
          ppMsg.className='cc-msg';ppMsg.style.display='none';
-         fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_press_rails_set',slug:slug,callsign:getCallsign(),device:deviceId(),rails:ids})})
-          .then(function(r){return r.json();}).then(function(j){
+         capi({action:'creator_press_rails_set',slug:slug,rails:ids}).then(function(j){
             if(j&&j.ok&&j.rails){selected={};j.rails.forEach(function(rid){selected[rid]=true;});}
-            else{ppShowMsg('Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not save your causes.'),true);}
+            else{ppShowMsg('Your creator session ended \u2014 sign in again to run your hub.'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not save your causes.'),true);}
             renderRails();
           }).catch(function(){ppShowMsg('Could not reach the server \u2014 your causes were not changed.',true);renderRails();});
        }
@@ -576,10 +600,9 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
          document.getElementById('pp-action').innerHTML='<button type="button" class="cc-btn" id="pp-get">Get today\'s pack</button>';
          document.getElementById('pp-get').addEventListener('click',function(){
            var btn=this;btn.disabled=true;btn.textContent='BUILDING YOUR PACK\u2026';ppMsg.className='cc-msg';ppMsg.style.display='none';
-           fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_press_pack_get',slug:slug,callsign:getCallsign(),device:deviceId()})})
-            .then(function(r){return r.json();}).then(function(j){
+           capi({action:'creator_press_pack_get',slug:slug}).then(function(j){
               if(j&&j.ok&&j.pack){renderPack(j.pack);}
-              else{ppShowMsg('Claim your page first \u2014 this browser has not claimed this page. <a href="/join/" style="color:#fff;text-decoration:underline">Go to the claim page</a>'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not get today\'s pack.'),true);btn.disabled=false;btn.textContent='Get today\'s pack';}
+              else{ppShowMsg('Your creator session ended \u2014 sign in again to run your hub.'+((j&&j.error)?(' ('+esc(j.error)+')'):' Could not get today\'s pack.'),true);btn.disabled=false;btn.textContent='Get today\'s pack';}
             }).catch(function(){ppShowMsg('Could not reach the server \u2014 check your connection and try again.',true);btn.disabled=false;btn.textContent='Get today\'s pack';});
          });
        }
@@ -589,7 +612,90 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
        document.getElementById('h-links-card').style.display='block';
        document.getElementById('h-links').innerHTML=d.links.map(function(l){return '<a class="cc-btn secondary" href="'+escUrl(l.url)+'" rel="noopener" target="_blank">'+esc(l.platform||l.url)+'</a>';}).join('');
      }
-   }).catch(function(){fail('Could not reach the server \u2014 check your connection and reload this page.');});
+  }
+  function wireOwnerBar(){
+    var ob=document.getElementById('h-ownerbar');
+    if(!ob||ob.__wired)return;ob.__wired=true;
+    document.getElementById('h-signout').addEventListener('click',function(){
+      capi({action:'creator_signout'}).catch(function(){return null;}).then(function(){clrTok();location.reload();});
+    });
+  }
+  function renderPasskeyZone(){
+    var z=document.getElementById('h-passkey-zone');if(!z)return;
+    if(!window.PublicKeyCredential){z.innerHTML='';return;}
+    if(pkEnrolled){z.innerHTML='<p class="cc-small" style="margin:0">Passkey on file \u2713 \u2014 sign in next time with your face or fingerprint.</p>';return;}
+    z.innerHTML='<p class="cc-small" style="margin:0 0 8px">Add a passkey and sign in next time with your face or fingerprint \u2014 no key to type.</p><button type="button" class="cc-mini" id="h-passkey-add">ADD A PASSKEY</button>';
+    document.getElementById('h-passkey-add').addEventListener('click',function(){enrollPasskey(this);});
+  }
+  function enrollPasskey(btn){
+    btn.disabled=true;btn.textContent='CHECK YOUR DEVICE\u2026';
+    capi({action:'creator_passkey_enroll_begin'}).then(function(j){
+      if(!j||!j.ok)throw new Error('begin');
+      var o=j.options;
+      return navigator.credentials.create({publicKey:{challenge:b64uToBuf(o.challenge),rp:o.rp,user:{id:b64uToBuf(o.user.id),name:o.user.name,displayName:o.user.displayName},pubKeyCredParams:o.pubKeyCredParams,authenticatorSelection:o.authenticatorSelection,attestation:o.attestation,timeout:o.timeout,excludeCredentials:(o.excludeCredentials||[]).map(function(c){return {type:'public-key',id:b64uToBuf(c.id)};})}});
+    }).then(function(cred){
+      if(!cred)throw new Error('cancelled');
+      return capi({action:'creator_passkey_enroll_finish',label:'Passkey',credential:{id:cred.id,rawId:bufToB64u(cred.rawId),type:cred.type,response:{clientDataJSON:bufToB64u(cred.response.clientDataJSON),attestationObject:bufToB64u(cred.response.attestationObject)}}});
+    }).then(function(j){
+      if(j&&j.ok){pkEnrolled=true;renderPasskeyZone();}
+      else{btn.disabled=false;btn.textContent='ADD A PASSKEY';}
+    }).catch(function(){btn.disabled=false;btn.textContent='ADD A PASSKEY';});
+  }
+  function loadHub(slugIn){
+    slug=slugIn;
+    fetch(API+'/?action=creator_hub&slug='+encodeURIComponent(slugIn),{credentials:'include',headers:authHeaders()})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(!d||!d.ok){fail((d&&d.error)?('This hub could not be loaded ('+d.error+').'):'This hub could not be loaded.');return;}
+        renderHubData(d);
+        var ob=document.getElementById('h-ownerbar');
+        if(d.owner&&ob){ob.style.display='block';document.getElementById('h-signedin-as').innerHTML='Signed in as <strong>'+esc(d.name||slugIn)+'</strong> \u2014 creators-only session';wireOwnerBar();renderPasskeyZone();}
+      }).catch(function(){fail('Could not reach the server \u2014 check your connection and reload this page.');});
+  }
+  function showSignin(){
+    loading.style.display='none';
+    document.getElementById('hub-signin').style.display='block';
+    var idEl=document.getElementById('si-id'),secEl=document.getElementById('si-secret'),msg=document.getElementById('si-msg');
+    function simsg(t){msg.className='cc-msg err';msg.textContent=t;}
+    document.getElementById('si-btn').addEventListener('click',function(){
+      var btn=this;msg.className='cc-msg';msg.style.display='none';btn.disabled=true;btn.textContent='SIGNING IN\u2026';
+      fetch(API+'/',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_signin',credential_id:idEl.value.trim(),secret:secEl.value.trim()})})
+        .then(function(r){return r.json();})
+        .then(function(j){
+          if(j&&j.ok){if(j.session_token)setTok(j.session_token);location.reload();}
+          else{btn.disabled=false;btn.textContent='SIGN IN';simsg(j&&j.error==='locked'?('Too many tries \u2014 locked for a bit. Wait it out, or use your passkey.'):('That ID and key don\u2019t check out.'));}
+        }).catch(function(){btn.disabled=false;btn.textContent='SIGN IN';simsg('Could not reach the server \u2014 check your connection and try again.');});
+    });
+    document.getElementById('si-passkey').addEventListener('click',function(){
+      var btn=this;
+      if(!window.PublicKeyCredential){simsg('This device has no passkey support \u2014 use your Creator ID and key.');return;}
+      var beginBody={action:'creator_passkey_signin_begin'};
+      if(idEl.value.trim())beginBody.credential_id=idEl.value.trim();
+      else if(wantSlug)beginBody.slug=wantSlug;
+      else{simsg('Enter your Creator ID first \u2014 or open your hub from your claim link.');return;}
+      msg.className='cc-msg';msg.style.display='none';btn.disabled=true;
+      capi(beginBody).then(function(j){
+        if(!j||!j.ok){btn.disabled=false;simsg('No passkey on file for that creator \u2014 sign in with your key this time, then add a passkey inside.');return null;}
+        var o=j.options;
+        return navigator.credentials.get({publicKey:{challenge:b64uToBuf(o.challenge),rpId:o.rpId,allowCredentials:(o.allowCredentials||[]).map(function(c){return {type:'public-key',id:b64uToBuf(c.id)};}),userVerification:o.userVerification,timeout:o.timeout}}).then(function(cred){
+          return capi({action:'creator_passkey_signin_finish',signin_state:j.signin_state,credential:{id:cred.id,rawId:bufToB64u(cred.rawId),type:cred.type,response:{clientDataJSON:bufToB64u(cred.response.clientDataJSON),authenticatorData:bufToB64u(cred.response.authenticatorData),signature:bufToB64u(cred.response.signature)}}});
+        });
+      }).then(function(j){
+        btn.disabled=false;
+        if(j&&j.ok){if(j.session_token)setTok(j.session_token);location.reload();}
+        else if(j){simsg('That passkey didn\u2019t check out.');}
+      }).catch(function(){btn.disabled=false;simsg('Passkey sign-in was cancelled or failed \u2014 your key still works.');});
+    });
+  }
+  fetch(API+'/?action=creator_auth_status',{credentials:'include',headers:authHeaders()})
+    .then(function(r){return r.json();})
+    .then(function(st){
+      if(st&&st.ok&&st.slug){
+        pkEnrolled=!!st.passkey_enrolled;
+        if(wantSlug&&wantSlug!==st.slug){try{history.replaceState(null,'','/creator-hub/?slug='+encodeURIComponent(st.slug));}catch(e){}}
+        loadHub(st.slug);
+      }else{showSignin();}
+    }).catch(function(){showSignin();});
 })();
 </script>
 

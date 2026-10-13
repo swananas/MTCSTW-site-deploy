@@ -306,6 +306,17 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
 <div id="join-success" class="cc-card" style="display:none">
   <div class="cc-name">Page claimed ✓</div>
   <p class="cc-meta" id="success-msg">Your page is yours. Your hub is ready.</p>
+  <div id="success-key" style="display:none;margin-top:16px">
+    <div style="border:2px solid #e8b400;border-radius:8px;padding:14px;background:#0a0a0a">
+      <div style="color:#e8b400;font-weight:900;letter-spacing:1px">YOUR CREATOR KEY — SAVE IT NOW</div>
+      <p class="cc-meta" style="margin-top:8px">This signs you in to your Creator Hub — and only there. It is separate from everything on the public site. It is shown <strong>once</strong>: save it in your password manager or a safe note.</p>
+      <div class="cc-label">Creator ID</div>
+      <div style="display:flex;gap:8px"><input id="key-id" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="key-id-copy">Copy</button></div>
+      <div class="cc-label">Creator Key</div>
+      <div style="display:flex;gap:8px"><input id="key-secret" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="key-secret-copy">Copy</button></div>
+      <p class="cc-meta" style="margin-top:10px">Lost it later? Keys are re-issued by hand — that's deliberate. Message the Factory. Inside the hub you can also add a passkey and sign in with your face or fingerprint.</p>
+    </div>
+  </div>
   <a class="cc-btn" id="success-hub" href="/creator-hub/">Open my hub</a>
 </div>
 </div>
@@ -368,6 +379,14 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
           var s=d.slug||slug;
           document.getElementById('success-hub').href=d.hub_url||('/creator-hub/?slug='+encodeURIComponent(s));
           if(d.callsign)document.getElementById('success-msg').textContent='Your page is yours, '+d.callsign+'. Your hub is ready.';
+          if(d.creator_credential&&d.creator_credential.credential_id&&d.creator_credential.secret){
+            document.getElementById('key-id').value=d.creator_credential.credential_id;
+            document.getElementById('key-secret').value=d.creator_credential.secret;
+            document.getElementById('success-key').style.display='block';
+            var kc1=document.getElementById('key-id-copy'),kc2=document.getElementById('key-secret-copy');
+            if(kc1)kc1.addEventListener('click',function(){copyText(d.creator_credential.credential_id,kc1);});
+            if(kc2)kc2.addEventListener('click',function(){copyText(d.creator_credential.secret,kc2);});
+          }
           step2.style.display='none';document.getElementById('join-success').style.display='block';
         }else{
           msg.className='cc-msg err';msg.textContent=(d&&d.error)?('Claim failed ('+d.error+'). Try again, or ask the crew for a fresh invite link.'):'Claim failed. Try again, or ask the crew for a fresh invite link.';

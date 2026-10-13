@@ -300,6 +300,17 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
 <div id="join-claimed" class="cc-card" style="display:none">
   <div class="cc-name">Already claimed</div>
   <p class="cc-meta">This page has already been claimed by its creator.</p>
+  <div id="claimed-key" style="display:none;margin-top:16px">
+    <div style="border:2px solid #e8b400;border-radius:8px;padding:14px;background:#0a0a0a">
+      <div style="color:#e8b400;font-weight:900;letter-spacing:1px">YOUR CREATOR KEY \u2014 SAVE IT NOW</div>
+      <p class="cc-meta" style="margin-top:8px">Your claim predates Creator Hub sign-in, so your key is issued here \u2014 once. It signs you in to your Creator Hub, and only there. Save it in your password manager or a safe note.</p>
+      <div class="cc-label">Creator ID</div>
+      <div style="display:flex;gap:8px"><input id="ckey-id" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="ckey-id-copy">Copy</button></div>
+      <div class="cc-label">Creator Key</div>
+      <div style="display:flex;gap:8px"><input id="ckey-secret" class="cc-input" readonly style="flex:1;min-width:0"><button type="button" class="cc-mini" id="ckey-secret-copy">Copy</button></div>
+      <p class="cc-meta" style="margin-top:10px">Inside the hub you can also add a passkey and sign in with your face or fingerprint.</p>
+    </div>
+  </div>
   <a class="cc-btn" id="claimed-hub" href="/creator-hub/">Open my hub</a>
 </div>
 
@@ -347,7 +358,23 @@ function copyText(t,btn){function done(){if(btn){var o=btn.textContent;btn.textC
         slug=d.slug||'';
         var link=document.getElementById('claimed-hub');
         link.href=d.hub_url||('/creator-hub/?slug='+encodeURIComponent(slug));
-        document.getElementById('join-claimed').style.display='block';return;
+        document.getElementById('join-claimed').style.display='block';
+        /* Legacy-claim key mint: if this creator has no Creator Hub
+           credential on file yet, the confirm call issues it ONCE and the
+           key card appears. If one exists, nothing is revealed. */
+        fetch(API+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creator_claim_confirm',token:token,device:deviceId()})})
+          .then(function(r){return r.json();})
+          .then(function(cd){
+            if(cd&&cd.ok&&cd.creator_credential&&cd.creator_credential.credential_id&&cd.creator_credential.secret){
+              document.getElementById('ckey-id').value=cd.creator_credential.credential_id;
+              document.getElementById('ckey-secret').value=cd.creator_credential.secret;
+              document.getElementById('claimed-key').style.display='block';
+              var cc1=document.getElementById('ckey-id-copy'),cc2=document.getElementById('ckey-secret-copy');
+              if(cc1)cc1.addEventListener('click',function(){copyText(cd.creator_credential.credential_id,cc1);});
+              if(cc2)cc2.addEventListener('click',function(){copyText(cd.creator_credential.secret,cc2);});
+            }
+          }).catch(function(){});
+        return;
       }
       slug=d.slug||'';
       document.getElementById('pv-avatar').style.display='block';

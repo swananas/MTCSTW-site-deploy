@@ -73,6 +73,17 @@
   .segbtn{border:1px solid var(--line);background:var(--panel);color:var(--dim);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer}
   .segbtn.on{color:var(--ink);background:var(--panel2);border-color:var(--faint)}
   .segbtn:active{transform:scale(.97)}
+  /* ---- v2.1: ping compose bar, worker summary, decision actions ---- */
+  textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:12px;font-size:15px;font-family:inherit;resize:vertical}
+  #pingSend{min-height:44px}
+  .segbtn{min-height:44px}
+  #p-workersummary{cursor:pointer}
+  #p-workersummary:active{transform:scale(.99)}
+  .decbtns{display:flex;gap:8px;margin-top:8px}
+  .decbtns .btn{flex:1;min-height:44px}
+  .wkb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:stretch}
+  .wkb-actions input[type=text]{flex:1;min-width:150px}
+  .wkb-actions .btn{min-height:44px}
   #liveTag.grn{background:#0e2f1a;color:#7de2a3} #liveTag.amb{background:#33270a;color:#ffd27d} #liveTag.red{background:#3a0d10;color:#ff8f94}
   @media (min-width:900px){
     body{max-width:1160px;padding-bottom:48px}
@@ -124,7 +135,12 @@
 
   <main id="views">
   <section class="view on" id="view-now">
+  <div class="card" id="p-ping"><h2>Ping Muse</h2>
+  <textarea id="pingText" rows="2" placeholder="Tell Muse something — a directive, a note, a question…"></textarea>
+  <button class="btn" id="pingSend" style="width:100%;margin-top:8px">Send ping</button>
+  <div class="tiny dim" style="margin-top:6px">Filed as a directive in Muse's queue — lands in about a minute. Track it in the Work view.</div></div>
   <div class="card" id="p-now"><h2>Now — The Org Alive</h2><div class="dim small">Loading…</div></div>
+  <div class="card" id="p-workersummary"><h2>The Workers</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-stream"><h2>Event Stream</h2><div class="dim small">Loading…</div></div>
   <div class="card" id="p-org"><h2>The Org At Work</h2><div class="dim small">Loading…</div></div>
   </section>
@@ -287,24 +303,43 @@ async function loadRest() {
 }
 
 /* ---------------- PULSE: NOW + EVENT STREAM ----------------
-   Rides OV.org.pulse, computed by the VM state sync (every 10 min)
-   from the live registry + deploy rail + Promise Keeper: who is
-   working now (every row aged; quiet = no update in >2h, shown
-   aged, never dressed as working), done today, blocked, and the
-   org event stream. The overview re-polls every 30s and relative
+   Rides OV.org.pulse, computed by the VM state sync (every 60s)
+   from the live registry + deploy rail + Promise Keeper: the org
+   counts (one worker truth — see truthCounts) and the event stream.
+   Since v2.1 the pulse worker ROWS no longer render here; worker
+   rows live only in the Workers tab. The overview re-polls every 30s and relative
    times tick every second, so the wall moves when the org moves.
    No pulse in the snapshot = an honest placeholder, never a fake. */
 function relHtml(tsMs) { return '<span data-ts="' + tsMs + '">' + ageOf(tsMs) + '</span>'; }
-function pulseRow(w) {
-  var updMs = (Number(w.updated_at) || 0) * 1000;
-  var ageLine = w.updated_at ? 'last update ' + relHtml(updMs) : 'no update recorded';
-  if (w.quiet) {
-    var hrs = w.age_seconds == null ? '' : ' · no update in ' + Math.max(1, Math.round(w.age_seconds / 3600)) + 'h';
-    return '<div class="item" style="opacity:.45"><div class="row"><div class="grow"><b>' + esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div><span class="tag amb">quiet</span></div>' +
-      '<div class="tiny dim">' + esc(w.department || '') + ' · ' + ageLine + hrs + '</div></div>';
+/* ONE WORKER TRUTH (v2.1, contract cc-v21): WORKING = active + updated
+   within 2h, QUIET = active + older, BLOCKED, DONE TODAY — computed
+   once in cc-sync and carried as OV.workers.truth_counts. Every count
+   on this page (Now stats, the worker summary card, Workers chips,
+   the tab badge) reads from here so the numbers can never disagree.
+   Fallback for pre-v2.1 payloads: derive from the workers lists
+   (working/quiet are the new keys; active_fresh/active_stale are the
+   same lists under their legacy names). */
+function truthCounts() {
+  var w = OV && OV.workers;
+  var tc = w && w.truth_counts;
+  if (tc) return { working: Number(tc.working) || 0, quiet: Number(tc.quiet) || 0, blocked: Number(tc.blocked) || 0, done_today: Number(tc.done_today) || 0 };
+  if (w && (w.working || w.active_fresh || w.quiet || w.active_stale || w.blocked || w.recent_complete)) {
+    var working = w.working || w.active_fresh || [];
+    var quiet = w.quiet || w.active_stale || [];
+    var blocked = w.blocked || [];
+    var done = 0;
+    if (w.recent_complete) {
+      var dayStart = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+      done = w.recent_complete.filter(function (x) { return (Number(x.updated_at) || 0) >= dayStart; }).length;
+    }
+    return { working: working.length, quiet: quiet.length, blocked: blocked.length, done_today: done };
   }
-  return '<div class="item"><div class="row"><div class="grow"><span class="dot g"></span><b>' + esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div><span class="tag grn">live</span></div>' +
-    '<div class="tiny dim">' + esc(w.department || '') + ' · ' + ageLine + '</div></div>';
+  /* Last resort: the workers section is absent from this overview —
+     read the pulse counts (the same numbers by contract) rather than
+     printing zeros next to a healthy event stream. */
+  var pc = (OV && OV.org && OV.org.pulse && OV.org.pulse.counts) || null;
+  if (pc) return { working: Number(pc.working_now != null ? pc.working_now : pc.active_now) || 0, quiet: Number(pc.quiet) || 0, blocked: Number(pc.blocked) || 0, done_today: Number(pc.completed_today) || 0 };
+  return { working: 0, quiet: 0, blocked: 0, done_today: 0 };
 }
 var EVDOT = { complete: 'g', deploy: 'b', started: 'b', sweep: 'd', blocked: 'r', anomaly: 'a' };
 function renderPulse() {
@@ -314,12 +349,13 @@ function renderPulse() {
     elS.innerHTML = '<h2>Event Stream</h2><div class="dim small">No pulse yet.</div>';
     return;
   }
-  var c = p.counts || {};
+  /* v2.1 dedupe: counts only — worker ROWS live solely in the Workers
+     tab. The stats read truthCounts(), the same source as the
+     summary card, the chips, and the badge. */
+  var tc = truthCounts();
   var html = '<h2><span class="livedot"></span>Now — The Org Alive</h2>' +
     '<div class="tiny dim" style="margin:-4px 0 8px"><span id="pulseLive">LIVE · updated ' + ageOf(p.generated_at) + '</span></div>' +
-    '<div class="stats">' + statHtml(c.active_now || 0, 'working now') + statHtml(c.completed_today || 0, 'done today') + statHtml(c.blocked || 0, 'blocked') + '</div>';
-  var rows = (p.active_now || []).map(pulseRow).join('');
-  html += rows || '<div class="dim small" style="margin-top:8px">Nobody is registered as working right now.</div>';
+    '<div class="stats">' + statHtml(tc.working, 'working now') + statHtml(tc.done_today, 'done today') + statHtml(tc.blocked, 'blocked') + '</div>';
   elN.innerHTML = html;
   var allEv = p.events || [];
   var ev = allEv.slice(0, 15).map(function (e) {
@@ -341,66 +377,124 @@ function tickPulse() {
   updateLiveTag();
 }
 
-/* ---------------- ORG ---------------- */
-function workerRow(w, staleH) {
-  var ageH = w.updated_at ? (Date.now() - w.updated_at * 1000) / 3600000 : 999;
-  var stale = ageH > staleH;
-  return '<div class="item"' + (stale ? ' style="opacity:.45"' : '') + '><div class="row"><div class="grow"><b>' +
-    esc(w.id) + '</b> <span class="dim small">' + esc(w.task) + '</span></div>' +
-    (stale ? '<span class="tag amb">stale</span>' : '<span class="tag grn">live</span>') + '</div>' +
-    '<div class="tiny dim">' + esc(w.department || '') + ' · updated ' + esc(w.updated_at_human || ageOf(w.updated_at * 1000)) + '</div></div>';
+/* ---------------- WORKER SUMMARY (Now) + PING Muse ----------------
+   The summary card is the ONLY worker surface on Now: three truth
+   counts and a tap into the Workers tab, where the rows live. */
+function renderWorkerSummary() {
+  var el = $('p-workersummary');
+  if (!el) return;
+  var w = OV && OV.workers, tc = truthCounts();
+  var html = '<h2>The Workers</h2>';
+  if (!w || !w.ok) {
+    html += '<div class="dim small">No worker reading yet — tap to open the Workers view.</div>';
+  } else {
+    html += '<div class="row" style="gap:16px;flex-wrap:wrap"><span class="small"><b>Working ' + tc.working + '</b></span><span class="dim">·</span>' +
+      '<span class="small"><b>Quiet ' + tc.quiet + '</b></span><span class="dim">·</span>' +
+      '<span class="small"><b>Blocked ' + tc.blocked + '</b></span><span class="tag" style="margin-left:auto">Workers \u2192</span></div>' +
+      '<div class="tiny dim" style="margin-top:6px">One list, one definition — every worker row lives in the Workers tab.</div>';
+  }
+  el.innerHTML = html;
 }
+/* Ping Muse (v2.1): POST cc_ping — the backend files it into the
+   directive inbox; the VM consumer turns it into a real directive
+   within about a minute. Session-gated server-side (admin session),
+   no ceremony: a ping moves words, not state. */
+async function sendPingBody(body, ref) {
+  body = String(body == null ? '' : body).trim();
+  if (!body) { toast('Write the ping first — an empty ping files nothing.'); return false; }
+  var payload = { body: body };
+  if (ref) payload.ref = ref;
+  var r = null;
+  try { r = await apiPost('cc_ping', payload); } catch (e) { r = null; }
+  if (r && r.ok) {
+    toast('<b>Sent.</b> Lands with Muse in about a minute' + (ref ? ' \u2014 about ' + esc(ref) : '') + '.');
+    return true;
+  }
+  toast('<b>Ping not sent:</b> ' + esc((r && (r.err || r.error)) || 'service unreachable') + '<br><span class="dim">Your text is still here \u2014 try again.</span>', 9000);
+  return false;
+}
+async function sendPing() {
+  var ta = $('pingText');
+  if (!ta) return;
+  if (!String(ta.value || '').trim()) { toast('Write the ping first — an empty ping files nothing.'); return; }
+  var sent = await sendPingBody(ta.value, null);
+  if (sent) ta.value = '';
+}
+
+/* ---------------- ORG ----------------
+   v2.1: worker lists are GONE from this card (they duplicated the
+   Workers tab and disagreed with it). What stays is org-level,
+   non-worker state: completions, anomalies, health, queues. */
 function renderOrg() {
   var el = $('p-org'), o = OV && OV.org;
   if (!o) { el.innerHTML = '<h2>The Org At Work</h2><div class="dim small">No reading yet.</div>'; return; }
   if (!o.ok) { el.innerHTML = '<h2>The Org At Work</h2><div class="small" style="line-height:1.55">' + esc(o.note || 'Org state unavailable.') + '</div>'; return; }
   var c = o.counts || {};
-  var deptAgg = {};
-  (o.workers_active || []).forEach(function (w) { deptAgg[w.department || '—'] = (deptAgg[w.department || '—'] || 0) + 1; });
-  var deptMax = Math.max.apply(null, Object.values(deptAgg).concat([1]));
-  var deptHtml = Object.keys(deptAgg).sort(function (a, b) { return deptAgg[b] - deptAgg[a]; }).slice(0, 6).map(function (d) {
-    return '<div class="row small" style="margin-top:4px"><div style="width:110px" class="dim">' + esc(d) + '</div><div class="grow">' + barHtml(deptAgg[d] / deptMax * 100, 'b') + '</div><b>' + deptAgg[d] + '</b></div>';
-  }).join('');
+  var tc = truthCounts();
   var html = '<h2>The Org At Work</h2><div class="stats">' +
-    statHtml((o.workers_active || []).length, 'working now') +
-    statHtml((o.workers_blocked || []).length, 'blocked') +
     statHtml(c.complete || 0, 'completed') +
-    statHtml(o.anomalies ? o.anomalies.open : 0, 'anomalies') + '</div>';
-  if (deptHtml) html += '<div style="margin-top:10px">' + deptHtml + '</div>';
-  (o.workers_blocked || []).forEach(function (w) {
-    html += '<div class="item"><span class="dot r"></span><b>' + esc(w.id) + '</b> <span class="small">' + esc(w.task) + '</span><div class="tiny dim">' + esc(w.note || '') + '</div></div>';
-  });
-  (o.workers_active || []).slice(0, 10).forEach(function (w) { html += workerRow(w, 2); });
-  if ((o.recent_complete || []).length) {
-    html += '<div class="tiny dim" style="margin-top:10px;letter-spacing:1px">RECENTLY DONE</div>' +
-      o.recent_complete.slice(0, 4).map(function (w) { return '<div class="item small"><span class="dot g"></span>' + esc(w.id) + ' <span class="dim">' + esc(w.task) + '</span></div>'; }).join('');
+    statHtml(tc.done_today, 'done today') +
+    statHtml(o.anomalies ? (o.anomalies.open || 0) : 0, 'anomalies') + '</div>';
+  if (o.health) {
+    var hk = Object.keys(o.health);
+    if (hk.length) html += '<div style="margin-top:10px"><div class="tiny dim" style="letter-spacing:1px">SYSTEMS</div>' + hk.slice(0, 8).map(function (k) {
+      var h = o.health[k] || {};
+      return '<div class="row small" style="margin-top:4px"><span class="dot ' + (h.status === 'ok' ? 'g' : 'a') + '"></span><div class="grow">' + esc(k) + '</div><span class="dim">' + esc(h.status || '—') + (h.last_human ? ' · ' + esc(h.last_human) : '') + '</span></div>';
+    }).join('') + '</div>';
+  }
+  if (o.queues) {
+    var qk = Object.keys(o.queues).filter(function (k) { return o.queues[k] && typeof o.queues[k] === 'object'; });
+    if (qk.length) html += '<div style="margin-top:10px"><div class="tiny dim" style="letter-spacing:1px">QUEUES</div>' + qk.slice(0, 6).map(function (k) {
+      var q = o.queues[k], parts = [];
+      ['active', 'queued', 'done'].forEach(function (s) { if (Array.isArray(q[s])) parts.push(s + ' ' + q[s].length); });
+      return '<div class="row small" style="margin-top:4px"><div class="grow">' + esc(k) + '</div><span class="dim">' + esc(parts.join(' · ') || '—') + '</span></div>';
+    }).join('') + '</div>';
   }
   html += '<div class="tiny dim" style="margin-top:8px">Org state synced ' + ageOf(o.synced_at) + ' · registry updated ' + esc(o.state_updated_human || '—') + '</div>';
   el.innerHTML = html;
 }
 
 /* ---------------- WORKERS ---------------- */
-/* Workers browser (v2 depth): filter chips over the four lists the
-   workers snapshot already carries (active_fresh / active_stale /
-   blocked / recent_complete), client-side search over id/task/
-   department, group headers BY DEPARTMENT, and tap-to-expand row
-   detail (task, department, status, started, last update, note).
-   Grouping is by department ONLY: registry department strings are
-   free-text and the payload carries no flow-division field, so no
-   division map is invented. All state is client-side (WKB) and
-   survives the 30s poll re-render; no new fetches, no new data. */
+/* Workers browser: THE ONLY place worker rows render (v2.1 dedupe).
+   Filter chips over the four truth lists (working / quiet / blocked /
+   recent_complete — cc-v21 contract; active_fresh / active_stale are
+   the same lists under legacy names and are read only as fallback),
+   client-side search over id/task/department, group headers BY
+   DEPARTMENT, and tap-to-expand row detail (task, department, status,
+   started, last update, note) with touch actions: a per-worker ping
+   field, Nudge, and Close out (Triple Wrap). Grouping is by
+   department ONLY: registry department strings are free-text and the
+   payload carries no flow-division field, so no division map is
+   invented. All state is client-side (WKB / WKPING) and survives the
+   30s poll re-render. */
 var WKB = { filter: 'fresh', query: '', expanded: null, _focusSearch: false };
+var WKPING = {}; /* per-worker ping drafts, keyed by worker id */
 var WKB_FILTERS = [
-  { key: 'fresh', label: 'Working', list: 'active_fresh', heading: 'WORKING NOW', tag: 'live', tagCls: 'grn' },
-  { key: 'stale', label: 'Quiet', list: 'active_stale', heading: 'STALE \u2014 REGISTERED ACTIVE, SILENT OVER 24H', tag: 'quiet', tagCls: 'amb' },
-  { key: 'blocked', label: 'Blocked', list: 'blocked', heading: 'BLOCKED', tag: 'blocked', tagCls: 'red' },
-  { key: 'done', label: 'Done', list: 'recent_complete', heading: 'RECENTLY DONE', tag: 'done', tagCls: '' }
+  { key: 'fresh', label: 'Working', list: 'working', legacy: 'active_fresh', heading: 'WORKING NOW', tag: 'live', tagCls: 'grn' },
+  { key: 'stale', label: 'Quiet', list: 'quiet', legacy: 'active_stale', heading: 'QUIET \u2014 REGISTERED ACTIVE, NO UPDATE IN OVER 2H', tag: 'quiet', tagCls: 'amb' },
+  { key: 'blocked', label: 'Blocked', list: 'blocked', legacy: null, heading: 'BLOCKED', tag: 'blocked', tagCls: 'red' },
+  { key: 'done', label: 'Done', list: 'recent_complete', legacy: null, heading: 'RECENTLY DONE', tag: 'done', tagCls: '' }
 ];
 function wkbFilterDef(key) {
   for (var i = 0; i < WKB_FILTERS.length; i++) if (WKB_FILTERS[i].key === key) return WKB_FILTERS[i];
   return WKB_FILTERS[0];
 }
-function wkbList(w, key) { return (w && w[wkbFilterDef(key).list]) || []; }
+function wkbList(w, key) {
+  var f = wkbFilterDef(key);
+  if (!w) return [];
+  if (w[f.list]) return w[f.list];
+  if (f.legacy && w[f.legacy]) return w[f.legacy];
+  return [];
+}
+/* Chip numbers come from truthCounts() — identical to the Now
+   summary card and the tab badge by construction. */
+function wkbChipCount(w, f) {
+  var tc = truthCounts();
+  if (f.key === 'fresh') return tc.working;
+  if (f.key === 'stale') return tc.quiet;
+  if (f.key === 'blocked') return tc.blocked;
+  return wkbList(w, f.key).length;
+}
 function wkbVisible(w) {
   var rows = wkbList(w, WKB.filter).slice();
   var q = WKB.query.trim().toLowerCase();
@@ -428,9 +522,42 @@ function wkbRow(x) {
       'Started: ' + (x.started_at ? esc(new Date(x.started_at * 1000).toLocaleString()) + ' \u00b7 ' + ageOf(x.started_at * 1000) : '\u2014') + '<br>' +
       'Last update: ' + esc(x.updated_at_human || '\u2014') + (x.updated_at ? ' \u00b7 ' + ageOf(x.updated_at * 1000) : '') +
       (x.note ? '<br>Note: ' + esc(x.note) : '') +
-      '</div></div>';
+      '</div>' +
+      '<div class="wkb-actions">' +
+      '<input type="text" data-wkb-ping="' + esc(x.id) + '" placeholder="Ping Muse about this worker\u2026" value="' + esc(WKPING[x.id] || '') + '">' +
+      '<button class="btn ghost sm" data-wkb-pingsend="' + esc(x.id) + '">Ping</button>' +
+      '<button class="btn ghost sm" data-wkb-nudge="' + esc(x.id) + '">Nudge</button>' +
+      '<button class="btn sm" data-wkb-close="' + esc(x.id) + '">Close out</button>' +
+      '</div>' +
+      '<div class="tiny dim" style="margin-top:5px">Ping / Nudge file a note to Muse about this worker. Close out needs Face ID and retires the entry.</div></div>';
   }
   return html + '</div>';
+}
+/* Worker touch actions (v2.1). Ping + Nudge ride cc_ping (session
+   only). Close out rides the EXISTING Triple Wrap ceremony via
+   confirmAndAct: cc_act {action_id 'cc_decide', args {type
+   'cc_decide', item_ref 'worker:<id>', decision 'close'}} — the
+   consumer flips the registry entry, visible on the next sync. */
+function wkbPingSend(id) {
+  if (!id) return;
+  sendPingBody(WKPING[id] || '', id).then(function (sent) {
+    if (sent) { WKPING[id] = ''; renderWorkers(); }
+  });
+}
+function wkbNudge(id) {
+  if (!id) return;
+  var extra = String(WKPING[id] || '').trim();
+  var body = 'Nudge: check in / update status' + (extra ? ' \u2014 ' + extra : '');
+  sendPingBody(body, id).then(function (sent) {
+    if (sent) { WKPING[id] = ''; renderWorkers(); }
+  });
+}
+function wkbClose(id) {
+  if (!id) return;
+  confirmAndAct({ twAction: 'command_center:cc_decide', target: 'worker:' + id + ':close',
+    ccAction: 'cc_decide', args: { type: 'cc_decide', item_ref: 'worker:' + id, decision: 'close' },
+    label: 'Close out worker ' + id,
+    done: function (r) { if (r && r.ok) { toast('<b>Close-out sent</b> \u2014 applies within about a minute.'); refreshOverview(); } } });
 }
 function wkbListHtml(w) {
   var f = wkbFilterDef(WKB.filter);
@@ -456,7 +583,7 @@ function wkbListHtml(w) {
 }
 function wkbBrowserHtml(w) {
   var chips = WKB_FILTERS.map(function (f) {
-    return '<button class="segbtn' + (WKB.filter === f.key ? ' on' : '') + '" data-wkb-filter="' + f.key + '">' + f.label + ' \u00b7 ' + wkbList(w, f.key).length + '</button>';
+    return '<button class="segbtn' + (WKB.filter === f.key ? ' on' : '') + '" data-wkb-filter="' + f.key + '">' + f.label + ' \u00b7 ' + wkbChipCount(w, f) + '</button>';
   }).join('');
   return '<div style="margin-top:12px"><div class="tiny dim" style="letter-spacing:1px">BROWSE WORKERS</div>' +
     '<div class="seg" role="group" aria-label="Worker lists">' + chips + '</div>' +
@@ -476,6 +603,23 @@ function bindWorkerBrowser(el) {
   el.querySelectorAll('[data-wkb-search]').forEach(function (inp) {
     if (inp._wkbBound) return; inp._wkbBound = true;
     inp.oninput = function () { wkbSetQuery(inp.value, true); };
+  });
+  el.querySelectorAll('[data-wkb-ping]').forEach(function (inp) {
+    if (inp._wkbBound) return; inp._wkbBound = true;
+    inp.oninput = function () { WKPING[inp.getAttribute('data-wkb-ping')] = inp.value; };
+    inp.onclick = function (e) { if (e && e.stopPropagation) e.stopPropagation(); };
+  });
+  el.querySelectorAll('[data-wkb-pingsend]').forEach(function (b) {
+    if (b._wkbBound) return; b._wkbBound = true;
+    b.onclick = function (e) { if (e && e.stopPropagation) e.stopPropagation(); wkbPingSend(b.getAttribute('data-wkb-pingsend')); };
+  });
+  el.querySelectorAll('[data-wkb-nudge]').forEach(function (b) {
+    if (b._wkbBound) return; b._wkbBound = true;
+    b.onclick = function (e) { if (e && e.stopPropagation) e.stopPropagation(); wkbNudge(b.getAttribute('data-wkb-nudge')); };
+  });
+  el.querySelectorAll('[data-wkb-close]').forEach(function (b) {
+    if (b._wkbBound) return; b._wkbBound = true;
+    b.onclick = function (e) { if (e && e.stopPropagation) e.stopPropagation(); wkbClose(b.getAttribute('data-wkb-close')); };
   });
   if (WKB._focusSearch) {
     WKB._focusSearch = false;
@@ -507,11 +651,12 @@ function renderWorkers() {
   if (!w) { el.innerHTML = '<h2>The Workers</h2><div class="dim small">No reading yet.</div>'; return; }
   if (!w.ok) { el.innerHTML = '<h2>The Workers</h2><div class="small" style="line-height:1.55">' + esc(w.note || 'Worker registry unavailable.') + '</div>'; return; }
   var c = w.counts || {};
+  var tc = truthCounts();
   var html = '<h2>The Workers</h2><div class="stats">' +
-    statHtml(w.fresh_active || 0, 'working now') +
-    statHtml((w.blocked || []).length, 'blocked') +
-    statHtml(w.stale_active || 0, 'stale registrations') +
-    statHtml(c.complete || 0, 'completed') + '</div>';
+    statHtml(tc.working, 'working now') +
+    statHtml(tc.quiet, 'quiet') +
+    statHtml(tc.blocked, 'blocked') +
+    statHtml(tc.done_today, 'done today') + '</div>';
   html += wkbBrowserHtml(w);
   var depts = Object.keys(w.by_department || {}).map(function (d) {
     var x = w.by_department[d];
@@ -812,7 +957,15 @@ function renderPk() {
     : '<div class="lockbanner">' + nl + ' directive(s) NOT LIVE — see escalations.</div>';
   if ((p.escalated_top || []).length) {
     html += '<div class="tiny dim" style="letter-spacing:1px;margin-top:6px">WAITING ON YOU</div>' + p.escalated_top.map(function (e) {
-      return '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span><div class="tiny dim">' + esc(e.state || '') + ' · open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '—') + '</div></div>';
+      var dec = '';
+      if (e.ceo_decision) {
+        var atMs = Number(e.ceo_decision_at) || 0;
+        if (atMs && atMs < 1e12) atMs *= 1000;
+        dec = '<div style="margin-top:4px"><span class="tag ' + (e.ceo_decision === 'confirm' ? 'grn' : 'amb') + '">' +
+          (e.ceo_decision === 'confirm' ? 'Confirmed by you' : (e.ceo_decision === 'reject' ? 'Rejected by you' : 'Decided by you')) +
+          (atMs ? ' \u00b7 ' + ageOf(atMs) : '') + '</span></div>';
+      }
+      return '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span><div class="tiny dim">' + esc(e.state || '') + ' · open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '—') + '</div>' + dec + '</div>';
     }).join('');
   }
   html += '<div class="tiny dim" style="margin-top:8px">Last sweep ' + esc(p.at || '—') + ' · PWA: ' + esc(p.pwa_freshness || '—') + ' · synced ' + ageOf(p.synced_at) + '</div>';
@@ -1013,7 +1166,7 @@ function showSub(s2) {
 }
 function renderView(v) {
   if (!OV) return;
-  if (v === 'now') { renderPulse(); renderOrg(); }
+  if (v === 'now') { renderPulse(); renderWorkerSummary(); renderOrg(); }
   else if (v === 'workers') { renderWorkers(); }
   else if (v === 'work') { renderPk(); renderDeploy(); }
   else if (v === 'data') { renderData(); renderRails(); renderFlows(); }
@@ -1039,7 +1192,48 @@ function updateLiveTag() {
 /* Decision strip: rendered ONLY from OV.promises — Promise Keeper
    escalations (escalated_top) + need_human count are the only
    CEO-reserved "waiting on you" source in the overview payload.
-   No other data is invented or fetched for this strip. */
+   No other data is invented or fetched for this strip.
+   v2.1: waiting items carry Confirm / Reject buttons that run the
+   EXISTING Triple Wrap ceremony (confirmAndAct) into cc_act
+   {type 'cc_decide', item_ref, decision}; items the consumer has
+   annotated with ceo_decision render as decided ("Confirmed by you
+   · <age>") with NO buttons and do NOT count as waiting. */
+function waitingDecisions(p) {
+  if (!p) return 0;
+  var top = p.escalated_top || [];
+  var undecided = top.filter(function (e) { return !e.ceo_decision; }).length;
+  /* need_human can cover items beyond the top list; only the excess
+     over the listed items adds waiting beyond them. */
+  var extra = Math.max(0, (Number(p.need_human) || 0) - top.length);
+  return undecided + extra;
+}
+function decisionItemHtml(e) {
+  var head = '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span>' +
+    '<div class="tiny dim">' + esc(e.state || '') + ' \u00b7 open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '\u2014') + '</div>';
+  if (e.ceo_decision) {
+    var atMs = Number(e.ceo_decision_at) || 0;
+    if (atMs && atMs < 1e12) atMs *= 1000; /* payload carries unix seconds */
+    var lbl = e.ceo_decision === 'confirm' ? 'Confirmed by you' : (e.ceo_decision === 'reject' ? 'Rejected by you' : 'Decided by you (' + esc(e.ceo_decision) + ')');
+    return head + '<div style="margin-top:5px"><span class="tag ' + (e.ceo_decision === 'confirm' ? 'grn' : 'amb') + '">' + lbl + (atMs ? ' \u00b7 ' + ageOf(atMs) : '') + '</span></div></div>';
+  }
+  return head + '<div class="decbtns">' +
+    '<button class="btn" data-decide="confirm" data-item-ref="' + esc(e.id) + '">Confirm</button>' +
+    '<button class="btn ghost" data-decide="reject" data-item-ref="' + esc(e.id) + '">Reject</button></div></div>';
+}
+function bindDecisionButtons(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('[data-decide]').forEach(function (btn) {
+    if (btn._decBound) return; btn._decBound = true;
+    btn.onclick = function () { decideItem(btn.getAttribute('data-item-ref'), btn.getAttribute('data-decide')); };
+  });
+}
+function decideItem(itemRef, decision) {
+  if (!itemRef || (decision !== 'confirm' && decision !== 'reject')) return;
+  confirmAndAct({ twAction: 'command_center:cc_decide', target: itemRef + ':' + decision,
+    ccAction: 'cc_decide', args: { type: 'cc_decide', item_ref: itemRef, decision: decision },
+    label: (decision === 'confirm' ? 'Confirm ' : 'Reject ') + itemRef,
+    done: function () { refreshOverview(); } });
+}
 function renderDecisions() {
   var el = $('decisions');
   var p = OV && OV.promises;
@@ -1047,24 +1241,27 @@ function renderDecisions() {
   var need = (p && Number(p.need_human)) || 0;
   var open = (p && Number(p.escalations_open)) || 0;
   if (!p || !p.ok || (!top.length && !need && !open)) { el.style.display = 'none'; el.innerHTML = ''; return 0; }
-  var n = Math.max(need, top.length, open);
-  var html = '<h2>\u2691 Waiting on you \u2014 ' + n + ' decision' + (n === 1 ? '' : 's') + '</h2>';
-  html += top.map(function (e) {
-    return '<div class="item small"><b>' + esc(e.id) + '</b> <span class="dim">' + esc(e.directive) + '</span><div class="tiny dim">' + esc(e.state || '') + ' \u00b7 open ' + (e.age_h ? Math.round(e.age_h) + 'h' : '\u2014') + '</div></div>';
-  }).join('');
-  if (need) html += '<div class="small" style="margin-top:4px">' + need + ' Promise Keeper item' + (need === 1 ? '' : 's') + ' need your eyes \u2014 detail in the Work view.</div>';
+  if (!top.length) {
+    var n0 = Math.max(need, open);
+    el.innerHTML = '<h2>\u2691 Waiting on you \u2014 ' + n0 + ' decision' + (n0 === 1 ? '' : 's') + '</h2>' +
+      (need ? '<div class="small" style="margin-top:4px">' + need + ' Promise Keeper item' + (need === 1 ? '' : 's') + ' need your eyes \u2014 detail in the Work view.</div>' : '');
+    el.style.display = '';
+    return n0;
+  }
+  var n = waitingDecisions(p);
+  var undecided = top.filter(function (e) { return !e.ceo_decision; }).length;
+  var html = '<h2>' + (n > 0 ? '\u2691 Waiting on you \u2014 ' + n + ' decision' + (n === 1 ? '' : 's') : '\u2691 Decisions \u2014 all caught up') + '</h2>';
+  html += top.map(decisionItemHtml).join('');
+  if (n > undecided) html += '<div class="small" style="margin-top:4px">' + (n - undecided) + ' more Promise Keeper item' + (n - undecided === 1 ? '' : 's') + ' need your eyes \u2014 detail in the Work view.</div>';
   el.innerHTML = html;
   el.style.display = '';
+  bindDecisionButtons(el);
   return n;
 }
 function renderChrome() {
   updateLiveTag();
   var dec = renderDecisions();
-  var pc = OV && OV.org && OV.org.pulse && OV.org.pulse.counts;
-  var blocked = 0;
-  if (pc && pc.blocked != null) blocked = Number(pc.blocked) || 0;
-  else if (OV && OV.workers && OV.workers.blocked) blocked = OV.workers.blocked.length;
-  else if (OV && OV.org && OV.org.workers_blocked) blocked = OV.org.workers_blocked.length;
+  var blocked = truthCounts().blocked;
   var bw = $('badge-workers');
   if (blocked > 0) { bw.textContent = blocked; bw.style.display = ''; } else { bw.style.display = 'none'; }
   var bk = $('badge-work');
@@ -1109,6 +1306,8 @@ function renderAll() {
 VIEWS.forEach(function (v) { $('tab-' + v).onclick = function () { showView(v); }; });
 SUBS.forEach(function (s2) { $('seg-' + s2).onclick = function () { showSub(s2); }; });
 $('enterBtn').onclick = enter;
+$('pingSend').onclick = sendPing;
+$('p-workersummary').onclick = function () { showView('workers'); };
 $('refreshBtn').onclick = function () { refreshOverview(); loadRest(); };
 $('signOutBtn').onclick = async function () {
   try { await apiPost('tw_session_end', {}); } catch (e) {}

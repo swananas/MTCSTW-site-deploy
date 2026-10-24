@@ -176,3 +176,33 @@ body::after {
   box-shadow: none;
   font-size: 16px;
 }
+
+/* ---------- Bottom nav: scroll collapse (CEO 2026-10-24) ----------
+   Scrolling down collapses .pf-bnav to just the Home (Feed) button;
+   pf-chrome.js toggles .pf-collapsed. The bar shrink-wraps around the
+   home link, which keeps a pill's breathing room. */
+html[data-theme] .pf-bnav a {
+  transition: flex .3s cubic-bezier(.2,.8,.25,1), max-width .3s cubic-bezier(.2,.8,.25,1),
+    opacity .18s ease, padding .3s cubic-bezier(.2,.8,.25,1);
+}
+html[data-theme] .pf-bnav.pf-collapsed {
+  right: auto;
+  border-right: 1px solid var(--pf-surface-raised);
+  border-top-right-radius: 14px;
+}
+html[data-theme] .pf-bnav.pf-collapsed a:not(.pf-bnav-home) {
+  flex: 0 0 0;
+  max-width: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+html[data-theme] .pf-bnav.pf-collapsed a.pf-bnav-home {
+  flex: 0 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] .pf-bnav a { transition: none; }
+}

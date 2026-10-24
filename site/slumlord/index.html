@@ -29,13 +29,13 @@
   .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);touch-action:manipulation;}
   .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
   .pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
-  .pf-topbar-brand span{color:#c1121f;}
+  .pf-topbar-brand span{color:var(--pf-accent);}
   .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
   .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
   .pf-pillar:active{color:var(--pf-text);background:var(--pf-surface);}
   main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
   .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;}
-  .hero h1 .red{color:#c1121f;}
+  .hero h1 .red{color:var(--pf-accent);}
   .sub{color:var(--pf-text-dim);font-size:15px;margin:0 0 20px;}
   /* Form */
   .dossier-form{background:var(--pf-surface);border:1px solid var(--pf-surface-raised);border-radius:12px;padding:16px;}
@@ -56,9 +56,9 @@
   .v-list{list-style:none;margin:0 0 16px;padding:0;}
   .v-list li{background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:14px;}
   .v-list .v-date{color:var(--pf-text-dim);font-size:12px;display:block;margin-top:4px;}
-  .worst-title{font-size:14px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:14px 0 8px;}
+  .worst-title{font-size:14px;font-weight:800;letter-spacing:.06em;color:var(--pf-accent-ink);margin:14px 0 8px;}
   .worst{display:flex;justify-content:space-between;gap:8px;background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:14px;}
-  .worst .w-count{color:#e5383b;font-weight:800;white-space:nowrap;}
+  .worst .w-count{color:var(--pf-accent-ink);font-weight:800;white-space:nowrap;}
   .actions{display:flex;gap:10px;margin-top:6px;}
   .action-btn{flex:1;border-radius:10px;font-weight:800;font-size:13px;letter-spacing:.04em;padding:12px;cursor:pointer;touch-action:manipulation;}
   .save-btn{background:var(--pf-accent);color:var(--pf-text);border:none;}
@@ -99,7 +99,7 @@
 .pf-snav.open{transform:translateX(0)}
 .pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
-.pf-snav-brand span{color:#c1121f}
+.pf-snav-brand span{color:var(--pf-accent)}
 .pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
 .pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
@@ -337,7 +337,7 @@ document.getElementById('lookup-form').addEventListener('submit', function(e){
 .pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
 .pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
-.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a.on{color:var(--pf-accent-ink);}
 .pf-bnav a:active{opacity:.7;}
 </style>
 <nav class="pf-bnav" aria-label="Main navigation">
@@ -358,7 +358,7 @@ document.getElementById('lookup-form').addEventListener('submit', function(e){
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
 #pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
-#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+#pf-fc-xp{color:var(--pf-accent-ink);font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
 <div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>

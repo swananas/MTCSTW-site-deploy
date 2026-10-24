@@ -29,13 +29,13 @@
   .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);touch-action:manipulation;}
   .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
   .pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
-  .pf-topbar-brand span{color:#c1121f;}
+  .pf-topbar-brand span{color:var(--pf-accent);}
   .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
   .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
   .pf-pillar:active{color:var(--pf-text);background:var(--pf-surface);}
   main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
   .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;}
-  .hero h1 .red{color:#c1121f;}
+  .hero h1 .red{color:var(--pf-accent);}
   .sub{color:var(--pf-text-dim);font-size:15px;margin:0 0 20px;}
   .card{background:var(--pf-surface);border:1px solid var(--pf-surface-raised);border-radius:12px;padding:16px;margin-bottom:14px;}
   .cam-wrap{position:relative;background:#000;border-radius:10px;overflow:hidden;margin-bottom:12px;display:none;}
@@ -59,7 +59,7 @@
   .prod-brand{color:var(--pf-text-dim);font-size:13px;margin:0;}
   .prod-brand b{color:var(--pf-text);}
   .score-hero{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px;}
-  .score-num{font-size:44px;font-weight:900;color:#e5383b;letter-spacing:-.02em;}
+  .score-num{font-size:44px;font-weight:900;color:var(--pf-accent-ink);letter-spacing:-.02em;}
   .score-rank{font-size:14px;color:var(--pf-text-dim);font-weight:700;}
   .score-bar{height:8px;background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:6px;overflow:hidden;margin:6px 0 12px;}
   .score-bar i{display:block;height:100%;background:linear-gradient(90deg,#7a0d14,var(--pf-accent),var(--pf-accent-ink));}
@@ -67,10 +67,10 @@
   .bd-row:first-child{border-top:none;}
   .bd-row .k{color:var(--pf-text-dim);}
   .bd-row .v{font-weight:800;text-align:right;}
-  .bd-row .v.bad{color:#e5383b;}
+  .bd-row .v.bad{color:var(--pf-accent-ink);}
   .kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--pf-text-dim);margin:0 0 8px;}
   .pay-big{font-size:34px;font-weight:900;color:var(--pf-text);margin:2px 0 6px;}
-  .pay-big .red{color:#e5383b;}
+  .pay-big .red{color:var(--pf-accent-ink);}
   .r-list{list-style:none;margin:0;padding:0;}
   .r-list li{background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;}
   .r-class{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.08em;border-radius:4px;padding:2px 7px;margin-right:6px;vertical-align:1px;}
@@ -78,14 +78,14 @@
   .r-class.c2{background:#7a4d0d;color:var(--pf-text);}
   .r-class.c3{background:var(--pf-border);color:#bbb;}
   .r-date{color:var(--pf-text-dim);font-size:11px;display:block;margin-top:5px;}
-  .r-link{color:#e5383b;font-size:12px;font-weight:700;}
+  .r-link{color:var(--pf-accent-ink);font-size:12px;font-weight:700;}
   .miss-banner{background:var(--pf-surface);border:1px dashed #555;border-radius:8px;padding:14px;font-size:14px;line-height:1.55;margin-bottom:14px;}
   .miss-banner b{color:var(--pf-text);}
   .bounty-cta{display:block;text-align:center;background:var(--pf-accent);color:var(--pf-text);font-weight:900;font-size:14px;letter-spacing:.04em;border-radius:10px;padding:13px;text-decoration:none;margin-top:10px;}
   .bounty-cta:active{transform:scale(.98);}
   .receipts{list-style:none;margin:8px 0 0;padding:0;}
   .receipts li{margin-bottom:6px;}
-  .receipts a{color:#e5383b;font-size:13px;font-weight:700;text-decoration:none;}
+  .receipts a{color:var(--pf-accent-ink);font-size:13px;font-weight:700;text-decoration:none;}
   .receipts a:active{text-decoration:underline;}
   .actions{display:flex;gap:10px;margin-top:6px;}
   .action-btn{flex:1;border-radius:10px;font-weight:800;font-size:13px;letter-spacing:.04em;padding:12px;cursor:pointer;touch-action:manipulation;}
@@ -126,7 +126,7 @@
 .pf-snav.open{transform:translateX(0)}
 .pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
-.pf-snav-brand span{color:#c1121f}
+.pf-snav-brand span{color:var(--pf-accent)}
 .pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
 .pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
@@ -424,7 +424,7 @@ function ghoulCard(g){
   h += '<div class="score-hero"><span class="score-num">'+esc(String(g.score))+'</span>';
   if(g.rank) h += '<span class="score-rank">RANK #'+esc(String(g.rank))+(g.in_top100?'':' · outside top 100')+'</span>';
   h += '</div><div class="score-bar"><i style="width:'+pct+'%"></i></div>';
-  if(g.matched_company) h += '<p class="prod-brand" style="margin-bottom:10px">Matched to: <b>'+esc(g.matched_company)+'</b>'+(g.match_note?' <span style="color:#e5383b">('+esc(g.match_note)+')</span>':'')+'</p>';
+  if(g.matched_company) h += '<p class="prod-brand" style="margin-bottom:10px">Matched to: <b>'+esc(g.matched_company)+'</b>'+(g.match_note?' <span style="color:var(--pf-accent-ink)">('+esc(g.match_note)+')</span>':'')+'</p>';
   h += '<div>';
   h += bdRow('EPA fines', money(g.fines_total), g.fines_total > 0);
   h += bdRow('EPA enforcement actions', int(g.epa_actions), g.epa_actions > 0);
@@ -463,7 +463,7 @@ function recallCard(rec){
   var h = '<div class="card"><p class="kicker">RECALLS ON RECORD · '+n+'</p>';
   if(!n){ h += '<p class="prod-brand">No recalls on file for this company. Clean — for now.</p></div>'; return h; }
   if(rec.fda.length){
-    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:6px 0 8px">FDA</p><ul class="r-list">';
+    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--pf-accent-ink);margin:6px 0 8px">FDA</p><ul class="r-list">';
     rec.fda.forEach(function(r){
       var cls = String(r.classification||'').toLowerCase();
       var cb = cls.indexOf('i') === 0 && cls.indexOf('ii') !== 0 ? 'c1' : (cls.indexOf('ii') === 0 ? 'c2' : 'c3');
@@ -474,7 +474,7 @@ function recallCard(rec){
     h += '</ul>';
   }
   if(rec.cpsc.length){
-    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:#e5383b;margin:6px 0 8px">CPSC</p><ul class="r-list">';
+    h += '<p style="font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--pf-accent-ink);margin:6px 0 8px">CPSC</p><ul class="r-list">';
     rec.cpsc.forEach(function(r){
       h += '<li><span class="r-class c2">SAFETY</span>'+esc(r.title||'Product')+
         (r.hazards?'<br><span style="color:var(--pf-text-dim)">'+esc(r.hazards)+'</span>':'')+

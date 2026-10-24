@@ -27,11 +27,11 @@
   html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
   #pf-boot{min-height:100vh;}
   .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--pf-bar-bg);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid var(--pf-accent);box-sizing:border-box;}
-  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
+  .pf-topbar-brand{color:var(--pf-accent);font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
   .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
   .pf-topbar-nav::-webkit-scrollbar{display:none;}
   .pf-topbar-nav a{color:var(--pf-text);text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
-  .pf-topbar-nav a:hover{color:#e5383b;}
+  .pf-topbar-nav a:hover{color:var(--pf-accent-ink);}
   .pf-skip-link{position:absolute;left:-9999px;top:0;background:var(--pf-accent-ink);color:#0a0a0a;font:bold 14px sans-serif;padding:12px 20px;z-index:100000;text-decoration:none;}
   .pf-skip-link:focus{left:0;}
 
@@ -57,7 +57,7 @@
     -webkit-tap-highlight-color:color-mix(in srgb, var(--pf-accent) 30%, transparent);
     cursor:pointer;padding:8px 2px;
   }
-  .pf-topbar-brand span{color:#c1121f;}
+  .pf-topbar-brand span{color:var(--pf-accent);}
   .pf-pillars-nav{
     display:flex;gap:6px;flex:1 1 auto;
   }
@@ -78,12 +78,12 @@
   /* ===== THE DIG page styles ===== */
   .dig-wrap{max-width:680px;margin:0 auto;padding:calc(78px + env(safe-area-inset-top,0px)) 16px 96px;}
   .dig-hero{text-align:center;padding:26px 6px 8px;}
-  .dig-kicker{font-size:11px;font-weight:800;letter-spacing:.28em;color:#e5383b;margin:0 0 10px;}
+  .dig-kicker{font-size:11px;font-weight:800;letter-spacing:.28em;color:var(--pf-accent-ink);margin:0 0 10px;}
   .dig-title{font-size:44px;font-weight:900;letter-spacing:.02em;margin:0 0 12px;}
-  .dig-title .dig-red{color:#c1121f;}
+  .dig-title .dig-red{color:var(--pf-accent);}
   .dig-sub{font-size:16px;line-height:1.55;color:#d9d9d9;margin:0 auto 6px;max-width:440px;}
   .dig-creed{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--pf-text-dim);margin:14px 0 0;}
-  .dig-creed b{color:#e5383b;}
+  .dig-creed b{color:var(--pf-accent-ink);}
 
   .dig-status{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px 0 4px;font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--pf-text-dim);}
   .dig-status .dot{width:8px;height:8px;border-radius:50%;background:#555;flex:0 0 auto;}
@@ -97,15 +97,15 @@
 
   .bounty{background:var(--pf-surface);border:1px solid #262626;border-radius:14px;overflow:hidden;}
   .bounty-head{display:block;width:100%;text-align:left;background:none;border:0;padding:16px 16px 14px;color:var(--pf-text);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:color-mix(in srgb, var(--pf-accent) 25%, transparent);}
-  .bounty-tag{font-size:10px;font-weight:900;letter-spacing:.24em;color:#e5383b;margin-bottom:8px;}
+  .bounty-tag{font-size:10px;font-weight:900;letter-spacing:.24em;color:var(--pf-accent-ink);margin-bottom:8px;}
   .bounty-title{font-size:19px;font-weight:800;line-height:1.35;margin:0 0 8px;}
   .bounty-target{font-size:13px;color:var(--pf-text);font-weight:600;margin:0 0 8px;}
   .bounty-target .t-label{color:var(--pf-text-dim);font-weight:700;letter-spacing:.08em;font-size:11px;}
   .bounty-desc{font-size:14px;line-height:1.55;color:#b9b9b9;margin:0 0 12px;}
   .bounty-meta{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--pf-text-dim);}
-  .bounty-meta .count{color:#e5383b;}
+  .bounty-meta .count{color:var(--pf-accent-ink);}
   .bounty-chev{margin-left:auto;font-size:14px;color:var(--pf-text-dim);transition:transform .2s;}
-  .bounty.open .bounty-chev{transform:rotate(180deg);color:#e5383b;}
+  .bounty.open .bounty-chev{transform:rotate(180deg);color:var(--pf-accent-ink);}
 
   .bounty-body{display:none;border-top:1px solid var(--pf-surface-raised);padding:16px;}
   .bounty.open .bounty-body{display:block;}
@@ -122,7 +122,7 @@
   .dig-submit:disabled{opacity:.5;cursor:wait;}
   .dig-form-msg{font-size:13px;line-height:1.5;margin:10px 0 0;text-align:center;display:none;}
   .dig-form-msg.ok{display:block;color:#7ee081;font-weight:700;}
-  .dig-form-msg.err{display:block;color:#e5383b;font-weight:700;}
+  .dig-form-msg.err{display:block;color:var(--pf-accent-ink);font-weight:700;}
 
   .dig-done{background:var(--pf-surface);border:1px solid #2fae4e;border-radius:14px;padding:22px 16px;margin-top:16px;text-align:center;display:none;}
   .dig-done.show{display:block;}
@@ -134,7 +134,7 @@
   .dig-error{background:#160b0b;border:1px solid #5a1414;border-radius:14px;padding:20px 16px;text-align:center;margin-top:16px;display:none;}
   .dig-error.show{display:block;}
   .dig-error p{font-size:14px;line-height:1.6;color:#d9d9d9;margin:0 0 12px;}
-  .dig-error button{background:transparent;border:1px solid var(--pf-accent);border-radius:10px;color:#e5383b;font-weight:800;font-size:13px;padding:10px 18px;cursor:pointer;letter-spacing:.06em;}
+  .dig-error button{background:transparent;border:1px solid var(--pf-accent);border-radius:10px;color:var(--pf-accent-ink);font-weight:800;font-size:13px;padding:10px 18px;cursor:pointer;letter-spacing:.06em;}
 
   .dig-foot{margin-top:26px;text-align:center;font-size:12px;line-height:1.7;color:#6b6b6b;padding:0 10px;}
   .dig-foot b{color:var(--pf-text-dim);}
@@ -196,7 +196,7 @@
 .pf-snav.open{transform:translateX(0)}
 .pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
-.pf-snav-brand span{color:#c1121f}
+.pf-snav-brand span{color:var(--pf-accent)}
 .pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
 .pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
@@ -307,13 +307,13 @@
 <style>
 /* WANTED poster cards — western aged-paper aesthetic */
 .pb-sec{margin-top:34px;}
-.pb-kicker{font-size:11px;font-weight:800;letter-spacing:.28em;color:#e5383b;margin:0 0 10px;text-align:center;}
+.pb-kicker{font-size:11px;font-weight:800;letter-spacing:.28em;color:var(--pf-accent-ink);margin:0 0 10px;text-align:center;}
 .pb-title{font-size:32px;font-weight:900;letter-spacing:.02em;margin:0 0 10px;text-align:center;color:var(--pf-text);}
-.pb-title .pb-red{color:#c1121f;}
+.pb-title .pb-red{color:var(--pf-accent);}
 .pb-sub{font-size:14px;line-height:1.55;color:#b9b9b9;margin:0 auto 18px;max-width:440px;text-align:center;}
 .pb-list{display:flex;flex-direction:column;gap:18px;}
 .pb-err{text-align:center;color:var(--pf-text-dim);font-size:13px;}
-.pb-err button{background:transparent;border:1px solid var(--pf-accent);border-radius:10px;color:#e5383b;font-weight:800;font-size:12px;padding:8px 16px;cursor:pointer;}
+.pb-err button{background:transparent;border:1px solid var(--pf-accent);border-radius:10px;color:var(--pf-accent-ink);font-weight:800;font-size:12px;padding:8px 16px;cursor:pointer;}
 .poster{background:linear-gradient(160deg,#efe0b8 0%,#e6d09a 45%,#dfc48c 100%);border-radius:6px;overflow:hidden;color:#2b1d0e;box-shadow:0 6px 24px rgba(0,0,0,.5), inset 0 0 60px rgba(120,72,20,.25);position:relative;border:1px solid #8a6d3b;}
 .poster::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(120,72,20,.04) 3px 4px);}
 .poster-frame{margin:10px;border:3px solid #3e2723;padding:14px 14px 16px;position:relative;}
@@ -700,7 +700,7 @@ loadPriceBounties();
 .pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
 .pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
-.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a.on{color:var(--pf-accent-ink);}
 .pf-bnav a:active{opacity:.7;}
 body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 </style>
@@ -965,7 +965,7 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
 #pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
-#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+#pf-fc-xp{color:var(--pf-accent-ink);font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
 <div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>

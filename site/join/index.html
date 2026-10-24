@@ -28,11 +28,11 @@
   html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
   #pf-boot{min-height:100vh;}
   .pf-topbar{position:sticky;top:0;z-index:10000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--pf-bar-bg);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:2px solid var(--pf-accent);box-sizing:border-box;}
-  .pf-topbar-brand{color:#c1121f;font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
+  .pf-topbar-brand{color:var(--pf-accent);font-weight:900;font-size:18px;letter-spacing:.1em;text-decoration:none;flex:0 0 auto;}
   .pf-topbar-nav{display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;white-space:nowrap;flex:1 1 auto;min-width:0;}
   .pf-topbar-nav::-webkit-scrollbar{display:none;}
   .pf-topbar-nav a{color:var(--pf-text);text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.05em;flex:0 0 auto;padding:10px 2px;}
-  .pf-topbar-nav a:hover{color:#e5383b;}
+  .pf-topbar-nav a:hover{color:var(--pf-accent-ink);}
   .pf-topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
   #pf-topbar-search{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--pf-border);border-radius:50%;color:var(--pf-text);cursor:pointer;flex:0 0 auto;padding:0;}
   #pf-topbar-search:hover{border-color:var(--pf-accent);color:var(--pf-text);}
@@ -65,7 +65,7 @@
     -webkit-tap-highlight-color:color-mix(in srgb, var(--pf-accent) 30%, transparent);
     cursor:pointer;padding:8px 2px;
   }
-  .pf-topbar-brand span{color:#c1121f;}
+  .pf-topbar-brand span{color:var(--pf-accent);}
   .pf-pillars-nav{
     display:flex;gap:6px;flex:1 1 auto;
   }
@@ -116,7 +116,7 @@
 .cc-poster{position:relative;background:radial-gradient(120% 90% at 50% 0%,#201216 0%,var(--pf-surface) 58%);border:1px solid #3a2a2a;border-top:4px solid var(--pf-accent);border-radius:14px;padding:28px 20px 22px;overflow:hidden}
 .cc-poster:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,color-mix(in srgb, var(--pf-accent) 5%, transparent) 0 2px,transparent 2px 14px);pointer-events:none}
 .cc-poster .cc-meta{text-align:center}
-.cc-kicker{position:relative;text-align:center;color:#e5383b;font-weight:800;font-size:12px;letter-spacing:4px;text-transform:uppercase;margin:0 0 10px}
+.cc-kicker{position:relative;text-align:center;color:var(--pf-accent-ink);font-weight:800;font-size:12px;letter-spacing:4px;text-transform:uppercase;margin:0 0 10px}
 .cc-seal{position:absolute;top:12px;right:12px;width:78px;height:78px;z-index:5;transform:rotate(10deg);filter:drop-shadow(0 4px 10px rgba(0,0,0,.55))}
 .cc-avatar{position:relative;width:168px;height:168px;margin:4px auto 2px}
 .cc-avatar-mono{position:absolute;top:5px;left:5px;width:158px;height:158px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#3a0d0d,#160404 74%);color:var(--pf-text);display:flex;align-items:center;justify-content:center;font-family:var(--pf-font-display);font-size:62px;font-weight:900;letter-spacing:1px;z-index:1}
@@ -188,7 +188,7 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
 .pf-snav.open{transform:translateX(0)}
 .pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
-.pf-snav-brand span{color:#c1121f}
+.pf-snav-brand span{color:var(--pf-accent)}
 .pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
 .pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
@@ -305,7 +305,7 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <p class="cc-meta">This page has already been claimed by its creator.</p>
   <div id="claimed-key" style="display:none;margin-top:16px">
     <div style="border:1px solid var(--pf-border);border-top:6px solid var(--pf-accent);border-radius:8px;padding:14px;background:#050505">
-      <div style="color:#e5383b;font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY \u2014 SHOWN ONCE</div>
+      <div style="color:var(--pf-accent-ink);font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY \u2014 SHOWN ONCE</div>
       <div class="cc-label">Creator ID</div>
       <div style="display:flex;gap:8px"><input id="ckey-id" class="cc-input" readonly style="flex:1;min-width:0;text-transform:uppercase"><button type="button" class="cc-mini" id="ckey-id-copy">Copy</button></div>
       <div class="cc-label">Creator Key</div>
@@ -321,7 +321,7 @@ textarea.cc-input{min-height:110px;font-family:inherit;line-height:1.5}
   <p class="cc-meta" id="success-msg">Your page is yours. Your hub is ready.</p>
   <div id="success-key" style="display:none;margin-top:16px">
     <div style="border:1px solid var(--pf-border);border-top:6px solid var(--pf-accent);border-radius:8px;padding:14px;background:#050505">
-      <div style="color:#e5383b;font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY — SHOWN ONCE</div>
+      <div style="color:var(--pf-accent-ink);font-weight:900;letter-spacing:1px">FOR THE NAMED CREATOR ONLY — SHOWN ONCE</div>
       <div class="cc-label">Creator ID</div>
       <div style="display:flex;gap:8px"><input id="key-id" class="cc-input" readonly style="flex:1;min-width:0;text-transform:uppercase"><button type="button" class="cc-mini" id="key-id-copy">Copy</button></div>
       <div class="cc-label">Creator Key</div>
@@ -461,10 +461,10 @@ wireSeal('ckey-secret','ckey-seal');wireSeal('key-secret','key-seal');
     if(host.children.length>0)return;
     host.insertAdjacentHTML('afterbegin',
       '<div id="pf-skeleton" aria-hidden="true" style="max-width:680px;margin:0 auto;padding:14px 16px 56px;">'+
-      '<div style="height:30px;background:#242424;border-radius:8px;margin:6px 0 12px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div>'+
-      '<div style="height:120px;background:#242424;border-radius:8px;margin:0 0 10px;"></div></div>');
+      '<div style="height:30px;background:var(--pf-surface-raised);border-radius:8px;margin:6px 0 12px;"></div>'+
+      '<div style="height:120px;background:var(--pf-surface-raised);border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:var(--pf-surface-raised);border-radius:8px;margin:0 0 10px;"></div>'+
+      '<div style="height:120px;background:var(--pf-surface-raised);border-radius:8px;margin:0 0 10px;"></div></div>');
     var obs=new MutationObserver(function(){
       try{
         var sk=host.querySelector('#pf-skeleton');
@@ -503,7 +503,7 @@ wireSeal('ckey-secret','ckey-seal');wireSeal('key-secret','key-seal');
 .pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
 .pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
-.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a.on{color:var(--pf-accent-ink);}
 .pf-bnav a:active{opacity:.7;}
 body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 </style>
@@ -566,7 +566,7 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
 #pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
-#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+#pf-fc-xp{color:var(--pf-accent-ink);font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
 <div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>

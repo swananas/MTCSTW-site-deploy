@@ -148,7 +148,7 @@
 
   /* CURIOSITY v2: contradiction strip */
   .pf-contra-strip{margin:0 0 14px;background:var(--pf-bg);border:1px solid var(--pf-border);border-left:3px solid var(--pf-accent-ink);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--pf-text-dim);line-height:1.55;}
-  .pf-contra-strip b{color:#e5383b;}
+  .pf-contra-strip b{color:var(--pf-accent-ink);}
   .pf-contra-strip .src{display:block;margin-top:6px;font-size:10px;letter-spacing:.08em;color:#5a554b;}
   /* SAVED QUERIES */
   #saved-list{display:flex;flex-direction:column;gap:10px;}
@@ -194,7 +194,7 @@
 .pf-snav.open{transform:translateX(0)}
 .pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
-.pf-snav-brand span{color:#c1121f}
+.pf-snav-brand span{color:var(--pf-accent)}
 .pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
 .pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
@@ -478,7 +478,7 @@
   .nl-node.nl-first{border-color:var(--pf-accent-ink);color:var(--pf-text);}
   .nl-node.nl-last{border-color:#d4a017;color:var(--pf-text);}
   .nl-via{display:flex;align-items:center;gap:8px;padding:7px 4px 7px 24px;}
-  .nl-arrow{color:#c1121f;font-weight:800;font-size:14px;flex:0 0 auto;}
+  .nl-arrow{color:var(--pf-accent);font-weight:800;font-size:14px;flex:0 0 auto;}
   .nl-rel{font-size:12.5px;color:#a09a8e;font-style:italic;line-height:1.4;}
   </style>
 
@@ -1347,7 +1347,7 @@ function netStoryStart(){
   var sb=$id('netmap-story');if(sb)sb.hidden=true;
   netStoryRenderSlides();
   var info=$id('netmap-info');
-  if(info)info.innerHTML='<b style="color:#c1121f">📖 STORY MODE:</b> Tap nodes on the map in order to build your story.';
+  if(info)info.innerHTML='<b style="color:var(--pf-accent)">📖 STORY MODE:</b> Tap nodes on the map in order to build your story.';
 }
 function netStoryEnd(){
   netStory.active=false;
@@ -1402,7 +1402,7 @@ function netStoryRenderSlides(){
   var h='';
   slides.forEach(function(s,i){
     h+='<div data-slide="'+i+'" style="background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:10px;padding:10px 12px;cursor:pointer;touch-action:manipulation;">'+
-      '<div style="font-size:11px;color:#c1121f;font-weight:800;letter-spacing:.06em;margin-bottom:4px;">SLIDE '+(i+1)+'</div>'+
+      '<div style="font-size:11px;color:var(--pf-accent);font-weight:800;letter-spacing:.06em;margin-bottom:4px;">SLIDE '+(i+1)+'</div>'+
       '<div style="font-size:14px;font-weight:700;color:var(--pf-text);margin-bottom:2px;">'+esc(s.label)+'</div>'+
       '<div style="font-size:12px;color:var(--pf-text-dim);line-height:1.5;">'+esc(s.caption)+'</div>'+
       '<div style="font-size:11px;color:#5a554b;margin-top:4px;">✏️ tap to edit</div></div>';
@@ -1676,7 +1676,7 @@ function netlinkBFS(nodes,edges,startId,targetId){
 }
 function netlinkRender(steps){
   var out=$id('netlink-out');out.style.display='block';
-  var h='<div style="font-size:11px;letter-spacing:.18em;color:#e5383b;font-weight:800;margin-bottom:10px;">THE RECEIPT — '+(steps.length-1)+' DEGREE'+(steps.length===2?'':'S')+'</div>';
+  var h='<div style="font-size:11px;letter-spacing:.18em;color:var(--pf-accent-ink);font-weight:800;margin-bottom:10px;">THE RECEIPT — '+(steps.length-1)+' DEGREE'+(steps.length===2?'':'S')+'</div>';
   h+='<div class="nl-chain">';
   steps.forEach(function(s,i){
     var n=s.node||{};
@@ -1692,7 +1692,7 @@ function netlinkRun(){
   var a=$id('netlink-a').value.trim(),b=$id('netlink-b').value.trim();
   var out=$id('netlink-out'),sr=$id('netlink-save-row');
   if(sr)sr.hidden=true;netlink.path=null;
-  if(!a||!b){out.style.display='block';out.innerHTML='<span style="color:#e5383b">Name two entities first — the money trail needs both ends.</span>';return;}
+  if(!a||!b){out.style.display='block';out.innerHTML='<span style="color:var(--pf-accent-ink)">Name two entities first — the money trail needs both ends.</span>';return;}
   out.style.display='block';out.innerHTML='Tracing the web from <b>'+esc(a)+'</b>&hellip;';
   var btn=$id('netlink-go');btn.textContent='TRACING…';btn.disabled=true;
   apiGet('network_map',{entity:a}).then(function(d){
@@ -1722,7 +1722,7 @@ function netlinkRun(){
     netlinkRender(steps);
   }).catch(function(){
     btn.innerHTML='&#x1F517; FIND THE PATH';btn.disabled=false;
-    out.innerHTML='<span style="color:#e5383b">The rails went quiet — check your connection and try again.</span>';
+    out.innerHTML='<span style="color:var(--pf-accent-ink)">The rails went quiet — check your connection and try again.</span>';
   });
 }
 /* dossier save: IndexedDB pf_dossier_v1 / items — same schema as /dossier */
@@ -1759,7 +1759,7 @@ function netlinkSave(){
     setTimeout(function(){b.innerHTML='&#x1F4BE; SAVE PATH TO DOSSIER';b.disabled=false;},2500);
   }).catch(function(){
     var out=$id('netlink-out');
-    out.innerHTML+='<br><span style="color:#e5383b">Save failed on this device — screenshot the path instead.</span>';
+    out.innerHTML+='<br><span style="color:var(--pf-accent-ink)">Save failed on this device — screenshot the path instead.</span>';
   });
 }
 (function(){
@@ -1808,7 +1808,7 @@ mq('dim_cfpb_company',['company','total_complaints'],[],1,'total_complaints','de
   var sec=document.getElementById('pf-mcontra-sec'),host=document.getElementById('pf-mcontra');
   if(!sec||!host)return;
   host.innerHTML='&ldquo;We take complaints seriously.&rdquo; &mdash; <b>'+esc(r.company)+'</b>, holder of <b>'+num(r.total_complaints)+'</b> federal complaints and counting.'+
-    '<span class="src">SOURCE: CFPB VIA MTCSTW RAILS · <a href="#lookup-you-sec" style="color:#e5383b">IS IT YOUR BANK? &darr;</a></span>';
+    '<span class="src">SOURCE: CFPB VIA MTCSTW RAILS · <a href="#lookup-you-sec" style="color:var(--pf-accent-ink)">IS IT YOUR BANK? &darr;</a></span>';
   sec.hidden=false;
 }).catch(function(){});
 })();
@@ -1820,7 +1820,7 @@ mq('dim_cfpb_company',['company','total_complaints'],[],1,'total_complaints','de
 .pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
 .pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
-.pf-bnav a.on{color:#e5383b;}
+.pf-bnav a.on{color:var(--pf-accent-ink);}
 .pf-bnav a:active{opacity:.7;}
 body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 </style>
@@ -2106,7 +2106,7 @@ function renderAskAnswer(d,q){
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
 #pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
-#pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
+#pf-fc-xp{color:var(--pf-accent-ink);font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">
 <div id="pf-fc-emoji">🥇</div><div id="pf-fc-title">FIRST CLAIM!</div>

@@ -74,7 +74,18 @@
 .pf-topbar-brand span{color:var(--pf-accent);}
 .pf-pillars-nav{display:flex;gap:6px;flex:1;}
 .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;}
-.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}</style>
+.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}
+  .pf-hero-wrap{position:relative;}
+  .pf-lost-hero{filter:grayscale(1) contrast(1.05);opacity:.85;}
+  .pf-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-9deg);border:4px double var(--pf-accent);color:var(--pf-accent);background:color-mix(in srgb, var(--pf-bg) 70%, transparent);font-family:var(--pf-font-display);font-size:clamp(1.9rem,7.5vw,3.4rem);letter-spacing:.08em;padding:.3em .65em;text-transform:uppercase;pointer-events:none;white-space:nowrap;}
+  .pf-lost-band{margin:1.8rem 0 0;border:3px solid var(--pf-accent);background:var(--pf-surface);padding:1.1rem 1.2rem;}
+  .pf-lost-title{font-family:var(--pf-font-display);font-size:1.35rem;letter-spacing:.06em;color:var(--pf-accent);}
+  .pf-lost-band p{line-height:1.6;margin:.6rem 0 0;}
+  .pf-lost-meta{font-size:.85rem;color:var(--pf-text-faint);}
+  .pf-lost-cta{display:inline-block;margin-top:.9rem;background:var(--pf-accent);color:var(--pf-on-accent);font-weight:800;letter-spacing:.08em;padding:.6rem 1rem;text-decoration:none;}
+  .prow.pf-lost-row{filter:grayscale(.75);opacity:.78;}
+  .pf-lost-tag{flex-shrink:0;font-size:.58rem;font-weight:800;letter-spacing:.14em;border:1.5px solid currentColor;padding:.15rem .4rem;transform:rotate(-4deg);white-space:nowrap;}
+</style>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <link rel="stylesheet" href="/pf-brand.css">
 <script src="/pf-theme.js" defer></script>
@@ -178,7 +189,7 @@
 })();
 </script>
 <div class="wrap">
-  <img class="hero" src="/assets/roster-photos/deejay10.jpg" alt="deejay1.0">
+  <div class="pf-hero-wrap"><img class="hero pf-lost-hero" src="/assets/roster-photos/deejay10.jpg" alt="deejay1.0"><div class="pf-stamp" role="img" aria-label="Stamp: Lost comrade">LOST COMRADE</div></div>
   <div class="badges"><span class="badge">SICK LEFT RADICALS</span> <span class="badge red">NETWORK MEMBER</span></div>
   <h1>deejay1.0</h1>
   <p class="beat">Political organizing and network coordination (WE ARE ONE Movement); leftist content as infrastructure</p>
@@ -189,8 +200,9 @@
     <p class="src">Roster-listed counts from the Sick Left Radicals master roster, as of Oct 7, 2026. These are the network&rsquo;s tallied counts, not yet pulled live from the platforms &mdash; when deejay1.0 claims this page and connects their accounts, the counts switch to platform-pulled.</p>
   </section>
 
+  <section class="pf-lost-band" aria-label="Creator status"><div class="pf-lost-title">PROBABLE GONE &mdash; MISSING IN ACTION</div><p>This comrade&rsquo;s signal went dark &mdash; their TikTok profile (@deejay1.0) returns “page not found”. They are <strong>not removed</strong> from this network, and their following still counts in every total on this page. A platform can silence an account; it can&rsquo;t erase a comrade.</p><p class="pf-lost-meta">Status set by the network&rsquo;s creator audit, October 24, 2026. When they resurface, the stamp comes off.</p><a class="pf-lost-cta" href="/join/">REPORT A SIGHTING &rarr;</a></section>
   <h2>FIND THEM EVERYWHERE</h2>
-  <div class="pf-stack"><a class="prow" href="https://www.tiktok.com/@deejay1.0" target="_blank" rel="noopener" data-platform="tiktok" data-followers="18000"><span class="pmeta"><span class="pn">TikTok</span><span class="ph">@deejay1.0</span></span><span class="pc">18K<small>FOLLOWERS</small></span></a></div>
+  <div class="pf-stack"><a class="prow pf-lost-row" href="https://www.tiktok.com/@deejay1.0" target="_blank" rel="noopener" data-platform="tiktok" data-followers="18000"><span class="pmeta"><span class="pn">TikTok</span><span class="ph">@deejay1.0</span></span><span class="pf-lost-tag">SIGNAL LOST</span><span class="pc">18K<small>FOLLOWERS</small></span></a></div>
 
   <h2>THE CATALOG TREATMENT</h2>
   <div class="score"><span class="big">8 / 10</span><span>PROPAGANDA SCORE</span></div>

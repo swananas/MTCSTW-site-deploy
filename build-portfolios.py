@@ -30,6 +30,23 @@ import re, json, os, html, datetime
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(ROOT, 'src', 'data', 'slr-master-db.json')
 SITE = os.path.join(ROOT, 'site')
+STANDING_PATH = os.path.join(ROOT, 'src', 'data', 'creator-standing.json')
+
+def _load_standing():
+    """Creator standing overlay (e.g. standing=lost -> LOST COMRADE treatment).
+    The master DB is never edited for page treatment; this overlay is the
+    switch. Missing file = nobody flagged."""
+    try:
+        data = json.load(open(STANDING_PATH))
+        return {k: v for k, v in data.items() if not k.startswith('_')}
+    except Exception:
+        return {}
+
+STANDING = _load_standing()
+
+def standing_of(member):
+    st = STANDING.get(member.get('slug') or '')
+    return st if st and st.get('standing') == 'lost' else None
 
 PLATFORM_LABEL = {
     'facebook': 'Facebook', 'instagram': 'Instagram', 'tiktok': 'TikTok',
@@ -178,6 +195,23 @@ CSS = '''
 
 CSS += TOPBAR_CSS
 
+# LOST COMRADE treatment (CEO order 2026-10-24) — emitted ONLY on pages whose
+# creator carries standing=lost in creator-standing.json, so all other pages
+# stay byte-identical. Greyed hero + red stamp, status band, greyed link rows
+# with a SIGNAL LOST tag. Counts and totals are never touched by the treatment.
+LOST_CSS = '''
+  .pf-hero-wrap{position:relative;}
+  .pf-lost-hero{filter:grayscale(1) contrast(1.05);opacity:.85;}
+  .pf-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-9deg);border:4px double var(--pf-accent);color:var(--pf-accent);background:color-mix(in srgb, var(--pf-bg) 70%, transparent);font-family:var(--pf-font-display);font-size:clamp(1.9rem,7.5vw,3.4rem);letter-spacing:.08em;padding:.3em .65em;text-transform:uppercase;pointer-events:none;white-space:nowrap;}
+  .pf-lost-band{margin:1.8rem 0 0;border:3px solid var(--pf-accent);background:var(--pf-surface);padding:1.1rem 1.2rem;}
+  .pf-lost-title{font-family:var(--pf-font-display);font-size:1.35rem;letter-spacing:.06em;color:var(--pf-accent);}
+  .pf-lost-band p{line-height:1.6;margin:.6rem 0 0;}
+  .pf-lost-meta{font-size:.85rem;color:var(--pf-text-faint);}
+  .pf-lost-cta{display:inline-block;margin-top:.9rem;background:var(--pf-accent);color:var(--pf-on-accent);font-weight:800;letter-spacing:.08em;padding:.6rem 1rem;text-decoration:none;}
+  .prow.pf-lost-row{filter:grayscale(.75);opacity:.78;}
+  .pf-lost-tag{flex-shrink:0;font-size:.58rem;font-weight:800;letter-spacing:.14em;border:1.5px solid currentColor;padding:.15rem .4rem;transform:rotate(-4deg);white-space:nowrap;}
+'''
+
 def build_stack(member):
     """Linktree stack: counted platform rows (biggest first), then the rest
     of the creator's DB links as plain rows."""
@@ -223,7 +257,14 @@ def build_stack(member):
                     '<span class="ph">%s</span></span>'
                     '<span class="pc">&#8599;</span></a>'
                     % (esc(l['url']), esc(label), esc(handle)))
-    return ''.join(rows)
+    stack = ''.join(rows)
+    if standing_of(member):
+        # LOST COMRADE: grey every row and tag it SIGNAL LOST (the boundary
+        # between .pmeta and .pc exists in every row shape this builder emits).
+        stack = stack.replace('class="prow', 'class="prow pf-lost-row')
+        stack = stack.replace('</span><span class="pc">',
+                              '</span><span class="pf-lost-tag">SIGNAL LOST</span><span class="pc">')
+    return stack
 
 def build(member, members_sorted, network_total):
     slug = member['slug']
@@ -240,6 +281,27 @@ def build(member, members_sorted, network_total):
         % (esc(o['slug']), esc('/assets/roster-photos/%s.jpg' % o['slug']), esc(o['name']), esc(o['name']),
            fmt(o.get('followers_total') or 0))
         for o in others)
+    st = standing_of(member)
+    pic_path = '/assets/roster-photos/%s.jpg' % slug
+    if st:
+        hero_block = ('<div class="pf-hero-wrap"><img class="hero pf-lost-hero" src="%s" alt="%s">'
+                      '<div class="pf-stamp" role="img" aria-label="Stamp: Lost comrade">LOST COMRADE</div></div>'
+                      % (esc(pic_path), esc(name)))
+        lost_band = ('\n  <section class="pf-lost-band" aria-label="Creator status">'
+                     '<div class="pf-lost-title">PROBABLE GONE &mdash; MISSING IN ACTION</div>'
+                     '<p>This comrade&rsquo;s signal went dark &mdash; %s. They are <strong>not removed</strong> '
+                     'from this network, and their following still counts in every total on this page. '
+                     'A platform can silence an account; it can&rsquo;t erase a comrade.</p>'
+                     '<p class="pf-lost-meta">Status set by the network&rsquo;s creator audit, %s. '
+                     'When they resurface, the stamp comes off.</p>'
+                     '<a class="pf-lost-cta" href="/join/">REPORT A SIGHTING &rarr;</a>'
+                     '</section>' % (esc(st.get('basis_short') or 'their accounts are unreachable'),
+                                     esc(st.get('last_verified') or '')))
+        css_page = CSS + LOST_CSS
+    else:
+        hero_block = '<img class="hero" src="%s" alt="%s">' % (esc(pic_path), esc(name))
+        lost_band = ''
+        css_page = CSS
     page_url = 'https://www.mtcstw.com/@%s' % slug
     title = '%s — Portfolio | Sick Left Radicals | MTCSTW' % name
     desc = member.get('seo_description') or name
@@ -276,7 +338,7 @@ def build(member, members_sorted, network_total):
 %%TOPBAR%%
 %%SIDENAV%%
 <div class="wrap">
-  <img class="hero" src="{pic}" alt="{name}">
+  {hero_block}
   <div class="badges"><span class="badge">SICK LEFT RADICALS</span> <span class="badge red">NETWORK MEMBER</span></div>
   <h1>{name}</h1>
   <p class="beat">{beat}</p>
@@ -286,7 +348,7 @@ def build(member, members_sorted, network_total):
     <div class="lbl">TOTAL FOLLOWERS</div>
     <p class="src">Roster-listed counts from the Sick Left Radicals master roster, as of {asof}. These are the network&rsquo;s tallied counts, not yet pulled live from the platforms &mdash; when {name} claims this page and connects their accounts, the counts switch to platform-pulled.</p>
   </section>
-
+{lost_band}
   <h2>FIND THEM EVERYWHERE</h2>
   <div class="pf-stack">{stack}</div>
 
@@ -321,7 +383,8 @@ document.getElementById('pf-share').addEventListener('click', function () {{
 </html>
 '''.format(
         title=esc(title), desc=esc(desc), pic=esc('/assets/roster-photos/%s.jpg' % slug), pic_abs=esc('https://www.mtcstw.com/assets/roster-photos/%s.jpg' % slug),
-        page_url=esc(page_url), css=CSS, name=esc(name),
+        page_url=esc(page_url), css=css_page, name=esc(name),
+        hero_block=hero_block, lost_band=lost_band,
         beat=esc(beat_line(member)), total=fmt(total), total_raw=total,
         asof=esc(asof), stack=build_stack(member),
         score=esc(member.get('propaganda_score')), prov=prov,

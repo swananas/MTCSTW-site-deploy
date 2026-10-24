@@ -116,24 +116,21 @@ def handle_for(member, platkey):
         return '@' + tail if not tail.startswith('@') else tail
     return ''
 
-NAV = '''<nav class="pf-shell-nav" aria-label="Main">
-    <a href="/" class="pf-shell-brand">MTCSTW</a>
-    <a href="/arcade">ARCADE</a>
-    <a href="/cells">CELLS</a>
-    <a href="/create">CREATE</a>
-    <a href="/sick-left-radicals">RADICALS</a>
-    <a href="/money">MONEY</a>
-  </nav>'''
+# --- Site chrome, copied VERBATIM from the Worker-served catalog pages
+# (site/the-dr-greg-show/index.html) so portfolio pages carry the identical
+# shell as the rest of mtcstw-app: face script, topbar, sidenav, bottom nav.
+FACE_SCRIPT = '<script>(function(p){var f=/^\\/api(\\/|$)/.test(p)?"build":/^\\/enterprise(\\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>'
+TOPBAR_CSS = '.pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);}\n.pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}\n.pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}\n.pf-topbar-brand span{color:var(--pf-accent);}\n.pf-pillars-nav{display:flex;gap:6px;flex:1;}\n.pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;}\n.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}'
+TOPBAR_HTML = '<header class="pf-topbar"><div class="pf-topbar-inner">\n    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>\n<a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>\n<nav class="pf-pillars-nav">\n<a class="pf-pillar" href="/create">CREATE</a>\n<a class="pf-pillar on" href="/sick-left-radicals">CONNECT</a>\n<a class="pf-pillar" href="/cells">COORDINATE</a>\n<a class="pf-pillar" href="/money">CAPITAL</a>\n</nav></div></header>'
+SIDENAV_HTML = '<!-- PF-SIDENAV v1 -->\n<style>\n.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}\n.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}\n.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}\n.pf-snav-overlay.open{opacity:1;pointer-events:auto}\n.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:var(--pf-surface);color:var(--pf-text);z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}\n.pf-snav.open{transform:translateX(0)}\n.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}\n.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}\n.pf-snav-brand span{color:var(--pf-accent)}\n.pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}\n.pf-snav-group{padding:12px 0 4px}\n.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}\n.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--pf-text);text-decoration:none;font-size:15px;font-weight:600;min-height:48px}\n.pf-snav a.pf-snav-link:active{background:var(--pf-surface-raised)}\n.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}\n.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:var(--pf-text-faint);line-height:1.6;border-top:1px solid var(--pf-border);margin-top:8px}\n</style>\n<div class="pf-snav-overlay" id="pf-snav-overlay"></div>\n<nav class="pf-snav" id="pf-snav" aria-label="Site tools">\n  <div class="pf-snav-head">\n    <div class="pf-snav-brand">MTC<span>STW</span></div>\n    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">INVESTIGATE</span>\n    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>\n    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>\n    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>\n    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>\n    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">ACT</span>\n    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>\n    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>\n    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>\n    <a class="pf-snav-link" href="/karl/?tab=translator"><span class="em">&#x1F310;</span>Translate</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">EXPLORE</span>\n    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>\n    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>\n    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>\n    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>\n    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>\n  </div>\n<div class="pf-snav-group">\n    <span class="pf-snav-kicker">BUILD</span>\n    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>\n  </div>\n    <div class="pf-snav-group">\n    <span class="pf-snav-kicker">LEGAL</span>\n    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>\n    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>\n    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>\n    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>\n  </div>\n  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>\n</nav>\n<script>\n(function(){\n  if(window.__pfSnavInit) return; window.__pfSnavInit = true;\n  var toggle = document.getElementById(\'pf-snav-toggle\');\n  var nav = document.getElementById(\'pf-snav\');\n  var overlay = document.getElementById(\'pf-snav-overlay\');\n  var closeBtn = document.getElementById(\'pf-snav-close\');\n  if(!toggle || !nav || !overlay) return;\n  function open(){ nav.classList.add(\'open\'); overlay.classList.add(\'open\'); toggle.setAttribute(\'aria-expanded\',\'true\'); document.body.style.overflow=\'hidden\'; }\n  function close(){ nav.classList.remove(\'open\'); overlay.classList.remove(\'open\'); toggle.setAttribute(\'aria-expanded\',\'false\'); document.body.style.overflow=\'\'; }\n  toggle.addEventListener(\'click\', function(){ nav.classList.contains(\'open\') ? close() : open(); });\n  if(closeBtn) closeBtn.addEventListener(\'click\', close);\n  overlay.addEventListener(\'click\', close);\n  document.addEventListener(\'keydown\', function(e){ if(e.key===\'Escape\' && nav.classList.contains(\'open\')) close(); });\n  var sx=null;\n  nav.addEventListener(\'touchstart\', function(e){ sx=e.touches[0].clientX; }, {passive:true});\n  nav.addEventListener(\'touchmove\', function(e){\n    if(sx===null) return;\n    var dx=e.touches[0].clientX - sx;\n    if(dx < -60){ close(); sx=null; }\n  }, {passive:true});\n})();\n</script>'
+BNAV_HTML = '<!-- PF BOTTOM NAV (site-wide hard nav) -->\n<style>\n.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}\n.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}\n.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}\n.pf-bnav a.on{color:var(--pf-accent-ink);}\n.pf-bnav a:active{opacity:.7;}\nbody{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}\n</style>\n<nav class="pf-bnav" aria-label="Main navigation">\n<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>\n<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;</span>MODEL</a>\n<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>\n<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>\n<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>\n</nav>\n<script>\n(function(){try{var p=location.pathname;var ls=document.querySelectorAll(\'.pf-bnav a\');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute(\'data-p\');if(p===d||(d!==\'/\'&&p.indexOf(d)===0)){ls[i].classList.add(\'on\');break;}}}catch(e){}})();\n</script>'
+
 
 CSS = '''
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
-  .pf-shell-nav{position:sticky;top:0;z-index:100;background:var(--pf-bar-bg);padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--pf-accent);}
-  .pf-shell-nav a{color:var(--pf-bar-text);text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.05em;}
-  .pf-shell-nav a:hover{color:var(--pf-accent);}
-  .pf-shell-brand{color:var(--pf-accent)!important;font-size:18px!important;letter-spacing:.1em!important;}
-  .wrap{max-width:760px;margin:0 auto;padding:1.4rem 1.2rem 3.5rem;}
-  .hero{width:100%;max-height:520px;object-fit:cover;display:block;border:3px solid var(--pf-text);box-shadow:10px 10px 0 var(--pf-accent);background:var(--pf-surface);}
+  .wrap{max-width:760px;margin:0 auto;padding:2.2rem 1.2rem 4rem;}
+  .hero{width:100%;max-height:520px;object-fit:cover;display:block;border:3px solid var(--pf-accent);background:var(--pf-surface);}
   .badges{margin:1.4rem 0 .4rem;}
   .badge{display:inline-block;background:var(--pf-text);color:var(--pf-bg);font-size:.68rem;font-weight:800;letter-spacing:.18em;padding:.32rem .6rem;}
   .badge.red{background:var(--pf-accent);color:var(--pf-on-accent);}
@@ -174,8 +171,12 @@ CSS = '''
   .rail .rn{font-weight:800;font-size:.9rem;line-height:1.25;}
   .rail .rc{font-size:.78rem;color:var(--pf-accent);font-weight:700;}
   .fine{font-size:.8rem;color:var(--pf-text-faint);line-height:1.65;}
+  .foot{border-top:1px solid var(--pf-border);margin-top:3rem;padding:1.6rem 0 0;text-align:center;color:var(--pf-text-dim);font-size:.8rem;letter-spacing:.14em;}
+  .foot b{color:var(--pf-accent);}
   @media (max-width:560px){ .reach .num{font-size:2.5rem} .rail img{height:64px} h1{font-size:2rem} .hero{max-height:380px} }
 '''
+
+CSS += TOPBAR_CSS
 
 def build_stack(member):
     """Linktree stack: counted platform rows (biggest first), then the rest
@@ -236,38 +237,44 @@ def build(member, members_sorted, network_total):
     rail = ''.join(
         '<a href="/@%s/"><img src="%s" alt="%s" loading="lazy"><span class="rn">%s</span><br>'
         '<span class="rc">%s followers</span></a>'
-        % (esc(o['slug']), esc(o.get('picture')), esc(o['name']), esc(o['name']),
+        % (esc(o['slug']), esc('/assets/roster-photos/%s.jpg' % o['slug']), esc(o['name']), esc(o['name']),
            fmt(o.get('followers_total') or 0))
         for o in others)
     page_url = 'https://www.mtcstw.com/@%s' % slug
     title = '%s — Portfolio | Sick Left Radicals | MTCSTW' % name
     desc = member.get('seo_description') or name
 
-    return '''<!DOCTYPE html>
+    page = '''<!DOCTYPE html>
 <html lang="en">
 <head>
 <script>(function(){{var t='dark';try{{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}}catch(e){{}}document.documentElement.setAttribute('data-theme',t);}})();</script>
+%%FACE%%
+<link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="{pic}">
+<meta property="og:image" content="{pic_abs}">
 <meta property="og:url" content="{page_url}">
 <meta property="og:type" content="profile">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{desc}">
-<meta name="twitter:image" content="{pic}">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="twitter:image" content="{pic_abs}">
+<meta name="theme-color" content="#c1121f">
+<link rel="icon" href="/v1.4.3/pwa/icon-192.png">
 <link rel="canonical" href="{page_url}">
 <style>{css}</style>
+<script src="/v1.4.3/core/pf-faces.js" defer></script>
 <link rel="stylesheet" href="/pf-brand.css">
 <script src="/pf-theme.js" defer></script>
+<script src="/pf-chrome.js" defer></script>
 </head>
 <body>
-{nav}
+%%TOPBAR%%
+%%SIDENAV%%
 <div class="wrap">
   <img class="hero" src="{pic}" alt="{name}">
   <div class="badges"><span class="badge">SICK LEFT RADICALS</span> <span class="badge red">NETWORK MEMBER</span></div>
@@ -298,8 +305,9 @@ def build(member, members_sorted, network_total):
   <footer class="pf-foot">
     <p class="nt">Part of the Sick Left Radicals network &mdash; {net_total} total followers across {n} creators.</p>
     <div class="rail">{rail}</div>
-    <p class="fine">Counts pulled {asof} &middot; source: Sick Left Radicals roster master DB (this page&rsquo;s numbers are computed from that roster, per-platform splits as listed there). Full catalog profile: <a href="{catalog}">{catalog}</a> &middot; Network roster: <a href="/sick-left-radicals">/sick-left-radicals</a></p>
+    <p class="fine">Counts pulled {asof} &middot; source: Sick Left Radicals roster master DB (this page&rsquo;s numbers are computed from that roster, per-platform splits as listed there). Network roster: <a href="/sick-left-radicals">/sick-left-radicals</a></p>
   </footer>
+  <div class="foot"><b>JOIN THE FIGHT.</b> &mdash; MTCSTW.COM</div>
 </div>
 <script>
 document.getElementById('pf-share').addEventListener('click', function () {{
@@ -308,17 +316,20 @@ document.getElementById('pf-share').addEventListener('click', function () {{
   else if (navigator.clipboard) {{ navigator.clipboard.writeText(url).then(function(){{ alert('Link copied: ' + url); }}); }}
 }});
 </script>
+%%BNAV%%
 </body>
 </html>
 '''.format(
-        title=esc(title), desc=esc(desc), pic=esc(member.get('picture')),
-        page_url=esc(page_url), css=CSS, nav=NAV, name=esc(name),
+        title=esc(title), desc=esc(desc), pic=esc('/assets/roster-photos/%s.jpg' % slug), pic_abs=esc('https://www.mtcstw.com/assets/roster-photos/%s.jpg' % slug),
+        page_url=esc(page_url), css=CSS, name=esc(name),
         beat=esc(beat_line(member)), total=fmt(total), total_raw=total,
         asof=esc(asof), stack=build_stack(member),
         score=esc(member.get('propaganda_score')), prov=prov,
         strengths=strengths, bio=paras(member.get('bio')), offers=offers,
         catalog=esc(member.get('catalog_path') or '/sick-left-radicals'),
         net_total=fmt(network_total), n=len(members_sorted), rail=rail)
+    return (page.replace('%%FACE%%', FACE_SCRIPT).replace('%%TOPBAR%%', TOPBAR_HTML)
+                .replace('%%SIDENAV%%', SIDENAV_HTML).replace('%%BNAV%%', BNAV_HTML))
 
 def main():
     db = json.load(open(DB))
@@ -326,6 +337,8 @@ def main():
     network_total = sum(int(x.get('followers_total') or 0) for x in members)
     members_sorted = sorted(members, key=lambda x: -(x.get('followers_total') or 0))
     for member in members:
+        asset = os.path.join(SITE, 'assets', 'roster-photos', member['slug'] + '.jpg')
+        assert os.path.exists(asset), 'missing self-hosted photo: ' + asset
         outdir = os.path.join(SITE, '@' + member['slug'])
         os.makedirs(outdir, exist_ok=True)
         with open(os.path.join(outdir, 'index.html'), 'w') as f:

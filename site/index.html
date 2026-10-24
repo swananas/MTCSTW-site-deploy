@@ -172,7 +172,7 @@
   }
   #pf-home-feed .kh-toast.kh-show{ transform:translateX(-50%) translateY(0); opacity:1; }
 </style>
-<script>window.__PF_BUILD="20261023-2058-b8bbe4c2";</script>
+<script>window.__PF_BUILD="20261013-1640-2710dd48";</script>
 <script>(function(){
   try{
     var cur = window.__PF_BUILD; if(!cur) return;
@@ -853,10 +853,16 @@ if('serviceWorker' in navigator){
 }
 </script>
 <script>
-/* ---------- HOME FEED (native UGC feed, 20261023) ----------
+/* ---------- HOME FEED (native UGC feed, 20261023; rotation v2) ----------
    One source: the static bundle /feed/ugc-feed.json (Shane's own UGC —
    memes, posts, designs, creator shots, protest photos). No API, no
-   database, nothing else is fetched. Cards render in bundle order,
+   database, nothing else is fetched.
+   ORDER IS ALGORITHMIC, computed in the browser only: a daily-seeded
+   weighted shuffle over the whole bank. Fresh posts (newest dates)
+   carry more weight, and posts this device has already seen are
+   demoted (seen-set lives in localStorage on the device — never sent
+   anywhere, no D1, no server state). The order reshuffles every day
+   and fresh bank posts rotate in ahead of stale ones. Cards render
    10 at a time, as the sentinel scrolls into view. */
 (function(){
 "use strict";
@@ -867,6 +873,67 @@ var sentinel = document.getElementById('kh-feed-sentinel');
 var tabsEl = document.getElementById('kh-feed-tabs');
 if(!feedEl || !sentinel) return;
 var allCards = [], view = [], shown = 0, toastTimer = null;
+
+/* ---- rotation algorithm (client-side only) ---- */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    var t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function dailySeed(){
+  var d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+var SEEN_KEY = 'pf_feed_seen_v1';
+function seenSet(){
+  try{
+    var raw = localStorage.getItem(SEEN_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    var s = {};
+    if(Array.isArray(arr)) arr.forEach(function(id){ s[id] = 1; });
+    return s;
+  }catch(e){ return {}; }
+}
+function markSeen(ids){
+  try{
+    var raw = localStorage.getItem(SEEN_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(arr)) arr = [];
+    var have = {};
+    arr.forEach(function(id){ have[id] = 1; });
+    ids.forEach(function(id){ if(!have[id]){ arr.push(id); have[id] = 1; } });
+    if(arr.length > 400) arr = arr.slice(arr.length - 400);
+    localStorage.setItem(SEEN_KEY, JSON.stringify(arr));
+  }catch(e){}
+}
+function rotate(cards){
+  if(cards.length < 2) return cards.slice();
+  var rand = mulberry32(dailySeed());
+  var seen = seenSet();
+  var byDate = cards.slice().sort(function(a, b){
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  });
+  var n = byDate.length;
+  var freshOf = {};
+  byDate.forEach(function(c, rank){ freshOf[c.id] = 1 - rank / n; });
+  function shuffleWeighted(list){
+    var keyed = list.map(function(c){
+      var w = 0.35 + (freshOf[c.id] || 0);  /* freshness boost */
+      return { c: c, k: Math.pow(rand(), 1 / w) };
+    });
+    keyed.sort(function(a, b){ return b.k - a.k; });
+    return keyed.map(function(x){ return x.c; });
+  }
+  var unseen = [], seenArr = [];
+  byDate.forEach(function(c){ (seen[c.id] ? seenArr : unseen).push(c); });
+  /* Unseen posts first (fresh-weighted), already-seen posts after —
+     a returning visitor rotates through the bank instead of re-reading
+     the same top cards. */
+  return shuffleWeighted(unseen).concat(shuffleWeighted(seenArr));
+}
 
 function esc(s){
   return String(s == null ? '' : s)
@@ -929,8 +996,8 @@ function skeletons(n){
 function endEl(){
   var end = document.createElement('div');
   end.className = 'kh-feed-end';
-  end.innerHTML = "You're caught up — this is the whole vault drop.<br>" +
-    '<span>More UGC lands here as it\u2019s posted. ' +
+  end.innerHTML = "You're caught up — that's the whole bank for today.<br>" +
+    '<span>The order reshuffles daily and fresh posts rotate in from the bank. ' +
     'Billionaire-quality propaganda, free for the people.</span>';
   return end;
 }
@@ -938,6 +1005,7 @@ function renderMore(){
   if(shown >= view.length) return;
   var next = view.slice(shown, shown + BATCH);
   next.forEach(function(c){ feedEl.appendChild(cardEl(c)); });
+  markSeen(next.map(function(c){ return c.id; }));
   shown += next.length;
   var old = feedEl.querySelector('.kh-feed-end');
   if(old) old.remove();
@@ -971,7 +1039,7 @@ if(tabsEl){
     tabsEl.querySelectorAll('.kh-tab').forEach(function(t){
       t.classList.toggle('kh-active', t === btn);
     });
-    view = (f === 'all') ? allCards : allCards.filter(function(c){ return c.type === f; });
+    view = rotate((f === 'all') ? allCards : allCards.filter(function(c){ return c.type === f; }));
     resetFeed();
   });
 }
@@ -989,7 +1057,7 @@ fetch('/feed/ugc-feed.json', { cache:'no-store' })
   .then(function(r){ if(!r.ok) throw new Error('bundle ' + r.status); return r.json(); })
   .then(function(bundle){
     allCards = (bundle && bundle.cards) || [];
-    view = allCards;
+    view = rotate(allCards);
     feedEl.innerHTML = '';
     if(!allCards.length){ failCard(); return; }
     resetFeed();

@@ -1,8 +1,8 @@
 {
- "version": "ugc-feed-v4-clearcanva-20261024",
+ "version": "ugc-feed-v4.1-namepull-20261024",
  "generated": "2026-10-24",
  "source": "Shane UGC only \u2014 UGC Vault Sorted (SSD) + Drive Memes + Canva cleared pool (brand-passed)",
- "count": 792,
+ "count": 791,
  "cards": [
   {
    "id": "ugc-bm-concept-a-classic-poster",
@@ -5115,17 +5115,6 @@
    "image": "/feed-media/d272-design.jpg",
    "width": 1080,
    "height": 1374,
-   "date": "",
-   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
-   "provenance": "shane-ugc"
-  },
-  {
-   "id": "ugc-d273-design",
-   "type": "design",
-   "headline": "Red campaign graphic with white text for a state senate run",
-   "image": "/feed-media/d273-design.jpg",
-   "width": 1080,
-   "height": 1080,
    "date": "",
    "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
    "provenance": "shane-ugc"

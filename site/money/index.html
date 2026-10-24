@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
 
@@ -21,22 +22,22 @@
 <meta name="theme-color" content="#c1121f">
 <link rel="icon" href="/v1.4.3/pwa/icon-192.png">
 <style>
-  html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
-  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;}
+  html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);-webkit-font-smoothing:antialiased;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);}
   .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
-  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  .pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
   .pf-topbar-brand span{color:#c1121f;}
   .pf-pillars-nav{display:flex;gap:6px;flex:1;}
-  .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;}
-  .pf-pillar.on{color:#fff;border-color:#c1121f;background:rgba(193,18,31,.12);}
+  .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}
   body{padding-top:calc(env(safe-area-inset-top,0px) + 110px);}
-  #mny{--bg:#0a0a0a;--card:#111;--line:#232323;--red:#c1121f;--rbright:#e5383b;--cream:#f5f0e6;--dim:#8a8478;--faint:#5a554b;max-width:560px;margin:0 auto;padding:0 0 60px;}
+  #mny{--bg:var(--pf-bg);--card:var(--pf-surface);--line:var(--pf-surface-raised);--red:var(--pf-accent);--rbright:var(--pf-accent-ink);--cream:#f5f0e6;--dim:#8a8478;--faint:#5a554b;max-width:560px;margin:0 auto;padding:0 0 60px;}
   #mny .hero{padding:28px 20px 8px;}
-  #mny .hero h1{font-family:Georgia,serif;font-size:32px;margin:0 0 8px;line-height:1.15;}
+  #mny .hero h1{font-family:var(--pf-font-serif);font-size:32px;margin:0 0 8px;line-height:1.15;}
   #mny .hero h1 em{color:var(--rbright);font-style:normal;}
   #mny .hero p{color:var(--dim);font-size:15px;margin:0 0 16px;line-height:1.5;}
   #mny .bigstat{text-align:center;padding:8px 20px 20px;}
-  #mny .bigstat .n{font-family:Georgia,serif;font-size:52px;font-weight:700;color:var(--rbright);line-height:1;}
+  #mny .bigstat .n{font-family:var(--pf-font-serif);font-size:52px;font-weight:700;color:var(--rbright);line-height:1;}
   #mny .bigstat .t{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin-top:6px;}
   #mny .rails{padding:0 14px;display:flex;flex-direction:column;gap:10px;}
   #mny .rail{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:transform .12s;animation:rise .4s ease both;text-decoration:none;color:var(--cream);display:block;}
@@ -46,7 +47,7 @@
   #mny .rail .d{font-size:13px;color:var(--dim);line-height:1.45;}
   #mny .rail .n{font-size:22px;font-weight:800;color:var(--rbright);margin-top:8px;}
   #mny .karl-link{display:block;margin:16px 20px 0;background:transparent;border:1.5px solid var(--red);color:var(--rbright);border-radius:12px;padding:13px;text-align:center;font-weight:800;font-size:13px;letter-spacing:.1em;text-decoration:none;}
-  #mny .model-link{display:block;margin:10px 20px 0;background:var(--red);color:#fff;border-radius:12px;padding:15px;text-align:center;font-weight:800;font-size:14px;letter-spacing:.08em;text-decoration:none;touch-action:manipulation;}
+  #mny .model-link{display:block;margin:10px 20px 0;background:var(--red);color:var(--pf-text);border-radius:12px;padding:15px;text-align:center;font-weight:800;font-size:14px;letter-spacing:.08em;text-decoration:none;touch-action:manipulation;}
   #mny .model-link:active{transform:scale(.98);}
   #mny .feed-link{margin:24px 20px 0;}
   #mny .feed-link h3{font-size:12px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin:0 0 10px;}
@@ -76,6 +77,8 @@
 }
 </script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <div id="pf-boot">
@@ -97,18 +100,18 @@
 .pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
 .pf-snav-overlay.open{opacity:1;pointer-events:auto}
-.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:var(--pf-surface);color:var(--pf-text);z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
 .pf-snav.open{transform:translateX(0)}
-.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
 .pf-snav-brand span{color:#c1121f}
-.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
-.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
-.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
-.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--pf-text);text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:var(--pf-surface-raised)}
 .pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
-.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:var(--pf-text-faint);line-height:1.6;border-top:1px solid var(--pf-border);margin-top:8px}
 </style>
 <div class="pf-snav-overlay" id="pf-snav-overlay"></div>
 <nav class="pf-snav" id="pf-snav" aria-label="Site tools">
@@ -229,15 +232,15 @@
 <!-- MOVEMENT MONEY HUB — merged from /bank/, /fund/, /war-chest/ (2026-10-11 consolidation) -->
 <style>
 #mny-hub{max-width:560px;margin:0 auto;padding:0 0 60px;}
-#mny-hub .hub-tabs{display:flex;gap:8px;padding:20px 14px 0;position:sticky;top:0;background:#0a0a0a;z-index:50;}
-#mny-hub .hub-tab{flex:1;text-align:center;padding:12px 4px;border:1px solid #333;border-radius:10px;background:transparent;color:#b0b0b0;font-size:11px;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;}
-#mny-hub .hub-tab.on{color:#fff;border-color:#c1121f;background:rgba(193,18,31,.12);}
+#mny-hub .hub-tabs{display:flex;gap:8px;padding:20px 14px 0;position:sticky;top:0;background:var(--pf-bg);z-index:50;}
+#mny-hub .hub-tab{flex:1;text-align:center;padding:12px 4px;border:1px solid var(--pf-border);border-radius:10px;background:transparent;color:var(--pf-text-dim);font-size:11px;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;}
+#mny-hub .hub-tab.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}
 #mny-hub .hub-pane{display:none;padding:16px 14px;}
 #mny-hub .hub-pane.on{display:block;}
 #mny-hub .hub-head{text-align:center;padding:24px 20px 8px;}
-#mny-hub .hub-head h2{font-family:Georgia,serif;font-size:26px;margin:0 0 8px;}
+#mny-hub .hub-head h2{font-family:var(--pf-font-serif);font-size:26px;margin:0 0 8px;}
 #mny-hub .hub-head h2 em{color:#e5383b;font-style:normal;}
-#mny-hub .hub-head p{color:#8a8478;font-size:14px;margin:0;line-height:1.5;}
+#mny-hub .hub-head p{color:var(--pf-text-dim);font-size:14px;margin:0;line-height:1.5;}
 </style>
 <div id="mny-hub">
   <div class="hub-head">
@@ -251,7 +254,7 @@
     <button class="hub-tab" data-hub="warchest" role="tab">WAR CHEST</button>
   </div>
   <div class="hub-pane on" id="hub-tracked" role="tabpanel">
-    <p style="text-align:center;color:#8a8478;font-size:13px;padding:20px;">Scroll up for the tracked money dashboard — billionaire wealth, penalties, holdings, insider trades.</p>
+    <p style="text-align:center;color:var(--pf-text-dim);font-size:13px;padding:20px;">Scroll up for the tracked money dashboard — billionaire wealth, penalties, holdings, insider trades.</p>
     <a href="#mny" style="display:block;text-align:center;color:#e5383b;font-weight:800;font-size:13px;letter-spacing:.08em;text-decoration:none;padding:12px;">↑ BACK TO TRACKED MONEY</a>
   </div>
   <div class="hub-pane" id="hub-bank" role="tabpanel">
@@ -331,8 +334,8 @@ fetch('https://pf-api.mtcstw.workers.dev/?action=karl_stats').then(function(r){r
 
 <!-- PF BOTTOM NAV (site-wide hard nav) -->
 <style>
-.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
-.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
 .pf-bnav a.on{color:#e5383b;}
 .pf-bnav a:active{opacity:.7;}
@@ -350,7 +353,7 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 </script>
 <!-- PF PANIC BUTTON (site-wide) -->
 <style>
-.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1px solid #333;color:#8a8478;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
+.pf-panic{position:fixed;right:12px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:8500;width:36px;height:36px;border-radius:50%;background:var(--pf-surface);border:1px solid var(--pf-border);color:var(--pf-text-dim);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0;}
 .pf-panic:active{opacity:1;transform:scale(.92);}
 </style>
 <button class="pf-panic" id="pf-panic" aria-label="Panic button: wipe all local data">&#x1F6A8;</button>
@@ -393,10 +396,10 @@ body{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
 <style>
 #pf-fc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:99999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:92vw}
 #pf-fc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#pf-fc-card{background:#12060a;border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
+#pf-fc-card{background:var(--pf-bg);border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
-#pf-fc-label{color:#f5f0e8;font-size:13px;margin-top:4px}
+#pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
 #pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">

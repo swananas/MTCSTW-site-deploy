@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
 
@@ -20,8 +21,10 @@
 <link rel="canonical" href="https://www.mtcstw.com/create#remix">
 <meta http-equiv="refresh" content="0;url=/create#remix">
 <script>window.location.replace("/create#remix"+(window.location.search||""));</script>
-<style>html,body{margin:0;padding:0;background:#0a0a0a;color:#f5ead6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}p{padding:40px 20px;text-align:center;}a{color:#e5383b;}</style>
+<style>html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}p{padding:40px 20px;text-align:center;}a{color:#e5383b;}</style>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <p>Story Remixer moved to the <a href="/create#remix">Create Studio</a> — taking you there now.</p>
@@ -29,10 +32,10 @@
 <style>
 #pf-fc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:99999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:92vw}
 #pf-fc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#pf-fc-card{background:#12060a;border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
+#pf-fc-card{background:var(--pf-bg);border:2px solid #e8b400;border-radius:14px;padding:14px 18px;text-align:center;box-shadow:0 8px 40px rgba(232,180,0,.35)}
 #pf-fc-emoji{font-size:34px;line-height:1}
 #pf-fc-title{color:#e8b400;font-weight:800;letter-spacing:2px;font-size:15px;margin-top:6px}
-#pf-fc-label{color:#f5f0e8;font-size:13px;margin-top:4px}
+#pf-fc-label{color:var(--pf-text);font-size:13px;margin-top:4px}
 #pf-fc-xp{color:#ff3b3b;font-weight:800;font-size:18px;margin-top:6px}
 </style>
 <div id="pf-fc-toast" aria-live="polite"><div id="pf-fc-card">

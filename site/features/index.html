@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-face="fight">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>All Features — The Propaganda Factory</title>
@@ -15,31 +16,33 @@
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <style>
-html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
 .pf-wrap{max-width:900px;margin:0 auto;padding:0 16px 64px;}
 .pf-hero{padding:48px 0 24px;text-align:center;}
 .pf-hero h1{font-size:clamp(28px,6vw,44px);font-weight:900;margin:0 0 12px;}
 .pf-hero h1 .red{color:var(--pf-accent-ink,#e5383b);}
-.pf-hero p{color:#8a8478;font-size:16px;margin:0 auto;max-width:520px;line-height:1.5;}
+.pf-hero p{color:var(--pf-text-dim);font-size:16px;margin:0 auto;max-width:520px;line-height:1.5;}
 .pf-search{margin:24px auto;max-width:480px;}
-.pf-search input{width:100%;box-sizing:border-box;background:#141311;border:1px solid #2a2824;border-radius:8px;color:#f5f0e6;font-size:16px;padding:14px 16px;min-height:44px;font-family:inherit;}
-.pf-search input:focus{outline:2px solid var(--pf-accent,#c1121f);border-color:transparent;}
+.pf-search input{width:100%;box-sizing:border-box;background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;color:var(--pf-text);font-size:16px;padding:14px 16px;min-height:44px;font-family:inherit;}
+.pf-search input:focus{outline:2px solid var(--pf-accent,var(--pf-accent));border-color:transparent;}
 .pf-cat{margin:40px 0 0;}
 .pf-cat h2{font-size:20px;font-weight:800;margin:0 0 4px;display:flex;align-items:center;gap:10px;}
-.pf-cat h2 .count{font-size:12px;font-weight:600;color:#8a8478;background:#141311;border:1px solid #2a2824;border-radius:12px;padding:2px 10px;}
-.pf-cat .desc{color:#8a8478;font-size:14px;margin:0 0 16px;}
+.pf-cat h2 .count{font-size:12px;font-weight:600;color:var(--pf-text-dim);background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:12px;padding:2px 10px;}
+.pf-cat .desc{color:var(--pf-text-dim);font-size:14px;margin:0 0 16px;}
 .pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
-.pf-feat{background:#141311;border:1px solid #2a2824;border-radius:8px;padding:16px;text-decoration:none;color:inherit;display:block;min-height:44px;}
-.pf-feat:hover{border-color:var(--pf-accent,#c1121f);}
+.pf-feat{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;padding:16px;text-decoration:none;color:inherit;display:block;min-height:44px;}
+.pf-feat:hover{border-color:var(--pf-accent,var(--pf-accent));}
 .pf-feat h3{margin:0 0 6px;font-size:15px;font-weight:700;}
-.pf-feat p{margin:0;font-size:13px;color:#8a8478;line-height:1.45;}
+.pf-feat p{margin:0;font-size:13px;color:var(--pf-text-dim);line-height:1.45;}
 .pf-feat .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--pf-accent-ink,#e5383b);margin-bottom:6px;}
 .pf-feat--hidden{display:none;}
-.pf-empty{text-align:center;color:#8a8478;padding:48px 0;display:none;}
-.pf-nav-back{display:block;text-align:center;margin:32px 0;color:#8a8478;text-decoration:none;font-size:14px;}
+.pf-empty{text-align:center;color:var(--pf-text-dim);padding:48px 0;display:none;}
+.pf-nav-back{display:block;text-align:center;margin:32px 0;color:var(--pf-text-dim);text-decoration:none;font-size:14px;}
 [data-pf-faces]{max-width:900px;margin:16px auto;padding:0 16px;}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <nav data-pf-faces class="pf-faces"></nav>

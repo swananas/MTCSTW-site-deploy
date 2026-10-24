@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-face="scale">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>mtcstw Data — Corporate Accountability Data, Production-Ready</title>
@@ -16,35 +17,35 @@
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <style>
-html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
 .pf-wrap{max-width:1100px;margin:0 auto;padding:0 16px;}
 .pf-eyebrow{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--pf-accent-ink,#ffb703);margin:0 0 12px;}
-.pf-hero{padding:72px 0 48px;border-bottom:1px solid #2a2824;}
+.pf-hero{padding:72px 0 48px;border-bottom:1px solid var(--pf-border);}
 .pf-hero h1{font-size:clamp(32px,6vw,56px);font-weight:900;letter-spacing:-.01em;margin:0 0 16px;line-height:1.05;}
-.pf-hero p.sub{font-size:18px;color:#8a8478;max-width:640px;line-height:1.55;margin:0 0 32px;}
+.pf-hero p.sub{font-size:18px;color:var(--pf-text-dim);max-width:640px;line-height:1.55;margin:0 0 32px;}
 .pf-cta-row{display:flex;gap:12px;flex-wrap:wrap;}
 .pf-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 28px;border-radius:6px;font-weight:700;font-size:15px;text-decoration:none;}
 .pf-cta--primary{background:var(--pf-accent,#ffb703);color:var(--pf-on-accent,#0a0a0a);}
-.pf-cta--secondary{border:1px solid #2a2824;color:#f5f0e6;}
-.pf-section{padding:56px 0;border-bottom:1px solid #2a2824;}
+.pf-cta--secondary{border:1px solid var(--pf-border);color:var(--pf-text);}
+.pf-section{padding:56px 0;border-bottom:1px solid var(--pf-border);}
 .pf-section h2{font-size:28px;font-weight:800;margin:0 0 8px;}
-.pf-section .lead{color:#8a8478;font-size:16px;line-height:1.55;max-width:680px;margin:0 0 32px;}
+.pf-section .lead{color:var(--pf-text-dim);font-size:16px;line-height:1.55;max-width:680px;margin:0 0 32px;}
 .pf-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:32px 0;}
-.pf-stat-card{background:#141311;border:1px solid #2a2824;border-radius:8px;padding:20px;}
+.pf-stat-card{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;padding:20px;}
 .pf-stat-card .num{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;}
-.pf-stat-card .lbl{font-size:13px;color:#8a8478;margin-top:4px;}
+.pf-stat-card .lbl{font-size:13px;color:var(--pf-text-dim);margin-top:4px;}
 .pf-health{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;}
 .pf-health .dot{width:10px;height:10px;border-radius:50%;background:#2fbf71;}
 .pf-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media(max-width:719px){.pf-grid-2{grid-template-columns:1fr;}}
-.pf-card{background:#141311;border:1px solid #2a2824;border-radius:8px;padding:24px;}
+.pf-card{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;padding:24px;}
 .pf-card h3{margin:0 0 8px;font-size:18px;}
-.pf-card p{margin:0 0 16px;color:#8a8478;font-size:14px;line-height:1.5;}
-.pf-card .for{font-size:12px;color:#8a8478;font-style:italic;}
+.pf-card p{margin:0 0 16px;color:var(--pf-text-dim);font-size:14px;line-height:1.5;}
+.pf-card .for{font-size:12px;color:var(--pf-text-dim);font-style:italic;}
 .pf-card .price{font-size:14px;font-weight:700;color:var(--pf-accent-ink,#ffb703);margin-bottom:12px;}
 .pf-link{color:var(--pf-accent-ink,#ffb703);text-decoration:none;font-weight:600;font-size:14px;}
 .pf-table{width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;}
-.pf-table th{text-align:left;padding:12px;border-bottom:1px solid #2a2824;color:#8a8478;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;}
+.pf-table th{text-align:left;padding:12px;border-bottom:1px solid var(--pf-border);color:var(--pf-text-dim);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;}
 .pf-table td{padding:12px;border-bottom:1px solid #1a1917;vertical-align:top;}
 .pf-table tr:last-child td{border-bottom:0;}
 .pf-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em;}
@@ -53,21 +54,23 @@ html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple
 .pf-trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
 .pf-trust-item{display:flex;gap:12px;align-items:flex-start;}
 .pf-trust-item .icon{font-size:20px;flex-shrink:0;}
-.pf-trust-item p{margin:0;font-size:14px;color:#8a8478;line-height:1.5;}
-.pf-trust-item p strong{color:#f5f0e6;display:block;margin-bottom:2px;}
+.pf-trust-item p{margin:0;font-size:14px;color:var(--pf-text-dim);line-height:1.5;}
+.pf-trust-item p strong{color:var(--pf-text);display:block;margin-bottom:2px;}
 .pf-form{max-width:480px;}
 .pf-field{margin-bottom:16px;}
-.pf-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#f5f0e6;}
-.pf-field input,.pf-field select,.pf-field textarea{width:100%;box-sizing:border-box;background:#141311;border:1px solid #2a2824;border-radius:6px;color:#f5f0e6;font-size:15px;padding:12px;min-height:44px;font-family:inherit;}
+.pf-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--pf-text);}
+.pf-field input,.pf-field select,.pf-field textarea{width:100%;box-sizing:border-box;background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:6px;color:var(--pf-text);font-size:15px;padding:12px;min-height:44px;font-family:inherit;}
 .pf-field input:focus,.pf-field select:focus,.pf-field textarea:focus{outline:2px solid var(--pf-accent,#ffb703);outline-offset:0;border-color:transparent;}
 .pf-field .err{color:#e5383b;font-size:13px;margin-top:4px;display:none;}
-.pf-privacy{font-size:12px;color:#8a8478;margin-top:12px;}
-.pf-confirm{font-size:12px;color:#8a8478;margin-top:8px;font-style:italic;}
-.pf-footer{padding:48px 0;text-align:center;color:#8a8478;font-size:13px;}
-.pf-footer a{color:#8a8478;}
+.pf-privacy{font-size:12px;color:var(--pf-text-dim);margin-top:12px;}
+.pf-confirm{font-size:12px;color:var(--pf-text-dim);margin-top:8px;font-style:italic;}
+.pf-footer{padding:48px 0;text-align:center;color:var(--pf-text-dim);font-size:13px;}
+.pf-footer a{color:var(--pf-text-dim);}
 [data-pf-faces]{max-width:1100px;margin:16px auto;padding:0 16px;}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
 </style>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <nav data-pf-faces class="pf-faces"></nav>
@@ -223,7 +226,7 @@ html,body{margin:0;padding:0;background:#0a0a0a;color:#f5f0e6;font-family:-apple
         <p class="err" data-err="volume">Choose one option.</p>
       </div>
       <div class="pf-field">
-        <label for="f-notes">Anything we should know? <span style="color:#8a8478;font-weight:400;">(optional)</span></label>
+        <label for="f-notes">Anything we should know? <span style="color:var(--pf-text-dim);font-weight:400;">(optional)</span></label>
         <textarea id="f-notes" name="notes" rows="3" placeholder="Datasets, timeline, team size"></textarea>
       </div>
       <button type="submit" class="pf-cta pf-cta--primary" style="width:100%;border:0;cursor:pointer;">Continue</button>

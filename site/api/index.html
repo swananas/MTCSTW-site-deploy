@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
 
@@ -67,51 +68,51 @@
 }
 </script>
 <style>
-  html,body{margin:0;padding:0;background:#0a0a0a;color:#e8e8e8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;}
+  html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);line-height:1.6;}
   .wrap{max-width:900px;margin:0 auto;padding:24px 20px 80px;}
-  h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:32px 0 16px;color:#fff;}
+  h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:32px 0 16px;color:var(--pf-text);}
   h1 .red{color:#e5383b;}
-  h2{font-size:clamp(22px,4vw,30px);color:#fff;margin:48px 0 16px;border-bottom:2px solid #c1121f;padding-bottom:8px;}
-  h3{font-size:19px;color:#fff;margin:28px 0 10px;}
-  p,li{font-size:16px;color:#c9c9c9;}
+  h2{font-size:clamp(22px,4vw,30px);color:var(--pf-text);margin:48px 0 16px;border-bottom:2px solid var(--pf-accent);padding-bottom:8px;}
+  h3{font-size:19px;color:var(--pf-text);margin:28px 0 10px;}
+  p,li{font-size:16px;color:var(--pf-text-dim);}
   a{color:#e5383b;}
-  .lede{font-size:19px;color:#e8e8e8;max-width:700px;}
+  .lede{font-size:19px;color:var(--pf-text);max-width:700px;}
   .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0;}
   .btn{display:inline-block;padding:14px 28px;border-radius:8px;font-weight:800;font-size:16px;text-decoration:none;cursor:pointer;border:none;}
-  .btn-primary{background:#c1121f;color:#fff;}
-  .btn-primary:hover{background:#e5383b;}
-  .btn-ghost{background:transparent;color:#fff;border:2px solid #444;}
-  .btn-ghost:hover{border-color:#c1121f;}
-  .endpoint{background:#141414;border:1px solid #2a2a2a;border-radius:8px;padding:16px;margin:12px 0;}
+  .btn-primary{background:var(--pf-accent);color:var(--pf-text);}
+  .btn-primary:hover{background:var(--pf-accent-ink);}
+  .btn-ghost{background:transparent;color:var(--pf-text);border:2px solid var(--pf-border);}
+  .btn-ghost:hover{border-color:var(--pf-accent);}
+  .endpoint{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:8px;padding:16px;margin:12px 0;}
   .endpoint code{color:#7ee787;font-size:15px;font-weight:700;}
-  .endpoint .tier{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#1f6feb;color:#fff;margin-left:10px;vertical-align:middle;}
+  .endpoint .tier{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#1f6feb;color:var(--pf-text);margin-left:10px;vertical-align:middle;}
   .endpoint p{margin:8px 0 0;font-size:14px;}
   .pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0;}
-  .plan{background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:24px;}
-  .plan.featured{border-color:#c1121f;}
-  .plan h3{margin:0 0 8px;color:#fff;}
-  .plan .price{font-size:32px;font-weight:900;color:#fff;margin:8px 0;}
-  .plan .price span{font-size:14px;color:#888;font-weight:400;}
+  .plan{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:12px;padding:24px;}
+  .plan.featured{border-color:var(--pf-accent);}
+  .plan h3{margin:0 0 8px;color:var(--pf-text);}
+  .plan .price{font-size:32px;font-weight:900;color:var(--pf-text);margin:8px 0;}
+  .plan .price span{font-size:14px;color:var(--pf-text-dim);font-weight:400;}
   .plan ul{list-style:none;padding:0;margin:16px 0 0;}
-  .plan li{font-size:14px;padding:4px 0;color:#c9c9c9;}
+  .plan li{font-size:14px;padding:4px 0;color:var(--pf-text-dim);}
   .plan li:before{content:"✓ ";color:#7ee787;font-weight:700;}
   table.compare{width:100%;border-collapse:collapse;margin:24px 0;font-size:15px;}
-  table.compare th,table.compare td{padding:12px;text-align:left;border-bottom:1px solid #2a2a2a;}
-  table.compare th{color:#fff;background:#141414;}
-  table.compare td{color:#c9c9c9;}
+  table.compare th,table.compare td{padding:12px;text-align:left;border-bottom:1px solid var(--pf-border);}
+  table.compare th{color:var(--pf-text);background:var(--pf-surface);}
+  table.compare td{color:var(--pf-text-dim);}
   .yes{color:#7ee787;font-weight:700;}
   .no{color:#e5383b;font-weight:700;}
-  .persona{background:#141414;border-left:4px solid #c1121f;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
+  .persona{background:var(--pf-surface);border-left:4px solid var(--pf-accent);padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
   .persona h3{margin:0 0 8px;}
   .persona p{margin:0;font-size:15px;}
-  pre{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;color:#7ee787;}
-  .topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.96);border-bottom:2px solid #c1121f;padding:12px 20px;display:flex;align-items:center;gap:16px;}
-  .topbar a.brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
+  pre{background:var(--pf-bg);border:1px solid var(--pf-border);border-radius:8px;padding:16px;overflow-x:auto;font-size:13px;color:#7ee787;}
+  .topbar{position:sticky;top:0;z-index:100;background:var(--pf-bar-bg);border-bottom:2px solid var(--pf-accent);padding:12px 20px;display:flex;align-items:center;gap:16px;}
+  .topbar a.brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}
   .topbar a.brand span{color:#c1121f;}
   .topbar nav{margin-left:auto;display:flex;gap:16px;}
-  .topbar nav a{color:#c9c9c9;text-decoration:none;font-size:14px;font-weight:700;}
-  .topbar nav a:hover{color:#fff;}
-  footer{margin-top:64px;padding-top:24px;border-top:1px solid #2a2a2a;font-size:13px;color:#666;}
+  .topbar nav a{color:var(--pf-text-dim);text-decoration:none;font-size:14px;font-weight:700;}
+  .topbar nav a:hover{color:var(--pf-text);}
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--pf-border);font-size:13px;color:var(--pf-text-faint);}
 </style>
 <script type="application/ld+json">
 {
@@ -134,6 +135,8 @@
 }
 </script>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <div class="topbar">

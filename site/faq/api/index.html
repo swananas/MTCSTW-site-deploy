@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
 <script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
 <link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
 
@@ -24,45 +25,47 @@
 <link rel="manifest" href="/v1.4.3/pwa/manifest.json">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What data packs exist, and what do they cost?", "acceptedAnswer": {"@type": "Answer", "text": "Five packs, one engine: $0 Free — 1,000 calls/month, sample data from all packs. No credit card. $69/mo Politics — 50K calls. FEC aggregates, lobbying, bills. $69/mo Corporate — 50K calls. Violations, OSHA, wage theft, Ghoul scores. $99/mo PE — 50K calls. Firms, portfolio companies, bankruptcy tracking. $69/mo Health — 50K calls. Nursing homes, drug safety, clinical trials. $69/mo Patent — 50K calls. Patent hoarders, evergreening, troll profiles. $349/mo All Access — 500K calls, every pack, webhooks + bulk downloads. $1,499/mo Enterprise — unlimited calls, SLA, custom endpoints, dedicated support. Every paid tier includes AI-detected connections (Lux). Full pricing at /api/ ."}}, {"@type": "Question", "name": "How do I get an API key?", "acceptedAnswer": {"@type": "Answer", "text": "One curl, no card: curl -X POST https://pf-api.mtcstw.workers.dev/v1/keys/signup That returns your free API key — 1,000 calls/month. Send it as an X-API-Key header (or ?api_key= query param) on every request. Upgrade to a pack whenever you outgrow it."}}, {"@type": "Question", "name": "What are the rate limits and quotas? What happens on overage?", "acceptedAnswer": {"@type": "Answer", "text": "Each tier carries a monthly call quota : 1,000 on Free, 50,000 per pack on the $69–$99 tiers, 500,000 on All Access, unlimited on Enterprise. Burst limits keep any one key from hogging the pipe. Hit your quota and the API answers 402 Payment Required — that’s your cue to upgrade, not an error. Your existing key keeps working the moment you do."}}, {"@type": "Question", "name": "I’m migrating from OpenSecrets. Is there a mapping guide?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — we built the replacement when OpenSecrets killed their public API in April 2025 . The migration guide maps dead OpenSecrets methods ( getLegislators , candSummary , candContrib , and more) to our REST equivalents. Biggest change: auth moves from a key parameter to an X-API-Key header. Most migrations take under an hour."}}, {"@type": "Question", "name": "Can I use individual donor data commercially?", "acceptedAnswer": {"@type": "Answer", "text": "No. The API exposes aggregates only — totals, averages, employer and zip-level patterns. Individual donor identities are never in the responses. That’s not a policy choice, it’s the law: 52 U.S.C. § 30111(a)(4) prohibits commercial use of individual contributor information from FEC filings, and our API enforces it at the data layer. Don’t build around it; you can’t."}}, {"@type": "Question", "name": "What are the attribution requirements?", "acceptedAnswer": {"@type": "Answer", "text": "Free tier: cite us. Attribution is all we ask — link the Propaganda Factory API wherever the data appears. Paid packs ($69+) have no attribution requirement . Good citations make the data stronger for everyone. Link it and keep moving."}}, {"@type": "Question", "name": "Is there an SLA?", "acceptedAnswer": {"@type": "Answer", "text": "Enterprise tier ($1,499/mo) carries a formal SLA with dedicated support and custom endpoints. All Access ($349/mo) gets priority support. Free and pack tiers get community support — best-effort, but we ship fixes fast. The API is live and monitored; status questions go to mtcstw@gmail.com."}}, {"@type": "Question", "name": "Do you support webhooks?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, on All Access and up. Webhooks fire real-time alerts for the things you care about — new violations, fresh donations, bankruptcy events — so you don’t poll the API like it’s 2009. Free and pack tiers don’t get webhooks. It’s one of the reasons All Access exists."}}]}</script>
 <style>
-  html,body{margin:0;padding:0;background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  html,body{margin:0;padding:0;background:var(--pf-bg);color:var(--pf-text);font-family:var(--pf-font-body);}
   body{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
-  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:#0a0a0a;border-bottom:1px solid #c1121f;touch-action:manipulation;}
+  .pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);touch-action:manipulation;}
   .pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}
-  .pf-topbar-brand{color:#fff;font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
+  .pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;flex:0 0 auto;cursor:pointer;padding:8px 2px;}
   .pf-topbar-brand span{color:#c1121f;}
   .pf-pillars-nav{display:flex;gap:6px;flex:1 1 auto;}
-  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid #333;border-radius:8px;padding:10px 4px;color:#b0b0b0;font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
-  .pf-pillar:active{color:#fff;background:#1a1a1a;}
+  .pf-pillar{flex:1 1 0;text-align:center;text-decoration:none;background:transparent;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;white-space:nowrap;touch-action:manipulation;cursor:pointer;}
+  .pf-pillar:active{color:var(--pf-text);background:var(--pf-surface);}
   main{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 84px) 16px 24px;}
   .hero h1{font-size:30px;margin:0 0 6px;letter-spacing:.02em;line-height:1.15;}
   .hero h1 .red{color:#c1121f;}
-  .sub{color:#b0b0b0;font-size:15px;margin:0 0 20px;}
-  .karl-quote{border-left:3px solid #c1121f;background:#141414;border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:#f5ead6;font-style:italic;margin:0 0 20px;}
+  .sub{color:var(--pf-text-dim);font-size:15px;margin:0 0 20px;}
+  .karl-quote{border-left:3px solid var(--pf-accent);background:var(--pf-surface);border-radius:0 10px 10px 0;padding:12px 14px;font-size:14px;color:var(--pf-text);font-style:italic;margin:0 0 20px;}
   .karl-quote b{color:#e5383b;font-style:normal;}
   .doc h2{font-size:19px;margin:30px 0 10px;letter-spacing:.03em;line-height:1.3;}
   .doc h2 .red{color:#c1121f;}
-  .doc p{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;}
-  .doc ul{font-size:15px;line-height:1.65;color:#e8e2d6;margin:0 0 14px;padding-left:22px;}
+  .doc p{font-size:15px;line-height:1.65;color:var(--pf-text);margin:0 0 14px;}
+  .doc ul{font-size:15px;line-height:1.65;color:var(--pf-text);margin:0 0 14px;padding-left:22px;}
   .doc li{margin-bottom:8px;}
   .doc a{color:#e5383b;font-weight:600;}
-  .doc strong{color:#fff;}
-  .doc code{color:#f5ead6;background:#1a1a1a;padding:1px 6px;border-radius:4px;font-size:13px;}
-  .callout{background:#141414;border:1px solid #c1121f;border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:15px;line-height:1.6;color:#e8e2d6;}
-  .xlink{background:#101010;border:1px solid #2a2a2a;border-radius:12px;padding:14px 16px;margin:22px 0 10px;font-size:14px;line-height:1.6;color:#b0b0b0;}
+  .doc strong{color:var(--pf-text);}
+  .doc code{color:var(--pf-text);background:var(--pf-surface);padding:1px 6px;border-radius:4px;font-size:13px;}
+  .callout{background:var(--pf-surface);border:1px solid var(--pf-accent);border-radius:12px;padding:14px 16px;margin:0 0 18px;font-size:15px;line-height:1.6;color:var(--pf-text);}
+  .xlink{background:#101010;border:1px solid var(--pf-border);border-radius:12px;padding:14px 16px;margin:22px 0 10px;font-size:14px;line-height:1.6;color:var(--pf-text-dim);}
   .xlink a{color:#e5383b;font-weight:700;}
-  .doc .updated{font-size:12px;color:#8a8478;margin-top:28px;}
-  details.faq{background:#141414;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:10px;overflow:hidden;}
-  details.faq[open]{border-color:#c1121f;}
-  details.faq summary{padding:14px 16px;font-size:15px;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation;min-height:44px;display:flex;align-items:center;gap:10px;color:#fff;}
+  .doc .updated{font-size:12px;color:var(--pf-text-dim);margin-top:28px;}
+  details.faq{background:var(--pf-surface);border:1px solid var(--pf-border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  details.faq[open]{border-color:var(--pf-accent);}
+  details.faq summary{padding:14px 16px;font-size:15px;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation;min-height:44px;display:flex;align-items:center;gap:10px;color:var(--pf-text);}
   details.faq summary::-webkit-details-marker{display:none;}
   details.faq summary::before{content:'+';color:#c1121f;font-weight:900;font-size:20px;flex-shrink:0;}
   details.faq[open] summary::before{content:'\2212';}
-  details.faq .faq-body{padding:0 16px 16px;font-size:15px;line-height:1.65;color:#e8e2d6;}
+  details.faq .faq-body{padding:0 16px 16px;font-size:15px;line-height:1.65;color:var(--pf-text);}
   details.faq .faq-body p{margin:0 0 12px;}
   details.faq .faq-body p:last-child{margin-bottom:0;}
   .faq-body a{color:#e5383b;font-weight:600;}
 </style>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
 </head>
 <body>
 <header class="pf-topbar">
@@ -86,18 +89,18 @@
 .pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 .pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}
 .pf-snav-overlay.open{opacity:1;pointer-events:auto}
-.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:#141414;color:#fff;z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
+.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:var(--pf-surface);color:var(--pf-text);z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}
 .pf-snav.open{transform:translateX(0)}
-.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#141414;z-index:1}
+.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}
 .pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}
 .pf-snav-brand span{color:#c1121f}
-.pf-snav-close{background:none;border:none;color:#999;font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}
 .pf-snav-group{padding:12px 0 4px}
-.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:#777;font-weight:700}
-.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:#eee;text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
-.pf-snav a.pf-snav-link:active{background:#1f1f1f}
+.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}
+.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--pf-text);text-decoration:none;font-size:15px;font-weight:600;min-height:48px}
+.pf-snav a.pf-snav-link:active{background:var(--pf-surface-raised)}
 .pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}
-.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:#666;line-height:1.6;border-top:1px solid #2a2a2a;margin-top:8px}
+.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:var(--pf-text-faint);line-height:1.6;border-top:1px solid var(--pf-border);margin-top:8px}
 </style>
 <div class="pf-snav-overlay" id="pf-snav-overlay"></div>
 <nav class="pf-snav" id="pf-snav" aria-label="Site tools">
@@ -186,8 +189,8 @@
   <p class="doc updated">Last updated October 2026. Pricing changes are announced on /api/ before they take effect.</p>
 </main>
 <style>
-.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:#0a0a0a;border-top:1px solid #232323;padding-bottom:env(safe-area-inset-bottom,0px);}
-.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:#8a8478;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}
+.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}
 .pf-bnav a.on{color:#e5383b;}
 .pf-bnav a:active{opacity:.7;}

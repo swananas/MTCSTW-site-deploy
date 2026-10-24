@@ -1,8 +1,8 @@
 {
- "version": "ugc-feed-v2-bank-20261023",
+ "version": "ugc-feed-v3-canva-bank-20261023",
  "generated": "2026-10-23",
- "source": "Shane UGC only \u2014 UGC Vault Sorted (SSD) + Drive Memes + Canva package",
- "count": 161,
+ "source": "Shane UGC only \u2014 UGC Vault Sorted (SSD) + Drive Memes + Canva package (brand-passed)",
+ "count": 193,
  "cards": [
   {
    "id": "ugc-bm-concept-a-classic-poster",
@@ -489,17 +489,6 @@
    "provenance": "shane-ugc"
   },
   {
-   "id": "ugc-28",
-   "type": "creator",
-   "headline": "Selfie of the creator wearing safety glasses in a warehouse",
-   "image": "/feed-media/28-creator-img-2286-2.jpg",
-   "width": 1080,
-   "height": 1920,
-   "date": "2026-02-20",
-   "source": "MTCSTW UGC Vault \u2014 Creator on camera",
-   "provenance": "shane-ugc"
-  },
-  {
    "id": "ugc-29",
    "type": "meme",
    "headline": "Burning McDonald's photo with a roses-are-red poem about the fall of capitalism",
@@ -541,17 +530,6 @@
    "height": 607,
    "date": "2026-01-27",
    "source": "MTCSTW UGC Vault \u2014 Designs & artwork",
-   "provenance": "shane-ugc"
-  },
-  {
-   "id": "ugc-33",
-   "type": "creator",
-   "headline": "Close-up video still of creator in a green cap with text Are things this different",
-   "image": "/feed-media/33-creator-img-2033-1.jpg",
-   "width": 1080,
-   "height": 1371,
-   "date": "2026-01-27",
-   "source": "MTCSTW UGC Vault \u2014 Creator on camera",
    "provenance": "shane-ugc"
   },
   {
@@ -1773,6 +1751,380 @@
    "height": 1257,
    "date": "2025-10-11",
    "source": "MTCSTW UGC Vault \u2014 Protest & events",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c01-design",
+   "type": "design",
+   "headline": "Quote card: a system that lets people be homeless while homes sit empty is a broken system (PropFac)",
+   "image": "/feed-media/c01-design.jpg",
+   "width": 1059,
+   "height": 887,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c02-design",
+   "type": "design",
+   "headline": "Investor hot-tip card: buying property you won't live in doesn't make you an investor (MTCSTW)",
+   "image": "/feed-media/c02-design.jpg",
+   "width": 940,
+   "height": 788,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c03-design",
+   "type": "design",
+   "headline": "Poster with US flag map: There's No DEI in Pledge of Allegiance (MTCSTW)",
+   "image": "/feed-media/c03-design.jpg",
+   "width": 1080,
+   "height": 1052,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c04-design",
+   "type": "design",
+   "headline": "Card with US flags: Treason Greetings, to those who celebrate (MTCSTW)",
+   "image": "/feed-media/c04-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c05-design",
+   "type": "design",
+   "headline": "Article-style graphic: Landlords are a MLM Pyramid Scheme, with money house-of-cards image (MTCSTW)",
+   "image": "/feed-media/c05-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c06-design",
+   "type": "design",
+   "headline": "Quote card - 'No, I am not jealous of the wealthy. It's more like disgust.' (PropFac)",
+   "image": "/feed-media/c06-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c07-design",
+   "type": "design",
+   "headline": "Graphic with rising chart logo: Everything is priced like we raised the minimum wage. Someone lied (MTCSTW)",
+   "image": "/feed-media/c07-design.jpg",
+   "width": 1063,
+   "height": 1063,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c08-design",
+   "type": "design",
+   "headline": "Poster: Why do people who never experienced poverty give advice about escaping poverty? Stop rich-splaining (MTCSTW)",
+   "image": "/feed-media/c08-design.jpg",
+   "width": 800,
+   "height": 800,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c09-design",
+   "type": "design",
+   "headline": "Eclipse 'Not a single landlord liquidated' quote card (MTCSTW)",
+   "image": "/feed-media/c09-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c10-design",
+   "type": "design",
+   "headline": "Graphic: suited man scratching his head beside 'Billionaires don't create jobs, they create poverty' (MTCSTW)",
+   "image": "/feed-media/c10-design.jpg",
+   "width": 1080,
+   "height": 607,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c11-design",
+   "type": "design",
+   "headline": "Graphic: If I had a Billion Dollars I would buy at least 10 US senators, with coin jars photo (PropFac)",
+   "image": "/feed-media/c11-design.jpg",
+   "width": 940,
+   "height": 788,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c12-design",
+   "type": "design",
+   "headline": "Graphic with ferns - 'THE SYSTEM FAILED WE DONT HAVE TO / SAY NO TO CAPITALISM'",
+   "image": "/feed-media/c12-design.jpg",
+   "width": 940,
+   "height": 788,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c13-design",
+   "type": "design",
+   "headline": "Text graphic over lava: Billionaires are so weird, what are you saving up for, Hell? (MTCSTW)",
+   "image": "/feed-media/c13-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c14-design",
+   "type": "design",
+   "headline": "Line illustration of a landlord holding a house: landlord is a job title with the worst work ethic (MTCSTW)",
+   "image": "/feed-media/c14-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c15-design",
+   "type": "design",
+   "headline": "Dear Santa checklist card: no more landlords, no more billionaires, no more war, a raise, a bike (MTCSTW)",
+   "image": "/feed-media/c15-design.jpg",
+   "width": 940,
+   "height": 788,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c16-design",
+   "type": "design",
+   "headline": "Text card: How can you trespass at a place you're paying almost 100k a year to attend? (MTCSTW)",
+   "image": "/feed-media/c16-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c17-design",
+   "type": "design",
+   "headline": "Pizza-themed graphic: How about just give me a raise and I can buy my own pizza? (MTCSTW)",
+   "image": "/feed-media/c17-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c18-design",
+   "type": "design",
+   "headline": "Cartoon bullet train graphic about a jet door blowing off and whistleblowers disappearing, F Planes (MTCSTW)",
+   "image": "/feed-media/c18-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c19-design",
+   "type": "design",
+   "headline": "Eclipse graphic: If the eclipse cost the US economy $700 million, what would a 2 day general strike cost? (MTCSTW)",
+   "image": "/feed-media/c19-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c20-design",
+   "type": "design",
+   "headline": "Text card: water was free until corporations bought up utilities and water rights to extort us (MTCSTW)",
+   "image": "/feed-media/c20-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c21-design",
+   "type": "design",
+   "headline": "Cartoon fish eyeing a dollar on a hook: give a fish a billionaire and it eats for a couple months (MTCSTW)",
+   "image": "/feed-media/c21-design.jpg",
+   "width": 1080,
+   "height": 1350,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c22-design",
+   "type": "design",
+   "headline": "Pyramid diagram: Every level of capitalism is unionized except the workers (MTCSTW)",
+   "image": "/feed-media/c22-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c23-design",
+   "type": "design",
+   "headline": "Card with three dog photos: Pro Life, unless the dog is annoying or untrainable (MTCSTW)",
+   "image": "/feed-media/c23-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c24-design",
+   "type": "design",
+   "headline": "Black text card: Elon is not worth $50 billion; give it to the workers and the company is worth 100x (MTCSTW)",
+   "image": "/feed-media/c24-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c25-design",
+   "type": "design",
+   "headline": "Farm illustration: Organic landlord is fine but I prefer my landlords free ranged (MTCSTW)",
+   "image": "/feed-media/c25-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c26-design",
+   "type": "design",
+   "headline": "Graphic with train photo: a door plug has never blown off a high speed rail while in transit (MTCSTW)",
+   "image": "/feed-media/c26-design.jpg",
+   "width": 1080,
+   "height": 608,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c27-design",
+   "type": "design",
+   "headline": "Poster with cartoon pizza slice: Remember, pizza is not enough; talk wages and unionization over company pizza (MTCSTW)",
+   "image": "/feed-media/c27-design.jpg",
+   "width": 1080,
+   "height": 1397,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c28-design",
+   "type": "design",
+   "headline": "Propaganda Factory subscription pricing graphic: Pay to Play, $2 and $20 tiers, mtcstw.com",
+   "image": "/feed-media/c28-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c29-design",
+   "type": "design",
+   "headline": "Text graphic: If your employees live in poverty, all the jobs you 'created' are worthless (MTCSTW)",
+   "image": "/feed-media/c29-design.jpg",
+   "width": 1080,
+   "height": 1080,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c30-design",
+   "type": "design",
+   "headline": "Sign graphic: Warning, this post is being used to train AI models, comment outlandish gibberish (MTCSTW)",
+   "image": "/feed-media/c30-design.jpg",
+   "width": 1080,
+   "height": 763,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c31-design",
+   "type": "design",
+   "headline": "Infographic showing beauty companies owned by 7 major parent companies",
+   "image": "/feed-media/c31-design.jpg",
+   "width": 1080,
+   "height": 1155,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c32-design",
+   "type": "design",
+   "headline": "News headline card about a guest squatting at a luxury rental",
+   "image": "/feed-media/c32-design.jpg",
+   "width": 1080,
+   "height": 1053,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c33-design",
+   "type": "design",
+   "headline": "Image of a fake cigarette carton labeled pumpkin spice flavor",
+   "image": "/feed-media/c33-design.jpg",
+   "width": 960,
+   "height": 960,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
+   "provenance": "shane-ugc"
+  },
+  {
+   "id": "ugc-c34-design",
+   "type": "design",
+   "headline": "illustrated poster titled Ways to Be a Rich Person with a list",
+   "image": "/feed-media/c34-design.jpg",
+   "width": 1080,
+   "height": 1527,
+   "date": "",
+   "source": "MTCSTW UGC Vault \u2014 Designs & artwork (Canva)",
    "provenance": "shane-ugc"
   }
  ]

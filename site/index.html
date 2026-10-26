@@ -149,6 +149,13 @@
   #pf-home-feed .kh-author-card{ cursor:pointer; }
   #pf-home-feed .kh-author-beat{ font-size:14px; line-height:1.45; color:var(--pf-text-dim); margin-bottom:8px; }
   #pf-home-feed .kh-author-cta{ color:var(--pf-accent-ink); font-weight:700; font-size:12px; letter-spacing:.05em; text-decoration:none; white-space:nowrap; }
+  #pf-home-feed .kh-net-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  #pf-home-feed .kh-net-avatar{ width:40px; height:40px; border-radius:50%; object-fit:cover; flex:none; background:var(--pf-surface); }
+  #pf-home-feed .kh-net-name{ font-size:14px; font-weight:800; color:var(--kh-cream); line-height:1.25; }
+  #pf-home-feed .kh-net-plat{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--kh-dim); }
+  #pf-home-feed .kh-net-title{ color:inherit; text-decoration:none; }
+  #pf-home-feed .kh-net-title:active{ color:var(--pf-accent-ink); }
+  #pf-home-feed .kh-dbg{ font-family:var(--pf-font-mono); font-size:10px; line-height:1.5; color:#7ac74f; border:1px dashed #3a4a2a; border-radius:8px; padding:6px 8px; margin-top:8px; word-break:break-word; }
   #pf-home-feed .kh-card-meta{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     margin-top:12px; padding-top:10px; border-top:1px dashed var(--kh-line);
@@ -176,7 +183,7 @@
   }
   #pf-home-feed .kh-toast.kh-show{ transform:translateX(-50%) translateY(0); opacity:1; }
 </style>
-<script>window.__PF_BUILD="20261026-0512-b1d7bf80";</script>
+<script>window.__PF_BUILD="20261026-0030-af7d76f0";</script>
 <script>(function(){
   try{
     var cur = window.__PF_BUILD; if(!cur) return;
@@ -857,17 +864,26 @@ if('serviceWorker' in navigator){
 }
 </script>
 <script>
-/* ---------- HOME FEED (native UGC feed, 20261023; rotation v2) ----------
+/* ---------- HOME FEED (native UGC feed, 20261023; ranking v4.3) ----------
    One source: the static bundle /feed/ugc-feed.json (Shane's own UGC —
-   memes, posts, designs, creator shots, protest photos). No API, no
-   database, nothing else is fetched.
-   ORDER IS ALGORITHMIC, computed in the browser only: a daily-seeded
-   weighted shuffle over the whole bank. Fresh posts (newest dates)
-   carry more weight, and posts this device has already seen are
-   demoted (seen-set lives in localStorage on the device — never sent
-   anywhere, no D1, no server state). The order reshuffles every day
-   and fresh bank posts rotate in ahead of stale ones. Cards render
-   10 at a time, as the sentinel scrolls into view.
+   memes, posts, designs, creator shots, protest photos — plus the
+   SLR network's latest posts, folded in at build time from the
+   aggregation index, display-only). No API, no database, nothing
+   else is fetched.
+   ORDER IS ALGORITHMIC, computed in the browser only. Two pools,
+   unseen first (seen-set lives in localStorage on the device — never
+   sent anywhere, no D1, no server state). Within a pool every card
+   carries a transparent score: freshness (date rank within the pool;
+   cards whose date is their bank-ingest date say so via date_basis)
+   + provenance weight (Shane's UGC ahead of network posts) + this
+   device's own engagement (taps/shares in localStorage, capped and
+   decaying daily). Cards are drawn weighted-random by score, batch
+   by batch, with a diversity penalty for same-type / same-source
+   cards already in the batch — and in the ALL view each batch obeys
+   mix quotas: at most 5 designs per 10 content slots, and meme /
+   post / protest / creator guaranteed a slot while their unseen
+   pool lasts. ?pf_debug=feed shows the score breakdown per card.
+   Cards render 10 at a time, as the sentinel scrolls into view.
    AUTHOR SPOTLIGHTS (CEO order 2026-10-25): the bundle also carries
    type=author cards for the SLR roster (MTCSTW itself excluded by
    CEO ruling). They are NOT shuffled into the bank — they are
@@ -879,6 +895,7 @@ if('serviceWorker' in navigator){
 "use strict";
 var BATCH = 10;
 var LABELS = { meme:'MEMES', post:'POSTS', design:'DESIGNS', creator:'CREATOR', protest:'PROTEST', author:'CREATOR SPOTLIGHT' };
+var DEBUG_FEED = /[?&]pf_debug=feed(&|$)/.test(location.search || '');
 var feedEl = document.getElementById('kh-feed');
 var sentinel = document.getElementById('kh-feed-sentinel');
 var tabsEl = document.getElementById('kh-feed-tabs');
@@ -920,30 +937,168 @@ function markSeen(ids){
     localStorage.setItem(SEEN_KEY, JSON.stringify(arr));
   }catch(e){}
 }
-function rotate(cards){
+/* ---- light ranking + mix quotas (v4.3) ----
+   Score (per pool, so unseen-first is structural, not a weight):
+     base = 0.35 + 2 * freshness + provenance + 0.6 * engagement
+     freshness  = rank-normalized over the pool's distinct dates,
+                  newest date = 1; same-date cards share a rank
+     provenance = shane-ugc 0.30, slr-network 0.15, anything else 0
+     engagement = this device's taps/shares for the card, stored in
+                  localStorage (pf_feed_engage_v1), exponentially
+                  decaying x0.92/day, capped at 1
+   Assembly draws cards weighted-random by an effective score that
+   also subtracts a diversity penalty (0.06 per same-type and 0.04
+   per same-source card already placed in the current batch).
+   ALL view assembles in the same 10/9 content blocks withAuthors()
+   consumes, with quotas per block: designs capped at 5, and each of
+   meme/post/protest/creator guaranteed a slot while that type still
+   has cards in the queue being drawn from. Filtered views assemble
+   in plain 10-blocks with no quotas — they stay pure. */
+var ENGAGE_KEY = 'pf_feed_engage_v1';
+var PROV_W = { 'shane-ugc': 0.30, 'slr-network': 0.15 };
+var GUARANTEE_TYPES = ['meme', 'post', 'protest', 'creator'];
+var DESIGN_CAP = 5;
+var PEN_TYPE = 0.06, PEN_SRC = 0.04;
+function dayNumber(){
+  var d = new Date();
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+}
+function engageStore(){
+  try{
+    var raw = localStorage.getItem(ENGAGE_KEY);
+    var m = raw ? JSON.parse(raw) : {};
+    return (m && typeof m === 'object' && !Array.isArray(m)) ? m : {};
+  }catch(e){ return {}; }
+}
+function engageValue(entry, today){
+  if(!entry || typeof entry.v !== 'number') return 0;
+  var age = today - (entry.d || today);
+  if(age < 0) age = 0;
+  var v = entry.v * Math.pow(0.92, age);
+  return v > 1 ? 1 : v;
+}
+function recordEngage(id, kind){
+  try{
+    var today = dayNumber();
+    var m = engageStore();
+    var cur = engageValue(m[id], today) + (kind === 's' ? 0.15 : 0.05);
+    m[id] = { v: cur > 1.2 ? 1.2 : cur, d: today };
+    var ids = Object.keys(m);
+    if(ids.length > 500){
+      ids.sort(function(a, b){ return (m[a].d || 0) - (m[b].d || 0); });
+      ids.slice(0, ids.length - 500).forEach(function(k){ delete m[k]; });
+    }
+    localStorage.setItem(ENGAGE_KEY, JSON.stringify(m));
+  }catch(e){}
+}
+function scorePool(pool, rand, eng, today, info){
+  /* Freshness is rank-normalized over the pool's DISTINCT dates, ties
+     sharing a rank. Per-card ranks would be meaningless on this bank:
+     598 cards share the 2026-10-24 ingest date, so a card posted
+     2026-10-12 would rank below 634 cards and score fresh ~0.2 —
+     indistinguishable from a year-old card, and the top of the feed
+     measurably skewed OLDER than the bank mean. On the distinct-date
+     ladder (106 rungs), 2026-10-12 sits near the top, as it should. */
+  var ladder = [];
+  var onLadder = {};
+  pool.forEach(function(c){
+    var d = c.date || '';
+    if(!onLadder[d]){ onLadder[d] = 1; ladder.push(d); }
+  });
+  ladder.sort(function(a, b){ return String(b).localeCompare(String(a)); });
+  var rung = {};
+  ladder.forEach(function(d, i){ rung[d] = ladder.length ? 1 - i / ladder.length : 0; });
+  pool.forEach(function(c){
+    var fresh = rung[c.date || ''] || 0;
+    var prov = PROV_W[c.provenance] || 0;
+    var engV = engageValue(eng[c.id], today);
+    info[c.id] = { fresh: fresh, prov: prov, eng: engV,
+                   score: 0.35 + 2 * fresh + prov + 0.6 * engV };
+  });
+}
+function assemble(cards, quotaSizes){
   if(cards.length < 2) return cards.slice();
   var rand = mulberry32(dailySeed());
   var seen = seenSet();
-  var byDate = cards.slice().sort(function(a, b){
-    return String(b.date || '').localeCompare(String(a.date || ''));
-  });
-  var n = byDate.length;
-  var freshOf = {};
-  byDate.forEach(function(c, rank){ freshOf[c.id] = 1 - rank / n; });
-  function shuffleWeighted(list){
-    var keyed = list.map(function(c){
-      var w = 0.35 + (freshOf[c.id] || 0);  /* freshness boost */
-      return { c: c, k: Math.pow(rand(), 1 / w) };
-    });
-    keyed.sort(function(a, b){ return b.k - a.k; });
-    return keyed.map(function(x){ return x.c; });
-  }
+  var eng = engageStore(), today = dayNumber();
   var unseen = [], seenArr = [];
-  byDate.forEach(function(c){ (seen[c.id] ? seenArr : unseen).push(c); });
-  /* Unseen posts first (fresh-weighted), already-seen posts after —
-     a returning visitor rotates through the bank instead of re-reading
-     the same top cards. */
-  return shuffleWeighted(unseen).concat(shuffleWeighted(seenArr));
+  cards.forEach(function(c){ (seen[c.id] ? seenArr : unseen).push(c); });
+  var info = {};
+  scorePool(unseen, rand, eng, today, info);
+  scorePool(seenArr, rand, eng, today, info);
+  var queues = [unseen, seenArr];
+  var out = [], blockIdx = 0;
+  function queue(){ return queues[0].length ? queues[0] : queues[1]; }
+  while(queues[0].length || queues[1].length){
+    var size = quotaSizes ? quotaSizes[blockIdx % quotaSizes.length] : BATCH;
+    var typeCount = {}, srcCount = {}, placedTypes = {};
+    for(var slot = 0; slot < size; slot++){
+      var q = queue();
+      if(!q.length) break;
+      var slotsLeft = size - slot;
+      var cand = q, restrict = null, capDesign = false;
+      if(quotaSizes){
+        var unmet = GUARANTEE_TYPES.filter(function(t){
+          return !placedTypes[t] && q.some(function(c){ return c.type === t; });
+        });
+        if(unmet.length && slotsLeft <= unmet.length) restrict = unmet;
+        capDesign = (typeCount.design || 0) >= DESIGN_CAP;
+      }
+      if(restrict) cand = q.filter(function(c){ return restrict.indexOf(c.type) >= 0; });
+      if(capDesign){
+        var nd = cand.filter(function(c){ return c.type !== 'design'; });
+        if(nd.length) cand = nd;
+      }
+      if(!cand.length) cand = q;
+      var total = 0, weights = [];
+      for(var ci2 = 0; ci2 < cand.length; ci2++){
+        var cc = cand[ci2];
+        var pen = PEN_TYPE * (typeCount[cc.type] || 0) + PEN_SRC * (srcCount[cc.source] || 0);
+        var eff = info[cc.id].score - pen;
+        if(eff < 0.05) eff = 0.05;
+        /* Draw weight = effective score squared: still weighted-random
+           by score, but sharp enough for freshness to register against
+           a bank whose dates cluster. Calibration is measured, not
+           guessed (see FEED-PACKAGE-REPORT.md): with the naive penalty
+           (0.25/0.15) the 632 same-source designs floored out after
+           2-3 placements per batch and the top-40 skewed OLDER than
+           the bank despite the freshness term; PEN_TYPE/PEN_SRC keep
+           the spread pressure without crushing the newest mass. */
+        weights.push(eff * eff);
+        total += weights[ci2];
+      }
+      var r = rand() * total, pick = cand[cand.length - 1];
+      for(var wi = 0; wi < cand.length; wi++){
+        r -= weights[wi];
+        if(r <= 0){ pick = cand[wi]; break; }
+      }
+      var pinf = info[pick.id];
+      var ppen = PEN_TYPE * (typeCount[pick.type] || 0) + PEN_SRC * (srcCount[pick.source] || 0);
+      pick._dbg = { fresh: pinf.fresh, prov: pinf.prov, eng: pinf.eng, pen: ppen,
+                    fin: Math.max(0.05, pinf.score - ppen), basis: pick.date_basis || '' };
+      q.splice(q.indexOf(pick), 1);
+      out.push(pick);
+      typeCount[pick.type] = (typeCount[pick.type] || 0) + 1;
+      srcCount[pick.source] = (srcCount[pick.source] || 0) + 1;
+      placedTypes[pick.type] = 1;
+    }
+    blockIdx++;
+  }
+  return out;
+}
+function fmt(n){ return (typeof n === 'number') ? n.toFixed(2) : '0.00'; }
+function dbgEl(c){
+  var d = document.createElement('div');
+  d.className = 'kh-dbg';
+  if(c.type === 'author'){
+    d.textContent = 'author - fixed cadence, not scored';
+    return d;
+  }
+  var b = c._dbg || {};
+  d.textContent = 'score ' + fmt(b.fin) + ' = 0.35 + 2*fresh ' + fmt(b.fresh) +
+    ' [' + (c.date || '-') + '/' + (b.basis || '-') + '] + prov ' + fmt(b.prov) +
+    ' + 0.6*eng ' + fmt(b.eng) + ' - pen ' + fmt(b.pen);
+  return d;
 }
 
 /* Author spotlight insertion — the 10-post model (see header note).
@@ -984,6 +1139,7 @@ function showToast(msg){
   toastTimer = setTimeout(function(){ t.classList.remove('kh-show'); }, 2400);
 }
 function shareCard(c, btn){
+  recordEngage(c.id, 's');
   var text = c.headline || '';
   var url = 'https://mtcstw.com/';
   if(navigator.share){
@@ -1013,7 +1169,32 @@ function cardEl(c){
       if(ev.target && ev.target.closest && ev.target.closest('a')) return;
       if(c.link) window.location.href = c.link;
     });
+    if(DEBUG_FEED) ael.appendChild(dbgEl(c));
     return ael;
+  }
+  /* Network post card (SLR aggregation, display-only): creator identity
+     up front, the post title links OUT to the original post, and a
+     VIEW PORTFOLIO action pulls the reader IN to the creator's page
+     on mtcstw.com. No re-hosted media; the avatar is the creator's
+     self-hosted roster photo. */
+  if(c.provenance === 'slr-network'){
+    var nel = document.createElement('article');
+    nel.className = 'kh-card kh-net-card';
+    nel.innerHTML =
+      '<div class="kh-badge">FROM THE NETWORK</div>' +
+      '<div class="kh-net-head">' +
+        '<img class="kh-net-avatar" src="' + esc(c.avatar) + '" alt="' + esc(c.creator_name) + '" loading="lazy" decoding="async">' +
+        '<div><div class="kh-net-name">' + esc(c.creator_name) + '</div>' +
+        '<div class="kh-net-plat">' + esc(c.platform) + '</div></div>' +
+      '</div>' +
+      '<div class="kh-q"><a class="kh-net-title" href="' + esc(c.link) + '" target="_blank" rel="noopener">' + esc(c.headline) + '</a></div>' +
+      '<div class="kh-card-meta"><span class="kh-src">' + esc(c.date || '') + '</span>' +
+      '<a class="kh-author-cta" href="' + esc(c.portfolio) + '">VIEW PORTFOLIO \u2192</a></div>';
+    nel.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ recordEngage(c.id, 't'); });
+    });
+    if(DEBUG_FEED) nel.appendChild(dbgEl(c));
+    return nel;
   }
   var el = document.createElement('article');
   el.className = 'kh-card';
@@ -1032,6 +1213,11 @@ function cardEl(c){
     '<button class="kh-share-btn" type="button">SHARE \u2192</button></div>';
   var btn = el.querySelector('.kh-share-btn');
   if(btn) btn.addEventListener('click', function(){ shareCard(c, btn); });
+  el.addEventListener('click', function(ev){
+    if(ev.target && ev.target.closest && ev.target.closest('button, a')) return;
+    recordEngage(c.id, 't');
+  });
+  if(DEBUG_FEED) el.appendChild(dbgEl(c));
   return el;
 }
 function skeletons(n){
@@ -1093,8 +1279,8 @@ if(tabsEl){
       t.classList.toggle('kh-active', t === btn);
     });
     view = (f === 'all')
-      ? withAuthors(rotate(allCards))
-      : rotate(allCards.filter(function(c){ return c.type === f; }));
+      ? withAuthors(assemble(allCards, [10, 9]))
+      : assemble(allCards.filter(function(c){ return c.type === f; }), null);
     resetFeed();
   });
 }
@@ -1114,7 +1300,7 @@ fetch('/feed/ugc-feed.json', { cache:'no-store' })
     var rawCards = (bundle && bundle.cards) || [];
     authorCards = rawCards.filter(function(c){ return c.type === 'author'; });
     allCards = rawCards.filter(function(c){ return c.type !== 'author'; });
-    view = withAuthors(rotate(allCards));
+    view = withAuthors(assemble(allCards, [10, 9]));
     feedEl.innerHTML = '';
     if(!allCards.length){ failCard(); return; }
     resetFeed();

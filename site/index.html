@@ -146,6 +146,9 @@
   }
   #pf-home-feed .kh-card .kh-q{ font-size:15px; font-weight:600; margin-bottom:8px; color:var(--kh-cream); }
   #pf-home-feed .kh-card-img{ width:100%; height:auto; display:block; border-radius:12px; margin:2px 0 10px; }
+  #pf-home-feed .kh-author-card{ cursor:pointer; }
+  #pf-home-feed .kh-author-beat{ font-size:14px; line-height:1.45; color:var(--pf-text-dim); margin-bottom:8px; }
+  #pf-home-feed .kh-author-cta{ color:var(--pf-accent-ink); font-weight:700; font-size:12px; letter-spacing:.05em; text-decoration:none; white-space:nowrap; }
   #pf-home-feed .kh-card-meta{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     margin-top:12px; padding-top:10px; border-top:1px dashed var(--kh-line);
@@ -868,16 +871,23 @@ if('serviceWorker' in navigator){
    demoted (seen-set lives in localStorage on the device — never sent
    anywhere, no D1, no server state). The order reshuffles every day
    and fresh bank posts rotate in ahead of stale ones. Cards render
-   10 at a time, as the sentinel scrolls into view. */
+   10 at a time, as the sentinel scrolls into view.
+   AUTHOR SPOTLIGHTS (CEO order 2026-10-25): the bundle also carries
+   type=author cards for the SLR roster (MTCSTW itself excluded by
+   CEO ruling). They are NOT shuffled into the bank — they are
+   inserted by withAuthors() at exactly 0.5 per 10 rendered (one per
+   20, position 6 of every second batch), ALL view only, daily-seeded
+   order, no repeats until the pool is exhausted. Propaganda scores
+   never render in the feed — scores are catalog-only. */
 (function(){
 "use strict";
 var BATCH = 10;
-var LABELS = { meme:'MEMES', post:'POSTS', design:'DESIGNS', creator:'CREATOR', protest:'PROTEST' };
+var LABELS = { meme:'MEMES', post:'POSTS', design:'DESIGNS', creator:'CREATOR', protest:'PROTEST', author:'CREATOR SPOTLIGHT' };
 var feedEl = document.getElementById('kh-feed');
 var sentinel = document.getElementById('kh-feed-sentinel');
 var tabsEl = document.getElementById('kh-feed-tabs');
 if(!feedEl || !sentinel) return;
-var allCards = [], view = [], shown = 0, toastTimer = null;
+var allCards = [], authorCards = [], view = [], shown = 0, toastTimer = null;
 
 /* ---- rotation algorithm (client-side only) ---- */
 function mulberry32(a){
@@ -940,6 +950,30 @@ function rotate(cards){
   return shuffleWeighted(unseen).concat(shuffleWeighted(seenArr));
 }
 
+/* Author spotlight insertion — the 10-post model (see header note).
+   Content arrives already rotated; spotlights are interleaved as an
+   insertion lane, never as bank cards, so no content is displaced
+   from the bank and filtered views stay pure. */
+function withAuthors(content){
+  if(!authorCards.length) return content;
+  var rand = mulberry32(dailySeed() * 7 + 13);
+  var pool = authorCards.slice();
+  for(var i = pool.length - 1; i > 0; i--){
+    var j = Math.floor(rand() * (i + 1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  var out = [], ai = 0, k = 0;
+  while(k < content.length){
+    var batchA = content.slice(k, k + 10);
+    out.push.apply(out, batchA); k += batchA.length;
+    if(k >= content.length) break;
+    var batchB = content.slice(k, k + 9); k += batchB.length;
+    out.push.apply(out, batchB.slice(0, 5));
+    if(ai < pool.length) out.push(pool[ai++]);
+    out.push.apply(out, batchB.slice(5));
+  }
+  return out;
+}
 function esc(s){
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -967,6 +1001,24 @@ function shareCard(c, btn){
   } else { showToast(text); }
 }
 function cardEl(c){
+  if(c.type === 'author'){
+    var ael = document.createElement('article');
+    ael.className = 'kh-card kh-author-card';
+    ael.innerHTML =
+      '<div class="kh-badge">' + esc(LABELS.author) + '</div>' +
+      '<div class="kh-q">' + esc(c.headline) + '</div>' +
+      (c.beat ? '<div class="kh-author-beat">' + esc(c.beat) + '</div>' : '') +
+      (c.image
+        ? '<img class="kh-card-img" src="' + esc(c.image) + '" alt="' + esc(c.headline) + '" loading="lazy" decoding="async">'
+        : '') +
+      '<div class="kh-card-meta"><span class="kh-src">' + esc(c.meta_line || '') + '</span>' +
+      '<a class="kh-author-cta" href="' + esc(c.link || '/') + '">VIEW PORTFOLIO \u2192</a></div>';
+    ael.addEventListener('click', function(ev){
+      if(ev.target && ev.target.closest && ev.target.closest('a')) return;
+      if(c.link) window.location.href = c.link;
+    });
+    return ael;
+  }
   var el = document.createElement('article');
   el.className = 'kh-card';
   var label = LABELS[c.type] || String(c.type || '').toUpperCase();
@@ -1010,7 +1062,7 @@ function renderMore(){
   if(shown >= view.length) return;
   var next = view.slice(shown, shown + BATCH);
   next.forEach(function(c){ feedEl.appendChild(cardEl(c)); });
-  markSeen(next.map(function(c){ return c.id; }));
+  markSeen(next.filter(function(c){ return c.type !== 'author'; }).map(function(c){ return c.id; }));
   shown += next.length;
   var old = feedEl.querySelector('.kh-feed-end');
   if(old) old.remove();
@@ -1044,7 +1096,9 @@ if(tabsEl){
     tabsEl.querySelectorAll('.kh-tab').forEach(function(t){
       t.classList.toggle('kh-active', t === btn);
     });
-    view = rotate((f === 'all') ? allCards : allCards.filter(function(c){ return c.type === f; }));
+    view = (f === 'all')
+      ? withAuthors(rotate(allCards))
+      : rotate(allCards.filter(function(c){ return c.type === f; }));
     resetFeed();
   });
 }
@@ -1061,8 +1115,10 @@ skeletons(2).forEach(function(s){ feedEl.appendChild(s); });
 fetch('/feed/ugc-feed.json', { cache:'no-store' })
   .then(function(r){ if(!r.ok) throw new Error('bundle ' + r.status); return r.json(); })
   .then(function(bundle){
-    allCards = (bundle && bundle.cards) || [];
-    view = rotate(allCards);
+    var rawCards = (bundle && bundle.cards) || [];
+    authorCards = rawCards.filter(function(c){ return c.type === 'author'; });
+    allCards = rawCards.filter(function(c){ return c.type !== 'author'; });
+    view = withAuthors(rotate(allCards));
     feedEl.innerHTML = '';
     if(!allCards.length){ failCard(); return; }
     resetFeed();

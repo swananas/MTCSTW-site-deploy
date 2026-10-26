@@ -21,18 +21,16 @@
   var POLL_MS = 45000;
   var STALE_MS = 10 * 60 * 1000;
 
+  /* CEO order 2026-10-25: BUILD (Developer) + SCALE (Enterprise) removed from
+     MTCSTW — the selling-data surfaces moved to the ATCSTW brand. FIGHT only. */
   var FACES = [
-    { id: "fight", name: "FIGHT", sub: "Movement", href: "/" },
-    { id: "build", name: "BUILD", sub: "Developer", href: "/api/" },
-    { id: "scale", name: "SCALE", sub: "Enterprise", href: "/enterprise/" }
+    { id: "fight", name: "FIGHT", sub: "Movement", href: "/" }
   ];
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var nf = new Intl.NumberFormat("en-US");
 
   function faceFor(path) {
-    if (/^\/api(\/|$)/.test(path)) return "build";
-    if (/^\/enterprise(\/|$)/.test(path)) return "scale";
     return "fight";
   }
 

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){var t='dark';try{var s=localStorage.getItem('pf_theme');if(s==='light'||s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
+<script>(function(p){var f=/^\/api(\/|$)/.test(p)?"build":/^\/enterprise(\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>
+<link rel="stylesheet" href="/v1.4.3/core/pf-faces.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nodes — Run a Piece of the Factory — MTCSTW</title>
+<meta name="description" content="The Propaganda Factory runs on homeboxes. Download the node installer, connect your machine, and run jobs for the network — small nodes and big nodes, your caps, your kill switch.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.mtcstw.com/nodes">
+<meta property="og:title" content="Nodes — Run a Piece of the Factory">
+<meta property="og:description" content="One download. One connect prompt. Your machine does real work for the network — fetching public data, processing it on your floor, draining results to the Factory with receipts.">
+<meta property="og:image" content="https://www.mtcstw.com/nodes/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nodes — Run a Piece of the Factory">
+<meta name="twitter:description" content="Small nodes and big nodes. Your caps, your schedule, your kill switch.">
+<meta name="twitter:image" content="https://www.mtcstw.com/nodes/hero.jpg">
+<link rel="stylesheet" href="/pf-brand.css">
+<script src="/pf-theme.js" defer></script>
+<script src="/pf-chrome.js" defer></script>
+<style>
+.nd-wrap{max-width:960px;margin:0 auto;padding:24px 18px 64px}
+.nd-hero{border:3px solid var(--pf-text);margin-top:10px}
+.nd-hero img{display:block;width:100%;height:auto}
+.nd-hero-body{padding:26px;text-align:center}
+.nd-caption{font-size:12px;opacity:.65;text-align:right;padding:6px 10px 0;font-family:monospace}
+.nd-kicker{letter-spacing:3px;font-weight:800;font-size:13px;text-transform:uppercase;opacity:.85}
+.nd-hero h1{font-size:clamp(34px,7vw,58px);line-height:1.02;margin:12px 0 10px;text-transform:uppercase}
+.nd-hero-body p{font-size:clamp(16px,2.6vw,20px);max-width:640px;margin:0 auto}
+.nd-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:26px 0}
+.nd-step{border:2px solid var(--pf-border,#444);padding:18px}
+.nd-step b{display:block;font-size:15px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.nd-step .n{font-size:30px;font-weight:900;display:block;margin-bottom:8px}
+.nd-flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:6px 0 26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:13px}
+.nd-flow span{border:2px solid var(--pf-text);padding:8px 12px}
+.nd-flow i{font-style:normal;opacity:.6}
+.nd-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:10px 0 8px}
+.nd-tier{border:3px solid var(--pf-text);padding:22px}
+.nd-tier h2{margin:0 0 4px;font-size:26px;text-transform:uppercase}
+.nd-tier .sub{font-weight:700;opacity:.85;margin:0 0 12px}
+.nd-tier ul{margin:0 0 16px;padding-left:18px;line-height:1.55}
+.nd-dl{display:inline-block;padding:13px 22px;border:3px solid var(--pf-text);font-weight:900;letter-spacing:1px;text-transform:uppercase;text-decoration:none;color:inherit}
+.nd-note{font-size:13px;opacity:.8;margin-top:10px}
+.nd-same{text-align:center;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin:14px 0 26px}
+.nd-promise{border:2px solid var(--pf-border,#444);padding:20px 22px;margin:26px 0}
+.nd-promise h2{margin-top:0;text-transform:uppercase;letter-spacing:1px}
+.nd-promise li{line-height:1.6;margin-bottom:6px}
+.nd-faq h2{text-transform:uppercase;letter-spacing:1px}
+.nd-faq dt{font-weight:800;margin-top:14px}
+.nd-faq dd{margin:4px 0 0;line-height:1.55}
+.nd-dls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+</style>
+</head>
+<body>
+<main class="nd-wrap" id="main">
+
+  <section class="nd-hero">
+    <img src="/nodes/hero.jpg" alt="Lathe operators working a long row of machines on a factory floor, Washington Navy Yard, January 1943" width="2200" height="942">
+    <div class="nd-caption">Lathe operators, Washington Navy Yard — January 1943. U.S. Navy photo, public domain (Wikimedia Commons).</div>
+    <div class="nd-hero-body">
+      <div class="nd-kicker">The Propaganda Factory · Node Program</div>
+      <h1>The Factory Needs Floors</h1>
+      <p>The network's data plant doesn't live in a corporate cloud. It lives on homeboxes — machines like yours. The website hands out the jobs. Your box does the work. Receipts prove every step.</p>
+    </div>
+  </section>
+
+  <section class="nd-steps" aria-label="How it works">
+    <div class="nd-step"><span class="n">1</span><b>Download</b>One installer. It sets the homebox up on your machine by itself — no terminal, no configuration files, nothing to assemble.</div>
+    <div class="nd-step"><span class="n">2</span><b>Connect</b>The installer prompts you to connect to the website. Enter your invite code, click connect — your machine joins the network as a node.</div>
+    <div class="nd-step"><span class="n">3</span><b>It works, you don't</b>Jobs arrive when there's work that fits your box. Pause any time. The network treats nodes coming and going as normal weather.</div>
+  </section>
+
+  <div class="nd-flow" aria-label="How a job flows">
+    <span>Job posted</span><i>→</i><span>Your box claims it</span><i>→</i><span>Work spools on your disk</span><i>→</i><span>Results drain to the Factory floor</span><i>→</i><span>Hash-verified</span><i>→</i><span>Accepted</span>
+  </div>
+
+  <section class="nd-tiers" aria-label="Node sizes">
+    <div class="nd-tier">
+      <h2>Small Node</h2>
+      <p class="sub">Every spare machine counts.</p>
+      <ul>
+        <li>Your everyday computer, working in the background</li>
+        <li>Light jobs: fetching public data, health checks, small processing</li>
+        <li>About 20&nbsp;GB of spare disk</li>
+        <li>Runs only when idle, on the hours you set — defaults are gentle</li>
+        <li>Pause with one click, any time, for any reason</li>
+      </ul>
+      <a class="nd-dl" href="#connect">Get the installer</a>
+      <p class="nd-note">macOS and Windows. Free.</p>
+    </div>
+    <div class="nd-tier">
+      <h2>Big Node</h2>
+      <p class="sub">Bring the heavy iron.</p>
+      <ul>
+        <li>A dedicated box, or a serious machine with room to work</li>
+        <li>The full job menu: bulk pulls, heavy processing, rendering</li>
+        <li>500&nbsp;GB or more of spare disk, a fast connection</li>
+        <li>Awake most of the day; takes the long jobs small nodes can't</li>
+        <li>First in line for the heavy work</li>
+      </ul>
+      <a class="nd-dl" href="#connect">Get the installer</a>
+      <p class="nd-note">macOS, Windows, and Linux. Free.</p>
+    </div>
+  </section>
+  <p class="nd-same">Same caps. Same kill switch. Same rules.</p>
+
+  <section class="nd-promise">
+    <h2>The deal, in plain terms</h2>
+    <ul>
+      <li><strong>Your files are never touched.</strong> The node works inside its own folder. It cannot see the rest of your machine, and the website never sees your files.</li>
+      <li><strong>A fixed job menu.</strong> The site can ask for named jobs only. It can never send your machine new commands or arbitrary code.</li>
+      <li><strong>Your caps, your call.</strong> You set disk, hours, and load limits. The kill switch sits on your box, not ours — leaving is one click, and it removes everything.</li>
+      <li><strong>Results drain to the Factory floor.</strong> Your box keeps no record it's responsible for; finished work moves to the floor and is verified there.</li>
+      <li><strong>Nothing is trusted on its word.</strong> Every result is checked by hash before it counts.</li>
+      <li><strong>Nodes are handles, not people.</strong> The network knows your machine by a node name — not your name, not your address.</li>
+    </ul>
+  </section>
+
+  <section class="nd-faq" id="connect">
+    <h2>Connect your machine</h2>
+    <p>The node program is enrolling by invitation while the network is young. If you have an invite, your invitation carries your personal download link — one download, and the installer walks you through connecting. Pick your system to see how it works:</p>
+    <div class="nd-dls">
+      <a class="nd-dl" href="#connect-note">Download for Mac</a>
+      <a class="nd-dl" href="#connect-note">Download for Windows</a>
+      <a class="nd-dl" href="#connect-note">Download for Linux</a>
+    </div>
+    <p class="nd-note" id="connect-note">Enrollment is by invite. Your invite link downloads the installer with your connect step built in — run it, enter your code when it prompts you to connect to the website, and you're a node. No invite yet? If you run a machine that should be a floor, get in touch through the site and say so.</p>
+    <dl>
+      <dt>What does it cost me?</dt>
+      <dd>Electricity and spare cycles you're not using. Jobs are capped, pausable, and scheduled around you — a node should never make your machine hot, loud, or slow when you need it.</dd>
+      <dt>What does my box actually do?</dt>
+      <dd>It fetches public data — government releases, public records, open datasets — and processes it: cleaning, keying, and reconciling it into the substrates the Factory's tools and trackers run on. The same work the Factory floor does today, spread across the network.</dd>
+      <dt>Can I leave?</dt>
+      <dd>Any time. One click stops the node and removes it. No notice, no penalty, no hard feelings.</dd>
+    </dl>
+  </section>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,759 @@
+{
+ "_note": "Build-time fetch output of build-post-aggregator.py from the curated registry src/data/creator-sources.json. Every post here came from a live public fetch (see fetch_log). Display-only aggregation (concept §10): never a Content Bank deposit. Delete this file and regenerate portfolios to roll the section back — pages return to byte-identical.",
+ "creators": {
+  "dofd": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-10-13T17:41:00.067Z",
+     "platform": "bluesky",
+     "title": "Steven J. Asbill Jr. joins a growing movement of leaders stepping up to support our public schools, teachers, and libraries by signing the Pledge to Protect Public Education. #PublicEducation #SouthCarolina #SCpol #SCleg #District85 #SupportPublicSchools #LibrariesMatter",
+     "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrlcpfl2k2k"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-13T17:31:40.675Z",
+     "platform": "bluesky",
+     "title": "Senator Mark Mann (Oklahoma Senate District 46) has signed the Pledge to Protect Public Schools! We are proud to see leaders championing public education! #PublicEducation #Oklahoma #OKpol #OKleg #OKC #SD46 #SupportPublicSchools #LibrariesMatter #markmann",
+     "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrkrzw5vk2k"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-13T16:15:02.621Z",
+     "platform": "bluesky",
+     "title": "Shoutout to Representative Jacob Rosecrants, House District 46 in Oklahoma, for signing the Pledge to Protect Public Schools! We are proud to see leaders loudly championing public education! #jacobrosecrants #PublicEducation #Oklahoma #normanok #NormanOK",
+     "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrgiyumtk2k"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-13T13:53:20.318Z",
+     "platform": "bluesky",
+     "title": "By signing the Pledge to Protect Public Education, Liza Stefani reaffirms her commitment to support teachers, fund schools, and protect libraries. Strong public resources build stronger neighborhoods, ensuring Auburn’s children and families thrive. #LizaStefani #AuburnCA #AuburnUnionSchoolDistrict",
+     "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxr6lmh4gc2w"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-08T19:24:47.636Z",
+     "platform": "bluesky",
+     "title": "Brooklyn Talarico, Candidate, NY State Assembly, District 105 has just signed the Pledge to Protect Public Education. Thank you Brooklyn Talarico for standing up for New York's educators! #newyork #wappingersCSD #thepledge #publiceducation",
+     "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxf6rp5wl22o"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:49Z",
+     "http": 200,
+     "items_returned": 27,
+     "kind": "bluesky",
+     "locator": "defenseofdemocracy.bsky.social",
+     "platform": "bluesky",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-10-13T17:41:00.067Z",
+       "platform": "bluesky",
+       "title": "Steven J. Asbill Jr. joins a growing movement of leaders stepping up to support our public schools, teachers, and libraries by signing the Pledge to Protect Public Education. #PublicEducation #SouthCarolina #SCpol #SCleg #District85 #SupportPublicSchools #LibrariesMatter",
+       "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrlcpfl2k2k"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-13T17:31:40.675Z",
+       "platform": "bluesky",
+       "title": "Senator Mark Mann (Oklahoma Senate District 46) has signed the Pledge to Protect Public Schools! We are proud to see leaders championing public education! #PublicEducation #Oklahoma #OKpol #OKleg #OKC #SD46 #SupportPublicSchools #LibrariesMatter #markmann",
+       "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrkrzw5vk2k"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-13T16:15:02.621Z",
+       "platform": "bluesky",
+       "title": "Shoutout to Representative Jacob Rosecrants, House District 46 in Oklahoma, for signing the Pledge to Protect Public Schools! We are proud to see leaders loudly championing public education! #jacobrosecrants #PublicEducation #Oklahoma #normanok #NormanOK",
+       "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxrgiyumtk2k"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-13T13:53:20.318Z",
+       "platform": "bluesky",
+       "title": "By signing the Pledge to Protect Public Education, Liza Stefani reaffirms her commitment to support teachers, fund schools, and protect libraries. Strong public resources build stronger neighborhoods, ensuring Auburn’s children and families thrive. #LizaStefani #AuburnCA #AuburnUnionSchoolDistrict",
+       "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxr6lmh4gc2w"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-08T19:24:47.636Z",
+       "platform": "bluesky",
+       "title": "Brooklyn Talarico, Candidate, NY State Assembly, District 105 has just signed the Pledge to Protect Public Education. Thank you Brooklyn Talarico for standing up for New York's educators! #newyork #wappingersCSD #thepledge #publiceducation",
+       "url": "https://bsky.app/profile/defenseofdemocracy.bsky.social/post/3mxf6rp5wl22o"
+      }
+     ],
+     "slug": "dofd",
+     "status": "ok"
+    },
+    {
+     "fetched_at": "2026-10-26T04:59:53Z",
+     "http": 200,
+     "items_returned": 124,
+     "kind": "podcast-rss",
+     "locator": "https://feeds.buzzsprout.com/2188992.rss",
+     "platform": "podcast",
+     "posts": [
+      {
+       "action": "LISTEN",
+       "date": "2026-08-05T14:00:00Z",
+       "platform": "podcast",
+       "title": "Resetting the Standard | Anne Parelkar on Democracy, Leadership & Reform",
+       "url": "https://www.buzzsprout.com/2188992"
+      },
+      {
+       "action": "LISTEN",
+       "date": "2026-07-14T20:00:00Z",
+       "platform": "podcast",
+       "title": "What Schools Reveal About America's Future | Erin Jones on Raising Stronger Communities",
+       "url": "https://www.buzzsprout.com/2188992"
+      },
+      {
+       "action": "LISTEN",
+       "date": "2026-07-01T18:00:00Z",
+       "platform": "podcast",
+       "title": "The Changes in Democracy with Professor Bernd Reiter",
+       "url": "https://www.buzzsprout.com/2188992"
+      },
+      {
+       "action": "LISTEN",
+       "date": "2026-06-26T13:00:00Z",
+       "platform": "podcast",
+       "title": "Unveiling America's Hidden Stories: A Journey Through Faith and Belonging with Jack Gordon",
+       "url": "https://www.buzzsprout.com/2188992"
+      },
+      {
+       "action": "LISTEN",
+       "date": "2026-06-09T13:00:00Z",
+       "platform": "podcast",
+       "title": "Reforming Immigration: Protecting Children and Families with Suma Setty and Kaelin Rapport",
+       "url": "https://www.buzzsprout.com/2188992"
+      }
+     ],
+     "slug": "dofd",
+     "status": "ok"
+    }
+   ]
+  },
+  "dr-taylor-andrew": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-07-02T09:56:14Z",
+     "platform": "substack",
+     "title": "The Question #1",
+     "url": "https://docdrustudios.substack.com/p/the-question-1"
+    },
+    {
+     "action": "READ",
+     "date": "2026-04-28T21:04:58Z",
+     "platform": "substack",
+     "title": "Define \"Okay\"",
+     "url": "https://docdrustudios.substack.com/p/define-okay"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:41Z",
+     "http": 200,
+     "items_returned": 2,
+     "kind": "substack",
+     "locator": "https://docdrustudios.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-07-02T09:56:14Z",
+       "platform": "substack",
+       "title": "The Question #1",
+       "url": "https://docdrustudios.substack.com/p/the-question-1"
+      },
+      {
+       "action": "READ",
+       "date": "2026-04-28T21:04:58Z",
+       "platform": "substack",
+       "title": "Define \"Okay\"",
+       "url": "https://docdrustudios.substack.com/p/define-okay"
+      }
+     ],
+     "slug": "dr-taylor-andrew",
+     "status": "ok"
+    }
+   ]
+  },
+  "joman": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2025-05-09T23:17:58Z",
+     "platform": "substack",
+     "title": "Joman Shares the Story Behind his \"Another Life\" Remix",
+     "url": "https://jomanmusic.substack.com/p/joman-shares-the-story-behind-his"
+    },
+    {
+     "action": "READ",
+     "date": "2025-04-26T19:10:34Z",
+     "platform": "substack",
+     "title": "Everyone I Love is Dying",
+     "url": "https://jomanmusic.substack.com/p/everyone-i-love-is-dying"
+    },
+    {
+     "action": "READ",
+     "date": "2025-04-26T18:59:54Z",
+     "platform": "substack",
+     "title": "The Cost of Doing and Saying Nothing",
+     "url": "https://jomanmusic.substack.com/p/the-cost-of-doing-and-saying-nothing"
+    },
+    {
+     "action": "READ",
+     "date": "2025-01-31T18:06:59Z",
+     "platform": "substack",
+     "title": "Grandpa's Record Collection",
+     "url": "https://jomanmusic.substack.com/p/grandpas-record-collection"
+    },
+    {
+     "action": "READ",
+     "date": "2024-11-17T17:57:29Z",
+     "platform": "substack",
+     "title": "What Does \"Love\" Mean To You?",
+     "url": "https://jomanmusic.substack.com/p/what-does-love-mean-to-you"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:38Z",
+     "http": 200,
+     "items_returned": 5,
+     "kind": "substack",
+     "locator": "https://jomanmusic.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2025-05-09T23:17:58Z",
+       "platform": "substack",
+       "title": "Joman Shares the Story Behind his \"Another Life\" Remix",
+       "url": "https://jomanmusic.substack.com/p/joman-shares-the-story-behind-his"
+      },
+      {
+       "action": "READ",
+       "date": "2025-04-26T19:10:34Z",
+       "platform": "substack",
+       "title": "Everyone I Love is Dying",
+       "url": "https://jomanmusic.substack.com/p/everyone-i-love-is-dying"
+      },
+      {
+       "action": "READ",
+       "date": "2025-04-26T18:59:54Z",
+       "platform": "substack",
+       "title": "The Cost of Doing and Saying Nothing",
+       "url": "https://jomanmusic.substack.com/p/the-cost-of-doing-and-saying-nothing"
+      },
+      {
+       "action": "READ",
+       "date": "2025-01-31T18:06:59Z",
+       "platform": "substack",
+       "title": "Grandpa's Record Collection",
+       "url": "https://jomanmusic.substack.com/p/grandpas-record-collection"
+      },
+      {
+       "action": "READ",
+       "date": "2024-11-17T17:57:29Z",
+       "platform": "substack",
+       "title": "What Does \"Love\" Mean To You?",
+       "url": "https://jomanmusic.substack.com/p/what-does-love-mean-to-you"
+      }
+     ],
+     "slug": "joman",
+     "status": "ok"
+    }
+   ]
+  },
+  "kim-hunt-slaythegop": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-09-09T23:26:23.140Z",
+     "platform": "bluesky",
+     "title": "Uh someone tried hacking my BlueSky account. Hi guys",
+     "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mv4oqyru722m"
+    },
+    {
+     "action": "READ",
+     "date": "2026-04-29T03:20:33.033Z",
+     "platform": "bluesky",
+     "title": "Jack Schlossberg letting us down big time",
+     "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mkm5ee22tc2z"
+    },
+    {
+     "action": "READ",
+     "date": "2026-04-23T06:41:50.253Z",
+     "platform": "bluesky",
+     "title": "Moving to Portland in less than 2 months",
+     "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mk5fsqz2yc2q"
+    },
+    {
+     "action": "READ",
+     "date": "2026-04-11T20:35:56.371Z",
+     "platform": "bluesky",
+     "title": "former cardinals NFL kicker Jay Feely is running for congress as a republican in AZ. fucking loser",
+     "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mjaot76e4k24"
+    },
+    {
+     "action": "READ",
+     "date": "2026-04-11T17:48:13.813Z",
+     "platform": "bluesky",
+     "title": "having a reactive dog is a humiliation ritual",
+     "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mjafhcrhd22l"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:47Z",
+     "http": 200,
+     "items_returned": 17,
+     "kind": "bluesky",
+     "locator": "slaythegop.bsky.social",
+     "platform": "bluesky",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-09-09T23:26:23.140Z",
+       "platform": "bluesky",
+       "title": "Uh someone tried hacking my BlueSky account. Hi guys",
+       "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mv4oqyru722m"
+      },
+      {
+       "action": "READ",
+       "date": "2026-04-29T03:20:33.033Z",
+       "platform": "bluesky",
+       "title": "Jack Schlossberg letting us down big time",
+       "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mkm5ee22tc2z"
+      },
+      {
+       "action": "READ",
+       "date": "2026-04-23T06:41:50.253Z",
+       "platform": "bluesky",
+       "title": "Moving to Portland in less than 2 months",
+       "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mk5fsqz2yc2q"
+      },
+      {
+       "action": "READ",
+       "date": "2026-04-11T20:35:56.371Z",
+       "platform": "bluesky",
+       "title": "former cardinals NFL kicker Jay Feely is running for congress as a republican in AZ. fucking loser",
+       "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mjaot76e4k24"
+      },
+      {
+       "action": "READ",
+       "date": "2026-04-11T17:48:13.813Z",
+       "platform": "bluesky",
+       "title": "having a reactive dog is a humiliation ritual",
+       "url": "https://bsky.app/profile/slaythegop.bsky.social/post/3mjafhcrhd22l"
+      }
+     ],
+     "slug": "kim-hunt-slaythegop",
+     "status": "ok"
+    }
+   ]
+  },
+  "mandifromtheinternet": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-01-23T18:38:34Z",
+     "platform": "substack",
+     "title": "Monthly Substack Live!",
+     "url": "https://sabocat612.substack.com/p/monthly-substack-live"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:39Z",
+     "http": 200,
+     "items_returned": 1,
+     "kind": "substack",
+     "locator": "https://sabocat612.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-01-23T18:38:34Z",
+       "platform": "substack",
+       "title": "Monthly Substack Live!",
+       "url": "https://sabocat612.substack.com/p/monthly-substack-live"
+      }
+     ],
+     "slug": "mandifromtheinternet",
+     "status": "ok"
+    }
+   ]
+  },
+  "public-enlightenment": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-07-24T17:45:55Z",
+     "platform": "substack",
+     "title": "NEWS: Trump Fires Every Member of the Federal Election Agency PLUS Trump's Sons Stand to Profit From a Secret Mineral Deal",
+     "url": "https://publicenlightenment.substack.com/p/news-trump-fires-every-member-of"
+    },
+    {
+     "action": "READ",
+     "date": "2026-06-21T19:18:41Z",
+     "platform": "substack",
+     "title": "NEWS: Musk becomes trillionaire as DOGE cuts leave hundreds of thousands dead, Trump gets richer trading stocks as president, FBI intimidates voter registration group",
+     "url": "https://publicenlightenment.substack.com/p/news-musk-becomes-trillionaire-as"
+    },
+    {
+     "action": "READ",
+     "date": "2026-06-12T20:12:13Z",
+     "platform": "substack",
+     "title": "NEWS: Cops Use Flock Cameras To Stalk Their Exes, Ballroom Donors Score $50 Billion In Government Contracts",
+     "url": "https://publicenlightenment.substack.com/p/news-cops-use-flock-cameras-to-stalk"
+    },
+    {
+     "action": "READ",
+     "date": "2026-06-05T21:37:10Z",
+     "platform": "substack",
+     "title": "NEWS: Director of National Intelligence accepted award saying he \"only f*cks the young\", Trump cronies sold warehouses to ICE for 10x list price",
+     "url": "https://publicenlightenment.substack.com/p/news-director-of-national-intelligence"
+    },
+    {
+     "action": "READ",
+     "date": "2026-05-25T15:52:52Z",
+     "platform": "substack",
+     "title": "NEWS: FDA Now Run By Don Jr.'s Hunting Buddy, ICE’s Nazi Recruitment Alarmed Cops",
+     "url": "https://publicenlightenment.substack.com/p/news-fda-now-run-by-don-jrs-hunting"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:45Z",
+     "http": 200,
+     "items_returned": 20,
+     "kind": "substack",
+     "locator": "https://publicenlightenment.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-07-24T17:45:55Z",
+       "platform": "substack",
+       "title": "NEWS: Trump Fires Every Member of the Federal Election Agency PLUS Trump's Sons Stand to Profit From a Secret Mineral Deal",
+       "url": "https://publicenlightenment.substack.com/p/news-trump-fires-every-member-of"
+      },
+      {
+       "action": "READ",
+       "date": "2026-06-21T19:18:41Z",
+       "platform": "substack",
+       "title": "NEWS: Musk becomes trillionaire as DOGE cuts leave hundreds of thousands dead, Trump gets richer trading stocks as president, FBI intimidates voter registration group",
+       "url": "https://publicenlightenment.substack.com/p/news-musk-becomes-trillionaire-as"
+      },
+      {
+       "action": "READ",
+       "date": "2026-06-12T20:12:13Z",
+       "platform": "substack",
+       "title": "NEWS: Cops Use Flock Cameras To Stalk Their Exes, Ballroom Donors Score $50 Billion In Government Contracts",
+       "url": "https://publicenlightenment.substack.com/p/news-cops-use-flock-cameras-to-stalk"
+      },
+      {
+       "action": "READ",
+       "date": "2026-06-05T21:37:10Z",
+       "platform": "substack",
+       "title": "NEWS: Director of National Intelligence accepted award saying he \"only f*cks the young\", Trump cronies sold warehouses to ICE for 10x list price",
+       "url": "https://publicenlightenment.substack.com/p/news-director-of-national-intelligence"
+      },
+      {
+       "action": "READ",
+       "date": "2026-05-25T15:52:52Z",
+       "platform": "substack",
+       "title": "NEWS: FDA Now Run By Don Jr.'s Hunting Buddy, ICE’s Nazi Recruitment Alarmed Cops",
+       "url": "https://publicenlightenment.substack.com/p/news-fda-now-run-by-don-jrs-hunting"
+      }
+     ],
+     "slug": "public-enlightenment",
+     "status": "ok"
+    }
+   ]
+  },
+  "quietmayhem": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2025-06-17T02:39:41Z",
+     "platform": "substack",
+     "title": "MAYHEM'S MONDAY MORNING MASHUP Edition 007 – June 16th, 2025",
+     "url": "https://quietmayhem.substack.com/p/mayhems-monday-morning-mashupedition"
+    },
+    {
+     "action": "READ",
+     "date": "2025-06-17T01:47:56Z",
+     "platform": "substack",
+     "title": "🇺🇸 FRIDAY FIREWATCH – MAYHEM’S WEEKLY SITREP: Week of June 7–13, 2025",
+     "url": "https://quietmayhem.substack.com/p/friday-firewatch-mayhems-weekly-sitrep-1f2"
+    },
+    {
+     "action": "READ",
+     "date": "2025-06-09T09:59:15Z",
+     "platform": "substack",
+     "title": "MAYHEM’S MONDAY MORNING MASHUP - June 9th 2025",
+     "url": "https://quietmayhem.substack.com/p/mayhems-monday-morning-mashup-june"
+    },
+    {
+     "action": "READ",
+     "date": "2025-06-08T12:02:36Z",
+     "platform": "substack",
+     "title": "Friday Firewatch – Mayhem’s Weekly SitRep (June 1st- June 7th)",
+     "url": "https://quietmayhem.substack.com/p/friday-firewatch-mayhems-weekly-sitrep-b14"
+    },
+    {
+     "action": "READ",
+     "date": "2025-06-04T09:59:22Z",
+     "platform": "substack",
+     "title": "THE RICHARD STAR ACT",
+     "url": "https://quietmayhem.substack.com/p/the-richard-star-act"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:36Z",
+     "http": 200,
+     "items_returned": 20,
+     "kind": "substack",
+     "locator": "https://quietmayhem.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2025-06-17T02:39:41Z",
+       "platform": "substack",
+       "title": "MAYHEM'S MONDAY MORNING MASHUP Edition 007 – June 16th, 2025",
+       "url": "https://quietmayhem.substack.com/p/mayhems-monday-morning-mashupedition"
+      },
+      {
+       "action": "READ",
+       "date": "2025-06-17T01:47:56Z",
+       "platform": "substack",
+       "title": "🇺🇸 FRIDAY FIREWATCH – MAYHEM’S WEEKLY SITREP: Week of June 7–13, 2025",
+       "url": "https://quietmayhem.substack.com/p/friday-firewatch-mayhems-weekly-sitrep-1f2"
+      },
+      {
+       "action": "READ",
+       "date": "2025-06-09T09:59:15Z",
+       "platform": "substack",
+       "title": "MAYHEM’S MONDAY MORNING MASHUP - June 9th 2025",
+       "url": "https://quietmayhem.substack.com/p/mayhems-monday-morning-mashup-june"
+      },
+      {
+       "action": "READ",
+       "date": "2025-06-08T12:02:36Z",
+       "platform": "substack",
+       "title": "Friday Firewatch – Mayhem’s Weekly SitRep (June 1st- June 7th)",
+       "url": "https://quietmayhem.substack.com/p/friday-firewatch-mayhems-weekly-sitrep-b14"
+      },
+      {
+       "action": "READ",
+       "date": "2025-06-04T09:59:22Z",
+       "platform": "substack",
+       "title": "THE RICHARD STAR ACT",
+       "url": "https://quietmayhem.substack.com/p/the-richard-star-act"
+      }
+     ],
+     "slug": "quietmayhem",
+     "status": "ok"
+    }
+   ]
+  },
+  "therevcoms": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-10-22T15:00:41.918295052Z",
+     "platform": "bluesky",
+     "title": "Communist Consciousness Has to be Brought to the Masses A Q&A with Rafael Kadaris after his talk at @revolutionbksb “DEMOCRATIC SOCIALISM vs. REVOLUTIONARY COMMUNISM” See more Q&A and the full talk at youtube.com/therevcoms",
+     "url": "https://bsky.app/profile/revcom.us/post/3myhwke7x4m2m"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-20T11:59:50.851403014Z",
+     "platform": "bluesky",
+     "title": "#OTD in 2011 Libyan ruler #MuammarGaddafi was captured & killed For 7 months, the US & NATO bombed Libya, shattering the lives of millions & killing 10,000–30,000 civilians. Read about this #AmericanCrime: https://revcom.us/en/a/559/american-crime-case-number-35-the-2011-us-nato-war-on-libya.html",
+     "url": "https://bsky.app/profile/revcom.us/post/3myclj4pvqj2d"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-19T16:59:49.482672133Z",
+     "platform": "bluesky",
+     "title": "Celebrate 250 Years of America? NO! #AmericaWasNEVERGreat We Need an Emancipating Revolution! Part 36: American Crime Christopher Columbus Brought Genocide & Slavery to the “New World” & America Celebrates Him for It https://revcom.us/en/a/460/american-crime-case-77-christopher-columbus-en.html",
+     "url": "https://bsky.app/profile/revcom.us/post/3myalsm3o2o2l"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-19T14:59:51.038731942Z",
+     "platform": "bluesky",
+     "title": "Trump’s Gestapo Raid on Ilhan Omar’s Home: An Escalation of Fascist Intimidation and the Destruction of “Cohering Norms” https://revcom.us/en/trumps-gestapo-raid-ilhan-omars-home-escalation-fascist-intimidation-and-destruction-cohering-norms",
+     "url": "https://bsky.app/profile/revcom.us/post/3myaf434yzq24"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-17T21:00:38.396671511Z",
+     "platform": "bluesky",
+     "title": "Annie Day on Reform or Revolution From Q&A after the talk “Democratic Socialism VS Revolutionary Communism” by Rafael Kadaris at @revolutionbksb.bsky.social . Watch more clips & the full talk on youtube.com/therevcoms. 📖 “HUMANITY ON THE BRINK” by @bobavakianofficial.bsky.social at revcom.us",
+     "url": "https://bsky.app/profile/revcom.us/post/3my3ydewtea27"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:51Z",
+     "http": 200,
+     "items_returned": 24,
+     "kind": "bluesky",
+     "locator": "revcom.us",
+     "platform": "bluesky",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-10-22T15:00:41.918295052Z",
+       "platform": "bluesky",
+       "title": "Communist Consciousness Has to be Brought to the Masses A Q&A with Rafael Kadaris after his talk at @revolutionbksb “DEMOCRATIC SOCIALISM vs. REVOLUTIONARY COMMUNISM” See more Q&A and the full talk at youtube.com/therevcoms",
+       "url": "https://bsky.app/profile/revcom.us/post/3myhwke7x4m2m"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-20T11:59:50.851403014Z",
+       "platform": "bluesky",
+       "title": "#OTD in 2011 Libyan ruler #MuammarGaddafi was captured & killed For 7 months, the US & NATO bombed Libya, shattering the lives of millions & killing 10,000–30,000 civilians. Read about this #AmericanCrime: https://revcom.us/en/a/559/american-crime-case-number-35-the-2011-us-nato-war-on-libya.html",
+       "url": "https://bsky.app/profile/revcom.us/post/3myclj4pvqj2d"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-19T16:59:49.482672133Z",
+       "platform": "bluesky",
+       "title": "Celebrate 250 Years of America? NO! #AmericaWasNEVERGreat We Need an Emancipating Revolution! Part 36: American Crime Christopher Columbus Brought Genocide & Slavery to the “New World” & America Celebrates Him for It https://revcom.us/en/a/460/american-crime-case-77-christopher-columbus-en.html",
+       "url": "https://bsky.app/profile/revcom.us/post/3myalsm3o2o2l"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-19T14:59:51.038731942Z",
+       "platform": "bluesky",
+       "title": "Trump’s Gestapo Raid on Ilhan Omar’s Home: An Escalation of Fascist Intimidation and the Destruction of “Cohering Norms” https://revcom.us/en/trumps-gestapo-raid-ilhan-omars-home-escalation-fascist-intimidation-and-destruction-cohering-norms",
+       "url": "https://bsky.app/profile/revcom.us/post/3myaf434yzq24"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-17T21:00:38.396671511Z",
+       "platform": "bluesky",
+       "title": "Annie Day on Reform or Revolution From Q&A after the talk “Democratic Socialism VS Revolutionary Communism” by Rafael Kadaris at @revolutionbksb.bsky.social . Watch more clips & the full talk on youtube.com/therevcoms. 📖 “HUMANITY ON THE BRINK” by @bobavakianofficial.bsky.social at revcom.us",
+       "url": "https://bsky.app/profile/revcom.us/post/3my3ydewtea27"
+      }
+     ],
+     "slug": "therevcoms",
+     "status": "ok"
+    }
+   ]
+  },
+  "vandala-effect": {
+   "posts": [
+    {
+     "action": "READ",
+     "date": "2026-10-20T23:10:18Z",
+     "platform": "substack",
+     "title": "With mid terms approaching they’re watching citizens",
+     "url": "https://bellavandala.substack.com/p/with-mid-terms-approaching-theyre"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-18T20:21:20Z",
+     "platform": "substack",
+     "title": "The Effects of Propaganda on Mid Terms",
+     "url": "https://bellavandala.substack.com/p/the-effects-of-propaganda-on-mid"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-18T16:15:47Z",
+     "platform": "substack",
+     "title": "Release the Epstein files",
+     "url": "https://bellavandala.substack.com/p/release-the-epstein-files"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-17T03:05:52Z",
+     "platform": "substack",
+     "title": "The Great Escalation",
+     "url": "https://bellavandala.substack.com/p/the-great-escalation"
+    },
+    {
+     "action": "READ",
+     "date": "2026-10-09T17:52:52Z",
+     "platform": "substack",
+     "title": "Try And Keep Up",
+     "url": "https://bellavandala.substack.com/p/try-and-keep-up"
+    }
+   ],
+   "sources": [
+    {
+     "fetched_at": "2026-10-26T04:59:43Z",
+     "http": 200,
+     "items_returned": 20,
+     "kind": "substack",
+     "locator": "https://bellavandala.substack.com/feed",
+     "platform": "substack",
+     "posts": [
+      {
+       "action": "READ",
+       "date": "2026-10-20T23:10:18Z",
+       "platform": "substack",
+       "title": "With mid terms approaching they’re watching citizens",
+       "url": "https://bellavandala.substack.com/p/with-mid-terms-approaching-theyre"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-18T20:21:20Z",
+       "platform": "substack",
+       "title": "The Effects of Propaganda on Mid Terms",
+       "url": "https://bellavandala.substack.com/p/the-effects-of-propaganda-on-mid"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-18T16:15:47Z",
+       "platform": "substack",
+       "title": "Release the Epstein files",
+       "url": "https://bellavandala.substack.com/p/release-the-epstein-files"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-17T03:05:52Z",
+       "platform": "substack",
+       "title": "The Great Escalation",
+       "url": "https://bellavandala.substack.com/p/the-great-escalation"
+      },
+      {
+       "action": "READ",
+       "date": "2026-10-09T17:52:52Z",
+       "platform": "substack",
+       "title": "Try And Keep Up",
+       "url": "https://bellavandala.substack.com/p/try-and-keep-up"
+      }
+     ],
+     "slug": "vandala-effect",
+     "status": "ok"
+    }
+   ]
+  }
+ },
+ "fetch_log": [
+  "[ok] quietmayhem · Substack · https://quietmayhem.substack.com/feed -> 20 post(s) — live fetch",
+  "[ok] joman · Substack · https://jomanmusic.substack.com/feed -> 5 post(s) — live fetch",
+  "[ok] mandifromtheinternet · Substack · https://sabocat612.substack.com/feed -> 1 post(s) — live fetch",
+  "[ok] dr-taylor-andrew · Substack · https://docdrustudios.substack.com/feed -> 2 post(s) — live fetch",
+  "[ok] vandala-effect · Substack · https://bellavandala.substack.com/feed -> 20 post(s) — live fetch",
+  "[ok] public-enlightenment · Substack · https://publicenlightenment.substack.com/feed -> 20 post(s) — live fetch",
+  "[ok] kim-hunt-slaythegop · Bluesky · slaythegop.bsky.social -> 17 post(s) — live fetch",
+  "[ok] dofd · Bluesky · defenseofdemocracy.bsky.social -> 27 post(s) — live fetch",
+  "[ok] therevcoms · Bluesky · revcom.us -> 24 post(s) — live fetch",
+  "[ok] dofd · Podcast · https://feeds.buzzsprout.com/2188992.rss -> 124 post(s) — live fetch"
+ ],
+ "generated": "2026-10-26T04:59:56Z"
+}

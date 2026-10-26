@@ -74,7 +74,18 @@
 .pf-topbar-brand span{color:var(--pf-accent);}
 .pf-pillars-nav{display:flex;gap:6px;flex:1;}
 .pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;}
-.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}</style>
+.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}
+  .pf-latest-src{font-size:.82rem;color:var(--pf-text-faint);margin:-.4rem 0 1rem;line-height:1.55;}
+  .pf-posts{display:flex;flex-direction:column;gap:.6rem;}
+  .pf-post{display:block;background:var(--pf-surface);border:2px solid var(--pf-text);padding:1rem 1.1rem;text-decoration:none;color:var(--pf-text);}
+  a.pf-post:hover{border-color:var(--pf-accent);}
+  .pf-post-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.45rem;}
+  .pf-post-badge{font-size:.62rem;font-weight:800;letter-spacing:.16em;background:var(--pf-text);color:var(--pf-bg);padding:.2rem .5rem;}
+  .pf-post-date{font-size:.8rem;color:var(--pf-text-faint);white-space:nowrap;}
+  .pf-post-title{display:block;font-size:1.02rem;line-height:1.5;font-weight:600;}
+  .pf-post-meta{display:block;margin-top:.55rem;font-size:.8rem;color:var(--pf-text-dim);}
+  .pf-post-go{float:right;font-weight:800;letter-spacing:.08em;color:var(--pf-accent);}
+</style>
 <script src="/v1.4.3/core/pf-faces.js" defer></script>
 <link rel="stylesheet" href="/pf-brand.css">
 <script src="/pf-theme.js" defer></script>
@@ -187,6 +198,8 @@
 
   <h2>FIND THEM EVERYWHERE</h2>
   <div class="pf-stack"><a class="prow" href="https://www.tiktok.com/@quietmayhem" target="_blank" rel="noopener" data-platform="tiktok" data-followers="10700"><span class="pmeta"><span class="pn">TikTok</span><span class="ph">@quietmayhem</span></span><span class="pc">10.7K<small>FOLLOWERS</small></span></a><a class="prow plain" href="https://quietmayhem.substack.com" target="_blank" rel="noopener"><span class="pmeta"><span class="pn">Substack</span><span class="ph">quietmayhem.substack.com</span></span><span class="pc">&#8599;</span></a></div>
+
+  <section class="pf-latest" aria-label="Latest posts"><h2>LATEST FROM QUIETMAYHEM</h2><p class="pf-latest-src">Pulled Oct 26, 2026 from quietmayhem&rsquo;s public feeds &mdash; every card links to the original post.</p><div class="pf-posts"><a class="pf-post" href="https://quietmayhem.substack.com/p/mayhems-monday-morning-mashupedition" target="_blank" rel="noopener"><span class="pf-post-top"><span class="pf-post-badge">SUBSTACK</span><span class="pf-post-date">Jun 17, 2025</span></span><span class="pf-post-title">MAYHEM&#x27;S MONDAY MORNING MASHUP Edition 007 – June 16th, 2025</span><span class="pf-post-meta">quietmayhem &middot; via Substack<span class="pf-post-go">READ &rarr;</span></span></a><a class="pf-post" href="https://quietmayhem.substack.com/p/friday-firewatch-mayhems-weekly-sitrep-1f2" target="_blank" rel="noopener"><span class="pf-post-top"><span class="pf-post-badge">SUBSTACK</span><span class="pf-post-date">Jun 17, 2025</span></span><span class="pf-post-title">🇺🇸 FRIDAY FIREWATCH – MAYHEM’S WEEKLY SITREP: Week of June 7–13, 2025</span><span class="pf-post-meta">quietmayhem &middot; via Substack<span class="pf-post-go">READ &rarr;</span></span></a><a class="pf-post" href="https://quietmayhem.substack.com/p/mayhems-monday-morning-mashup-june" target="_blank" rel="noopener"><span class="pf-post-top"><span class="pf-post-badge">SUBSTACK</span><span class="pf-post-date">Jun 9, 2025</span></span><span class="pf-post-title">MAYHEM’S MONDAY MORNING MASHUP - June 9th 2025</span><span class="pf-post-meta">quietmayhem &middot; via Substack<span class="pf-post-go">READ &rarr;</span></span></a></div></section>
 
   <h2>THE CATALOG TREATMENT</h2>
   <div class="score"><span class="big">9.6 / 10</span><span>PROPAGANDA SCORE</span></div>

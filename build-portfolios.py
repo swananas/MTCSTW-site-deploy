@@ -17,6 +17,10 @@
         platform first; each platform row carries that platform's own
         follower count on the row. Shown counts sum to the total
         wherever the DB carries a per-platform split.
+     3b. LATEST FROM <NAME> (Tier 1 post aggregator, concept §10/§15):
+         only when src/data/creator-posts.json carries >=1 fetched post for
+         the creator (build-post-aggregator.py); text cards linking out,
+         never rendered for Lost Comrade pages or zero-post creators.
      4. Catalog treatment: propaganda score, key strengths, bio, offer.
      5. Claim strip: "Is this you? Claim this page" -> /join/ + /creator-hub/.
      6. Honest footer: counts as of followers_as_of, source: roster
@@ -43,6 +47,20 @@ def _load_standing():
         return {}
 
 STANDING = _load_standing()
+
+POSTS_PATH = os.path.join(ROOT, 'src', 'data', 'creator-posts.json')
+
+def _load_posts():
+    """Tier 1 post-aggregator output (build-post-aggregator.py, from the
+    curated registry src/data/creator-sources.json). Absent file = no
+    LATEST FROM sections anywhere and pages stay byte-identical."""
+    try:
+        data = json.load(open(POSTS_PATH))
+        return data.get('creators') or {}, str(data.get('generated') or '')[:10]
+    except Exception:
+        return {}, ''
+
+POSTS, POSTS_GENERATED = _load_posts()
 
 def standing_of(member):
     st = STANDING.get(member.get('slug') or '')
@@ -139,7 +157,10 @@ def handle_for(member, platkey):
 FACE_SCRIPT = '<script>(function(p){var f=/^\\/api(\\/|$)/.test(p)?"build":/^\\/enterprise(\\/|$)/.test(p)?"scale":"fight";document.documentElement.setAttribute("data-face",f);try{localStorage.setItem("pf_face",f)}catch(e){}})(location.pathname)</script>'
 TOPBAR_CSS = '.pf-topbar{position:fixed;top:0;left:0;right:0;z-index:10000;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 14px;background:var(--pf-bg);border-bottom:1px solid var(--pf-accent);}\n.pf-topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;}\n.pf-topbar-brand{color:var(--pf-text);font-weight:900;font-size:16px;letter-spacing:.08em;text-decoration:none;}\n.pf-topbar-brand span{color:var(--pf-accent);}\n.pf-pillars-nav{display:flex;gap:6px;flex:1;}\n.pf-pillar{flex:1;text-align:center;text-decoration:none;border:1px solid var(--pf-border);border-radius:8px;padding:10px 4px;color:var(--pf-text-dim);font-size:11px;font-weight:700;letter-spacing:.06em;}\n.pf-pillar.on{color:var(--pf-text);border-color:var(--pf-accent);background:color-mix(in srgb, var(--pf-accent) 12%, transparent);}'
 TOPBAR_HTML = '<header class="pf-topbar"><div class="pf-topbar-inner">\n    <button class="pf-snav-toggle" id="pf-snav-toggle" aria-label="Open menu" aria-expanded="false" type="button"><span></span><span></span><span></span></button>\n<a href="/" class="pf-topbar-brand">MTC<span>STW</span></a>\n<nav class="pf-pillars-nav">\n<a class="pf-pillar" href="/create">CREATE</a>\n<a class="pf-pillar on" href="/sick-left-radicals">CONNECT</a>\n<a class="pf-pillar" href="/cells">COORDINATE</a>\n<a class="pf-pillar" href="/money">CAPITAL</a>\n</nav></div></header>'
-SIDENAV_HTML = '<!-- PF-SIDENAV v1 -->\n<style>\n.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}\n.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}\n.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}\n.pf-snav-overlay.open{opacity:1;pointer-events:auto}\n.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:var(--pf-surface);color:var(--pf-text);z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}\n.pf-snav.open{transform:translateX(0)}\n.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}\n.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}\n.pf-snav-brand span{color:var(--pf-accent)}\n.pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}\n.pf-snav-group{padding:12px 0 4px}\n.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}\n.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--pf-text);text-decoration:none;font-size:15px;font-weight:600;min-height:48px}\n.pf-snav a.pf-snav-link:active{background:var(--pf-surface-raised)}\n.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}\n.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:var(--pf-text-faint);line-height:1.6;border-top:1px solid var(--pf-border);margin-top:8px}\n</style>\n<div class="pf-snav-overlay" id="pf-snav-overlay"></div>\n<nav class="pf-snav" id="pf-snav" aria-label="Site tools">\n  <div class="pf-snav-head">\n    <div class="pf-snav-brand">MTC<span>STW</span></div>\n    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">INVESTIGATE</span>\n    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>\n    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>\n    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>\n    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>\n    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">ACT</span>\n    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>\n    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>\n    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>\n    <a class="pf-snav-link" href="/karl/?tab=translator"><span class="em">&#x1F310;</span>Translate</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">EXPLORE</span>\n    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>\n    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>\n    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>\n    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>\n    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>\n  </div>\n<div class="pf-snav-group">\n    <span class="pf-snav-kicker">BUILD</span>\n    <a class="pf-snav-link" href="/api/"><span class="em">&#x1F50C;</span>Developers</a>\n  </div>\n    <div class="pf-snav-group">\n    <span class="pf-snav-kicker">LEGAL</span>\n    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>\n    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>\n    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>\n    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>\n  </div>\n  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>\n</nav>\n<script>\n(function(){\n  if(window.__pfSnavInit) return; window.__pfSnavInit = true;\n  var toggle = document.getElementById(\'pf-snav-toggle\');\n  var nav = document.getElementById(\'pf-snav\');\n  var overlay = document.getElementById(\'pf-snav-overlay\');\n  var closeBtn = document.getElementById(\'pf-snav-close\');\n  if(!toggle || !nav || !overlay) return;\n  function open(){ nav.classList.add(\'open\'); overlay.classList.add(\'open\'); toggle.setAttribute(\'aria-expanded\',\'true\'); document.body.style.overflow=\'hidden\'; }\n  function close(){ nav.classList.remove(\'open\'); overlay.classList.remove(\'open\'); toggle.setAttribute(\'aria-expanded\',\'false\'); document.body.style.overflow=\'\'; }\n  toggle.addEventListener(\'click\', function(){ nav.classList.contains(\'open\') ? close() : open(); });\n  if(closeBtn) closeBtn.addEventListener(\'click\', close);\n  overlay.addEventListener(\'click\', close);\n  document.addEventListener(\'keydown\', function(e){ if(e.key===\'Escape\' && nav.classList.contains(\'open\')) close(); });\n  var sx=null;\n  nav.addEventListener(\'touchstart\', function(e){ sx=e.touches[0].clientX; }, {passive:true});\n  nav.addEventListener(\'touchmove\', function(e){\n    if(sx===null) return;\n    var dx=e.touches[0].clientX - sx;\n    if(dx < -60){ close(); sx=null; }\n  }, {passive:true});\n})();\n</script>'
+# NOTE (2026-10-25, CEO BUILD/SCALE removal): the sidenav BUILD group
+# (Developers -> /api/) was removed from this chrome to match the removal
+# sweep applied to the generated pages; do not re-add it here.
+SIDENAV_HTML = '<!-- PF-SIDENAV v1 -->\n<style>\n.pf-snav-toggle{display:inline-flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:44px;height:44px;background:none;border:none;cursor:pointer;padding:8px;margin-left:-8px;flex-shrink:0;-webkit-tap-highlight-color:transparent}\n.pf-snav-toggle span{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .25s ease}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}\n.pf-snav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}\n.pf-snav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:9998}\n.pf-snav-overlay.open{opacity:1;pointer-events:auto}\n.pf-snav{position:fixed;top:0;left:0;bottom:0;width:min(320px,85vw);background:var(--pf-surface);color:var(--pf-text);z-index:9999;transform:translateX(-105%);transition:transform .28s cubic-bezier(.32,.72,.35,1);overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:8px 0 32px rgba(0,0,0,.5)}\n.pf-snav.open{transform:translateX(0)}\n.pf-snav-head{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--pf-border);position:sticky;top:0;background:var(--pf-surface);z-index:1}\n.pf-snav-brand{font-weight:800;letter-spacing:.06em;font-size:15px}\n.pf-snav-brand span{color:var(--pf-accent)}\n.pf-snav-close{background:none;border:none;color:var(--pf-text-dim);font-size:22px;cursor:pointer;width:44px;height:44px;line-height:1;-webkit-tap-highlight-color:transparent}\n.pf-snav-group{padding:12px 0 4px}\n.pf-snav-kicker{display:block;padding:8px 20px 4px;font-size:11px;letter-spacing:.18em;color:var(--pf-text-faint);font-weight:700}\n.pf-snav a.pf-snav-link{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--pf-text);text-decoration:none;font-size:15px;font-weight:600;min-height:48px}\n.pf-snav a.pf-snav-link:active{background:var(--pf-surface-raised)}\n.pf-snav-link .em{font-size:20px;width:28px;text-align:center;flex-shrink:0}\n.pf-snav-foot{padding:16px 20px 32px;font-size:11px;color:var(--pf-text-faint);line-height:1.6;border-top:1px solid var(--pf-border);margin-top:8px}\n</style>\n<div class="pf-snav-overlay" id="pf-snav-overlay"></div>\n<nav class="pf-snav" id="pf-snav" aria-label="Site tools">\n  <div class="pf-snav-head">\n    <div class="pf-snav-brand">MTC<span>STW</span></div>\n    <button class="pf-snav-close" id="pf-snav-close" aria-label="Close menu" type="button">&times;</button>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">INVESTIGATE</span>\n    <a class="pf-snav-link" href="/ghouls/"><span class="em">&#x1F479;</span>The Ghoul Index</a>\n    <a class="pf-snav-link" href="/detective/"><span class="em">&#x1F50D;</span>Price Detective</a>\n    <a class="pf-snav-link" href="/slumlord/"><span class="em">&#x1F3DA;&#xFE0F;</span>Slumlord Dossier</a>\n    <a class="pf-snav-link" href="/dossier/"><span class="em">&#x1F4CB;</span>My Dossier</a>\n    <a class="pf-snav-link" href="/scan/"><span class="em">&#x1F4F7;</span>Barcode Scan</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">ACT</span>\n    <a class="pf-snav-link" href="/dig/"><span class="em">&#x1F3AF;</span>Bounties</a>\n    <a class="pf-snav-link" href="/money/"><span class="em">&#x1F4B0;</span>Money Hub</a>\n    <a class="pf-snav-link" href="/create/"><span class="em">&#x1F3A8;</span>Creator Studio</a>\n    <a class="pf-snav-link" href="/karl/?tab=translator"><span class="em">&#x1F310;</span>Translate</a>\n  </div>\n  <div class="pf-snav-group">\n    <span class="pf-snav-kicker">EXPLORE</span>\n    <a class="pf-snav-link" href="/model/"><span class="em">&#x2692;&#xFE0F;</span>Model the Data</a>\n    <a class="pf-snav-link" href="/town/"><span class="em">&#x1F3D8;&#xFE0F;</span>Your Town</a>\n    <a class="pf-snav-link" href="/cells/"><span class="em">&#x1F465;</span>Cells</a>\n    <a class="pf-snav-link" href="/karl/"><span class="em">&#x1F916;</span>Ask Karl</a>\n    <a class="pf-snav-link" href="/faq/"><span class="em">❓</span>FAQ</a>\n  </div>\n    <div class="pf-snav-group">\n    <span class="pf-snav-kicker">LEGAL</span>\n    <a class="pf-snav-link" href="/privacy/"><span class="em">🔒</span>Privacy Policy</a>\n    <a class="pf-snav-link" href="/terms/"><span class="em">📜</span>Terms of Service</a>\n    <a class="pf-snav-link" href="/cookies/"><span class="em">🍪</span>Cookie Policy</a>\n    <a class="pf-snav-link" href="/accessibility/"><span class="em">♿</span>Accessibility</a>\n  </div>\n  <div class="pf-snav-foot">© 2026 The Propaganda Factory.<br>Discover your power.<br>Stop waiting for the government to fix itself.</div>\n</nav>\n<script>\n(function(){\n  if(window.__pfSnavInit) return; window.__pfSnavInit = true;\n  var toggle = document.getElementById(\'pf-snav-toggle\');\n  var nav = document.getElementById(\'pf-snav\');\n  var overlay = document.getElementById(\'pf-snav-overlay\');\n  var closeBtn = document.getElementById(\'pf-snav-close\');\n  if(!toggle || !nav || !overlay) return;\n  function open(){ nav.classList.add(\'open\'); overlay.classList.add(\'open\'); toggle.setAttribute(\'aria-expanded\',\'true\'); document.body.style.overflow=\'hidden\'; }\n  function close(){ nav.classList.remove(\'open\'); overlay.classList.remove(\'open\'); toggle.setAttribute(\'aria-expanded\',\'false\'); document.body.style.overflow=\'\'; }\n  toggle.addEventListener(\'click\', function(){ nav.classList.contains(\'open\') ? close() : open(); });\n  if(closeBtn) closeBtn.addEventListener(\'click\', close);\n  overlay.addEventListener(\'click\', close);\n  document.addEventListener(\'keydown\', function(e){ if(e.key===\'Escape\' && nav.classList.contains(\'open\')) close(); });\n  var sx=null;\n  nav.addEventListener(\'touchstart\', function(e){ sx=e.touches[0].clientX; }, {passive:true});\n  nav.addEventListener(\'touchmove\', function(e){\n    if(sx===null) return;\n    var dx=e.touches[0].clientX - sx;\n    if(dx < -60){ close(); sx=null; }\n  }, {passive:true});\n})();\n</script>'
 BNAV_HTML = '<!-- PF BOTTOM NAV (site-wide hard nav) -->\n<style>\n.pf-bnav{position:fixed;left:0;right:0;bottom:0;z-index:8000;display:flex;background:var(--pf-bg);border-top:1px solid var(--pf-surface-raised);padding-bottom:env(safe-area-inset-bottom,0px);}\n.pf-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;color:var(--pf-text-dim);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.04em;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}\n.pf-bnav a .bnav-ic{font-size:20px;line-height:1;margin-bottom:3px;}\n.pf-bnav a.on{color:var(--pf-accent-ink);}\n.pf-bnav a:active{opacity:.7;}\nbody{padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}\n</style>\n<nav class="pf-bnav" aria-label="Main navigation">\n<a href="/" data-p="/"><span class="bnav-ic">&#x1F3E0;</span>FEED</a>\n<a href="/model/" data-p="/model/"><span class="bnav-ic">&#x2692;</span>MODEL</a>\n<a href="/create/" data-p="/create/"><span class="bnav-ic">&#x1F3A8;</span>CREATE</a>\n<a href="/cells/" data-p="/cells/"><span class="bnav-ic">&#x1F465;</span>CELLS</a>\n<a href="/karl/" data-p="/karl/"><span class="bnav-ic">&#x1F9E0;</span>KARL</a>\n</nav>\n<script>\n(function(){try{var p=location.pathname;var ls=document.querySelectorAll(\'.pf-bnav a\');for(var i=0;i<ls.length;i++){var d=ls[i].getAttribute(\'data-p\');if(p===d||(d!==\'/\'&&p.indexOf(d)===0)){ls[i].classList.add(\'on\');break;}}}catch(e){}})();\n</script>'
 
 
@@ -211,6 +232,70 @@ LOST_CSS = '''
   .prow.pf-lost-row{filter:grayscale(.75);opacity:.78;}
   .pf-lost-tag{flex-shrink:0;font-size:.58rem;font-weight:800;letter-spacing:.14em;border:1.5px solid currentColor;padding:.15rem .4rem;transform:rotate(-4deg);white-space:nowrap;}
 '''
+
+# LATEST FROM section (Tier 1 post aggregator, concept §10/§15) — emitted
+# ONLY on pages whose creator has >=1 fetched post and is not under the Lost
+# Comrade overlay, so all other pages stay byte-identical. Text cards only:
+# no embeds, no hotlinked media, no engagement numbers, no added JS.
+AGG_CSS = '''
+  .pf-latest-src{font-size:.82rem;color:var(--pf-text-faint);margin:-.4rem 0 1rem;line-height:1.55;}
+  .pf-posts{display:flex;flex-direction:column;gap:.6rem;}
+  .pf-post{display:block;background:var(--pf-surface);border:2px solid var(--pf-text);padding:1rem 1.1rem;text-decoration:none;color:var(--pf-text);}
+  a.pf-post:hover{border-color:var(--pf-accent);}
+  .pf-post-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin-bottom:.45rem;}
+  .pf-post-badge{font-size:.62rem;font-weight:800;letter-spacing:.16em;background:var(--pf-text);color:var(--pf-bg);padding:.2rem .5rem;}
+  .pf-post-date{font-size:.8rem;color:var(--pf-text-faint);white-space:nowrap;}
+  .pf-post-title{display:block;font-size:1.02rem;line-height:1.5;font-weight:600;}
+  .pf-post-meta{display:block;margin-top:.55rem;font-size:.8rem;color:var(--pf-text-dim);}
+  .pf-post-go{float:right;font-weight:800;letter-spacing:.08em;color:var(--pf-accent);}
+'''
+
+def post_date_label(iso):
+    s = str(iso or '')
+    s = re.sub(r'\.(\d{6})\d+', r'.\1', s)  # tolerate nanosecond fractions
+    try:
+        d = datetime.datetime.fromisoformat(s.replace('Z', '+00:00'))
+        return d.strftime('%b %-d, %Y')
+    except Exception:
+        return asof_label(s)
+
+def truncate_title(t, limit=180):
+    t = str(t or '').strip()
+    if len(t) > limit:
+        t = t[:limit - 3].rsplit(' ', 1)[0] + '…'
+    return t
+
+def build_latest(member):
+    """LATEST FROM <NAME>: up to 3 newest fetched posts across the creator's
+    verified sources, merged by date. '' when the creator has no posts or is
+    under the Lost Comrade overlay (the lost treatment governs wholesale)."""
+    if standing_of(member):
+        return ''
+    posts = list((POSTS.get(member['slug']) or {}).get('posts') or [])
+    if not posts:
+        return ''
+    posts.sort(key=lambda p: p.get('date') or '', reverse=True)
+    name = member['name']
+    cards = []
+    for p in posts[:3]:
+        label = PLATFORM_LABEL.get(p.get('platform'), str(p.get('platform') or '').title())
+        cards.append(
+            '<a class="pf-post" href="%s" target="_blank" rel="noopener">'
+            '<span class="pf-post-top"><span class="pf-post-badge">%s</span>'
+            '<span class="pf-post-date">%s</span></span>'
+            '<span class="pf-post-title">%s</span>'
+            '<span class="pf-post-meta">%s &middot; via %s'
+            '<span class="pf-post-go">%s &rarr;</span></span></a>'
+            % (esc(p.get('url')), esc(label.upper()), esc(post_date_label(p.get('date'))),
+               esc(truncate_title(p.get('title'))), esc(name), esc(label),
+               esc(p.get('action') or 'READ')))
+    return ('\n  <section class="pf-latest" aria-label="Latest posts">'
+            '<h2>LATEST FROM %s</h2>'
+            '<p class="pf-latest-src">Pulled %s from %s&rsquo;s public feeds &mdash; '
+            'every card links to the original post.</p>'
+            '<div class="pf-posts">%s</div></section>\n'
+            % (esc(str(name).upper()), esc(asof_label(POSTS_GENERATED)), esc(name),
+               ''.join(cards)))
 
 def build_stack(member):
     """Linktree stack: counted platform rows (biggest first), then the rest
@@ -297,11 +382,11 @@ def build(member, members_sorted, network_total):
                      '<a class="pf-lost-cta" href="/join/">REPORT A SIGHTING &rarr;</a>'
                      '</section>' % (esc(st.get('basis_short') or 'their accounts are unreachable'),
                                      esc(st.get('last_verified') or '')))
-        css_page = CSS + LOST_CSS
     else:
         hero_block = '<img class="hero" src="%s" alt="%s">' % (esc(pic_path), esc(name))
         lost_band = ''
-        css_page = CSS
+    latest = build_latest(member)
+    css_page = CSS + (AGG_CSS if latest else '') + (LOST_CSS if st else '')
     page_url = 'https://www.mtcstw.com/@%s' % slug
     title = '%s — Portfolio | Sick Left Radicals | MTCSTW' % name
     desc = member.get('seo_description') or name
@@ -351,7 +436,7 @@ def build(member, members_sorted, network_total):
 {lost_band}
   <h2>FIND THEM EVERYWHERE</h2>
   <div class="pf-stack">{stack}</div>
-
+{latest}
   <h2>THE CATALOG TREATMENT</h2>
   <div class="score"><span class="big">{score} / 10</span><span>PROPAGANDA SCORE{prov}</span></div>
   <h2>KEY STRENGTHS</h2>
@@ -386,7 +471,7 @@ document.getElementById('pf-share').addEventListener('click', function () {{
         page_url=esc(page_url), css=css_page, name=esc(name),
         hero_block=hero_block, lost_band=lost_band,
         beat=esc(beat_line(member)), total=fmt(total), total_raw=total,
-        asof=esc(asof), stack=build_stack(member),
+        asof=esc(asof), stack=build_stack(member), latest=latest,
         score=esc(member.get('propaganda_score')), prov=prov,
         strengths=strengths, bio=paras(member.get('bio')), offers=offers,
         catalog=esc(member.get('catalog_path') or '/sick-left-radicals'),

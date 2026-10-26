@@ -19,7 +19,7 @@
    Run from ~/workspace/mtcstw-site-deploy. Refresh cadence: weekly, manual,
    inside the normal ship cycle (no cron in Tier 1).
 """
-import json, os, re, sys, html, urllib.request, urllib.error
+import json, os, re, sys, html, time, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -42,10 +42,40 @@ def clean_text(s):
     return re.sub(r'\s+', ' ', s).strip()
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={'User-Agent': UA,
-                                                 'Accept': 'application/rss+xml, application/json, */*'})
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        return r.status, r.read()
+    """One logical fetch, up to 3 attempts: this VM's egress intermittently
+    truncates long responses (IncompleteRead / dropped connections), and the
+    same feed verified live minutes earlier can fail once and pass on retry.
+    Still exactly one successful fetch per source per run."""
+    last = None
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': UA,
+                                                         'Accept': 'application/rss+xml, application/json, */*'})
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return r.status, r.read()
+        except Exception as e:
+            last = e
+            if attempt < 2:
+                time.sleep(2 + 3 * attempt)
+    raise last
+
+def fetch_body(url):
+    """Whole-body feed fetch via curl. This VM's egress proxy mangles
+    urllib's HTTP/1.1 chunked reads to some CDNs (Substack feeds truncated
+    at random 0–545 KB points, once even faking a clean EOF), while curl's
+    HTTP/2 path through the same proxy delivers the same feeds complete in
+    seconds — measured live 2026-10-25 during the Tier 1 build. curl also
+    decompresses (--compressed) and fails loudly on truncated transfers.
+    Even so, a returned body is trusted only once it parses as complete
+    XML in fetch_rss — the parse is the completeness proof."""
+    import subprocess
+    p = subprocess.run(['curl', '-sS', '--compressed', '--fail', '-L', '--max-redirs', '5',
+                        '--max-time', '60', '--retry', '2', '--retry-all-errors',
+                        '-A', UA, '-H', 'Accept: application/rss+xml, */*', url],
+                       capture_output=True, timeout=200)
+    if p.returncode != 0:
+        raise IOError('curl exit %d: %s' % (p.returncode, p.stderr.decode('utf-8', 'replace')[:200]))
+    return 200, p.stdout
 
 def parse_rfc822(s):
     try:
@@ -56,11 +86,27 @@ def parse_rfc822(s):
     except Exception:
         return None
 
+def fetch_rss_once(entry):
+    status, body = fetch_body(entry['locator'])
+    root = ET.fromstring(body)  # a truncated feed never parses: this is the completeness proof
+    return status, root
+
 def fetch_rss(entry):
     """Substack + podcast RSS 2.0. Podcast items may carry no <link>
-    (Buzzsprout) — fall back to the channel's declared show page."""
-    status, body = fetch(entry['locator'])
-    root = ET.fromstring(body)
+    (Buzzsprout) — fall back to the channel's declared show page.
+    Retried up to 4 times: egress truncation is random per attempt, and an
+    attempt counts only when the complete feed parses."""
+    last = None
+    for attempt in range(4):
+        try:
+            status, root = fetch_rss_once(entry)
+            break
+        except Exception as e:
+            last = e
+            if attempt < 3:
+                time.sleep(2 + 2 * attempt)
+    else:
+        raise last
     chan = root.find('channel')
     if chan is None:
         raise ValueError('no <channel> in feed')
@@ -113,11 +159,18 @@ def main():
             prev = (json.load(open(OUT)).get('creators') or {})
         except Exception:
             prev = {}
-    # Index previous posts by (slug, platform) for stale-while-error.
+    # Index previous posts by (slug, platform) for stale-while-error, from
+    # the per-source post lists (falling back to the merged list).
     prev_by_source = {}
     for slug, cdata in prev.items():
-        for p in (cdata.get('posts') or []):
-            prev_by_source.setdefault((slug, p.get('platform')), []).append(p)
+        srcs = cdata.get('sources') or []
+        if any('posts' in s for s in srcs):
+            for s in srcs:
+                for p in (s.get('posts') or []):
+                    prev_by_source.setdefault((slug, s.get('platform')), []).append(p)
+        else:
+            for p in (cdata.get('posts') or []):
+                prev_by_source.setdefault((slug, p.get('platform')), []).append(p)
 
     creators = {}
     fetch_log = []
@@ -141,6 +194,7 @@ def main():
             note = ('fetch FAILED (%s); kept %d last-good post(s)' % (e, len(kept))) if kept \
                 else ('fetch FAILED (%s); no last-good posts — source contributes nothing' % e)
             failures.append('%s/%s: %s' % (slug, entry['platform'], e))
+        rec['posts'] = sorted(kept, key=lambda p: p['date'], reverse=True)[:KEEP_PER_CREATOR]
         bucket = creators.setdefault(slug, {'posts': [], 'sources': []})
         bucket['posts'].extend(kept)
         bucket['sources'].append(rec)

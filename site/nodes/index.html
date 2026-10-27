@@ -15,7 +15,7 @@
 <meta property="og:image" content="https://www.mtcstw.com/nodes/hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Nodes — Run a Piece of the Factory">
-<meta name="twitter:description" content="Small nodes and big nodes. Your caps, your schedule, your kill switch.">
+<meta name="twitter:description" content="Node Lite, Node Small, Node Large. Your caps, your schedule, your kill switch.">
 <meta name="twitter:image" content="https://www.mtcstw.com/nodes/hero.jpg">
 <link rel="stylesheet" href="/pf-brand.css">
 <script src="/pf-theme.js" defer></script>
@@ -36,7 +36,7 @@
 .nd-flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:6px 0 26px;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:13px}
 .nd-flow span{border:2px solid var(--pf-text);padding:8px 12px}
 .nd-flow i{font-style:normal;opacity:.6}
-.nd-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin:10px 0 8px}
+.nd-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:10px 0 8px}
 .nd-tier{border:3px solid var(--pf-text);padding:22px}
 .nd-tier h2{margin:0 0 4px;font-size:26px;text-transform:uppercase}
 .nd-tier .sub{font-weight:700;opacity:.85;margin:0 0 12px}
@@ -62,23 +62,36 @@
     <div class="nd-hero-body">
       <div class="nd-kicker">The Propaganda Factory · Node Program</div>
       <h1>The Factory Needs Floors</h1>
-      <p>The network's data plant doesn't live in a corporate cloud. It lives on homeboxes — machines like yours. The website hands out the jobs. Your box does the work. Receipts prove every step.</p>
+      <p>The network's data plant doesn't live in a corporate cloud. It lives on homeboxes — machines like yours — and in open browser tabs. The website hands out the jobs. Your box does the work. Receipts prove every step.</p>
     </div>
   </section>
 
   <section class="nd-steps" aria-label="How it works">
-    <div class="nd-step"><span class="n">1</span><b>Download</b>One installer. It sets the homebox up on your machine by itself — no terminal, no configuration files, nothing to assemble.</div>
-    <div class="nd-step"><span class="n">2</span><b>Connect</b>The installer prompts you to connect to the website. Enter your invite code, click connect — your machine joins the network as a node.</div>
+    <div class="nd-step"><span class="n">1</span><b>Pick your door</b>Node Lite runs in a browser tab — nothing to install. Node Small and Node Large use one installer that sets the box up by itself — no terminal, no configuration files, nothing to assemble.</div>
+    <div class="nd-step"><span class="n">2</span><b>Connect</b>Lite: open your link, type a name, tap "Join the line." Installed nodes: the installer prompts you to connect — enter your invite code and you're on the network.</div>
     <div class="nd-step"><span class="n">3</span><b>It works, you don't</b>Jobs arrive when there's work that fits your box. Pause any time. The network treats nodes coming and going as normal weather.</div>
   </section>
 
   <div class="nd-flow" aria-label="How a job flows">
-    <span>Job posted</span><i>→</i><span>Your box claims it</span><i>→</i><span>Work spools on your disk</span><i>→</i><span>Results drain to the Factory floor</span><i>→</i><span>Hash-verified</span><i>→</i><span>Accepted</span>
+    <span>Job posted</span><i>→</i><span>Your box claims it</span><i>→</i><span>The work runs</span><i>→</i><span>Results drain to the Factory floor</span><i>→</i><span>Hash-verified</span><i>→</i><span>Accepted</span>
   </div>
 
   <section class="nd-tiers" aria-label="Node sizes">
     <div class="nd-tier">
-      <h2>Small Node</h2>
+      <h2>Node Lite</h2>
+      <p class="sub">No download. The page is the node.</p>
+      <ul>
+        <li>Runs in a browser tab, on its own page — nothing installs, nothing to remove</li>
+        <li>Open it, type a name, tap "Join the line" — you're a node</li>
+        <li>The lightest work: connection checks and small fetches</li>
+        <li>Works while the tab is open; close the tab and you're out</li>
+        <li>Any machine with a browser — even one you can't install on</li>
+      </ul>
+      <a class="nd-dl" href="https://pf-node.mtcstw.workers.dev/">Open Node Lite</a>
+      <p class="nd-note">Your invite carries your personal Lite link — it opens this same page, ready to join.</p>
+    </div>
+    <div class="nd-tier">
+      <h2>Node Small</h2>
       <p class="sub">Every spare machine counts.</p>
       <ul>
         <li>Your everyday computer, working in the background</li>
@@ -91,7 +104,7 @@
       <p class="nd-note">macOS and Windows. Free.</p>
     </div>
     <div class="nd-tier">
-      <h2>Big Node</h2>
+      <h2>Node Large</h2>
       <p class="sub">Bring the heavy iron.</p>
       <ul>
         <li>A dedicated box, or a serious machine with room to work</li>
@@ -109,7 +122,7 @@
   <section class="nd-promise">
     <h2>The deal, in plain terms</h2>
     <ul>
-      <li><strong>Your files are never touched.</strong> The node works inside its own folder. It cannot see the rest of your machine, and the website never sees your files.</li>
+      <li><strong>Your files are never touched.</strong> Installed nodes work inside their own folder and cannot see the rest of your machine; Node Lite runs in a browser tab and touches nothing on your machine at all. The website never sees your files.</li>
       <li><strong>A fixed job menu.</strong> The site can ask for named jobs only. It can never send your machine new commands or arbitrary code.</li>
       <li><strong>Your caps, your call.</strong> You set disk, hours, and load limits. The kill switch sits on your box, not ours — leaving is one click, and it removes everything.</li>
       <li><strong>Results drain to the Factory floor.</strong> Your box keeps no record it's responsible for; finished work moves to the floor and is verified there.</li>

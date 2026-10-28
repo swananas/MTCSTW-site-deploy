@@ -1,8 +1,8 @@
 {
- "version": "ugc-feed-v4.4.1-privacy-cleaned-20261027",
+ "version": "ugc-feed-v4.4.2-privacy-cleaned-20261027",
  "generated": "2026-10-27",
- "source": "Shane UGC only — UGC Vault Sorted (SSD) + Drive Memes + Canva waves + v4.4 SSD wave (2026-10-27); plus SLR network posts (build-time aggregation index, display-only) and SLR author spotlights; v4.4.1: 23 cards quarantined by the 2026-10-27 full-bank privacy scan (see privacy-scan-20261027/SCAN-REPORT.md)",
- "count": 2010,
+ "source": "Shane UGC only — UGC Vault Sorted (SSD) + Drive Memes + Canva waves + v4.4 SSD wave (2026-10-27); plus SLR network posts (build-time aggregation index, display-only) and SLR author spotlights; v4.4.1: 23 cards quarantined by the 2026-10-27 full-bank privacy scan (see privacy-scan-20261027/SCAN-REPORT.md); v4.4.2: round-2 independent re-scan quarantined 7 more cards (see SCAN-REPORT.md round 2)",
+ "count": 2003,
  "cards": [
   {
    "id": "ugc-bm-concept-a-classic-poster",
@@ -1656,18 +1656,6 @@
    "width": 1080,
    "height": 1062,
    "date": "2025-09-05",
-   "source": "MTCSTW UGC Vault — Screenshots - social posts",
-   "provenance": "shane-ugc",
-   "date_basis": "created"
-  },
-  {
-   "id": "ugc-b71",
-   "type": "post",
-   "headline": "Own post - MAGA hat woman, 'do it on purpose?'",
-   "image": "/feed-media/b71-post-img-0633.jpg",
-   "width": 1080,
-   "height": 1424,
-   "date": "2025-08-26",
    "source": "MTCSTW UGC Vault — Screenshots - social posts",
    "provenance": "shane-ugc",
    "date_basis": "created"
@@ -10961,18 +10949,6 @@
    "provenance": "shane-ugc"
   },
   {
-   "id": "ugc-w0126-meme-img-5960-2",
-   "type": "meme",
-   "headline": "Meme with a parking ticket story text over street photos and an ice cream cone",
-   "image": "/feed-media/w0126-meme-img-5960-2.jpg",
-   "width": 1080,
-   "height": 1043,
-   "date": "2024-09-24",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Memes & finished graphics",
-   "provenance": "shane-ugc"
-  },
-  {
    "id": "ugc-w0127-meme-29948187-7957-4e20-b773-1437bdea12e6",
    "type": "meme",
    "headline": "Four-panel skeleton meme labeled American Healthcare, Education, Retirement Plan and Housing",
@@ -15989,18 +15965,6 @@
    "provenance": "shane-ugc"
   },
   {
-   "id": "ugc-w0551-post-img-0741-1",
-   "type": "post",
-   "headline": "Screenshot of the creator's post showing the jobs app screenshot",
-   "image": "/feed-media/w0551-post-img-0741-1.jpg",
-   "width": 1080,
-   "height": 1023,
-   "date": "2025-09-09",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Screenshots - social posts",
-   "provenance": "shane-ugc"
-  },
-  {
    "id": "ugc-w0552-post-img-0718",
    "type": "post",
    "headline": "Reddit post screenshot asking for stock market advice",
@@ -20417,18 +20381,6 @@
    "provenance": "shane-ugc"
   },
   {
-   "id": "ugc-w0929-post-img-1852",
-   "type": "post",
-   "headline": "Walmart product page screenshot for a patterned sheet set priced $22.42",
-   "image": "/feed-media/w0929-post-img-1852.jpg",
-   "width": 1080,
-   "height": 2340,
-   "date": "2026-01-03",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Screenshots - other",
-   "provenance": "shane-ugc"
-  },
-  {
    "id": "ugc-w0930-post-img-1837-1",
    "type": "post",
    "headline": "Screenshot of a TikTok Prime Creator live rewards recap",
@@ -20460,18 +20412,6 @@
    "width": 1080,
    "height": 608,
    "date": "2025-12-12",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Screenshots - other",
-   "provenance": "shane-ugc"
-  },
-  {
-   "id": "ugc-w0933-post-img-1673",
-   "type": "post",
-   "headline": "Facebook bonus earnings screenshot",
-   "image": "/feed-media/w0933-post-img-1673.jpg",
-   "width": 1080,
-   "height": 1055,
-   "date": "2025-12-01",
    "date_basis": "created",
    "source": "MTCSTW UGC Vault — Screenshots - other",
    "provenance": "shane-ugc"
@@ -20669,18 +20609,6 @@
    "provenance": "shane-ugc"
   },
   {
-   "id": "ugc-w0952-post-img-0740-2",
-   "type": "post",
-   "headline": "Job app screenshot showing My Jobs with 483 applied",
-   "image": "/feed-media/w0952-post-img-0740-2.jpg",
-   "width": 1080,
-   "height": 729,
-   "date": "2025-09-09",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Screenshots - other",
-   "provenance": "shane-ugc"
-  },
-  {
    "id": "ugc-w0953-post-img-0702-1",
    "type": "post",
    "headline": "Podcast app screenshot of a climate episode",
@@ -20820,18 +20748,6 @@
    "width": 1080,
    "height": 679,
    "date": "2025-06-13",
-   "date_basis": "created",
-   "source": "MTCSTW UGC Vault — Screenshots - other",
-   "provenance": "shane-ugc"
-  },
-  {
-   "id": "ugc-w0965-post-img-9766-1",
-   "type": "post",
-   "headline": "Bluetooth settings screenshot showing a connected smart glasses device",
-   "image": "/feed-media/w0965-post-img-9766-1.jpg",
-   "width": 1080,
-   "height": 281,
-   "date": "2025-06-11",
    "date_basis": "created",
    "source": "MTCSTW UGC Vault — Screenshots - other",
    "provenance": "shane-ugc"

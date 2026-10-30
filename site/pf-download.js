@@ -36,9 +36,13 @@
     (document.head || document.documentElement).appendChild(st);
   }
 
+  /* Media moved out of the deploy tree 2026-10-30 (gate fix): stamped twins
+     serve from downloads.mtcstw.com (pf-dl worker, prefix-locked bucket face). */
+  var DL_BASE = 'https://pf-dl.mtcstw.workers.dev';
   function dlPath(src) {
-    if (src.indexOf('/feed-media/') === -1) return null;
-    return src.replace('/feed-media/', '/feed-media-dl/');
+    var i = src.indexOf('/feed-media/');
+    if (i === -1) return null;
+    return DL_BASE + src.substring(i).replace('/feed-media/', '/feed-media-dl/');
   }
 
   function imgPath(img) {

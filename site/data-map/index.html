@@ -1,0 +1,3652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>America, On The Record — The Data Map | MTCSTW · The Propaganda Factory</title>
+<meta name="description" content="What we hold on America: every dataset, where it reaches, and what it connects to. Built entirely from public records. Updated as the work lands.">
+<style>
+  :root{--ink:#16161A; --ink2:#1E1E24; --paper:#F4F2ED; --dim:#B9B4A8;
+    --red:#C1121F; --gold:#E8B84B; --silver:#C9CFD8; --bronze:#C07F3E; --raw:#5B7A99; --line:#33333C;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .brand{display:flex;justify-content:space-between;align-items:baseline;padding:14px 26px 0;flex-wrap:wrap;gap:6px}
+  .brand .wm{font-weight:800;letter-spacing:2px;font-size:15px}
+  .brand .wm span{color:var(--red)}
+  .brand .upd{font-size:12px;color:var(--dim)}
+  header{padding:6px 26px 10px;border-bottom:3px solid var(--red)}
+  h1{margin:0;font-size:30px;letter-spacing:.5px;text-transform:uppercase}
+  h1 .r{color:var(--red)}
+  .sub{color:var(--dim);margin-top:6px;font-size:14.5px;max-width:1000px;line-height:1.5}
+  .sub b{color:var(--paper)}
+  .totals{display:flex;flex-wrap:wrap;gap:10px;padding:14px 26px 4px}
+  .stat{background:var(--ink2);border:1px solid var(--line);border-left:4px solid var(--raw);padding:10px 14px;min-width:160px;flex:1}
+  .stat b{display:block;font-size:20px}
+  .stat span{font-size:11.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+  .stat.bronze{border-left-color:var(--bronze)} .stat.gap{border-left-color:var(--red)}
+  .stat.gold{border-left-color:var(--gold)} .stat.silver{border-left-color:var(--silver)}
+  .tabs{padding:14px 26px 0;display:flex;gap:8px;flex-wrap:wrap}
+  .tabs button{background:var(--ink2);color:var(--paper);border:1px solid var(--line);padding:8px 18px;font-size:14px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+  .tabs button.on{border-color:var(--red);box-shadow:inset 0 -3px 0 var(--red)}
+  main{padding:10px 26px 20px}
+  .view{display:none} .view.on{display:block}
+  .wrap{display:flex;gap:18px;flex-wrap:wrap}
+  .stage{flex:1 1 640px;background:var(--ink2);border:1px solid var(--line);padding:14px;min-width:320px}
+  .side{flex:0 1 360px;background:var(--ink2);border:1px solid var(--line);padding:16px;min-width:280px}
+  .side h3{margin:0 0 8px;font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold)}
+  .side p,.side li{font-size:13.5px;line-height:1.5}
+  .side .dim{color:var(--dim)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;padding:10px 2px 2px;font-size:12.5px;color:var(--dim)}
+  .sw{display:inline-block;width:13px;height:13px;margin-right:5px;vertical-align:-2px;border:1px solid #0006}
+  svg text{user-select:none}
+  .tile{cursor:pointer;stroke:#0c0c0f;stroke-width:1.5}
+  .tile:hover{stroke:var(--paper);stroke-width:2}
+  .node{cursor:pointer}
+  .node:hover circle.core{stroke:#fff;stroke-width:2.5}
+  .edge{stroke:#4A4A55;stroke-width:1.4;opacity:.75}
+  .edge.proven{stroke:#9AA3B2;stroke-width:2;opacity:.95}
+  .edge.partial{stroke-dasharray:5 4}
+  .edge.ghost{stroke:#55555F;stroke-dasharray:2 5}
+  .crumbs{font-size:13px;color:var(--dim);padding:2px 2px 10px;text-transform:uppercase;letter-spacing:.6px}
+  .crumbs a{color:var(--paper);cursor:pointer;text-decoration:none;border-bottom:1px dotted var(--red)}
+  .card{background:#26262E;border:1px solid var(--line);padding:12px 14px;margin:0 0 10px;cursor:pointer}
+  .card:hover{border-color:var(--red)}
+  .card h4{margin:0 0 4px;font-size:15.5px}
+  .card .meta{font-size:12.5px;color:var(--dim);line-height:1.5}
+  .card .meta b{color:var(--paper)}
+  .fac{background:#222229;border:1px solid var(--line);padding:10px 12px;margin:0 0 8px}
+  .fac h5{margin:0 0 3px;font-size:14px}
+  .fac .meta{font-size:12.5px;color:var(--dim);line-height:1.55}
+  .fac .meta b{color:var(--paper)}
+  .chip{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:9px;letter-spacing:.5px;text-transform:uppercase;background:#3A3A44;color:var(--paper)}
+  .chip.built{background:var(--gold);color:#16161A;font-weight:700}
+  .chip.building{background:var(--bronze);color:#fff}
+  .cityhead{margin:16px 0 8px;font-size:13px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
+  .aim{border-left:4px solid var(--red);background:#221317;padding:12px 16px;margin:0 26px 18px}
+  .aim h3{margin:0 0 6px;text-transform:uppercase;letter-spacing:.6px;font-size:15px}
+  .aim li{font-size:13.5px;line-height:1.55;margin-bottom:4px}
+  footer{padding:12px 26px 26px;color:var(--dim);font-size:12.5px;line-height:1.55;border-top:1px solid var(--line)}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:9px;margin:2px 4px 2px 0;text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="brand"><div class="wm">MTCSTW <span>·</span> THE PROPAGANDA FACTORY</div><div class="upd" id="upd"></div></div>
+<header>
+  <h1>America, On The Record <span class="r">—</span> The Data Map</h1>
+  <div class="sub">We are building the public record of who owns what, who pollutes what, and who pays whom —
+  from public records, state by state. This map shows <b>exactly what we hold, where it reaches, and what it
+  connects to</b> — including the silos and the gaps, named out loud. It regenerates as the work lands.
+  Click a state to open its scan, then go down to the county, then the city.</div>
+</header>
+
+<div class="totals" id="totals"></div>
+
+<div class="tabs">
+  <button id="tabMap" class="on" onclick="show('map')">🗺 The Map — drill down</button>
+  <button id="tabWeb" onclick="show('web')">🕸 The Web — what connects to what</button>
+</div>
+
+<main>
+  <section id="view-map" class="view on">
+    <div class="wrap">
+      <div class="stage">
+        <div class="crumbs" id="crumbs"></div>
+        <svg id="tilemap" viewBox="0 0 660 420" width="100%" role="img" aria-label="US tile map of data depth"></svg>
+        <div class="legend">
+          <span><i class="sw" style="background:#3D5A76"></i>National raw base</span>
+          <span><i class="sw" style="background:#8A5A28"></i>Bronze — connecting under way</span>
+          <span><i class="sw" style="background:#7E8894"></i>Deep work — dossiers live</span>
+          <span><i class="sw" style="background:#E8B84B"></i>Gold — connected &amp; certified</span>
+        </div>
+      </div>
+      <div class="side" id="scan">
+        <h3>How to read this map</h3>
+        <p>Every state sits on the <b>national raw base</b>: campaign finance, jobs-by-county, nonprofit
+        filings, EPA facilities, Census — covering all 50 states, as raw records. Raw is reach, not depth.
+        It becomes knowledge only where it has been <b>connected</b>: cleaned, keyed, and welded to the
+        other collections.</p>
+        <p>That work exists in pockets — <b>Louisiana is gold</b>, Texas and DC are deep, Pennsylvania and
+        Mississippi are bronze — and it is expanding state by state. Click any state to open its scan.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-web" class="view">
+    <div class="wrap">
+      <div class="stage">
+        <svg id="web" viewBox="0 0 1240 800" width="100%" role="img" aria-label="Dataset connection web"></svg>
+        <div class="legend">
+          <span><i class="sw" style="background:#5B7A99"></i>Raw</span>
+          <span><i class="sw" style="background:#C07F3E"></i>Bronze</span>
+          <span><i class="sw" style="background:#C9CFD8"></i>Silver</span>
+          <span><i class="sw" style="background:#E8B84B"></i>Gold</span>
+          <span><i class="sw" style="background:transparent;border:1.5px dashed #8A8F98"></i>Queued — the next wave</span>
+          <span>—— proven connection&nbsp;&nbsp;┄ partial / name-based&nbsp;&nbsp;· · planned</span>
+        </div>
+      </div>
+      <div class="side" id="webDetail">
+        <h3>The web, honestly</h3>
+        <p>Each ball is a collection — <b>size ≈ how much we hold</b>, colour = how far it has been
+        processed. Lines are <b>connections</b>: a shared key that lets two collections be joined —
+        a facility registry ID, a tax ID, a legal entity ID, a county code.</p>
+        <p>Most collections have <b>few lines or none</b>. That is the silo problem in one picture:
+        the vault is wide, the web is sparse. The bright knot on the left — courts connected to the
+        people who run them — is what “done” looks like. Almost nothing else looks like that yet.</p>
+        <p class="dim">Click any ball for its tier, size, coverage, and connections.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="aim"><h3>🎯 The work ahead — where this goes next</h3><ul id="aim"></ul></div>
+
+<footer id="foot"></footer>
+
+<script>
+let DATA = {
+ "updated_at": "2026-10-30T18:44-05:00",
+ "totals": {
+  "bronze_entries": 177,
+  "bronze_families": 70,
+  "bronze_gb": 160.82,
+  "gap_gb": 618.85,
+  "gold_states": 1,
+  "raw_entries": 309,
+  "raw_families": 180,
+  "raw_gb": 469.97,
+  "silver_note": "First silver build complete — 66.6M campaign contributions welded",
+  "universe_families": 384,
+  "untouched_families": 172,
+  "untouched_gb": 190.34
+ },
+ "aim": [
+  "Connect the untouched 172 collections (190 GB) — public records already in the vault that have never been processed. This is the standing baseline work, running every day.",
+  "Close the 618.85 GB processing gap — finish turning raw records into cleaned, keyed, connected data.",
+  "The next wave is queued: GDELT (world events), FERC energy reports, Wikidata (the world's entity graph), OpenStreetMap, and PubMed — a terabyte of new reach, staged to land.",
+  "Finish the first silver build's road: 66.6 million campaign contributions are welded and verified; the remaining 224.6 million rows are the template's next run.",
+  "Replicate the Louisiana pattern — courts welded to the people who run them — state by state. Mississippi is done at bronze. Texas is planned.",
+  "Named holes we say out loud: one age-adjusted health survey enumerated and never landed · nonprofit filing titles held by name · opioid shipment data (ARCOS) awaiting a decision."
+ ],
+ "raw_base_note": "Covered by the national collections — campaign finance, jobs-by-county, nonprofit filings, EPA facility records, Census — in raw form. Raw is reach, not depth: it becomes knowledge when it is cleaned, keyed, and connected. That connecting work is under way state by state.",
+ "county_coverage_note": "Every county in this state is reached by the national collections (jobs, facilities, nonprofits, health). County-level scans — facility by facility, city by city — are published as the connecting work reaches each state.",
+ "states": {
+  "DC": {
+   "depth": 3,
+   "note": "The federal money lives here in substance: campaign finance, corporate filings, and federal spending — plus our data-center tracker (47 campuses, 18 incentive deals, roughly $44 billion tracked). The money is banked; the connections between it are the work ahead.",
+   "counties": {}
+  },
+  "LA": {
+   "depth": 4,
+   "note": "The one finished state. Louisiana's courts are GOLD: 1,574,448 dockets and 378,406 cases, every case welded to its court and its judge — 5,565 judge profiles, and every previously anonymous author identified. Plus the officials' money: ethics filings and financial disclosures, banked. This is the pattern being replicated state by state.",
+   "counties": {}
+  },
+  "MS": {
+   "depth": 2,
+   "note": "Bronze — new tonight. Mississippi's courts followed the Louisiana pattern: census settled (788,156 dockets · 84,111 cases · 89,555 opinions), the records landed, and the citation graph is built — 344,284 citing pairs inside Mississippi, plus the Fifth Circuit corridor measured both ways into Louisiana.",
+   "counties": {}
+  },
+  "PA": {
+   "depth": 2,
+   "note": "Bronze. Allegheny County is mapped — 93 industrial facilities, 95.3 million pounds of toxic releases over the decade — and a 16-location dossier queue is held and ready. County work fires location by location.",
+   "counties": {
+    "Allegheny": {
+     "locations": [
+      {
+       "name": "USS MON VALLEY WORKS - EDGAR THOMSON PLANT",
+       "city": "Braddock",
+       "street": "BRADDOCK AVE & 13TH ST",
+       "zip": "15104",
+       "parent": "US STEEL CORP",
+       "frs": "110001116934",
+       "decade_lb": 45478392,
+       "lb2024": 4168110,
+       "top_chem": "Zinc compounds",
+       "rank": 2,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "USS-CLAIRTON PLANT",
+       "city": "Clairton",
+       "street": "400 STATE ST MS 71",
+       "zip": "15025",
+       "parent": "US STEEL CORP",
+       "frs": "110042043384",
+       "decade_lb": 34111529,
+       "lb2024": 3214397,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 4,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "SYNTHOMER JEFFERSON HILLS LLC",
+       "city": "Jefferson Hills",
+       "street": "2200 STATE HWY 837",
+       "zip": "15025",
+       "parent": "YULE CATTO INC",
+       "frs": "110000583057",
+       "decade_lb": 4071210,
+       "lb2024": 152684,
+       "top_chem": "Ammonia",
+       "rank": 36,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "ATI FLAT ROLLED PRODUCTS HOLDINGS LLC",
+       "city": "Brackenridge",
+       "street": "100 RIVER RD",
+       "zip": "15014",
+       "parent": "ATI INC",
+       "frs": "110000328734",
+       "decade_lb": 1822455,
+       "lb2024": 616049,
+       "top_chem": "Zinc compounds",
+       "rank": 61,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "PPG INDUSTRIESINC-SPRINGDALE COMPLEX",
+       "city": "Springdale",
+       "street": "125 COLFAX ST",
+       "zip": "15144",
+       "parent": "PPG INDUSTRIES INC",
+       "frs": "110000329403",
+       "decade_lb": 1453616,
+       "lb2024": 302730,
+       "top_chem": "Certain glycol ethers",
+       "rank": 68,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "USS MON VALLEY WORKS - IRVIN PLANT",
+       "city": "West Mifflin",
+       "street": "CAMP HOLLOW RD",
+       "zip": "15122",
+       "parent": "US STEEL CORP",
+       "frs": "110008470724",
+       "decade_lb": 1290179,
+       "lb2024": 79118,
+       "top_chem": "Ethylene",
+       "rank": 75,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "CHESWICK PLANT ENVIRONMENTAL REDEVELOPMENT GROUP LLC",
+       "city": "Springdale",
+       "street": "PITTSBURGH & PORTER ST",
+       "zip": "15144",
+       "parent": "CHARAH SOLUTIONS INC",
+       "frs": "110056969641",
+       "decade_lb": 1081712,
+       "lb2024": 1162,
+       "top_chem": "Sulfuric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 81,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "CALGON CARBON CORP NEVILLE ISLAND PLANT",
+       "city": "Pittsburgh",
+       "street": "200 NEVILLE RD",
+       "zip": "15225",
+       "parent": "KURARAY HOLDINGS USA INC",
+       "frs": "110000329617",
+       "decade_lb": 1040934,
+       "lb2024": 121373,
+       "top_chem": "Ammonia",
+       "rank": 84,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "TECH MET INC.",
+       "city": "Glassport",
+       "street": "15 ALLEGHENY SQUARE",
+       "zip": "15045",
+       "parent": "TECH MET INC",
+       "frs": "110000819179",
+       "decade_lb": 1022472,
+       "lb2024": 114555,
+       "top_chem": "Nitric acid",
+       "rank": 86,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MCCONWAY & TORLEY LLC PLT 1801",
+       "city": "Pittsburgh",
+       "street": "109 48TH ST",
+       "zip": "15201",
+       "parent": "STELLEX CAPITAL MANAGEMENT LLC",
+       "frs": "110000329458",
+       "decade_lb": 896856,
+       "lb2024": 18459,
+       "top_chem": "Aluminum (fume or dust)",
+       "rank": 91,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LIBERTAS COPPER LLC",
+       "city": "Leetsdale",
+       "street": "100 WASHINGTON ST",
+       "zip": "15056",
+       "parent": "LIBERTAS COPPER LLC",
+       "frs": "110000328994",
+       "decade_lb": 584460,
+       "lb2024": 78894,
+       "top_chem": "Copper",
+       "rank": 107,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LIBERTY PULTRUSIONS",
+       "city": "West Mifflin",
+       "street": "1575 LEBANON SCHOOL RD",
+       "zip": "15122",
+       "parent": "NA",
+       "frs": "110000329305",
+       "decade_lb": 297978,
+       "lb2024": 28825,
+       "top_chem": "Styrene",
+       "rank": 141,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "GE CO. BRIDGEVILLE GLASS PLANT",
+       "city": "Bridgeville",
+       "street": "540 MAYER ST",
+       "zip": "15017",
+       "parent": "GENERAL ELECTRIC CO (GE CO)",
+       "frs": "110000328752",
+       "decade_lb": 263136,
+       "lb2024": 0,
+       "top_chem": "Barium compounds (except for barium sulfate (CAS No. 7727-43-7))",
+       "rank": 149,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TMS INTERNATIONAL LLC",
+       "city": "Braddock",
+       "street": "1300 BRADDOCK AVE",
+       "zip": "15104",
+       "parent": "TMS INTERNATIONAL CORP",
+       "frs": "110031020357",
+       "decade_lb": 251279,
+       "lb2024": 27878,
+       "top_chem": "Methanol",
+       "rank": 151,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "KOPPERS INC CLAIRTON TAR PLANT",
+       "city": "Clairton",
+       "street": "300 N STATE ST",
+       "zip": "15025",
+       "parent": "KOPPERS INC",
+       "frs": "110000328823",
+       "decade_lb": 165751,
+       "lb2024": 0,
+       "top_chem": "Naphthalene",
+       "rank": 172,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "INEOS COMPOSITES US LLC",
+       "city": "Pittsburgh",
+       "street": "2650 NEVILLE RD",
+       "zip": "15225",
+       "parent": "INEOS ENTERPRISES US HOLDCO LLC",
+       "frs": "110000329653",
+       "decade_lb": 154781,
+       "lb2024": 13776,
+       "top_chem": "Styrene",
+       "rank": 178,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "NEVILLE CHEMICAL CO",
+       "city": "Pittsburgh",
+       "street": "2800 NEVILLE RD",
+       "zip": "15225",
+       "parent": "NA",
+       "frs": "110000329644",
+       "decade_lb": 149695,
+       "lb2024": 14423,
+       "top_chem": "Dicyclopentadiene",
+       "rank": 181,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ASCENT TUBULAR PRODUCTS",
+       "city": "Munhall",
+       "street": "1001 E WATERFRONT DR",
+       "zip": "15120",
+       "parent": "ASCENT INDUSTRIES",
+       "frs": "110002095152",
+       "decade_lb": 140684,
+       "lb2024": 0,
+       "top_chem": "Chromium",
+       "rank": 184,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MATTHEWS INTERNATIONAL CORP",
+       "city": "Pittsburgh",
+       "street": "1315 W LIBERTY AVE",
+       "zip": "15226",
+       "parent": "MATTHEWS INTERNATIONAL CORP",
+       "frs": "110000329699",
+       "decade_lb": 133269,
+       "lb2024": 13411,
+       "top_chem": "Copper",
+       "rank": 187,
+       "badge": "IN THE CENSUS"
+      }
+     ],
+     "county_facilities": 93,
+     "county_decade_lb": 95277381,
+     "cities": {
+      "Pittsburgh": 5,
+      "Braddock": 2,
+      "Clairton": 2,
+      "Springdale": 2,
+      "West Mifflin": 2,
+      "Jefferson Hills": 1,
+      "Brackenridge": 1,
+      "Glassport": 1,
+      "Leetsdale": 1,
+      "Bridgeville": 1,
+      "Munhall": 1
+     }
+    }
+   }
+  },
+  "TX": {
+   "depth": 3,
+   "note": "Deep work under way. 690 industrial facilities mapped across Harris and Jefferson counties alone; the first full dossier (TM Deer Park, the #1 toxic releaser in the three-county map) is built. A full Texas courts plan is in motion, on the Louisiana pattern.",
+   "counties": {
+    "Harris": {
+     "locations": [
+      {
+       "name": "TM DEER PARK SERVICES LP",
+       "city": "Deer Park",
+       "street": "2525 BATTLEGROUND RD",
+       "zip": "77536",
+       "parent": "TEXAS MOLECULAR LP",
+       "frs": "110017743281",
+       "decade_lb": 121405408,
+       "lb2024": 14065312,
+       "top_chem": "Methanol",
+       "rank": 1,
+       "badge": "DOSSIER BUILT"
+      },
+      {
+       "name": "LYONDELL CHEMICAL CO",
+       "city": "Channelview",
+       "street": "2502 SHELDON RD",
+       "zip": "77530",
+       "parent": "LYONDELLBASELL FINANCE CO",
+       "frs": "110000463221",
+       "decade_lb": 44337396,
+       "lb2024": 3004924,
+       "top_chem": "Methanol",
+       "rank": 3,
+       "badge": "DOSSIER IN BUILD"
+      },
+      {
+       "name": "EXXONMOBIL REFINING & SUPPLY BAYTOWN REFINERY (PART)",
+       "city": "Baytown",
+       "street": "2800 DECKER DR",
+       "zip": "775202099",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110000502901",
+       "decade_lb": 20671800,
+       "lb2024": 2049652,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 6,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "VALERO REFINING - TEXAS L.P. HOUSTON REFINERY",
+       "city": "Houston",
+       "street": "9701 MANCHESTER",
+       "zip": "77012",
+       "parent": "VALERO ENERGY CORP",
+       "frs": "110000460885",
+       "decade_lb": 14392952,
+       "lb2024": 2220488,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 8,
+       "badge": "DOSSIER IN BUILD"
+      },
+      {
+       "name": "SASOL CHEMICALS (USA) LLC",
+       "city": "Houston",
+       "street": "1914 HADEN RD",
+       "zip": "77015",
+       "parent": "SASOL (USA) CORP",
+       "frs": "110000461009",
+       "decade_lb": 14245646,
+       "lb2024": 27704,
+       "top_chem": "m-Cresol",
+       "rank": 9,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "CLEAN HARBORS DEER PARK LLC",
+       "city": "La Porte",
+       "street": "2027 INDEPENDENCE PARKWAY SOUTH",
+       "zip": "77571",
+       "parent": "CLEAN HARBORS INC",
+       "frs": "110000463365",
+       "decade_lb": 12353066,
+       "lb2024": 2299808,
+       "top_chem": "Zinc compounds",
+       "rank": 10,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "KURARAY AMERICA INC",
+       "city": "Laporte",
+       "street": "12342 STRANG RD",
+       "zip": "77571",
+       "parent": "KURARAY HOLDINGS USA INC",
+       "frs": "110059809989",
+       "decade_lb": 11640661,
+       "lb2024": 556713,
+       "top_chem": "Methanol",
+       "rank": 11,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "EXXONMOBIL BAYTOWN CHEMICAL PLANT (PART)",
+       "city": "Baytown",
+       "street": "5000 BAYWAY DR",
+       "zip": "77520",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110000463178",
+       "decade_lb": 9633580,
+       "lb2024": 969742,
+       "top_chem": "Propylene",
+       "rank": 12,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "CHEVRON PHILLIPS CHEMICAL CO LP",
+       "city": "Baytown",
+       "street": "9500 IH-10 E",
+       "zip": "77521",
+       "parent": "CHEVRON PHILLIPS CHEMICAL CO LLC",
+       "frs": "110007177768",
+       "decade_lb": 8331168,
+       "lb2024": 1323248,
+       "top_chem": "Ethylene",
+       "rank": 16,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "MITSUBISHI CHEMICAL LA PORTE",
+       "city": "La Porte",
+       "street": "12220 STRANG RD",
+       "zip": "77571",
+       "parent": "MITSUBISHI CHEMICAL AMERICA INC",
+       "frs": "110000495241",
+       "decade_lb": 7994018,
+       "lb2024": 1239476,
+       "top_chem": "Methanol",
+       "rank": 18,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "DEER PARK REFINING LP",
+       "city": "Deer Park",
+       "street": "5900 HWY 225 EAST",
+       "zip": "77536",
+       "parent": "P M I SERVICES NORTH AMERICA INC",
+       "frs": "110031267064",
+       "decade_lb": 7760404,
+       "lb2024": 513668,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 20,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LYONDELL CHEMICAL CO BAYPORT FACILITY",
+       "city": "Pasadena",
+       "street": "10801 CHOATE RD",
+       "zip": "77507",
+       "parent": "LYONDELLBASELL FINANCE CO",
+       "frs": "110000463007",
+       "decade_lb": 6326492,
+       "lb2024": 983602,
+       "top_chem": "tert-Butyl alcohol",
+       "rank": 26,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "EXXONMOBIL CHEMICAL CO BAYTOWN OLEFINS PLANT (PART)",
+       "city": "Baytown",
+       "street": "3525 DECKER DR",
+       "zip": "77520",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110000463178",
+       "decade_lb": 6224177,
+       "lb2024": 544558,
+       "top_chem": "Ethylene",
+       "rank": 27,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "HUNTSMAN INTERNATIONAL LLC",
+       "city": "Houston",
+       "street": "101 CONCRETE ST",
+       "zip": "77012",
+       "parent": "HUNTSMAN CORP",
+       "frs": "110000460910",
+       "decade_lb": 5862244,
+       "lb2024": 598073,
+       "top_chem": "1,4-Dioxane",
+       "rank": 28,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "SHELL CHEMICAL LP",
+       "city": "Deer Park",
+       "street": "5900 HWY 225 EAST",
+       "zip": "77536",
+       "parent": "SHELL PETROLEUM INC",
+       "frs": "110031267064",
+       "decade_lb": 5714824,
+       "lb2024": 861517,
+       "top_chem": "Ethylene",
+       "rank": 29,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "KURARAY AMERICA BAYPORT",
+       "city": "Pasadena",
+       "street": "13100 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "KURARAY HOLDINGS USA INC",
+       "frs": "110069266261",
+       "decade_lb": 5550547,
+       "lb2024": 343860,
+       "top_chem": "Methanol",
+       "rank": 30,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "CELANESE LTD CLEAR LAKE PLANT",
+       "city": "Pasadena",
+       "street": "9502 BAYPORT BLVD",
+       "zip": "77507",
+       "parent": "CELANESE CORP",
+       "frs": "110067040703",
+       "decade_lb": 4879327,
+       "lb2024": 666328,
+       "top_chem": "Ethylene glycol",
+       "rank": 31,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "SOLVAY CHEMICALS INC",
+       "city": "La Porte",
+       "street": "1130 INDEPENDENCE PKWY S",
+       "zip": "77571",
+       "parent": "ESSENTIAL HOLDING AMERICA LLC",
+       "frs": "110024422409",
+       "decade_lb": 4722768,
+       "lb2024": 495499,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 33,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "DEER PARK_TX (ROH)",
+       "city": "Deer Park",
+       "street": "1900 TIDAL RD",
+       "zip": "77536",
+       "parent": "DOW INC",
+       "frs": "110069500864",
+       "decade_lb": 4336624,
+       "lb2024": 729530,
+       "top_chem": "Methyl methacrylate",
+       "rank": 34,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "GB BIOSCIENCES LLC",
+       "city": "Houston",
+       "street": "2239 HADEN RD",
+       "zip": "77015",
+       "parent": "SYNGENTA CORP",
+       "frs": "110000460965",
+       "decade_lb": 3698308,
+       "lb2024": 0,
+       "top_chem": "Chlorothalonil",
+       "rank": 38,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "KURARAY AMERICA-EVAL BU",
+       "city": "Pasadena",
+       "street": "11500 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "KURARAY HOLDINGS USA INC",
+       "frs": "110000751758",
+       "decade_lb": 3640371,
+       "lb2024": 615558,
+       "top_chem": "Methanol",
+       "rank": 39,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "LUBRIZOL CORP BAYPORT FACILITY",
+       "city": "Pasadena",
+       "street": "12801 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "BERKSHIRE HATHAWAY INC",
+       "frs": "110000462936",
+       "decade_lb": 3376759,
+       "lb2024": 281684,
+       "top_chem": "Methanol",
+       "rank": 41,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "HOUSTON REFINING LP",
+       "city": "Houston",
+       "street": "12000 LAWNDALE ST",
+       "zip": "77017",
+       "parent": "LYONDELLBASELL FINANCE CO",
+       "frs": "110058113704",
+       "decade_lb": 3280880,
+       "lb2024": 311588,
+       "top_chem": "Hydrogen cyanide",
+       "rank": 44,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "METALPLATE GALVANIZING LP",
+       "city": "Houston",
+       "street": "10625 NEEDHAM ST",
+       "zip": "77013",
+       "parent": "METALPLATE GALVANIZING LP",
+       "frs": "110000460929",
+       "decade_lb": 3166973,
+       "lb2024": 497419,
+       "top_chem": "Zinc compounds",
+       "rank": 46,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "METALPLATE GALVANIZING LP",
+       "city": "Houston",
+       "street": "10635 NEEDHAM ST",
+       "zip": "77013",
+       "parent": "METALPLATE GALVANIZING LP",
+       "frs": "110069447085",
+       "decade_lb": 3131333,
+       "lb2024": 341199,
+       "top_chem": "Zinc compounds",
+       "rank": 47,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "EQUISTAR CHEMICALS LP",
+       "city": "La Porte",
+       "street": "1515 MILLER CUT OFF RD",
+       "zip": "77571",
+       "parent": "LYONDELLBASELL FINANCE CO",
+       "frs": "110034641635",
+       "decade_lb": 2771287,
+       "lb2024": 223943,
+       "top_chem": "Ethylene",
+       "rank": 48,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "ENDURO COMPOSITES INC.-HOUSTON CENTRAL GREEN FACILITY",
+       "city": "Houston",
+       "street": "16602 CENTRAL GREEN BLVD",
+       "zip": "77032",
+       "parent": "NA",
+       "frs": "110022832746",
+       "decade_lb": 2770803,
+       "lb2024": 189396,
+       "top_chem": "Styrene",
+       "rank": 49,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "HALDOR TOPSOE INC",
+       "city": "Pasadena",
+       "street": "10010 BAYPORT RD",
+       "zip": "77507",
+       "parent": "HALDOR TOPSOE/ AS",
+       "frs": "110000462883",
+       "decade_lb": 2729625,
+       "lb2024": 423473,
+       "top_chem": "Molybdenum trioxide",
+       "rank": 50,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INEOS BATTLEGROUND MANUFACTURING COMPLEX",
+       "city": "La Porte",
+       "street": "1230 INDEPENDENCE PARKWAY, SOUTH",
+       "zip": "77571",
+       "parent": "INEOS USA LLC",
+       "frs": "110038705817",
+       "decade_lb": 2662537,
+       "lb2024": 248514,
+       "top_chem": "Ethylene",
+       "rank": 51,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "TRECORA WAX LLC",
+       "city": "Pasadena",
+       "street": "12500 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "TRECORA RESOURCES INC",
+       "frs": "110000462990",
+       "decade_lb": 2551494,
+       "lb2024": 389647,
+       "top_chem": "Allyl alcohol",
+       "rank": 52,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "CENTAURI TECHNOLOGIES LLC",
+       "city": "Pasadena",
+       "street": "5200 UNDERWOOD RD",
+       "zip": "77507",
+       "parent": "AURORIUM PPC HOLDINGS LLC",
+       "frs": "110012183216",
+       "decade_lb": 2376126,
+       "lb2024": 415492,
+       "top_chem": "Methanol",
+       "rank": 53,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "WESTLAKE EPOXY INC.- DEER PARK SITE",
+       "city": "Deer Park",
+       "street": "5900 HIGHWAY 225 - GATE 7B",
+       "zip": "77536",
+       "parent": "WESTLAKE CORP",
+       "frs": "110031267064",
+       "decade_lb": 2317628,
+       "lb2024": 126025,
+       "top_chem": "4,4'-Isopropylidenediphenol",
+       "rank": 54,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LYONDELLBASELL ACETYLS LLC",
+       "city": "La Porte",
+       "street": "1350 MILLER CUT OFF RD",
+       "zip": "77571",
+       "parent": "LYONDELLBASELL FINANCE CO",
+       "frs": "110000463597",
+       "decade_lb": 2223148,
+       "lb2024": 226604,
+       "top_chem": "Vinyl acetate",
+       "rank": 56,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "THE GOODYEAR TIRE & RUBBER CO",
+       "city": "Houston",
+       "street": "2000 GOODYEAR DR",
+       "zip": "77017",
+       "parent": "THE GOODYEAR TIRE & RUBBER CO",
+       "frs": "110000462231",
+       "decade_lb": 2195602,
+       "lb2024": 173771,
+       "top_chem": "Styrene",
+       "rank": 57,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "PCI NITROGEN LLC",
+       "city": "Pasadena",
+       "street": "2001 JACKSON RD",
+       "zip": "77506",
+       "parent": "PASADENA COMMODITIES INTERNATIONAL LLC",
+       "frs": "110056955521",
+       "decade_lb": 2037338,
+       "lb2024": 125755,
+       "top_chem": "Ammonia",
+       "rank": 58,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LUBRIZOL CORP DEER PARK FACILITY",
+       "city": "Deer Park",
+       "street": "41 TIDAL RD",
+       "zip": "77536",
+       "parent": "BERKSHIRE HATHAWAY INC",
+       "frs": "110056537804",
+       "decade_lb": 2016032,
+       "lb2024": 48870,
+       "top_chem": "Zinc compounds",
+       "rank": 59,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "SOUTHWEST GALVANIZING INC",
+       "city": "Houston",
+       "street": "737 ALEEN ST",
+       "zip": "77029",
+       "parent": "SOUTHWEST GALVANIZING INC",
+       "frs": "110000462197",
+       "decade_lb": 1846533,
+       "lb2024": 60777,
+       "top_chem": "Zinc compounds",
+       "rank": 60,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ALTIVIA CROSBY FACILITY",
+       "city": "Crosby",
+       "street": "16503 RAMSEY RD",
+       "zip": "77532",
+       "parent": "ALTIVIA OXIDE CHEMICALS LLC",
+       "frs": "110070889524",
+       "decade_lb": 1802690,
+       "lb2024": 584,
+       "top_chem": "Maleic anhydride",
+       "rank": 62,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "PASADENA REFINING SYSTEM INC",
+       "city": "Pasadena",
+       "street": "111 RED BLUFF RD",
+       "zip": "77506",
+       "parent": "CHEVRON CORP",
+       "frs": "110000462703",
+       "decade_lb": 1670583,
+       "lb2024": 23409,
+       "top_chem": "n-Hexane",
+       "rank": 63,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INEOS OXIDE BAYPORT EO PLANT",
+       "city": "Pasadena",
+       "street": "5761 UNDERWOOD RD",
+       "zip": "77507",
+       "parent": "INEOS AMERICAS LLC",
+       "frs": "110000506079",
+       "decade_lb": 1642573,
+       "lb2024": 213099,
+       "top_chem": "Ethylene glycol",
+       "rank": 64,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "KETJEN LLC - BAYPORT PLANT",
+       "city": "Pasadena",
+       "street": "13000 BAY PARK RD",
+       "zip": "77507",
+       "parent": "ALBEMARLE CORP",
+       "frs": "110022810573",
+       "decade_lb": 1550021,
+       "lb2024": 112003,
+       "top_chem": "Molybdenum trioxide",
+       "rank": 65,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "OXY VINYLS LP PASADENA PVC PLANT",
+       "city": "Pasadena",
+       "street": "4403 PASADENA FWY",
+       "zip": "77503",
+       "parent": "OCCIDENTAL PETROLEUM CORP",
+       "frs": "110000462605",
+       "decade_lb": 1474237,
+       "lb2024": 123101,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 66,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BRASKEM AMERICA INC-LAPORTE SITE",
+       "city": "La Porte",
+       "street": "8811 STRANG RD",
+       "zip": "77571",
+       "parent": "BRASKEM AMERICA INC",
+       "frs": "110000463631",
+       "decade_lb": 1465474,
+       "lb2024": 132544,
+       "top_chem": "Propylene",
+       "rank": 67,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "CHEVRON PHILLIPS CHEMICAL CO - PASADENA PLASTICS COMPLEX",
+       "city": "Pasadena",
+       "street": "1400 JEFFERSON RD",
+       "zip": "77506",
+       "parent": "CHEVRON PHILLIPS CHEMICAL CO LLC",
+       "frs": "110000462730",
+       "decade_lb": 1372209,
+       "lb2024": 105549,
+       "top_chem": "Ethylene",
+       "rank": 71,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "DOOSAN TURBOMACHINERY SERVICES",
+       "city": "La Porte",
+       "street": "12000 N P ST",
+       "zip": "77571",
+       "parent": "NA",
+       "frs": "110070559702",
+       "decade_lb": 1347950,
+       "lb2024": 353010,
+       "top_chem": "Aluminum oxide (fibrous forms)",
+       "rank": 72,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BAYPORT POLYMERS LLC - HDPE PLANT",
+       "city": "Pasadena",
+       "street": "12212 PORT RD",
+       "zip": "77507",
+       "parent": "BAYPORT POLYMERS LLC",
+       "frs": "110000462847",
+       "decade_lb": 1303655,
+       "lb2024": 188361,
+       "top_chem": "n-Hexane",
+       "rank": 73,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BAKER PETROLITE BAYPORT FACILI TY",
+       "city": "Pasadena",
+       "street": "13200 BAY PARK RD",
+       "zip": "77507",
+       "parent": "BAKER HUGHES HOLDINGS LLC",
+       "frs": "110000462981",
+       "decade_lb": 1298703,
+       "lb2024": 193449,
+       "top_chem": "1,2,4-Trimethylbenzene",
+       "rank": 74,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ARKEMA INC CLEAR LAKE",
+       "city": "Pasadena",
+       "street": "9502 B BAYPORT BLVD",
+       "zip": "77507",
+       "parent": "ARKEMA DELAWARE INC",
+       "frs": "110071372206",
+       "decade_lb": 1247235,
+       "lb2024": 822003,
+       "top_chem": "Ethyl acrylate",
+       "rank": 76,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AMERICAN ACRYL LP",
+       "city": "Seabrook",
+       "street": "4631 OLD HWY 146 SUITE B",
+       "zip": "77586",
+       "parent": "AMERICAN ACRYL LLC",
+       "frs": "110064212276",
+       "decade_lb": 1206339,
+       "lb2024": 121850,
+       "top_chem": "Acrylic acid",
+       "rank": 77,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INTERNATIONAL PAINT LLC",
+       "city": "Houston",
+       "street": "6001 ANTOINE DR",
+       "zip": "77091",
+       "parent": "AKZO NOBEL INC",
+       "frs": "110000462268",
+       "decade_lb": 1144101,
+       "lb2024": 47084,
+       "top_chem": "Copper compounds",
+       "rank": 78,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "EURECAT US",
+       "city": "Pasadena",
+       "street": "13100 BAYPARK RD",
+       "zip": "77507",
+       "parent": "EURECAT US",
+       "frs": "110000702240",
+       "decade_lb": 1141612,
+       "lb2024": 47539,
+       "top_chem": "Molybdenum trioxide",
+       "rank": 79,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TOTALENERGIES PETROCHEMICALS & REFINING USA INC",
+       "city": "La Porte",
+       "street": "1818 INDEPENDENCE PKWY S",
+       "zip": "77571",
+       "parent": "TOTALENERGIES HOLDINGS USA INC",
+       "frs": "110000619652",
+       "decade_lb": 1124303,
+       "lb2024": 101686,
+       "top_chem": "Propylene",
+       "rank": 80,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "INVISTA HOUSTON",
+       "city": "Houston",
+       "street": "9822 LA PORTE FWY",
+       "zip": "77017",
+       "parent": "KOCH INC",
+       "frs": "110000461107",
+       "decade_lb": 1066553,
+       "lb2024": 106907,
+       "top_chem": "Ammonia",
+       "rank": 82,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "NOURYON FUNCTIONAL CHEMICALS LLC",
+       "city": "Pasadena",
+       "street": "12900 BAY PARK RD",
+       "zip": "77507",
+       "parent": "NOURYON USA LLC",
+       "frs": "110044232773",
+       "decade_lb": 1054844,
+       "lb2024": 95899,
+       "top_chem": "tert-Butyl alcohol",
+       "rank": 83,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "POLYNT COMPOSITES USA INC. - HOUSTON",
+       "city": "Houston",
+       "street": "2434 HOLMES RD",
+       "zip": "77051",
+       "parent": "POLYNT COMPOSITES USA INC",
+       "frs": "110000461857",
+       "decade_lb": 1027795,
+       "lb2024": 83124,
+       "top_chem": "Xylene (mixed isomers)",
+       "rank": 85,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "DIXIE CHEMICAL CO INC",
+       "city": "Pasadena",
+       "street": "10601 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "DIXIE HOLDINGS INC",
+       "frs": "110031409973",
+       "decade_lb": 992331,
+       "lb2024": 120610,
+       "top_chem": "Methanol",
+       "rank": 87,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TPC GROUP LLC",
+       "city": "Houston",
+       "street": "8600 PARK PL BLVD",
+       "zip": "77017",
+       "parent": "TPC GROUP LLC",
+       "frs": "110000461134",
+       "decade_lb": 973619,
+       "lb2024": 76172,
+       "top_chem": "Ammonia",
+       "rank": 88,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ALLIED POWER GROUP",
+       "city": "Houston",
+       "street": "10131 MILLS RD",
+       "zip": "77070",
+       "parent": "ALLIED POWER GROUP LLC",
+       "frs": "110061689739",
+       "decade_lb": 919290,
+       "lb2024": 333370,
+       "top_chem": "Aluminum oxide (fibrous forms)",
+       "rank": 89,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "KETJEN PASADENA PLANT",
+       "city": "Pasadena",
+       "street": "2500 N SOUTH ST",
+       "zip": "77503",
+       "parent": "ALBEMARLE CORP",
+       "frs": "110056955987",
+       "decade_lb": 905137,
+       "lb2024": 96865,
+       "top_chem": "Ethylene",
+       "rank": 90,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "SOUTH COAST TERMINALS LLC STRANG ROAD FACILITY",
+       "city": "La Porte",
+       "street": "10900 STRANG RD",
+       "zip": "77571",
+       "parent": "SOUTH COAST TERMINALS LLC",
+       "frs": "110070363214",
+       "decade_lb": 888924,
+       "lb2024": 136495,
+       "top_chem": "Maleic anhydride",
+       "rank": 92,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "DELTA DEER PARK",
+       "city": "Deer Park",
+       "street": "334 TIDAL RD",
+       "zip": "77536",
+       "parent": "PSC GROUP",
+       "frs": "110000463285",
+       "decade_lb": 794543,
+       "lb2024": 1935,
+       "top_chem": "Ethyl acrylate",
+       "rank": 93,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "WORLD ENERGY BIOX BIOFUELS",
+       "city": "Galena Park",
+       "street": "550 CLINTON DR",
+       "zip": "77547",
+       "parent": "WORLD ENERGY LLC",
+       "frs": "110032636002",
+       "decade_lb": 793817,
+       "lb2024": 0,
+       "top_chem": "Methanol",
+       "rank": 94,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "OXY VINYLS LP LA PORTE VCM PLANT",
+       "city": "La Porte",
+       "street": "2400 MILLER CUTOFF RD",
+       "zip": "77571",
+       "parent": "OCCIDENTAL PETROLEUM CORP",
+       "frs": "110017769734",
+       "decade_lb": 774478,
+       "lb2024": 44453,
+       "top_chem": "Hydrochloric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 96,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ROYAL BATHS MANUFACTURING CO",
+       "city": "Houston",
+       "street": "14635 CHRISMAN RD",
+       "zip": "77039",
+       "parent": "ROYAL BATHS MANUFACTURING CO LTD",
+       "frs": "110002371790",
+       "decade_lb": 757919,
+       "lb2024": 70562,
+       "top_chem": "Styrene",
+       "rank": 97,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MONUMENT CHEMICAL HOUSTON LLC",
+       "city": "Houston",
+       "street": "16717 JACINTOPORT BLVD",
+       "zip": "77015",
+       "parent": "MONUMENT CHEMICAL LLC",
+       "frs": "110000460983",
+       "decade_lb": 747500,
+       "lb2024": 157111,
+       "top_chem": "Isobutyraldehyde",
+       "rank": 98,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "MULTI-CHEM GROUP BAYPORT TX FACILITY",
+       "city": "Pasadena",
+       "street": "11200 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "HALLIBURTON ENERGY SERVICES INC",
+       "frs": "110000463034",
+       "decade_lb": 738607,
+       "lb2024": 81161,
+       "top_chem": "Certain glycol ethers",
+       "rank": 99,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "KURARAY AMERICA INC SEPTON BU",
+       "city": "Pasadena",
+       "street": "11414 CHOATE RD",
+       "zip": "77507",
+       "parent": "KURARAY HOLDINGS USA INC",
+       "frs": "110012141529",
+       "decade_lb": 720210,
+       "lb2024": 123193,
+       "top_chem": "Nickel  And Nickel Compounds",
+       "rank": 100,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "UNITED GALVANIZING INC.",
+       "city": "Houston",
+       "street": "6123 CUNNINGHAM RD",
+       "zip": "77041",
+       "parent": "NA",
+       "frs": "110000461624",
+       "decade_lb": 717271,
+       "lb2024": 89094,
+       "top_chem": "Zinc compounds",
+       "rank": 101,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INEOS PHENOL",
+       "city": "Pasadena",
+       "street": "3503 PASADENA FWY",
+       "zip": "77503",
+       "parent": "INEOS AMERICAS LLC",
+       "frs": "110000462623",
+       "decade_lb": 712104,
+       "lb2024": 68663,
+       "top_chem": "Cumene",
+       "rank": 102,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "COSACO LLC",
+       "city": "Houston",
+       "street": "12701 ALMEDA RD",
+       "zip": "77045",
+       "parent": "MBK USA HOLDINGS INC",
+       "frs": "110000461759",
+       "decade_lb": 654402,
+       "lb2024": 42716,
+       "top_chem": "Ammonia",
+       "rank": 103,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INEOS OLIGOMERS USA LLC",
+       "city": "La Porte",
+       "street": "1230 MILLER CUT-OFF RD GATE 10",
+       "zip": "77571",
+       "parent": "INEOS US I INC",
+       "frs": "110008160337",
+       "decade_lb": 630093,
+       "lb2024": 45356,
+       "top_chem": "Ammonia",
+       "rank": 104,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "SEKISUI SPECIALTY CHEMICALS AMERICA LLC. - PASADENA PLANT",
+       "city": "Pasadena",
+       "street": "1423 PASADENA FWY",
+       "zip": "77506",
+       "parent": "SEKISUI AMERICA CORP",
+       "frs": "110070736926",
+       "decade_lb": 619291,
+       "lb2024": 17792,
+       "top_chem": "Methanol",
+       "rank": 105,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "GRACE -PASADENA CATALYST SITE",
+       "city": "Pasadena",
+       "street": "10001 CHEMICAL RD",
+       "zip": "77507",
+       "parent": "W R GRACE & CO",
+       "frs": "110000462801",
+       "decade_lb": 595490,
+       "lb2024": 67358,
+       "top_chem": "Toluene",
+       "rank": 106,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "NOV QUALITY TUBING",
+       "city": "Houston",
+       "street": "10303 SHELDON RD - 10222 SHELDON ROAD",
+       "zip": "77049",
+       "parent": "NATIONAL OILWELL VARCO LP",
+       "frs": "110005014331",
+       "decade_lb": 579823,
+       "lb2024": 4995,
+       "top_chem": "Methyl isobutyl ketone",
+       "rank": 108,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "GEO SPECIALTY CHEMICALS",
+       "city": "Deer Park",
+       "street": "739 INDEPENDENCE PKWY (FORMERLY BATTLEGROUND RD)",
+       "zip": "77536",
+       "parent": "GEO SPECIALTY CHEMICALS INC",
+       "frs": "110000499050",
+       "decade_lb": 550090,
+       "lb2024": 411258,
+       "top_chem": "Ammonia",
+       "rank": 110,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "KANEKA NORTH AMERICA LLC",
+       "city": "Pasadena",
+       "street": "6161 UNDERWOOD RD",
+       "zip": "77507",
+       "parent": "KANEKA AMERICAS HOLDING INC",
+       "frs": "110000462918",
+       "decade_lb": 535919,
+       "lb2024": 29784,
+       "top_chem": "n-Hexane",
+       "rank": 112,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LAPORTE RAIL & TERMINAL LLC",
+       "city": "La Porte",
+       "street": "12501 STRANG RD",
+       "zip": "77571",
+       "parent": "LAPORTE RAIL & TERMINAL LLC",
+       "frs": "110000463542",
+       "decade_lb": 521602,
+       "lb2024": 2402,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 113,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ECO SERVICES OPERATIONS CORP.",
+       "city": "Houston",
+       "street": "8615 MANCHESTER ST",
+       "zip": "77012",
+       "parent": "ECOVYST INC",
+       "frs": "110000460901",
+       "decade_lb": 462556,
+       "lb2024": 52290,
+       "top_chem": "Sulfuric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 115,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "E R CARPENTER LP",
+       "city": "Pasadena",
+       "street": "11002 CHOATE RD",
+       "zip": "77507",
+       "parent": "CARPENTER CO",
+       "frs": "110000462794",
+       "decade_lb": 441363,
+       "lb2024": 43447,
+       "top_chem": "Methanol",
+       "rank": 116,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "NOV RIG SYSTEMS WEST LITTLE YORK",
+       "city": "Houston",
+       "street": "12950 W LITTLE YORK RD",
+       "zip": "77041",
+       "parent": "NOV INC",
+       "frs": "110000461679",
+       "decade_lb": 426717,
+       "lb2024": 1465,
+       "top_chem": "Ethylene glycol",
+       "rank": 118,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "OXY VINYLS LP DEER PARK-VCM PLANT",
+       "city": "Deer Park",
+       "street": "5900 HWY 225 GATE 8A",
+       "zip": "77536",
+       "parent": "OCCIDENTAL PETROLEUM CORP",
+       "frs": "110070827819",
+       "decade_lb": 422963,
+       "lb2024": 19404,
+       "top_chem": "Hydrochloric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 119,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TARGA DOWNSTREAM LLC - GALENA PARK MARINE TERMINAL",
+       "city": "Galena Park",
+       "street": "12510 AMERICAN PETROLEUM RD",
+       "zip": "77547",
+       "parent": "TARGA RESOURCES CORP",
+       "frs": "110032992215",
+       "decade_lb": 409755,
+       "lb2024": 52047,
+       "top_chem": "1,3-Butadiene",
+       "rank": 120,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LINDE GAS NORTH AMERICA LLC",
+       "city": "Pasadena",
+       "street": "9502 BAY PORT BLVD",
+       "zip": "77507",
+       "parent": "LINDE GAS NORTH AMERICA LLC",
+       "frs": "110067040703",
+       "decade_lb": 404658,
+       "lb2024": 0,
+       "top_chem": "Methanol",
+       "rank": 121,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "METTON AMERICA INC",
+       "city": "La Porte",
+       "street": "2727 MILLER CUT-OFF RD",
+       "zip": "77571",
+       "parent": "NA",
+       "frs": "110000463677",
+       "decade_lb": 395646,
+       "lb2024": 4540,
+       "top_chem": "Dicyclopentadiene",
+       "rank": 122,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MERCHANT METALS LLC",
+       "city": "Houston",
+       "street": "4901 LANGLEY RD",
+       "zip": "77093",
+       "parent": "MERCHANTS METALS LLC",
+       "frs": "110000462277",
+       "decade_lb": 393064,
+       "lb2024": 33487,
+       "top_chem": "Zinc compounds",
+       "rank": 123,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "THE LYCRA CO LA PORTE PLANT (PREVIOUSLY INVISTA SARL",
+       "city": "La Porte",
+       "street": "12455  STRANG RD",
+       "zip": "77571",
+       "parent": "THE LYCRA CO LLC",
+       "frs": "110017874736",
+       "decade_lb": 391542,
+       "lb2024": 0,
+       "top_chem": "Methanol",
+       "rank": 124,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AZZ GALVANIZING SERVICES-HOUSTON",
+       "city": "Houston",
+       "street": "7407 C E KING PKWY",
+       "zip": "77044",
+       "parent": "AZZ INC",
+       "frs": "110000462204",
+       "decade_lb": 387872,
+       "lb2024": 35926,
+       "top_chem": "Zinc compounds",
+       "rank": 125,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LA PORTE_THE DOW CHEMICAL CO",
+       "city": "La Porte",
+       "street": "550 INDEPENDENCE PKWY S",
+       "zip": "77571",
+       "parent": "DOW INC",
+       "frs": "110000463686",
+       "decade_lb": 373601,
+       "lb2024": 0,
+       "top_chem": "Diisocyanates",
+       "rank": 126,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "OXY VINYLS LP DEER PARK CAUSTIC",
+       "city": "Deer Park",
+       "street": "1000 TIDAL RD",
+       "zip": "77536",
+       "parent": "OCCIDENTAL PETROLEUM CORP",
+       "frs": "110043782788",
+       "decade_lb": 369898,
+       "lb2024": 32908,
+       "top_chem": "Ammonia",
+       "rank": 127,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "HOBAS PIPE USA INC.",
+       "city": "Houston",
+       "street": "1413 E RICHEY RD",
+       "zip": "77073",
+       "parent": "NA",
+       "frs": "110000462017",
+       "decade_lb": 363172,
+       "lb2024": 51396,
+       "top_chem": "Styrene",
+       "rank": 128,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "PRECOAT METALS DIV SEQUA CORP",
+       "city": "Houston",
+       "street": "16402 JACINTOPORT BLVD",
+       "zip": "77015",
+       "parent": "AZZ INC",
+       "frs": "110000500583",
+       "decade_lb": 355825,
+       "lb2024": 52709,
+       "top_chem": "1,2,4-Trimethylbenzene",
+       "rank": 129,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LA PORTE SYNGAS PLANT",
+       "city": "La Porte",
+       "street": "11603 STRANG RD",
+       "zip": "77571",
+       "parent": "LYONDELLBASELL INDUSTRIES",
+       "frs": "110070519769",
+       "decade_lb": 355626,
+       "lb2024": 0,
+       "top_chem": "Methanol",
+       "rank": 130,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "THE CHEMOURS CO",
+       "city": "La Porte",
+       "street": "12350 STRANG RD",
+       "zip": "77571",
+       "parent": "THE CHEMOURS CO",
+       "frs": "110064375260",
+       "decade_lb": 352368,
+       "lb2024": 31283,
+       "top_chem": "Sulfuric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 131,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ANHEUSER-BUSCH LLC",
+       "city": "Houston",
+       "street": "775 GELLHORN DR",
+       "zip": "77029",
+       "parent": "ANHEUSER-BUSCH COS LLC",
+       "frs": "110000461401",
+       "decade_lb": 349220,
+       "lb2024": 53982,
+       "top_chem": "Ammonia",
+       "rank": 132,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "JOHN W STONE OIL DISTRIBUTOR",
+       "city": "Houston",
+       "street": "15155 JACINTOPORT BLVD",
+       "zip": "77015",
+       "parent": "NA",
+       "frs": "110034524717",
+       "decade_lb": 342210,
+       "lb2024": 110903,
+       "top_chem": "Ethylene glycol",
+       "rank": 133,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "NOURYON SURFACE CHEMISTRY LLC",
+       "city": "Houston",
+       "street": "15200 ALMEDA RD",
+       "zip": "77053",
+       "parent": "NOURYON USA LLC",
+       "frs": "110000461884",
+       "decade_lb": 340406,
+       "lb2024": 20002,
+       "top_chem": "Naphthalene",
+       "rank": 134,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "NOURYON FUNCTIONAL CHEMICALS LLC",
+       "city": "La Porte",
+       "street": "730 INDEPENDENCE PKWY S",
+       "zip": "77571",
+       "parent": "NOURYON USA LLC",
+       "frs": "110000463374",
+       "decade_lb": 329326,
+       "lb2024": 23154,
+       "top_chem": "Zinc compounds",
+       "rank": 135,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "VOPAK LOGISTICS SERVICES USA INC DEER PARK",
+       "city": "Deer Park",
+       "street": "2759 INDEPENDENCE PKWY SOUTH",
+       "zip": "77536",
+       "parent": "VOPAK NORTH AMERICA INC",
+       "frs": "110000757752",
+       "decade_lb": 322638,
+       "lb2024": 14777,
+       "top_chem": "Benzene",
+       "rank": 137,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TRELLEBORG OFFSHORE US  RANKIN ROAD FACILITY",
+       "city": "Houston",
+       "street": "1902 RANKIN RD",
+       "zip": "77073",
+       "parent": "TRELLEBORG INDUSTRIES",
+       "frs": "110005099561",
+       "decade_lb": 317261,
+       "lb2024": 0,
+       "top_chem": "Certain glycol ethers",
+       "rank": 138,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "S + S INDUSTRIES",
+       "city": "Houston",
+       "street": "5614 NUNN ST",
+       "zip": "77087",
+       "parent": "S + S INDUSTRIES",
+       "frs": "110037145862",
+       "decade_lb": 305072,
+       "lb2024": 52772,
+       "top_chem": "Zinc compounds",
+       "rank": 139,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "OWENS CORNING ROOFING & ASPHALT LLS HOUSTON",
+       "city": "Houston",
+       "street": "8360 MARKET ST RD",
+       "zip": "77029",
+       "parent": "OWENS CORNING",
+       "frs": "110000461410",
+       "decade_lb": 302958,
+       "lb2024": 146,
+       "top_chem": "Aluminum (fume or dust)",
+       "rank": 140,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "UNIVAR SOLUTIONS USA",
+       "city": "Houston",
+       "street": "8901 OLD GALVESTON RD",
+       "zip": "77034",
+       "parent": "UNIVAR SOLUTIONS USA INC",
+       "frs": "110000461447",
+       "decade_lb": 297632,
+       "lb2024": 55427,
+       "top_chem": "Xylene (mixed isomers)",
+       "rank": 142,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ALTIVIA SPECIALTY CHEMICALS LLC",
+       "city": "La Porte",
+       "street": "1901 W H ST",
+       "zip": "77571",
+       "parent": "ALTIVIA SPECIALTY CHEMICALS LLC",
+       "frs": "110000501341",
+       "decade_lb": 293133,
+       "lb2024": 35904,
+       "top_chem": "Chloroacetic acid",
+       "rank": 143,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BASF CORP PASADENA PLANT",
+       "city": "Pasadena",
+       "street": "4403 LAPORTE HWY 225",
+       "zip": "77503",
+       "parent": "BASF CORP",
+       "frs": "110002081942",
+       "decade_lb": 279162,
+       "lb2024": 14129,
+       "top_chem": "Ethylene glycol",
+       "rank": 145,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "INEOS STYROLUTION AMERICA LLC",
+       "city": "Pasadena",
+       "street": "12222 PORT RD",
+       "zip": "77507",
+       "parent": "INEOS STYROLUTION AMERICA LLC",
+       "frs": "110000462909",
+       "decade_lb": 270658,
+       "lb2024": 23627,
+       "top_chem": "Benzene",
+       "rank": 147,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "VAM USA",
+       "city": "Houston",
+       "street": "19210 E HARDY RD",
+       "zip": "77073",
+       "parent": "VALLOUREC USA CORP",
+       "frs": "110002133833",
+       "decade_lb": 269134,
+       "lb2024": 15065,
+       "top_chem": "Zinc compounds",
+       "rank": 148,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LCY ELASTOMERS LP",
+       "city": "Baytown",
+       "street": "4803 DECKER DR",
+       "zip": "77520",
+       "parent": "NA",
+       "frs": "110000505588",
+       "decade_lb": 251823,
+       "lb2024": 25477,
+       "top_chem": "Cyclohexane",
+       "rank": 150,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "SOUTHWEST SHIPYARD L.P.",
+       "city": "Channelview",
+       "street": "18310 MARKET ST",
+       "zip": "77530",
+       "parent": "SOUTHWEST SHIPYARD LP",
+       "frs": "110000463533",
+       "decade_lb": 251183,
+       "lb2024": 26406,
+       "top_chem": "Polycyclic aromatic compounds",
+       "rank": 152,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ARKEMA INC",
+       "city": "Crosby",
+       "street": "18000 CROSBY EASTGATE RD",
+       "zip": "77532",
+       "parent": "ARKEMA DELAWARE INC",
+       "frs": "110000463258",
+       "decade_lb": 245462,
+       "lb2024": 0,
+       "top_chem": "tert-Butyl alcohol",
+       "rank": 153,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MONUMENT CHEMICAL BAYPORT LLC",
+       "city": "Pasadena",
+       "street": "10200 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "MONUMENT CHEMICAL LLC",
+       "frs": "110005125587",
+       "decade_lb": 242594,
+       "lb2024": 12583,
+       "top_chem": "n-Butyl alcohol",
+       "rank": 155,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "HOUSTON PLATING & COATINGS LLC",
+       "city": "South Houston",
+       "street": "1315 GEORGIA",
+       "zip": "77587",
+       "parent": "HOUSTON PLATING & COATINGS LLC",
+       "frs": "110000463757",
+       "decade_lb": 235814,
+       "lb2024": 5541,
+       "top_chem": "Nickel compounds",
+       "rank": 156,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MADDEN GALVANIZING LLC",
+       "city": "Houston",
+       "street": "13420 HEMPSTEAD HWY",
+       "zip": "77040",
+       "parent": "MADDEN GALVANIZING LLC",
+       "frs": "110031380360",
+       "decade_lb": 232904,
+       "lb2024": 28686,
+       "top_chem": "Zinc compounds",
+       "rank": 157,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "INSTEEL WIRE PRODUCTS CO",
+       "city": "Houston",
+       "street": "11020 TANNER RD",
+       "zip": "77041",
+       "parent": "INSTEEL INDUSTRIES INC",
+       "frs": "110001132462",
+       "decade_lb": 230875,
+       "lb2024": 34247,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 158,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TEXMARK CHEMICALS INC",
+       "city": "Galena Park",
+       "street": "900 CLINTON DR",
+       "zip": "77547",
+       "parent": "CHEMICAL EXCHANGE INDUSTRIES INC",
+       "frs": "110000463490",
+       "decade_lb": 223991,
+       "lb2024": 0,
+       "top_chem": "n-Butyl alcohol",
+       "rank": 159,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LA PORTE METHANOL PLANT",
+       "city": "La Porte",
+       "street": "11603 STRANG RD",
+       "zip": "77571",
+       "parent": "LYONDELLBASELL INDUSTRIES",
+       "frs": "110070519769",
+       "decade_lb": 223298,
+       "lb2024": 0,
+       "top_chem": "Methanol",
+       "rank": 160,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "AFTON CHEMICAL CORP",
+       "city": "Pasadena",
+       "street": "1000 N. SOUTH STREET",
+       "zip": "77503",
+       "parent": "NEWMARKET CORP",
+       "frs": "110067263071",
+       "decade_lb": 221637,
+       "lb2024": 33283,
+       "top_chem": "Methanol",
+       "rank": 162,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "UNIVAR SOLUTIONS USA",
+       "city": "Houston",
+       "street": "777 BRISBANE ST",
+       "zip": "77061",
+       "parent": "UNIVAR SOLUTIONS USA INC",
+       "frs": "110000466157",
+       "decade_lb": 211991,
+       "lb2024": 65671,
+       "top_chem": "Diethanolamine",
+       "rank": 163,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BAYPORT_TX",
+       "city": "Pasadena",
+       "street": "13300 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "DOW INC",
+       "frs": "110070365413",
+       "decade_lb": 209583,
+       "lb2024": 14168,
+       "top_chem": "Ammonia",
+       "rank": 164,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "OXITENO USA LLC",
+       "city": "Pasadena",
+       "street": "9801 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "INDORAMA VENTURES USA HOLDINGS LP",
+       "frs": "110005174337",
+       "decade_lb": 208390,
+       "lb2024": 58363,
+       "top_chem": "Ethylene glycol",
+       "rank": 165,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "K-T GALVANIZING CO",
+       "city": "Katy",
+       "street": "5105 E THIRD ST",
+       "zip": "77493",
+       "parent": "K-T GALVANIZING CO",
+       "frs": "110000462589",
+       "decade_lb": 197161,
+       "lb2024": 60344,
+       "top_chem": "Zinc compounds",
+       "rank": 166,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "US ZINC- DUST",
+       "city": "Houston",
+       "street": "6020 ESPERSON ST",
+       "zip": "77011",
+       "parent": "US ZINC CORP",
+       "frs": "110000495125",
+       "decade_lb": 194684,
+       "lb2024": 0,
+       "top_chem": "Zinc compounds",
+       "rank": 167,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AIR LIQUIDE LARGE INDUSTRIES US LP - SMR UNIT",
+       "city": "Pasadena",
+       "street": "11777 BAY AREA BLVD.",
+       "zip": "77507",
+       "parent": "AMERICAN AIR LIQUIDE HOLDINGS INC",
+       "frs": "110046424598",
+       "decade_lb": 193077,
+       "lb2024": 16568,
+       "top_chem": "Ammonia",
+       "rank": 168,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "VALERO REFINING - TEXAS L.P. HOUSTON REFINERY",
+       "city": "Houston",
+       "street": "9701 MANCHESTER",
+       "zip": "77012",
+       "parent": "VALERO ENERGY CORP",
+       "frs": "110000460885",
+       "decade_lb": 192739,
+       "lb2024": 0,
+       "top_chem": "Cyclohexane",
+       "rank": 169,
+       "badge": "DOSSIER IN BUILD"
+      },
+      {
+       "name": "SCHUMACHER CO",
+       "city": "Houston",
+       "street": "5610 POLK",
+       "zip": "77023",
+       "parent": "H & M PLATING ELP",
+       "frs": "110000769794",
+       "decade_lb": 174461,
+       "lb2024": 13305,
+       "top_chem": "Chromium compounds (except for chromite ore mined in the Transvaal Region)",
+       "rank": 170,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ROYAL BATHS MANUFACTURING CO",
+       "city": "Houston",
+       "street": "1144 B US CHONG RD",
+       "zip": "77039",
+       "parent": "ROYAL BATHS MANUFACTURING CO LTD",
+       "frs": "110008060551",
+       "decade_lb": 169697,
+       "lb2024": 8383,
+       "top_chem": "Styrene",
+       "rank": 171,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "GREIF PACKAGING LLC",
+       "city": "La Porte",
+       "street": "10850 STRANG RD",
+       "zip": "77571",
+       "parent": "GREIF INC",
+       "frs": "110024422427",
+       "decade_lb": 159787,
+       "lb2024": 2700,
+       "top_chem": "Certain glycol ethers",
+       "rank": 173,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "KINDER MORGAN CRUDE & CONDENSATE LLC",
+       "city": "Galena Park",
+       "street": "407 CLINTON DR",
+       "zip": "77547",
+       "parent": "KINDER MORGAN",
+       "frs": "110069234661",
+       "decade_lb": 159185,
+       "lb2024": 15676,
+       "top_chem": "Ammonia",
+       "rank": 174,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "EVERZINC USA HOUSTON PLANT - METAL",
+       "city": "Houston",
+       "street": "6020 NAVIGATION BLVD",
+       "zip": "77011",
+       "parent": "EVERZINC CORP",
+       "frs": "110064203632",
+       "decade_lb": 158776,
+       "lb2024": 20732,
+       "top_chem": "Zinc compounds",
+       "rank": 175,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "H.B. FULLER CONSTRUCTION PRODUCTS INC.",
+       "city": "Houston",
+       "street": "6107 INDUSTRIAL WAY",
+       "zip": "77011",
+       "parent": "HB FULLER CO",
+       "frs": "110000460821",
+       "decade_lb": 156830,
+       "lb2024": 26820,
+       "top_chem": "n-Hexane",
+       "rank": 176,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "K-SOLV CHEMICALS LLC",
+       "city": "Channelview",
+       "street": "1007 LAKESIDE DR",
+       "zip": "77530",
+       "parent": "NA",
+       "frs": "110031302365",
+       "decade_lb": 155908,
+       "lb2024": 85854,
+       "top_chem": "Styrene",
+       "rank": 177,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MAUSER CORP.",
+       "city": "Houston",
+       "street": "4004 HOMESTEAD RD",
+       "zip": "77028",
+       "parent": "MAUSER CORP",
+       "frs": "110000874117",
+       "decade_lb": 154104,
+       "lb2024": 16019,
+       "top_chem": "Xylene (mixed isomers)",
+       "rank": 179,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "THE GOODYEAR TIRE & RUBBER CO BAYPORT CHEMICAL PLANT",
+       "city": "Pasadena",
+       "street": "13441 BAY AREA BLVD",
+       "zip": "77507",
+       "parent": "THE GOODYEAR TIRE & RUBBER CO",
+       "frs": "110000462856",
+       "decade_lb": 152278,
+       "lb2024": 22813,
+       "top_chem": "Hydroquinone",
+       "rank": 180,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "DYNA DRILL TECHNOLOGIES LLC",
+       "city": "Katy",
+       "street": "23400 COLONIAL PKWY",
+       "zip": "77493",
+       "parent": "SCHLUMBERGER HOLDINGS CORP",
+       "frs": "110060259214",
+       "decade_lb": 145546,
+       "lb2024": 80,
+       "top_chem": "Zinc compounds",
+       "rank": 182,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "QUALITY PRODUCT FINISHING INC",
+       "city": "Houston",
+       "street": "9610 FAIRBANKS N HO US TON RD",
+       "zip": "77064",
+       "parent": "NA",
+       "frs": "110000461982",
+       "decade_lb": 141163,
+       "lb2024": 0,
+       "top_chem": "Xylene (mixed isomers)",
+       "rank": 183,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AIR PRODUCTS LLC",
+       "city": "Pasadena",
+       "street": "1423 HWY 225",
+       "zip": "77506",
+       "parent": "AIR PRODUCTS & CHEMICALS INC",
+       "frs": "110070736926",
+       "decade_lb": 139657,
+       "lb2024": 10067,
+       "top_chem": "Ammonia",
+       "rank": 185,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "DMV USA INC.",
+       "city": "Houston",
+       "street": "12050 W LITTLE YORK RD",
+       "zip": "77041",
+       "parent": "DMV USA INC",
+       "frs": "110000901828",
+       "decade_lb": 134585,
+       "lb2024": 4790,
+       "top_chem": "1-Bromopropane",
+       "rank": 186,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "WYMAN-GORDON FORGINGS LP",
+       "city": "Houston",
+       "street": "10825 TELGE RD",
+       "zip": "77095",
+       "parent": "BERKSHIRE HATHAWAY INC",
+       "frs": "110000462115",
+       "decade_lb": 125972,
+       "lb2024": 372,
+       "top_chem": "Chromium",
+       "rank": 188,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "PHILLIPS 66 PASADENA TERMINAL",
+       "city": "Pasadena",
+       "street": "100 JEFFERSON AT HWY 225",
+       "zip": "77506",
+       "parent": "PHILLIPS 66 CO",
+       "frs": "110000497800",
+       "decade_lb": 124284,
+       "lb2024": 12486,
+       "top_chem": "Xylene (mixed isomers)",
+       "rank": 189,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "SI GROUP BAYTOWN",
+       "city": "Baytown",
+       "street": "4604 W BAKER RD",
+       "zip": "77520",
+       "parent": "SI GROUP INC",
+       "frs": "110000501519",
+       "decade_lb": 123856,
+       "lb2024": 5828,
+       "top_chem": "Biphenyl",
+       "rank": 190,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "ECO SERVICES OPERATIONS CORP.",
+       "city": "Baytown",
+       "street": "3439 PARK ST",
+       "zip": "77520",
+       "parent": "ECOVYST INC",
+       "frs": "110000463123",
+       "decade_lb": 123812,
+       "lb2024": 28703,
+       "top_chem": "Sulfuric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 191,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "HYDRIL CO",
+       "city": "Houston",
+       "street": "302 MCCARTY ST",
+       "zip": "77029",
+       "parent": "TENARIS",
+       "frs": "110005145182",
+       "decade_lb": 119363,
+       "lb2024": 22070,
+       "top_chem": "Manganese",
+       "rank": 193,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "SOLVAY USA LLC PASADENA TX PLANT",
+       "city": "Pasadena",
+       "street": "5761 UNDERWOOD RD SUITE B",
+       "zip": "77507",
+       "parent": "SOLVAY HOLDING INC",
+       "frs": "110067200460",
+       "decade_lb": 117601,
+       "lb2024": 83090,
+       "top_chem": "Nonylphenol Ethoxylates",
+       "rank": 194,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "FUTURE PIPE INDUSTRIES",
+       "city": "Houston",
+       "street": "11811 PROCTOR ROAD",
+       "zip": "77038",
+       "parent": "FUTURE PIPE INDUSTRIES",
+       "frs": "110005054289",
+       "decade_lb": 116672,
+       "lb2024": 14487,
+       "top_chem": "4,4'-Methylenedianiline",
+       "rank": 195,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AZZ GALVANIZING SERVICES - HOUSTON WEST",
+       "city": "Houston",
+       "street": "9103 FAIRBANKS N HOUSTON RD",
+       "zip": "77064",
+       "parent": "AZZ INC",
+       "frs": "110005192086",
+       "decade_lb": 114932,
+       "lb2024": 3347,
+       "top_chem": "Zinc compounds",
+       "rank": 196,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "RAVEN PLANT",
+       "city": "Baytown",
+       "street": "9300 NEEDLEPOINT RD",
+       "zip": "77521",
+       "parent": "ARCANUM INFRASTRUCTURE LLC",
+       "frs": "110000463132",
+       "decade_lb": 113226,
+       "lb2024": 14716,
+       "top_chem": "Ethylene",
+       "rank": 197,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "EVONIK CORP - PASADENA PMD PLANT",
+       "city": "Pasadena",
+       "street": "1423 PASADENA FWY",
+       "zip": "77506",
+       "parent": "EVONIK CORP",
+       "frs": "110070055384",
+       "decade_lb": 110104,
+       "lb2024": 12078,
+       "top_chem": "Methanol",
+       "rank": 198,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "APPLIED CRYO TECHNOLOGIES",
+       "city": "Houston",
+       "street": "7150 ALMEDA GENOA RD",
+       "zip": "77075",
+       "parent": "PLUG POWER INC",
+       "frs": "110071347387",
+       "decade_lb": 109149,
+       "lb2024": 104578,
+       "top_chem": "Chromium",
+       "rank": 199,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LONESTAR ECOLOGY LLC",
+       "city": "Pasadena",
+       "street": "12901-A BAY PARK RD",
+       "zip": "77507",
+       "parent": "INTERGULF CORP",
+       "frs": "110071434539",
+       "decade_lb": 107837,
+       "lb2024": 29336,
+       "top_chem": "Copper",
+       "rank": 200,
+       "badge": "NOT YET STARTED"
+      }
+     ],
+     "county_facilities": 524,
+     "county_decade_lb": 427115684,
+     "cities": {
+      "Houston": 51,
+      "Pasadena": 42,
+      "La Porte": 22,
+      "Deer Park": 11,
+      "Baytown": 8,
+      "Galena Park": 4,
+      "Channelview": 3,
+      "Crosby": 2,
+      "Katy": 2,
+      "Laporte": 1,
+      "Seabrook": 1,
+      "South Houston": 1
+     }
+    },
+    "Jefferson": {
+     "locations": [
+      {
+       "name": "MONUMENT CHEMICAL PORT ARTHUR LLC",
+       "city": "Port Arthur",
+       "street": "2450 S GULFWAY DR",
+       "zip": "77641",
+       "parent": "MONUMENT CHEMICAL LLC",
+       "frs": "110000464042",
+       "decade_lb": 22976136,
+       "lb2024": 70481,
+       "top_chem": "Methanol",
+       "rank": 5,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "THE DOW CHEMICAL CO - BEAUMONT ANILINE",
+       "city": "Nederland",
+       "street": "5470 N TWIN CITY HWY",
+       "zip": "77627",
+       "parent": "DOW INC",
+       "frs": "110034393378",
+       "decade_lb": 16561916,
+       "lb2024": 104023,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 7,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "OCI BEAUMONT LLC",
+       "city": "Nederland",
+       "street": "5470 N TWIN CITY HWY",
+       "zip": "77627",
+       "parent": "OCI BEAUMONT LLC",
+       "frs": "110000743900",
+       "decade_lb": 9530994,
+       "lb2024": 1071462,
+       "top_chem": "Methanol",
+       "rank": 13,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "JEFFERSON TERMINAL SOUTH LLC",
+       "city": "Nederland",
+       "street": "6350 N TWIN CITY HWY",
+       "zip": "77627",
+       "parent": "JEFFERSON GULF COAST MANAGEMENT PARTNERS LLC",
+       "frs": "110000463917",
+       "decade_lb": 9406265,
+       "lb2024": 0,
+       "top_chem": "Methyl methacrylate",
+       "rank": 14,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "GOODYEAR TIRE & RUBBER CO",
+       "city": "Beaumont",
+       "street": "11241 INTERSTATE HWY 10",
+       "zip": "77705",
+       "parent": "THE GOODYEAR TIRE & RUBBER CO",
+       "frs": "110062118505",
+       "decade_lb": 9360009,
+       "lb2024": 1151033,
+       "top_chem": "n-Hexane",
+       "rank": 15,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "MOTIVA-PORT ARTHUR REFINERY",
+       "city": "Port Arthur",
+       "street": "2555 SAVANNAH AVE",
+       "zip": "77640",
+       "parent": "ARAMCO SERVICES CO",
+       "frs": "110000464024",
+       "decade_lb": 8053310,
+       "lb2024": 492278,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 17,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BEAUMONT GAS-TO GASOLINE PLANT",
+       "city": "Beaumont",
+       "street": "SULPHUR PLANT RD",
+       "zip": "77705",
+       "parent": "NATGASOLINE LLC",
+       "frs": "110070183112",
+       "decade_lb": 7959518,
+       "lb2024": 171902,
+       "top_chem": "Methanol",
+       "rank": 19,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "PREMCOR REFINING GROUP INC PORT ARTHUR",
+       "city": "Port Arthur",
+       "street": "1801 S GULFWAY DR",
+       "zip": "77640",
+       "parent": "VALERO ENERGY CORP",
+       "frs": "110000464006",
+       "decade_lb": 7565583,
+       "lb2024": 646303,
+       "top_chem": "Hydrogen cyanide",
+       "rank": 21,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "LNVA-NORTH REGIONAL TREATMENT PLANT",
+       "city": "Beaumont",
+       "street": "2655 GULF STATES RD",
+       "zip": "77701",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110000464140",
+       "decade_lb": 7535540,
+       "lb2024": 183084,
+       "top_chem": "Nitrate compounds (water dissociable; reportable only when in aqueous solution)",
+       "rank": 22,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "BASF CORP - BEAUMONT",
+       "city": "Beaumont",
+       "street": "14385 W PORT ARTHUR RD",
+       "zip": "77705",
+       "parent": "BASF CORP",
+       "frs": "110000464239",
+       "decade_lb": 7527505,
+       "lb2024": 704027,
+       "top_chem": "Methanol",
+       "rank": 23,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "HUNTSMAN PETROCHEMICAL LLC PORT NECHES FACILITY",
+       "city": "Port Neches",
+       "street": "6001 HWY 366",
+       "zip": "77651",
+       "parent": "HUNTSMAN CORP",
+       "frs": "110000599567",
+       "decade_lb": 6866906,
+       "lb2024": 689208,
+       "top_chem": "Diethanolamine",
+       "rank": 24,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "EXXONMOBIL OIL BEAUMONT REFINERY (PART)",
+       "city": "Beaumont",
+       "street": "E END OF BURT ST",
+       "zip": "77701",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110041990913",
+       "decade_lb": 6583719,
+       "lb2024": 716639,
+       "top_chem": "n-Hexane",
+       "rank": 25,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "MOBIL CHEMICAL CO BEAUMONT POLYETHYLENE PLANT",
+       "city": "Beaumont",
+       "street": "11440 HWY 90",
+       "zip": "77713",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110009495901",
+       "decade_lb": 4788184,
+       "lb2024": 599723,
+       "top_chem": "Ethylene",
+       "rank": 32,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "TOTALENERGIES PETROCHEMICALS & REFINING USA INC-PORT ARTHUR",
+       "city": "Port Arthur",
+       "street": "7600 32ND ST",
+       "zip": "77642",
+       "parent": "TOTALENERGIES HOLDINGS USA INC",
+       "frs": "110000755200",
+       "decade_lb": 4249730,
+       "lb2024": 504604,
+       "top_chem": "Hydrogen cyanide",
+       "rank": 35,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "BASF TOTALENERGIES PETROCHEMICALS LLC",
+       "city": "Port Arthur",
+       "street": "NE OF INTERSECTION OF HWY 73 & HWY 366",
+       "zip": "77642",
+       "parent": "BASF CORP",
+       "frs": "110006134691",
+       "decade_lb": 4005320,
+       "lb2024": 403489,
+       "top_chem": "Ethylene",
+       "rank": 37,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "SASOL CHEMICALS (USA) LLC",
+       "city": "Winnie",
+       "street": "HWY 124 & ROLLINS RD",
+       "zip": "77665",
+       "parent": "SASOL (USA) CORP",
+       "frs": "110000608272",
+       "decade_lb": 3567000,
+       "lb2024": 384932,
+       "top_chem": "m-Cresol",
+       "rank": 40,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "EXXONMOBIL OIL CORP CHEMICAL PLANT (PART)",
+       "city": "Beaumont",
+       "street": "2775 GULF STATES RD",
+       "zip": "77701",
+       "parent": "EXXON MOBIL CORP",
+       "frs": "110000464131",
+       "decade_lb": 3345023,
+       "lb2024": 365503,
+       "top_chem": "Ethylene",
+       "rank": 42,
+       "badge": "QUEUED FOR DOSSIER"
+      },
+      {
+       "name": "CHEVRON PHILLIPS CHEMICAL CO",
+       "city": "Port Arthur",
+       "street": "2001 S GULFWAY DR",
+       "zip": "77640",
+       "parent": "CHEVRON PHILLIPS CHEMICAL CO LLC",
+       "frs": "110020148008",
+       "decade_lb": 3299599,
+       "lb2024": 235656,
+       "top_chem": "Propylene",
+       "rank": 43,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "VEOLIA ES TECHNICAL SOLUTIONS LLC PORT ARTHUR FACILITY",
+       "city": "Beaumont",
+       "street": "7665 HWY 73",
+       "zip": "77705",
+       "parent": "VEOLIA NORTH AMERICA",
+       "frs": "110035783658",
+       "decade_lb": 3272060,
+       "lb2024": 320169,
+       "top_chem": "Copper compounds",
+       "rank": 45,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MOTIVA - PORT ARTHUR CHEMICALS",
+       "city": "Port Arthur",
+       "street": "4241 SAVANNAH AVE",
+       "zip": "77640",
+       "parent": "ARAMCO SERVICES CO",
+       "frs": "110000861862",
+       "decade_lb": 2268802,
+       "lb2024": 157569,
+       "top_chem": "Ethylene",
+       "rank": 55,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "OXBOW CALCINING LLC",
+       "city": "Port Arthur",
+       "street": "3901 COKE DOCK RD",
+       "zip": "77640",
+       "parent": "OXBOW CARBON & MINERALS HOLDINGS INC",
+       "frs": "110002042502",
+       "decade_lb": 1430151,
+       "lb2024": 46392,
+       "top_chem": "Sulfuric acid (acid aerosols including mists, vapors, gas, fog, and other airborne forms of any particle size)",
+       "rank": 69,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LION ELASTOMERS LLC",
+       "city": "Port Neches",
+       "street": "1615 MAIN ST",
+       "zip": "77651",
+       "parent": "LION ELASTOMERS HOLDINGS",
+       "frs": "110020515735",
+       "decade_lb": 1405902,
+       "lb2024": 129639,
+       "top_chem": "Styrene",
+       "rank": 70,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "TPC GROUP",
+       "city": "Port Neches",
+       "street": "2102 SPUR 136",
+       "zip": "77651",
+       "parent": "TPC GROUP LLC",
+       "frs": "110000504801",
+       "decade_lb": 775690,
+       "lb2024": 16290,
+       "top_chem": "1,3-Butadiene",
+       "rank": 95,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AIR PRODUCTS LLC",
+       "city": "Port Arthur",
+       "street": "1801 S GULFWAY DR",
+       "zip": "77640",
+       "parent": "AIR PRODUCTS & CHEMICALS INC",
+       "frs": "110043802819",
+       "decade_lb": 577030,
+       "lb2024": 139756,
+       "top_chem": "Ammonia",
+       "rank": 109,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MARTIN OPERATING PTNR-NECHES",
+       "city": "Beaumont",
+       "street": "1 GULF STATES RD",
+       "zip": "77704",
+       "parent": "MARTIN MIDSTREAM PTNRS LP",
+       "frs": "110008060622",
+       "decade_lb": 537668,
+       "lb2024": 57809,
+       "top_chem": "Ammonia",
+       "rank": 111,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "AZZ GALVANIZING SERVICES-BEAUMONT",
+       "city": "Beaumont",
+       "street": "5898 INDUSTRIAL RD",
+       "zip": "77705",
+       "parent": "AZZ INC",
+       "frs": "110064118468",
+       "decade_lb": 466415,
+       "lb2024": 9832,
+       "top_chem": "Zinc compounds",
+       "rank": 114,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "LINDE  PORT ARTHUR 2",
+       "city": "Port Arthur",
+       "street": "1801 S GULFWAY DR",
+       "zip": "77640",
+       "parent": "LINDE INC",
+       "frs": "110060241885",
+       "decade_lb": 430386,
+       "lb2024": 49439,
+       "top_chem": "Ammonia",
+       "rank": 117,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "PHILLIPS 66 PIPELINE LLC-BEAUMONT TERMINAL",
+       "city": "Nederland",
+       "street": "HWY 366 1/2 MILE E OF INTERSECTION W HWY 347",
+       "zip": "77627",
+       "parent": "PHILLIPS 66 CO",
+       "frs": "110033444850",
+       "decade_lb": 327038,
+       "lb2024": 22501,
+       "top_chem": "Methanol",
+       "rank": 136,
+       "badge": "IN THE CENSUS"
+      },
+      {
+       "name": "LINDE PORT ARTHUR HYDROGEN FACILITY 497",
+       "city": "Port Arthur",
+       "street": "2555 SAVANNAH AVE",
+       "zip": "77640",
+       "parent": "LINDE INC",
+       "frs": "110016761823",
+       "decade_lb": 291833,
+       "lb2024": 21910,
+       "top_chem": "Ammonia",
+       "rank": 144,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "CHEMTRADE REFINERY SERVICES INC.",
+       "city": "Beaumont",
+       "street": "1400 OLIN RD",
+       "zip": "77705",
+       "parent": "CHEMTRADE HOLDCO US INC",
+       "frs": "110000464195",
+       "decade_lb": 270974,
+       "lb2024": 1780,
+       "top_chem": "Vanadium compounds",
+       "rank": 146,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "BAYPORT POLYMERS LLC",
+       "city": "Port Arthur",
+       "street": "7600 32ND ST",
+       "zip": "77642",
+       "parent": "BAYPORT POLYMERS LLC",
+       "frs": "110071046351",
+       "decade_lb": 243211,
+       "lb2024": 71067,
+       "top_chem": "Ammonia",
+       "rank": 154,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "VEOLIA WATER TECHNOLOGIES & SOLUTIONS INC. - BEAUMONT",
+       "city": "Beaumont",
+       "street": "10658 HWY 90",
+       "zip": "77713",
+       "parent": "VEOLIA WATER TECHNOLOGIES TREATMENT SOLUTIONS USA INC",
+       "frs": "110000746505",
+       "decade_lb": 222931,
+       "lb2024": 45288,
+       "top_chem": "Dimethylamine",
+       "rank": 161,
+       "badge": "NOT YET STARTED"
+      },
+      {
+       "name": "MOTIVA-PORT ARTHUR TERMINAL",
+       "city": "Port Arthur",
+       "street": "3901 TEXACO ISLAND RD",
+       "zip": "77640",
+       "parent": "ARAMCO SERVICES CO",
+       "frs": "110025330620",
+       "decade_lb": 122931,
+       "lb2024": 8424,
+       "top_chem": "n-Hexane",
+       "rank": 192,
+       "badge": "NOT YET STARTED"
+      }
+     ],
+     "county_facilities": 73,
+     "county_decade_lb": 156428076,
+     "cities": {
+      "Port Arthur": 13,
+      "Beaumont": 12,
+      "Nederland": 4,
+      "Port Neches": 3,
+      "Winnie": 1
+     }
+    }
+   }
+  }
+ },
+ "nodes": [
+  {
+   "cov": "National court records: opinions, cases, dockets, and the people who wrote them",
+   "gb": 63.17,
+   "id": "cl",
+   "label": "CourtListener — the Courts",
+   "size": "63.2 GB in residence",
+   "status": "The foundation of the courts programme. Louisiana and Mississippi are extracted from it; Texas is planned.",
+   "tier": "bronze",
+   "welds": "People database (proven — Louisiana) · Federal Judicial Center (court IDs)",
+   "x": 170,
+   "y": 300
+  },
+  {
+   "cov": "Louisiana, complete: every court, topped by the Supreme Court",
+   "gb": 2.28,
+   "id": "lagold",
+   "label": "Louisiana — Gold",
+   "size": "378,406 cases · 1,574,448 dockets · 5,565 judge profiles",
+   "status": "GOLD. Landed, verified, and checked figure by figure. The one finished connection in the vault — and the template for every state after it.",
+   "tier": "gold",
+   "welds": "CourtListener · the people database · Louisiana officials' money (people)",
+   "x": 300,
+   "y": 200
+  },
+  {
+   "cov": "Judges, attorneys, officials — the identity layer for court records",
+   "gb": 0.4,
+   "id": "ppl",
+   "label": "The People Database",
+   "size": "The identity layer",
+   "status": "A small file with outsized leverage: it is the weld that made Louisiana gold — every anonymous case author identified.",
+   "tier": "bronze",
+   "welds": "CourtListener (author IDs — proven)",
+   "x": 150,
+   "y": 470
+  },
+  {
+   "cov": "Federal judges and case statistics",
+   "gb": 0.3,
+   "id": "fjc",
+   "label": "Federal Judicial Center",
+   "size": "Federal courts reference",
+   "status": "Banked with the court records.",
+   "tier": "bronze",
+   "welds": "CourtListener (court and judge IDs)",
+   "x": 320,
+   "y": 430
+  },
+  {
+   "cov": "Louisiana officials' personal financial disclosures and ethics filings",
+   "gb": 0.2,
+   "id": "laom",
+   "label": "Louisiana Officials' Money",
+   "size": "Disclosures + ethics filings, banked",
+   "status": "The money side of Louisiana public life, in the vault and being connected to the courts and campaign records.",
+   "tier": "bronze",
+   "welds": "Campaign finance (people — partial) · Louisiana Gold (people — partial)",
+   "x": 130,
+   "y": 610
+  },
+  {
+   "cov": "Every regulated facility in America, one registry ID each",
+   "gb": 0.45,
+   "id": "echo",
+   "label": "EPA Facility Registry (ECHO/FRS)",
+   "size": "The facility spine",
+   "status": "Every pollution dossier we build keys to this registry first. It is how a factory in one dataset becomes the same factory in every other.",
+   "tier": "raw",
+   "welds": "Toxics Release Inventory (registry ID — proven) · OSHA (name and address — partial)",
+   "x": 460,
+   "y": 300
+  },
+  {
+   "cov": "Toxics Release Inventory + risk scores — national, facility by facility",
+   "gb": 72.75,
+   "id": "rsei",
+   "label": "EPA Toxics (TRI · RSEI)",
+   "size": "72.75 GB — landed Oct 30",
+   "status": "The newest big landing. The 690-facility target map across Harris, Jefferson, and Allegheny counties is built from it.",
+   "tier": "raw",
+   "welds": "Facility registry (proven) · Jobs data (county + industry — partial)",
+   "x": 460,
+   "y": 480
+  },
+  {
+   "cov": "Inspections, violations, accidents, employer records — national",
+   "gb": 8.45,
+   "id": "osha",
+   "label": "OSHA — Worker Safety",
+   "size": "~8.5 GB",
+   "status": "Partially connected: inspections and violations joined the Texas facility work; the rest is raw and waiting its turn.",
+   "tier": "bronze",
+   "welds": "Facility registry (partial) · Labor Dept (employer — partial)",
+   "x": 590,
+   "y": 390
+  },
+  {
+   "cov": "Wage-and-hour cases, union financial reports",
+   "gb": 5.53,
+   "id": "dol",
+   "label": "Labor Department",
+   "size": "~5.5 GB",
+   "status": "Mostly raw legacy landings — high on the connection list, honestly labelled.",
+   "tier": "raw",
+   "welds": "OSHA (employer — partial)",
+   "x": 590,
+   "y": 545
+  },
+  {
+   "cov": "Every county × every industry: jobs and wages — the economic skeleton",
+   "gb": 6,
+   "id": "qcew",
+   "label": "Jobs by County (QCEW)",
+   "size": "1.67 billion rows processed",
+   "status": "The remainder of the national publish is in its final assembly path, verified stage by stage.",
+   "tier": "raw",
+   "welds": "Census (county codes — proven) · Toxics (county + industry — partial) · Labor statistics (partial)",
+   "x": 590,
+   "y": 215
+  },
+  {
+   "cov": "Industry payments to doctors, 2018–2025: 51.8 million payments, $13.8 billion",
+   "gb": 58.67,
+   "id": "op",
+   "label": "OpenPayments — Pharma Money",
+   "size": "58.7 GB — the largest single collection in the registry",
+   "status": "Complete and audited. A giant that barely touches the rest of the web yet — connecting it is some of the highest-value work in the queue.",
+   "tier": "bronze",
+   "welds": "Medicare provider data (doctor IDs — proven)",
+   "x": 430,
+   "y": 110
+  },
+  {
+   "cov": "Provider registry and prescription data",
+   "gb": 0.3,
+   "id": "cms",
+   "label": "Medicare Provider Data",
+   "size": "~0.3 GB",
+   "status": "Rides the OpenPayments connection.",
+   "tier": "raw",
+   "welds": "OpenPayments (doctor IDs — proven)",
+   "x": 575,
+   "y": 105
+  },
+  {
+   "cov": "County and neighbourhood health measures + the national risk survey",
+   "gb": 0.8,
+   "id": "cdc",
+   "label": "CDC Health (PLACES · BRFSS)",
+   "size": "National, county-level",
+   "status": "Bronze, with one hole we name out loud: the age-adjusted survey file was catalogued and never landed. It is on the list.",
+   "tier": "bronze",
+   "welds": "Census (geography codes — proven)",
+   "x": 720,
+   "y": 110
+  },
+  {
+   "cov": "The geography and demography backbone: county codes, tracts, districts",
+   "gb": 0.42,
+   "id": "census",
+   "label": "Census · ACS",
+   "size": "The map's skeleton",
+   "status": "Small in bytes, structural in value: county codes are the join that half the web hangs from.",
+   "tier": "raw",
+   "welds": "Jobs data (proven) · CDC health (proven) · State legislatures (partial)",
+   "x": 855,
+   "y": 110
+  },
+  {
+   "cov": "Every nonprofit's tax filings + the exempt-organisations master file",
+   "gb": 15.12,
+   "id": "irs",
+   "label": "Nonprofits (IRS 990)",
+   "size": "~15.1 GB",
+   "status": "Being connected now. The rule of the house: a nonprofit is only ever matched on its tax ID — never on a lookalike name.",
+   "tier": "bronze",
+   "welds": "Federal spending (tax ID — proven) · Global entity IDs (partial)",
+   "x": 710,
+   "y": 300
+  },
+  {
+   "cov": "Federal contracts and assistance — where the money went",
+   "gb": 14.42,
+   "id": "usa",
+   "label": "Federal Spending (USAspending)",
+   "size": "~14.4 GB",
+   "status": "Assistance records connected and reconciled exactly — 92.5 million rows conserved, none lost, none invented. Contracts are partial.",
+   "tier": "bronze",
+   "welds": "Nonprofits (tax ID — proven) · Grants (award IDs — partial) · Corporate filings (partial)",
+   "x": 710,
+   "y": 480
+  },
+  {
+   "cov": "Campaign money: who gave, who spent, who benefited — national",
+   "gb": 2.69,
+   "id": "fec",
+   "label": "Campaign Finance (FEC)",
+   "size": "~2.7 GB + the itemised universe below",
+   "status": "Core files complete. The full itemised universe — 291 million contributions — is the silver build beneath it.",
+   "tier": "bronze",
+   "welds": "Silver build (its own source — proven) · Corporate filings (people — partial) · Congress (people — partial)",
+   "x": 845,
+   "y": 320
+  },
+  {
+   "cov": "Itemised campaign contributions, cleaned and connected to silver standard",
+   "gb": 4.74,
+   "id": "fecsilver",
+   "label": "The Silver Build (FEC)",
+   "size": "4.74 GB · 66.6M of 291.1M rows welded and verified",
+   "status": "The first silver-grade build in the vault, complete and verified at every checkpoint. Its wider run is the template for every collection after it.",
+   "tier": "silver",
+   "welds": "Campaign finance (proven — its source)",
+   "x": 845,
+   "y": 185
+  },
+  {
+   "cov": "Corporate filings and insider trades — national",
+   "gb": 2.92,
+   "id": "edgar",
+   "label": "Corporate Filings (SEC EDGAR)",
+   "size": "~2.9 GB",
+   "status": "Bulk records in the vault; the deep assembly programme is queued in the standing order of work.",
+   "tier": "raw",
+   "welds": "Global entity IDs (proven key layer) · Federal spending (partial) · Campaign finance (people — partial)",
+   "x": 965,
+   "y": 320
+  },
+  {
+   "cov": "Legal Entity Identifiers — who owns whom, worldwide",
+   "gb": 0.5,
+   "id": "lei",
+   "label": "Who Owns Whom (GLEIF LEI)",
+   "size": "3.47 million entities",
+   "status": "The Rosetta stone of the whole web: the key that lets a brand be traced to the company that controls it.",
+   "tier": "silver",
+   "welds": "Corporate filings (proven) · Nonprofits (partial)",
+   "x": 965,
+   "y": 470
+  },
+  {
+   "cov": "Federal grant opportunities and the grants census",
+   "gb": 0.12,
+   "id": "grants",
+   "label": "Grants.gov",
+   "size": "Opportunities + census",
+   "status": "Updated daily, landing on our own floor.",
+   "tier": "raw",
+   "welds": "Federal spending (award IDs — partial)",
+   "x": 845,
+   "y": 565
+  },
+  {
+   "cov": "The data-center build-out: campuses, deals, incentives",
+   "gb": 0.3,
+   "id": "dc",
+   "label": "Data Centers Tracker",
+   "size": "47 campuses · 18 deals · ~$44B tracked",
+   "status": "A live tracker and the test piece for the next silver standard: 1,000-point site portfolios.",
+   "tier": "bronze",
+   "welds": "Energy data (partial) · Corporate filings (owner chains — partial)",
+   "x": 1105,
+   "y": 130
+  },
+  {
+   "cov": "State legislators and their votes — national",
+   "gb": 3,
+   "id": "ost",
+   "label": "State Legislatures (OpenStates)",
+   "size": "99.9 million rows, all 41 collections live",
+   "status": "A working connection, quietly: fully landed and verified, collection by collection.",
+   "tier": "bronze",
+   "welds": "Census (state — partial)",
+   "x": 1105,
+   "y": 270
+  },
+  {
+   "cov": "Members, positions, roll-call votes",
+   "gb": 0.05,
+   "id": "cong",
+   "label": "Congress & Votes",
+   "size": "Complete small collections",
+   "status": "Complete.",
+   "tier": "bronze",
+   "welds": "Campaign finance (people — partial)",
+   "x": 1105,
+   "y": 400
+  },
+  {
+   "cov": "Labor statistics time series",
+   "gb": 2.2,
+   "id": "bls",
+   "label": "Labor Statistics (BLS)",
+   "size": "2.2 GB, complete",
+   "status": "Complete collection.",
+   "tier": "bronze",
+   "welds": "Jobs data (industry series — partial)",
+   "x": 1105,
+   "y": 520
+  },
+  {
+   "cov": "Energy production, plants, prices",
+   "gb": 1.62,
+   "id": "eia",
+   "label": "Energy (EIA)",
+   "size": "1.6 GB, complete",
+   "status": "Complete landing.",
+   "tier": "bronze",
+   "welds": "Data centers (energy — partial)",
+   "x": 965,
+   "y": 610
+  },
+  {
+   "cov": "Macro time series, the national debt, the Beige Book",
+   "gb": 0.1,
+   "id": "fred",
+   "label": "The Economy (FRED · Treasury · Fed)",
+   "size": "Reference layer",
+   "status": "The feedstock of the macro calendar.",
+   "tier": "bronze",
+   "welds": "— (reference layer)",
+   "x": 1105,
+   "y": 640
+  },
+  {
+   "cov": "News and public-affairs firehoses, archived daily",
+   "gb": 1,
+   "id": "news",
+   "label": "The News Archive",
+   "size": "Daily editions, verified",
+   "status": "Runs daily to our own floor.",
+   "tier": "raw",
+   "welds": "World events (planned)",
+   "x": 300,
+   "y": 640
+  },
+  {
+   "cov": "Our own research knowledge base",
+   "gb": 1.5,
+   "id": "karl",
+   "label": "The Research Corpus",
+   "size": "The workshop layer",
+   "status": "The empire's own working knowledge, kept on the floor.",
+   "tier": "bronze",
+   "welds": "— (internal)",
+   "x": 470,
+   "y": 660
+  },
+  {
+   "cov": "Mortgage lending, every lender — national",
+   "gb": 0.18,
+   "id": "hmda",
+   "label": "Mortgages (HMDA)",
+   "size": "0.18 GB",
+   "status": "In the vault, not yet connected. A typical silo — named as one.",
+   "tier": "raw",
+   "welds": "— none built yet",
+   "x": 700,
+   "y": 640
+  },
+  {
+   "cov": "The aircraft registry — national",
+   "gb": 0.28,
+   "id": "faa",
+   "label": "Aircraft Registry (FAA)",
+   "size": "0.28 GB",
+   "status": "A legacy silo, awaiting its turn in the rectification queue.",
+   "tier": "raw",
+   "welds": "— none built yet",
+   "x": 270,
+   "y": 110
+  },
+  {
+   "cov": "Global events and mentions — the world's news, structured",
+   "gb": 161.78,
+   "id": "gdelt",
+   "label": "GDELT — World Events",
+   "size": "161.8 GB — queued",
+   "status": "Approved and staged. Lands as part of the next wave.",
+   "tier": "ghost",
+   "welds": "News archive (planned)",
+   "x": 140,
+   "y": 738
+  },
+  {
+   "cov": "Electric utility quarterly reports",
+   "gb": 140.6,
+   "id": "ferc",
+   "label": "FERC Energy Reports",
+   "size": "140.6 GB — queued",
+   "status": "Staged for the next wave.",
+   "tier": "ghost",
+   "welds": "Energy data (planned)",
+   "x": 330,
+   "y": 738
+  },
+  {
+   "cov": "The world's entity graph — everything, identified",
+   "gb": 103.41,
+   "id": "wiki",
+   "label": "Wikidata",
+   "size": "103.4 GB — queued",
+   "status": "Staged. Joined to the entity key, this becomes the web's largest single connection.",
+   "tier": "ghost",
+   "welds": "Entity IDs (planned)",
+   "x": 520,
+   "y": 738
+  },
+  {
+   "cov": "Every road, building, and boundary on Earth",
+   "gb": 95.2,
+   "id": "osm",
+   "label": "OpenStreetMap Planet",
+   "size": "95.2 GB — queued",
+   "status": "Staged for the next wave.",
+   "tier": "ghost",
+   "welds": "Census geography (planned)",
+   "x": 700,
+   "y": 738
+  },
+  {
+   "cov": "The biomedical literature",
+   "gb": 45,
+   "id": "pubmed",
+   "label": "PubMed",
+   "size": "45 GB — queued",
+   "status": "Staged for the next wave.",
+   "tier": "ghost",
+   "welds": "OpenPayments (planned)",
+   "x": 870,
+   "y": 738
+  },
+  {
+   "cov": "Opioid shipment records",
+   "gb": 0.02,
+   "id": "arcos",
+   "label": "ARCOS — Opioid Shipments",
+   "size": "In the vault",
+   "status": "A silo awaiting a decision, not a connection. The options have been on the table since mid-October; we say so.",
+   "tier": "raw",
+   "welds": "— SILO: awaiting a decision",
+   "x": 1035,
+   "y": 672
+  },
+  {
+   "cov": "Senators' stock trades",
+   "gb": 0.01,
+   "id": "stock",
+   "label": "Senate Stock Trades",
+   "size": "Not yet funded",
+   "status": "A silo by rule: new paid gates stay shut until the vault itself works at silver grade.",
+   "tier": "raw",
+   "welds": "— SILO: not yet funded",
+   "x": 1105,
+   "y": 706
+  },
+  {
+   "cov": "French death records",
+   "gb": 0.01,
+   "id": "insee",
+   "label": "INSEE Deaths",
+   "size": "Privacy hold",
+   "status": "A silo by law, not neglect: personal data stays fenced.",
+   "tier": "raw",
+   "welds": "— SILO: privacy hold",
+   "x": 1170,
+   "y": 672
+  }
+ ],
+ "edges": [
+  [
+   "cl",
+   "ppl",
+   "proven"
+  ],
+  [
+   "cl",
+   "fjc",
+   "proven"
+  ],
+  [
+   "cl",
+   "lagold",
+   "proven"
+  ],
+  [
+   "lagold",
+   "ppl",
+   "proven"
+  ],
+  [
+   "lagold",
+   "laom",
+   "partial"
+  ],
+  [
+   "laom",
+   "fec",
+   "partial"
+  ],
+  [
+   "echo",
+   "rsei",
+   "proven"
+  ],
+  [
+   "echo",
+   "osha",
+   "partial"
+  ],
+  [
+   "rsei",
+   "qcew",
+   "partial"
+  ],
+  [
+   "osha",
+   "dol",
+   "partial"
+  ],
+  [
+   "qcew",
+   "census",
+   "proven"
+  ],
+  [
+   "qcew",
+   "bls",
+   "partial"
+  ],
+  [
+   "cdc",
+   "census",
+   "proven"
+  ],
+  [
+   "census",
+   "ost",
+   "partial"
+  ],
+  [
+   "op",
+   "cms",
+   "proven"
+  ],
+  [
+   "irs",
+   "usa",
+   "proven"
+  ],
+  [
+   "irs",
+   "lei",
+   "partial"
+  ],
+  [
+   "usa",
+   "grants",
+   "partial"
+  ],
+  [
+   "usa",
+   "edgar",
+   "partial"
+  ],
+  [
+   "fec",
+   "fecsilver",
+   "proven"
+  ],
+  [
+   "fec",
+   "edgar",
+   "partial"
+  ],
+  [
+   "fec",
+   "cong",
+   "partial"
+  ],
+  [
+   "edgar",
+   "lei",
+   "proven"
+  ],
+  [
+   "dc",
+   "eia",
+   "partial"
+  ],
+  [
+   "dc",
+   "edgar",
+   "partial"
+  ],
+  [
+   "news",
+   "gdelt",
+   "ghost"
+  ],
+  [
+   "ferc",
+   "eia",
+   "ghost"
+  ],
+  [
+   "wiki",
+   "lei",
+   "ghost"
+  ],
+  [
+   "osm",
+   "census",
+   "ghost"
+  ],
+  [
+   "pubmed",
+   "op",
+   "ghost"
+  ]
+ ],
+ "registry": {
+  "datasets": 93,
+  "census_utc": "2026-10-16T03:26:41Z"
+ },
+ "target_map": {
+  "locations": 200,
+  "three_county_lb": 678821141,
+  "three_county_facilities": 690
+ }
+};
+const TIER = {raw:'#5B7A99', bronze:'#C07F3E', silver:'#C9CFD8', gold:'#E8B84B', ghost:'#8A8F98'};
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('en-US');
+function show(v){
+  $('view-map').classList.toggle('on', v==='map');
+  $('view-web').classList.toggle('on', v==='web');
+  $('tabMap').classList.toggle('on', v==='map');
+  $('tabWeb').classList.toggle('on', v==='web');
+}
+function renderTotals(){
+  const t = DATA.totals;
+  $('totals').innerHTML =
+   '<div class="stat"><b>'+t.raw_gb.toFixed(2)+' GB</b><span>Raw records banked · '+t.raw_families+' collections</span></div>'+
+   '<div class="stat bronze"><b>'+t.bronze_gb.toFixed(2)+' GB</b><span>Bronze — cleaned &amp; keyed · '+t.bronze_families+' collections</span></div>'+
+   '<div class="stat silver"><b>66.6M rows</b><span>'+t.silver_note+'</span></div>'+
+   '<div class="stat gold"><b>1 state</b><span>Gold-complete — Louisiana courts</span></div>'+
+   '<div class="stat gap"><b>'+t.gap_gb.toFixed(2)+' GB</b><span>Processing gap still to close</span></div>'+
+   '<div class="stat gap"><b>'+t.untouched_families+' collections</b><span>Banked, never touched · '+t.untouched_gb.toFixed(2)+' GB</span></div>';
+  $('aim').innerHTML = DATA.aim.map(a=>'<li>'+a+'</li>').join('');
+  $('upd').textContent = 'Updated ' + new Date(DATA.updated_at).toLocaleString('en-US',{dateStyle:'medium', timeStyle:'short'});
+  $('foot').innerHTML = 'Built entirely from <b>public records</b>: CourtListener and the Free Law Project · EPA (ECHO, TRI, RSEI) · FEC · SEC EDGAR · IRS · Census Bureau · CDC · OSHA and the Department of Labor · USAspending · CMS · GLEIF · OpenStates · BLS · EIA · FRED. '+
+   'Figures are the vault’s own census of record ('+t.universe_families+' collections in the universe; registry cross-check: '+DATA.registry.datasets+' datasets, census '+DATA.registry.census_utc.slice(0,10)+'). '+
+   'The drill-down shows the '+DATA.target_map.locations+'-location target map: '+fmt(DATA.target_map.three_county_facilities)+' industrial facilities, '+fmt(DATA.target_map.three_county_lb)+' lb of toxic releases over the decade, across Harris and Jefferson (TX) and Allegheny (PA). '+
+   'State depth is a depth-of-work classification, published honestly: national collections cover every state at raw tier; depth is what has actually been connected. This page regenerates as the work lands — if a number moves, the work moved.';
+}
+
+/* ================= TILE MAP + DRILL-DOWN ================= */
+const GRID = {AK:[0,0],ME:[11,0],
+WA:[0,1],MT:[2,1],ND:[3,1],MN:[4,1],WI:[5,1],MI:[7,1],NY:[8,1],VT:[10,1],NH:[11,1],
+OR:[0,2],ID:[1,2],SD:[3,2],IA:[4,2],IL:[5,2],IN:[6,2],OH:[7,2],PA:[8,2],NJ:[9,2],CT:[10,2],MA:[11,2],
+CA:[0,3],NV:[1,3],WY:[2,3],CO:[3,3],NE:[4,3],MO:[5,3],KY:[6,3],WV:[7,3],VA:[8,3],MD:[9,3],DE:[10,3],
+AZ:[1,4],NM:[2,4],KS:[4,4],AR:[5,4],TN:[6,4],NC:[7,4],SC:[8,4],DC:[10,4],
+HI:[0,5],OK:[4,5],LA:[5,5],MS:[6,5],AL:[7,5],GA:[8,5],
+TX:[4,6],FL:[9,6]};
+const NAMES = {AK:'Alaska',ME:'Maine',WA:'Washington',MT:'Montana',ND:'North Dakota',MN:'Minnesota',WI:'Wisconsin',MI:'Michigan',NY:'New York',VT:'Vermont',NH:'New Hampshire',OR:'Oregon',ID:'Idaho',SD:'South Dakota',IA:'Iowa',IL:'Illinois',IN:'Indiana',OH:'Ohio',PA:'Pennsylvania',NJ:'New Jersey',CT:'Connecticut',MA:'Massachusetts',CA:'California',NV:'Nevada',WY:'Wyoming',CO:'Colorado',NE:'Nebraska',MO:'Missouri',KY:'Kentucky',WV:'West Virginia',VA:'Virginia',MD:'Maryland',DE:'Delaware',AZ:'Arizona',NM:'New Mexico',KS:'Kansas',AR:'Arkansas',TN:'Tennessee',NC:'North Carolina',SC:'South Carolina',DC:'Washington DC',HI:'Hawaii',OK:'Oklahoma',LA:'Louisiana',MS:'Mississippi',AL:'Alabama',GA:'Georgia',TX:'Texas',FL:'Florida'};
+const FILL = {1:'#3D5A76',2:'#8A5A28',3:'#7E8894',4:'#E8B84B'};
+const DEPTH_LABEL = {1:'National raw base — covered, not yet connected',2:'Bronze — connecting under way',3:'Deep work — dossiers / tracing live',4:'GOLD — connected & certified'};
+function crumbs(st, co){
+  let h = '<a onclick="renderAmerica()">America</a>';
+  if(st) h += ' &nbsp;›&nbsp; <a onclick="renderState(\''+st+'\')">'+NAMES[st]+'</a>';
+  if(co) h += ' &nbsp;›&nbsp; ' + co + ' County';
+  $('crumbs').innerHTML = h;
+}
+function renderAmerica(){
+  crumbs();
+  $('scan').innerHTML = '<h3>America</h3><p><b>'+DATA.totals.universe_families+' collections</b> in the universe · '+
+    DATA.totals.raw_gb.toFixed(2)+' GB raw banked · '+DATA.totals.bronze_gb.toFixed(2)+' GB at bronze. '+
+    'One state is gold. The connecting work is the story — click a state to open its scan.</p>'+
+    '<p class="dim">Deep scans exist where the work has landed: Louisiana, Mississippi, Texas, Pennsylvania, DC. '+
+    'Every other state opens with its coverage note.</p>';
+}
+function renderState(st){
+  crumbs(st);
+  const s = DATA.states[st] || {depth:1, note:'', counties:{}};
+  const d = s.depth || 1;
+  let h = '<h3>'+NAMES[st]+'</h3>'+
+    '<p><span class="tag" style="background:'+FILL[d]+';color:'+(d===4?'#16161A':'#fff')+'">'+DEPTH_LABEL[d]+'</span></p>'+
+    '<p>'+(s.note || DATA.raw_base_note)+'</p>';
+  const cos = Object.keys(s.counties||{});
+  if(cos.length){
+    h += '<p class="dim">County scans are open — click a county to go down to the city and the facility.</p>';
+    for(const co of cos){
+      const c = s.counties[co];
+      h += '<div class="card" onclick="renderCounty(\''+st+'\',\''+co+'\')"><h4>'+co+' County</h4>'+
+        '<div class="meta"><b>'+fmt(c.county_facilities)+'</b> industrial facilities · <b>'+fmt(c.county_decade_lb)+' lb</b> toxic releases (decade) · '+
+        '<b>'+c.locations.length+'</b> locations in the target map · <b>'+Object.keys(c.cities).length+'</b> cities</div></div>';
+    }
+  } else {
+    h += '<p>'+DATA.county_coverage_note+'</p>';
+  }
+  $('scan').innerHTML = h;
+  $('scan').scrollIntoView({block:'nearest'});
+}
+function renderCounty(st, co){
+  crumbs(st, co);
+  const c = DATA.states[st].counties[co];
+  let h = '<h3>'+co+' County, '+st+'</h3>'+
+    '<p><b>'+fmt(c.county_facilities)+'</b> industrial facilities · <b>'+fmt(c.county_decade_lb)+' lb</b> of toxic releases over the decade. '+
+    'Below: the '+c.locations.length+' locations in the target map, grouped by city, largest first. '+
+    'A facility’s dossier — its permits, violations, owners, and releases, connected — is built location by location; the badge says where each one stands.</p>';
+  let curCity = null;
+  for(const f of c.locations){
+    if(f.city !== curCity){ curCity = f.city; h += '<div class="cityhead">📍 '+curCity+'</div>'; }
+    const chipCls = f.badge==='DOSSIER BUILT' ? 'chip built' : (f.badge==='DOSSIER IN BUILD' ? 'chip building' : 'chip');
+    h += '<div class="fac"><h5>'+f.name+' <span class="'+chipCls+'">'+f.badge+'</span></h5>'+
+      '<div class="meta">'+(f.parent ? 'Parent: <b>'+f.parent+'</b> · ' : '')+
+      f.street+', '+f.city+', '+st+' '+f.zip+'<br>'+
+      'Releases: <b>'+fmt(f.decade_lb)+' lb</b> (decade) · <b>'+fmt(f.lb2024)+' lb</b> (2024) · Top chemical: <b>'+f.top_chem+'</b>'+
+      (f.frs ? ' · Facility registry ID '+f.frs : '')+'</div></div>';
+  }
+  $('scan').innerHTML = h;
+  $('scan').scrollIntoView({block:'nearest'});
+}
+function renderTilemap(){
+  const svg = $('tilemap'), NS='http://www.w3.org/2000/svg';
+  for(const [st,[cc,rr]] of Object.entries(GRID)){
+    const d = (DATA.states[st]||{}).depth || 1;
+    const g = document.createElementNS(NS,'g');
+    const rect = document.createElementNS(NS,'rect');
+    rect.setAttribute('x', cc*54+4); rect.setAttribute('y', rr*54+8);
+    rect.setAttribute('width', 48); rect.setAttribute('height', 48); rect.setAttribute('rx', 6);
+    rect.setAttribute('fill', FILL[d]); rect.setAttribute('class','tile');
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x', cc*54+28); t.setAttribute('y', rr*54+36);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','14'); t.setAttribute('font-weight','700');
+    t.setAttribute('fill', d===4 ? '#16161A' : '#F4F2ED'); t.textContent = st;
+    g.appendChild(rect); g.appendChild(t);
+    g.addEventListener('click', ()=>renderState(st));
+    svg.appendChild(g);
+  }
+}
+</script>
+
+<script>
+function renderWeb(){
+  const svg = $('web'), NS='http://www.w3.org/2000/svg';
+  const byId = {}; DATA.nodes.forEach(n=>byId[n.id]=n);
+  const radius = n => n.tier==='ghost' ? 13+7*Math.log10(n.gb+1) : 10+8.5*Math.log10(n.gb+1);
+  function zone(x,y,txt){ const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('fill','#8A8F98');
+    t.setAttribute('font-size','13'); t.setAttribute('letter-spacing','2'); t.textContent=txt; svg.appendChild(t); }
+  zone(60,60,'COURTS & PEOPLE'); zone(400,60,'HEALTH'); zone(640,60,'THE MONEY WEB');
+  zone(1010,60,'CIVIC · ECONOMY'); zone(60,712,'QUEUED — THE NEXT WAVE (NOT YET LANDED)');
+  const pen=document.createElementNS(NS,'rect');
+  pen.setAttribute('x',975); pen.setAttribute('y',636); pen.setAttribute('width',248); pen.setAttribute('height',130);
+  pen.setAttribute('fill','none'); pen.setAttribute('stroke','#D66'); pen.setAttribute('stroke-dasharray','6 4');
+  svg.appendChild(pen); zone(985,628,'THE SILO PEN');
+  for(const [a,b,kind] of DATA.edges){
+    const A=byId[a], B=byId[b], l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',A.x); l.setAttribute('y1',A.y); l.setAttribute('x2',B.x); l.setAttribute('y2',B.y);
+    l.setAttribute('class','edge '+kind); svg.appendChild(l);
+  }
+  for(const n of DATA.nodes){
+    const g=document.createElementNS(NS,'g'); g.setAttribute('class','node');
+    const c=document.createElementNS(NS,'circle'); c.setAttribute('class','core');
+    c.setAttribute('cx',n.x); c.setAttribute('cy',n.y); c.setAttribute('r',radius(n));
+    if(n.tier==='ghost'){ c.setAttribute('fill','transparent'); c.setAttribute('stroke',TIER.ghost);
+      c.setAttribute('stroke-width','2'); c.setAttribute('stroke-dasharray','5 4'); }
+    else { c.setAttribute('fill',TIER[n.tier]); c.setAttribute('fill-opacity', n.tier==='raw' ? .82 : .95);
+      c.setAttribute('stroke','#0c0c0f'); c.setAttribute('stroke-width','1.5'); }
+    g.appendChild(c);
+    const words=n.label.split(' '); const lines=[]; let cur='';
+    for(const w of words){ if((cur+' '+w).trim().length>17){ lines.push(cur.trim()); cur=w; } else cur+=' '+w; }
+    if(cur.trim()) lines.push(cur.trim());
+    lines.slice(0,3).forEach((ln,i)=>{
+      const t=document.createElementNS(NS,'text');
+      t.setAttribute('x',n.x); t.setAttribute('y',n.y+radius(n)+14+i*12.5);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','11.5');
+      t.setAttribute('fill', n.tier==='ghost' ? '#8A8F98' : '#F4F2ED'); t.textContent=ln; g.appendChild(t);
+    });
+    g.addEventListener('click', ()=>{
+      $('webDetail').innerHTML='<h3>'+n.label+'</h3>'+
+      '<p><span class="tag" style="background:'+(n.tier==='ghost'?'transparent':TIER[n.tier])+';border:1.5px '+(n.tier==='ghost'?'dashed #8A8F98':'solid transparent')+';color:'+(['silver','gold'].includes(n.tier)?'#16161A':'#fff')+'">'+n.tier.toUpperCase()+'</span></p>'+
+      '<p><b>Holdings:</b> '+n.size+'</p><p><b>Coverage:</b> '+n.cov+'</p>'+
+      '<p><b>Connections:</b> '+n.welds+'</p><p class="dim">'+n.status+'</p>';
+    });
+    svg.appendChild(g);
+  }
+}
+function init(){ renderTotals(); renderTilemap(); renderWeb(); crumbs(); }
+if(DATA){ init(); }
+else {
+  fetch('data-empire.json', {cache:'no-store'}).then(r=>r.json()).then(j=>{ DATA=j; init(); })
+  .catch(()=>{ $('scan').innerHTML='<h3>Data file not loaded</h3><p>The live data file (data-empire.json) sits next to this page on the site; it did not load here.</p>'; });
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-10-30T18:44-05:00",
+ "updated_at": "2026-10-31T04:51+00:00",
  "totals": {
   "bronze_entries": 177,
   "bronze_families": 70,
@@ -19,7 +19,8 @@
   "Close the 618.85 GB processing gap — finish turning raw records into cleaned, keyed, connected data.",
   "The next wave is queued: GDELT (world events), FERC energy reports, Wikidata (the world's entity graph), OpenStreetMap, and PubMed — a terabyte of new reach, staged to land.",
   "Finish the first silver build's road: 66.6 million campaign contributions are welded and verified; the remaining 224.6 million rows are the template's next run.",
-  "Replicate the Louisiana pattern — courts welded to the people who run them — state by state. Mississippi is done at bronze. Texas is planned.",
+  "Replicate the Louisiana pattern — courts welded to the people who run them — state by state. Mississippi is done at bronze; Texas is census-complete with its citation graph built; the Southeast is census-mapped (11,769,953 dockets across eight states).",
+  "The national court map is drawn: 72,998,758 dockets counted across every court in the corpus, with the federal layer fully mapped (4,600,358 dockets). Florida is the next full build — 5,464,125 dockets, sized and queued.",
   "Named holes we say out loud: one age-adjusted health survey enumerated and never landed · nonprofit filing titles held by name · opioid shipment data (ARCOS) awaiting a decision."
  ],
  "raw_base_note": "Covered by the national collections — campaign finance, jobs-by-county, nonprofit filings, EPA facility records, Census — in raw form. Raw is reach, not depth: it becomes knowledge when it is cleaned, keyed, and connected. That connecting work is under way state by state.",
@@ -314,7 +315,7 @@
   },
   "TX": {
    "depth": 3,
-   "note": "Deep work under way. 690 industrial facilities mapped across Harris and Jefferson counties alone; the first full dossier (TM Deer Park, the #1 toxic releaser in the three-county map) is built. A full Texas courts plan is in motion, on the Louisiana pattern.",
+   "note": "Deep — and now counted. 690 industrial facilities mapped across Harris and Jefferson counties; the first full dossier (TM Deer Park, the #1 toxic releaser in the three-county map) is built. Texas courts are census-complete on the Louisiana pattern: 6,195,717 dockets and 688,076 cases, counted court by court, with the citation graph built — 2,077,524 citing pairs inside Texas, and Texas measured against its circuit both ways (it cites the Fifth Circuit roughly four times more than the circuit cites it).",
    "counties": {
     "Harris": {
      "locations": [
@@ -2703,6 +2704,46 @@
      }
     }
    }
+  },
+  "GA": {
+   "depth": 2,
+   "note": "Mapped — census complete. 2,812,959 dockets and 230,851 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "TN": {
+   "depth": 2,
+   "note": "Mapped — census complete. 1,880,878 dockets and 112,272 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "VA": {
+   "depth": 2,
+   "note": "Mapped — census complete. 1,782,255 dockets and 86,415 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "AL": {
+   "depth": 2,
+   "note": "Mapped — census complete. 1,695,379 dockets and 166,935 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "NC": {
+   "depth": 2,
+   "note": "Mapped — census complete. 1,338,192 dockets and 163,538 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "KY": {
+   "depth": 2,
+   "note": "Mapped — census complete. 1,032,807 dockets and 100,554 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "SC": {
+   "depth": 2,
+   "note": "Mapped — census complete. 679,132 dockets and 73,490 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
+  },
+  "WV": {
+   "depth": 2,
+   "note": "Mapped — census complete. 548,351 dockets and 52,124 cases counted court by court. The census is the map; the connecting work — records welded to courts, judges, and citations, on the Louisiana pattern — is the road ahead.",
+   "counties": {}
   }
  },
  "nodes": [

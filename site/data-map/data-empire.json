@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-10-31T04:51+00:00",
+ "updated_at": "2026-10-31T06:16+00:00",
  "totals": {
   "bronze_entries": 177,
   "bronze_families": 70,
@@ -315,7 +315,7 @@
   },
   "TX": {
    "depth": 3,
-   "note": "Deep — and now counted. 690 industrial facilities mapped across Harris and Jefferson counties; the first full dossier (TM Deer Park, the #1 toxic releaser in the three-county map) is built. Texas courts are census-complete on the Louisiana pattern: 6,195,717 dockets and 688,076 cases, counted court by court, with the citation graph built — 2,077,524 citing pairs inside Texas, and Texas measured against its circuit both ways (it cites the Fifth Circuit roughly four times more than the circuit cites it).",
+   "note": "Deep — and now counted. 690 industrial facilities mapped across Harris and Jefferson counties; the first full dossier (TM Deer Park, the #1 toxic releaser in the three-county map) is built. Texas courts are census-complete on the Louisiana pattern: 6,195,717 dockets and 688,031 cases, counted court by court, with the citation graph built — 2,077,524 citing pairs inside Texas, and Texas measured against its circuit both ways (it cites the Fifth Circuit roughly four times more than the circuit cites it).",
    "counties": {
     "Harris": {
      "locations": [

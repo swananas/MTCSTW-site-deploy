@@ -11,6 +11,16 @@ building terrain around it, letting the water pool, carve, carry silt, and lay
 down new land over time. A "zen garden" for ecosystems the way Cities: Skylines
 is a zen garden for cities. No win state. Water + land + life, watched.
 
+**v0.2 graphics pass (2026-11-03, Shane's call — look before concept expansion; sim byte-for-byte the same rules):**
+stylized top-down miniature direction. Elevation palette ramp + faint contour banding + two-axis
+hillshade (terrain readable at a glance); water = 3-stop depth ramp, travelling shimmer, sun glints,
+animated shore foam, muddy silt tint, and pale flow streaks that drift downhill so current direction
+is visible; growth in three readable stages (sprout speckle → grass → forest floor) plus full-res
+canopy crowns over mature forest; moisture now darkens soil and the waterline reads as pale wet sand;
+springs bubble with expanding ripples; brush ring shows your tool footprint; legend under the canvas;
+soft diorama vignette. Roadmap from here per Shane's sequencing question: v0.3 feel pass (rates/brush
+tuned from his play), v0.4 first single concept expansion — evolution last by design.
+
 **v0 implementation (single HTML file, no build step, no dependencies):**
 - 96×96 heightfield. Water flows cell → lowest neighbour each tick.
 - Flow erodes its source (steeper/faster = more; vegetation roots resist),

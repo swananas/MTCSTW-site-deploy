@@ -4,27 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Watershed — Playtest Demo 01</title>
+<title>Watershed — Playtest Demo 01 · v0.2</title>
 <style>
-  :root{--bg:#0c1210;--panel:#14201b;--ink:#e8f0ea;--dim:#9db4a6;--accent:#57c98a;--water:#3f8fd2;--line:#24382e}
+  :root{--bg:#0b100e;--panel:#131e18;--ink:#edf4ee;--dim:#a7bcae;--accent:#5fd68f;--water:#46a8e0;--line:#26402f}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  html,body{margin:0;padding:0;background:radial-gradient(120% 90% at 50% 0%,#122019 0%,var(--bg) 55%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
   body{padding:12px 12px calc(16px + env(safe-area-inset-bottom))}
   main{max-width:680px;margin:0 auto}
   header{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
   h1{font-size:19px;letter-spacing:.12em;margin:4px 0}
   h1 span{color:var(--water)}
+  .ver{font-size:10.5px;font-weight:700;letter-spacing:.07em;background:#1d3a29;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
   a.back{color:var(--dim);font-size:13px;text-decoration:none}
   .sub{color:var(--dim);font-size:13.5px;line-height:1.5;margin:2px 0 10px}
-  #stage{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#1a2a3a}
+  #stage{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#17334d;box-shadow:0 14px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.04)}
   canvas{display:block;width:100%;aspect-ratio:1/1;touch-action:none}
-  #stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  #legend{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px}
+  .lg{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px}
+  .sw{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(255,255,255,.14)}
+  #stats{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
   .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--dim)}
   .chip b{color:var(--ink)}
   #tools{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
   .tool{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 2px;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
   .tool .ic{display:block;font-size:19px;margin-bottom:3px}
-  .tool.on{border-color:var(--accent);background:#1b3325;color:#fff}
+  .tool.on{border-color:var(--accent);background:#1c3527;color:#fff;box-shadow:0 0 0 1px var(--accent) inset}
   .row{display:flex;align-items:center;gap:10px;margin:8px 0}
   .row label{font-size:12.5px;color:var(--dim);flex:0 0 auto}
   input[type=range]{flex:1;accent-color:var(--accent)}
@@ -36,12 +40,22 @@
 <body>
 <main>
   <header>
-    <h1>🌊 WATER<span>SHED</span></h1>
+    <h1>🌊 WATER<span>SHED</span><span class="ver">v0.2 GRAPHICS</span></h1>
     <a class="back" href="/playtest/">← all demos</a>
   </header>
   <p class="sub">No objective. Shape the land, place a spring, then just watch the water work — it carves channels, carries silt, and lays down new land where it slows. Keep ground wet and green things move in.</p>
 
-  <div id="stage"><canvas id="cv" width="480" height="480"></canvas></div>
+  <div id="stage"><canvas id="cv" width="576" height="576"></canvas></div>
+
+  <div id="legend">
+    <span class="lg"><span class="sw" style="background:#7fd4f2"></span>Shallow</span>
+    <span class="lg"><span class="sw" style="background:#155e96"></span>Deep</span>
+    <span class="lg"><span class="sw" style="background:#e3cf9e"></span>Shore</span>
+    <span class="lg"><span class="sw" style="background:#7fae4c"></span>Sprouts</span>
+    <span class="lg"><span class="sw" style="background:#3e7d33"></span>Grass</span>
+    <span class="lg"><span class="sw" style="background:#1e4d2b"></span>Forest</span>
+    <span class="lg"><span class="sw" style="background:#8d8d89"></span>Rock</span>
+  </div>
 
   <div id="stats">
     <span class="chip">💧 Water <b id="st-water">0%</b></span>
@@ -65,7 +79,7 @@
     <button class="btn" id="reset">↺ New land</button>
   </div>
 
-  <p class="hint"><b>Try this:</b> Raise a ridge across a stream and watch it pool, spill, and find a new way down. Dig a shallow channel and the river will move in, deepen it, and start building a delta where it flattens out. Grass holds the banks — seeded ground erodes much slower, and silt settles faster where it's green.</p>
+  <p class="hint"><b>Try this:</b> Raise a ridge across a stream and watch it pool, spill, and find a new way down. Dig a shallow channel and the river will move in, deepen it, and start building a delta where it flattens out. Grass holds the banks — seeded ground erodes much slower, and silt settles faster where it's green. Pale streaks on the water show which way the current is running.</p>
 </main>
 
 <script>
@@ -83,9 +97,14 @@ var landBuilt = 0;                  // cumulative deposition counter (display)
 var paused = false;
 var tool = "raise";
 var brush = 6;
+var T = 0;                          // visual clock (frames) — graphics only
+var pointerCell = null;             // for the brush ring
+var ripples = [];                   // {x,y,r,a} visual only
 
 function idx(x,y){ return y * N + x; }
 function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function mix(a,b,t){ return a + (b-a)*t; }
+function hash2(x,y){ var s = Math.sin(x*127.1 + y*311.7) * 43758.5453; return s - Math.floor(s); }
 
 /* --- terrain generation: smooth value noise + a high corner for headwaters --- */
 function makeTerrain(){
@@ -93,6 +112,7 @@ function makeTerrain(){
   for(i=0;i<C*C;i++) coarse[i] = Math.random();
   springs = [];
   landBuilt = 0;
+  ripples = [];
   for(y=0;y<N;y++) for(x=0;x<N;x++){
     var fx = x/(N-1)*(C-1), fy = y/(N-1)*(C-1);
     var x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx-x0, ty = fy-y0;
@@ -110,6 +130,7 @@ function makeTerrain(){
   springs.push({x:30, y:9});
 }
 
+/* ================= SIMULATION — unchanged from v0.1 ================= */
 function step(){
   var i, x, y, s;
   // springs feed the headwaters
@@ -176,56 +197,165 @@ function step(){
   }
 }
 
-/* --- rendering to a small offscreen, scaled up smooth --- */
+/* ================= RENDERER — v0.2 graphics pass ================= */
 var cv = document.getElementById('cv');
 var ctx = cv.getContext('2d');
 var off = document.createElement('canvas'); off.width = N; off.height = N;
 var octx = off.getContext('2d');
 var img = octx.createImageData(N, N);
 var data = img.data;
+var CELL = cv.width / N; // canvas px per cell at full res
+
+/* land palette stops by elevation: [h, r, g, b] */
+var LAND = [
+  [0.00, 112, 96, 62],
+  [0.34, 148, 128, 84],
+  [0.52, 158, 138, 92],
+  [0.70, 146, 132, 104],
+  [0.82, 140, 136, 128],
+  [0.93, 156, 154, 150],
+  [1.25, 244, 247, 250]
+];
+function landColor(hi, out){
+  var s = 0;
+  while(s < LAND.length-2 && hi > LAND[s+1][0]) s++;
+  var a = LAND[s], b = LAND[s+1];
+  var t = clamp((hi - a[0]) / (b[0] - a[0]), 0, 1);
+  out[0] = mix(a[1], b[1], t); out[1] = mix(a[2], b[2], t); out[2] = mix(a[3], b[3], t);
+}
+var tmpC = [0,0,0];
 
 function render(){
+  T++;
   var i, x, y;
   for(y=0;y<N;y++) for(x=0;x<N;x++){
     i = idx(x,y);
     var r, g, b;
     var wi = w[i], hi = h[i];
+    var shore = false;
+    if(wi <= 0.018){
+      // shore test: any neighbour under water
+      shore = (x>0 && w[i-1]>0.018) || (x<N-1 && w[i+1]>0.018) || (y>0 && w[i-N]>0.018) || (y<N-1 && w[i+N]>0.018);
+    }
     if(wi > 0.018){
-      var d = clamp(wi * 2.4, 0, 1);                    // depth
-      r = 62 + (16-62)*d; g = 158 + (74-158)*d; b = 224 + (128-224)*d;
-      if(sed[i] > 0.01){ var st = clamp(sed[i]*6,0,0.45); r = r*(1-st)+166*st; g = g*(1-st)+138*st; b = b*(1-st)+92*st; }
+      /* water: 3-stop depth ramp + travelling shimmer + silt + foam at the shore */
+      var d = clamp(Math.pow(wi * 2.2, 0.72), 0, 1);
+      if(d < 0.5){ var dt = d*2; r = mix(127,58,dt); g = mix(212,150,dt); b = mix(242,208,dt); }
+      else { var dt2 = (d-0.5)*2; r = mix(58,13,dt2); g = mix(150,84,dt2); b = mix(208,140,dt2); }
+      var shimmer = Math.sin(T*0.055 + x*0.55 + y*0.30) * 7 + Math.sin(T*0.021 - x*0.18 + y*0.42) * 5;
+      r += shimmer; g += shimmer; b += shimmer * 0.7;
+      var glint = hash2(x + ((T/14)|0)*57, y - ((T/14)|0)*31);
+      if(glint > 0.965 && wi > 0.05){ r += 52; g += 52; b += 46; }   // sun sparkle
+      if(sed[i] > 0.008){ var st = clamp(sed[i]*5.5,0,0.5); r = r*(1-st)+168*st; g = g*(1-st)+140*st; b = b*(1-st)+94*st; }
+      var isShoreWater = (x>0 && w[i-1]<=0.018 && h[i-1]>=hi) || (x<N-1 && w[i+1]<=0.018) || (y>0 && w[i-N]<=0.018) || (y<N-1 && w[i+N]<=0.018);
+      if(isShoreWater){ var fm = 0.28 + 0.13 * Math.sin(T*0.12 + (x+y)*1.7); r = r*(1-fm)+240*fm; g = g*(1-fm)+252*fm; b = b*(1-fm)+255*fm; }
     } else {
-      var v = veg[i];
-      // dry earth -> sand near moisture -> grass -> deep green
-      r = 138; g = 118; b = 78;
-      if(wet[i] > 0.30){ r = 196; g = 176; b = 122; }   // damp sand / shore
-      if(v > 0.03){
-        var lush = clamp(v,0,1);
-        r = r*(1-lush) + (34 + (1-lush)*30)*lush;
-        g = g*(1-lush) + 122*lush;
-        b = b*(1-lush) + 52*lush;
+      landColor(hi, tmpC); r = tmpC[0]; g = tmpC[1]; b = tmpC[2];
+      /* moisture darkens soil (rich, wet earth) before any green arrives */
+      var dark = clamp(wet[i], 0, 1) * 0.30;
+      r *= (1-dark*0.85); g *= (1-dark*0.72); b *= (1-dark*0.55);
+      if(shore || wet[i] > 0.55){ // pale wet sand right at the waterline
+        var sf = shore ? 0.62 : (wet[i]-0.55)*1.1;
+        r = r*(1-sf)+227*sf; g = g*(1-sf)+207*sf; b = b*(1-sf)+158*sf;
       }
-      if(hi > 0.74){ var rk = clamp((hi-0.74)*3.4,0,1); r = r*(1-rk)+128*rk; g = g*(1-rk)+126*rk; b = b*(1-rk)+122*rk; }
-      if(hi > 0.97){ var sn = clamp((hi-0.97)*9,0,1); r = r*(1-sn)+240*sn; g = g*(1-sn)+244*sn; b = b*(1-sn)+248*sn; }
-      // hillshade from the west
-      var sh = clamp((h[idx(Math.max(x-1,0),y)] - hi) * 5.5, -0.28, 0.34);
+      /* growth stages: sprout speckle -> grass -> forest floor */
+      var v = veg[i];
+      if(v > 0.02){
+        if(v < 0.38){
+          var sp = clamp(v/0.38, 0, 1);
+          var speck = hash2(x, y) < sp * 0.85 ? 1 : 0.25;
+          var sr = mix(r, 127, sp*0.75*speck), sg = mix(g, 174, sp*0.75*speck), sb = mix(b, 76, sp*0.75*speck);
+          r = sr; g = sg; b = sb;
+        } else if(v < 0.72){
+          var gr2 = (v-0.38)/0.34;
+          r = mix(r, 62, gr2*0.82); g = mix(g, 125, gr2*0.82); b = mix(b, 51, gr2*0.82);
+        } else {
+          var fr = (v-0.72)/0.28;
+          r = mix(r, 30, fr*0.85); g = mix(g, 77, fr*0.85); b = mix(b, 43, fr*0.85);
+        }
+      }
+      /* faint contour banding: elevation you can read at a glance */
+      var band = (hi * 16) % 1;
+      if(band < 0.14){ r *= 0.90; g *= 0.90; b *= 0.90; }
+      /* two-axis hillshade */
+      var hx = h[idx(Math.max(x-1,0),y)] - h[idx(Math.min(x+1,N-1),y)];
+      var hy = h[idx(x,Math.max(y-1,0))] - h[idx(x,Math.min(y+1,N-1))];
+      var sh = clamp((hx*0.5 + hy*0.28) * 4.6, -0.30, 0.36);
       r *= (1+sh); g *= (1+sh); b *= (1+sh);
-      if(wi > 0.004){ r = r*0.55+34; g = g*0.55+88; b = b*0.55+140; } // puddle sheen
+      if(wi > 0.004){ r = r*0.5+30; g = g*0.5+84; b = b*0.5+138; } // puddle sheen
     }
     var p = i * 4;
     data[p] = r; data[p+1] = g; data[p+2] = b; data[p+3] = 255;
   }
-  // spring markers
   octx.putImageData(img, 0, 0);
   ctx.imageSmoothingEnabled = true;
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.drawImage(off, 0, 0, cv.width, cv.height);
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  for(var s=0;s<springs.length;s++){
-    var sx = (springs[s].x+0.5)/N*cv.width, sy = (springs[s].y+0.5)/N*cv.height;
-    ctx.beginPath(); ctx.arc(sx, sy, 5, 0, 6.2832); ctx.fill();
-    ctx.strokeStyle = "rgba(20,79,134,0.9)"; ctx.lineWidth = 2; ctx.stroke();
+
+  /* --- full-res overlays --- */
+  // flow streaks: pale dashes pointing downhill on the water
+  ctx.lineWidth = 1.4;
+  for(y=2;y<N-2;y+=2) for(x=2;x<N-2;x+=2){
+    i = idx(x,y);
+    if(w[i] < 0.05) continue;
+    var gx = (h[i-1]+w[i-1]) - (h[i+1]+w[i+1]);
+    var gy = (h[i-N]+w[i-N]) - (h[i+N]+w[i+N]);
+    var mag = Math.sqrt(gx*gx + gy*gy);
+    if(mag < 0.004) continue;
+    var ux = gx/mag, uy = gy/mag;
+    var ph = ((T*0.9 + (x*7+y*13)) % 12) / 12;           // drift along the flow
+    var cxp = (x+0.5 + ux*ph*0.8) * CELL, cyp = (y+0.5 + uy*ph*0.8) * CELL;
+    var a2 = clamp(mag*26, 0.06, 0.4) * (0.45 + 0.55*Math.sin(ph*3.14159));
+    ctx.strokeStyle = "rgba(235,248,255," + a2.toFixed(3) + ")";
+    ctx.beginPath();
+    ctx.moveTo(cxp - ux*CELL*0.34, cyp - uy*CELL*0.34);
+    ctx.lineTo(cxp + ux*CELL*0.34, cyp + uy*CELL*0.34);
+    ctx.stroke();
   }
+  // forest canopy: clustered crowns over mature growth
+  for(y=1;y<N-1;y++) for(x=1;x<N-1;x++){
+    i = idx(x,y);
+    if(veg[i] < 0.74 || w[i] > 0.018) continue;
+    if(hash2(x*3, y*3) < 0.42) continue;
+    var cxx = (x + 0.22 + hash2(x,y+9)*0.56) * CELL;
+    var cyy = (y + 0.22 + hash2(x+4,y)*0.56) * CELL;
+    var rad = CELL * (0.30 + hash2(x+8,y+2)*0.22);
+    ctx.fillStyle = "rgba(16,52,26,0.85)";
+    ctx.beginPath(); ctx.arc(cxx, cyy+rad*0.18, rad, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = "rgba(52,116,58,0.9)";
+    ctx.beginPath(); ctx.arc(cxx - rad*0.14, cyy - rad*0.14, rad*0.78, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = "rgba(126,196,110,0.5)";
+    ctx.beginPath(); ctx.arc(cxx - rad*0.30, cyy - rad*0.34, rad*0.30, 0, 6.2832); ctx.fill();
+  }
+  // springs: bubbling source + expanding ripples
+  if(T % 26 === 0) for(var s2=0;s2<springs.length;s2++) ripples.push({x:springs[s2].x, y:springs[s2].y, r:0.4, a:0.5});
+  for(var rp=ripples.length-1; rp>=0; rp--){
+    var R = ripples[rp]; R.r += 0.24; R.a -= 0.016;
+    if(R.a <= 0){ ripples.splice(rp,1); continue; }
+    ctx.strokeStyle = "rgba(240,252,255," + R.a.toFixed(3) + ")";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc((R.x+0.5)*CELL, (R.y+0.5)*CELL, R.r*CELL*0.5, 0, 6.2832); ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  for(var s=0;s<springs.length;s++){
+    var sx = (springs[s].x+0.5)*CELL, sy = (springs[s].y+0.5)*CELL;
+    ctx.beginPath(); ctx.arc(sx, sy, 4.6 + Math.sin(T*0.2+s)*0.8, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = "rgba(21,94,150,0.95)"; ctx.lineWidth = 2; ctx.stroke();
+  }
+  // brush ring
+  if(pointerCell){
+    ctx.strokeStyle = "rgba(255,255,255,0.75)";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc((pointerCell.x+0.5)*CELL, (pointerCell.y+0.5)*CELL, brush*CELL, 0, 6.2832); ctx.stroke();
+    ctx.strokeStyle = "rgba(10,20,14,0.45)";
+    ctx.beginPath(); ctx.arc((pointerCell.x+0.5)*CELL, (pointerCell.y+0.5)*CELL, brush*CELL+1.6, 0, 6.2832); ctx.stroke();
+  }
+  // diorama vignette
+  var vg = ctx.createRadialGradient(cv.width/2, cv.height/2, cv.width*0.36, cv.width/2, cv.height/2, cv.width*0.74);
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, "rgba(4,10,7,0.30)");
+  ctx.fillStyle = vg;
+  ctx.fillRect(0,0,cv.width,cv.height);
 }
 
 /* --- stats --- */
@@ -269,11 +399,13 @@ function applyTool(px, py, isTap){
     else if(tool === "seed"){ veg[i] = clamp(veg[i] + 0.30*fall, 0, 1); wet[i] = Math.max(wet[i], 0.5); }
   }
 }
-function down(e){ e.preventDefault(); painting = true; var p = canvasPos(e); applyTool(p.x, p.y, true); }
-function move(e){ if(!painting) return; e.preventDefault(); var p = canvasPos(e); applyTool(p.x, p.y, false); }
+function down(e){ e.preventDefault(); painting = true; var p = canvasPos(e); pointerCell = p; applyTool(p.x, p.y, true); }
+function move(e){ var p = canvasPos(e); pointerCell = p; if(!painting) return; e.preventDefault(); applyTool(p.x, p.y, false); }
 function up(){ painting = false; }
+function leave(){ pointerCell = null; }
 cv.addEventListener('pointerdown', down);
 cv.addEventListener('pointermove', move);
+cv.addEventListener('pointerleave', leave);
 window.addEventListener('pointerup', up);
 cv.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
 cv.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});

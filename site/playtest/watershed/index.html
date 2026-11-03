@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Watershed — Playtest Demo 01</title>
+<style>
+  :root{--bg:#0c1210;--panel:#14201b;--ink:#e8f0ea;--dim:#9db4a6;--accent:#57c98a;--water:#3f8fd2;--line:#24382e}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  body{padding:12px 12px calc(16px + env(safe-area-inset-bottom))}
+  main{max-width:680px;margin:0 auto}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  h1{font-size:19px;letter-spacing:.12em;margin:4px 0}
+  h1 span{color:var(--water)}
+  a.back{color:var(--dim);font-size:13px;text-decoration:none}
+  .sub{color:var(--dim);font-size:13.5px;line-height:1.5;margin:2px 0 10px}
+  #stage{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#1a2a3a}
+  canvas{display:block;width:100%;aspect-ratio:1/1;touch-action:none}
+  #stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--dim)}
+  .chip b{color:var(--ink)}
+  #tools{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+  .tool{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 2px;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+  .tool .ic{display:block;font-size:19px;margin-bottom:3px}
+  .tool.on{border-color:var(--accent);background:#1b3325;color:#fff}
+  .row{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .row label{font-size:12.5px;color:var(--dim);flex:0 0 auto}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .btn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn:active{border-color:var(--accent)}
+  .hint{color:var(--dim);font-size:12.5px;line-height:1.6;margin:10px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>🌊 WATER<span>SHED</span></h1>
+    <a class="back" href="/playtest/">← all demos</a>
+  </header>
+  <p class="sub">No objective. Shape the land, place a spring, then just watch the water work — it carves channels, carries silt, and lays down new land where it slows. Keep ground wet and green things move in.</p>
+
+  <div id="stage"><canvas id="cv" width="480" height="480"></canvas></div>
+
+  <div id="stats">
+    <span class="chip">💧 Water <b id="st-water">0%</b></span>
+    <span class="chip">🌱 Green <b id="st-green">0%</b></span>
+    <span class="chip">⛰ New land built <b id="st-land">0</b></span>
+    <span class="chip">⛲ Springs <b id="st-springs">0</b></span>
+  </div>
+
+  <div id="tools">
+    <button class="tool on" data-tool="raise"><span class="ic">⛰️</span>Raise</button>
+    <button class="tool" data-tool="dig"><span class="ic">🕳️</span>Dig</button>
+    <button class="tool" data-tool="spring"><span class="ic">⛲</span>Spring</button>
+    <button class="tool" data-tool="rain"><span class="ic">🌧️</span>Rain</button>
+    <button class="tool" data-tool="seed"><span class="ic">🌱</span>Seed</button>
+  </div>
+
+  <div class="row">
+    <label for="brush">Brush</label>
+    <input type="range" id="brush" min="2" max="11" value="6" step="1">
+    <button class="btn" id="pause">⏸ Pause</button>
+    <button class="btn" id="reset">↺ New land</button>
+  </div>
+
+  <p class="hint"><b>Try this:</b> Raise a ridge across a stream and watch it pool, spill, and find a new way down. Dig a shallow channel and the river will move in, deepen it, and start building a delta where it flattens out. Grass holds the banks — seeded ground erodes much slower, and silt settles faster where it's green.</p>
+</main>
+
+<script>
+(function(){
+"use strict";
+var N = 96, CELLS = N * N;
+var h = new Float32Array(CELLS);    // terrain height
+var w = new Float32Array(CELLS);    // water depth
+var w2 = new Float32Array(CELLS);
+var sed = new Float32Array(CELLS);  // silt carried in the water
+var veg = new Float32Array(CELLS);  // vegetation 0..1
+var wet = new Float32Array(CELLS);  // moisture memory 0..1
+var springs = [];                   // {x,y}
+var landBuilt = 0;                  // cumulative deposition counter (display)
+var paused = false;
+var tool = "raise";
+var brush = 6;
+
+function idx(x,y){ return y * N + x; }
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+/* --- terrain generation: smooth value noise + a high corner for headwaters --- */
+function makeTerrain(){
+  var C = 14, coarse = new Float32Array(C*C), i, x, y;
+  for(i=0;i<C*C;i++) coarse[i] = Math.random();
+  springs = [];
+  landBuilt = 0;
+  for(y=0;y<N;y++) for(x=0;x<N;x++){
+    var fx = x/(N-1)*(C-1), fy = y/(N-1)*(C-1);
+    var x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx-x0, ty = fy-y0;
+    tx = tx*tx*(3-2*tx); ty = ty*ty*(3-2*ty);
+    var x1 = Math.min(x0+1,C-1), y1 = Math.min(y0+1,C-1);
+    var a = coarse[y0*C+x0], b = coarse[y0*C+x1], c = coarse[y1*C+x0], d = coarse[y1*C+x1];
+    var noise = (a*(1-tx)+b*tx)*(1-ty) + (c*(1-tx)+d*tx)*ty;
+    var slope = (1 - (x+y)/(2*(N-1))) * 0.22;         // high NW -> low SE
+    var i2 = idx(x,y);
+    h[i2] = 0.30 + noise*0.34 + slope;
+    w[i2] = 0; sed[i2] = 0; veg[i2] = 0; wet[i2] = 0;
+  }
+  // two headwater springs up in the high ground
+  springs.push({x:14, y:16});
+  springs.push({x:30, y:9});
+}
+
+function step(){
+  var i, x, y, s;
+  // springs feed the headwaters
+  for(s=0;s<springs.length;s++){
+    var si = idx(springs[s].x, springs[s].y);
+    w[si] += 0.55;
+    wet[si] = 1;
+  }
+  // --- flow: water runs to the lowest neighbour, eroding here, depositing there ---
+  w2.set(w);
+  for(y=1;y<N-1;y++) for(x=1;x<N-1;x++){
+    i = idx(x,y);
+    var wi = w[i];
+    if(wi < 0.002) continue;
+    var total = h[i] + wi;
+    var low = total, ni = -1;
+    var t;
+    t = h[i-1]+w[i-1];   if(t<low){low=t;ni=i-1;}
+    t = h[i+1]+w[i+1];   if(t<low){low=t;ni=i+1;}
+    t = h[i-N]+w[i-N];   if(t<low){low=t;ni=i-N;}
+    t = h[i+N]+w[i+N];   if(t<low){low=t;ni=i+N;}
+    if(ni < 0) continue;
+    var diff = total - low;
+    var f = Math.min(wi * 0.55, diff * 0.30);
+    if(f <= 0) continue;
+    w2[i] -= f; w2[ni] += f;
+    // carried silt travels with the flow
+    var sedMove = sed[i] * (f / wi) * 0.8;
+    sed[i] -= sedMove; sed[ni] += sedMove;
+    // running water picks up land — faster + steeper = more, roots fight it
+    var er = f * 0.055 * (0.35 + diff * 4.0) * (1 - veg[i] * 0.78);
+    if(er > h[i] * 0.08) er = h[i] * 0.08;
+    if(er > 0){
+      h[i] -= er;
+      sed[ni] += er; // it all becomes load in the water arriving downstream
+    }
+  }
+  w.set(w2);
+  // --- still / slow water drops its silt: this is where new land comes from ---
+  for(i=0;i<CELLS;i++){
+    if(sed[i] > 0.0005 && w[i] > 0.001){
+      var grip = 1 + veg[i] * 2.2;              // green ground traps silt faster
+      var dep = sed[i] * 0.055 * grip;
+      sed[i] -= dep; h[i] += dep; landBuilt += dep;
+    }
+    // drainage off the map edges + a whisper of evaporation, so it never becomes a bathtub
+    var xx = i % N, yy = (i / N) | 0;
+    if(xx===0 || yy===0 || xx===N-1 || yy===N-1) w[i] *= 0.82;
+    w[i] *= 0.9985;
+    if(w[i] < 0.0015) w[i] = 0;
+  }
+  // --- life: wet ground greens, deep water drowns, dry ground fades ---
+  for(y=1;y<N-1;y++) for(x=1;x<N-1;x++){
+    i = idx(x,y);
+    var nearWater = (w[i] > 0.01) || w[i-1]>0.01 || w[i+1]>0.01 || w[i-N]>0.01 || w[i+N]>0.01;
+    if(nearWater) wet[i] = Math.min(1, wet[i] + 0.06); else wet[i] *= 0.996;
+    if(wet[i] > 0.25 && w[i] < 0.22){
+      veg[i] = Math.min(1, veg[i] + 0.0028 * wet[i]);
+    } else if(w[i] >= 0.30){
+      veg[i] = Math.max(0, veg[i] - 0.006);     // drowned
+    } else if(wet[i] < 0.06){
+      veg[i] = Math.max(0, veg[i] - 0.0007);    // parched
+    }
+  }
+}
+
+/* --- rendering to a small offscreen, scaled up smooth --- */
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var off = document.createElement('canvas'); off.width = N; off.height = N;
+var octx = off.getContext('2d');
+var img = octx.createImageData(N, N);
+var data = img.data;
+
+function render(){
+  var i, x, y;
+  for(y=0;y<N;y++) for(x=0;x<N;x++){
+    i = idx(x,y);
+    var r, g, b;
+    var wi = w[i], hi = h[i];
+    if(wi > 0.018){
+      var d = clamp(wi * 2.4, 0, 1);                    // depth
+      r = 62 + (16-62)*d; g = 158 + (74-158)*d; b = 224 + (128-224)*d;
+      if(sed[i] > 0.01){ var st = clamp(sed[i]*6,0,0.45); r = r*(1-st)+166*st; g = g*(1-st)+138*st; b = b*(1-st)+92*st; }
+    } else {
+      var v = veg[i];
+      // dry earth -> sand near moisture -> grass -> deep green
+      r = 138; g = 118; b = 78;
+      if(wet[i] > 0.30){ r = 196; g = 176; b = 122; }   // damp sand / shore
+      if(v > 0.03){
+        var lush = clamp(v,0,1);
+        r = r*(1-lush) + (34 + (1-lush)*30)*lush;
+        g = g*(1-lush) + 122*lush;
+        b = b*(1-lush) + 52*lush;
+      }
+      if(hi > 0.74){ var rk = clamp((hi-0.74)*3.4,0,1); r = r*(1-rk)+128*rk; g = g*(1-rk)+126*rk; b = b*(1-rk)+122*rk; }
+      if(hi > 0.97){ var sn = clamp((hi-0.97)*9,0,1); r = r*(1-sn)+240*sn; g = g*(1-sn)+244*sn; b = b*(1-sn)+248*sn; }
+      // hillshade from the west
+      var sh = clamp((h[idx(Math.max(x-1,0),y)] - hi) * 5.5, -0.28, 0.34);
+      r *= (1+sh); g *= (1+sh); b *= (1+sh);
+      if(wi > 0.004){ r = r*0.55+34; g = g*0.55+88; b = b*0.55+140; } // puddle sheen
+    }
+    var p = i * 4;
+    data[p] = r; data[p+1] = g; data[p+2] = b; data[p+3] = 255;
+  }
+  // spring markers
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(off, 0, 0, cv.width, cv.height);
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  for(var s=0;s<springs.length;s++){
+    var sx = (springs[s].x+0.5)/N*cv.width, sy = (springs[s].y+0.5)/N*cv.height;
+    ctx.beginPath(); ctx.arc(sx, sy, 5, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = "rgba(20,79,134,0.9)"; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
+/* --- stats --- */
+var stWater = document.getElementById('st-water'), stGreen = document.getElementById('st-green'),
+    stLand = document.getElementById('st-land'), stSprings = document.getElementById('st-springs');
+var frame = 0;
+function stats(){
+  var wc = 0, gc = 0, i;
+  for(i=0;i<CELLS;i++){ if(w[i] > 0.018) wc++; if(veg[i] > 0.35 && w[i] <= 0.018) gc++; }
+  stWater.textContent = Math.round(wc / CELLS * 100) + "%";
+  stGreen.textContent = Math.round(gc / CELLS * 100) + "%";
+  stLand.textContent = Math.round(landBuilt * 10) + " m³";
+  stSprings.textContent = springs.length;
+}
+
+/* --- touch / mouse painting --- */
+var painting = false;
+function canvasPos(e){
+  var rect = cv.getBoundingClientRect();
+  var cx = (e.touches ? e.touches[0].clientX : e.clientX);
+  var cy = (e.touches ? e.touches[0].clientY : e.clientY);
+  return { x: Math.floor((cx-rect.left)/rect.width*N), y: Math.floor((cy-rect.top)/rect.height*N) };
+}
+function applyTool(px, py, isTap){
+  if(tool === "spring"){
+    if(!isTap) return;
+    if(px>=1 && py>=1 && px<N-1 && py<N-1) springs.push({x:px, y:py});
+    return;
+  }
+  var r = brush, dx, dy;
+  for(dy=-r; dy<=r; dy++) for(dx=-r; dx<=r; dx++){
+    var d2 = dx*dx + dy*dy;
+    if(d2 > r*r) continue;
+    var x = px+dx, y = py+dy;
+    if(x<1 || y<1 || x>=N-1 || y>=N-1) continue;
+    var fall = 1 - Math.sqrt(d2)/r;
+    var i = idx(x,y);
+    if(tool === "raise") h[i] = clamp(h[i] + 0.045*fall, 0.03, 1.25);
+    else if(tool === "dig"){ h[i] = clamp(h[i] - 0.045*fall, 0.03, 1.25); }
+    else if(tool === "rain"){ w[i] += 0.30*fall; }
+    else if(tool === "seed"){ veg[i] = clamp(veg[i] + 0.30*fall, 0, 1); wet[i] = Math.max(wet[i], 0.5); }
+  }
+}
+function down(e){ e.preventDefault(); painting = true; var p = canvasPos(e); applyTool(p.x, p.y, true); }
+function move(e){ if(!painting) return; e.preventDefault(); var p = canvasPos(e); applyTool(p.x, p.y, false); }
+function up(){ painting = false; }
+cv.addEventListener('pointerdown', down);
+cv.addEventListener('pointermove', move);
+window.addEventListener('pointerup', up);
+cv.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+cv.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});
+
+/* --- controls --- */
+var toolsEl = document.getElementById('tools');
+toolsEl.addEventListener('click', function(e){
+  var btn = e.target.closest('.tool'); if(!btn) return;
+  tool = btn.getAttribute('data-tool');
+  var all = toolsEl.querySelectorAll('.tool');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('on');
+  btn.classList.add('on');
+});
+document.getElementById('brush').addEventListener('input', function(e){ brush = parseInt(e.target.value,10); });
+var pauseBtn = document.getElementById('pause');
+pauseBtn.addEventListener('click', function(){ paused = !paused; pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause"; });
+document.getElementById('reset').addEventListener('click', function(){ makeTerrain(); });
+
+/* --- main loop --- */
+makeTerrain();
+function loop(){
+  if(!paused){ step(); step(); }
+  render();
+  if(++frame % 20 === 0) stats();
+  requestAnimationFrame(loop);
+}
+stats();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

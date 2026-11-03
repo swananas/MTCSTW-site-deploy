@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Playtest — MTCSTW</title>
+<style>
+  :root{--bg:#0c1210;--panel:#14201b;--ink:#e8f0ea;--dim:#9db4a6;--accent:#57c98a;--water:#3f8fd2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:20px 16px 40px}
+  main{max-width:640px;margin:0 auto}
+  h1{font-size:22px;letter-spacing:.14em;margin:8px 0 4px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--dim);font-size:14px;line-height:1.5;margin:0 0 20px}
+  .card{display:block;background:var(--panel);border:1px solid #24382e;border-radius:14px;padding:16px;text-decoration:none;color:var(--ink);margin-bottom:14px}
+  .card:active{border-color:var(--accent)}
+  .card h2{margin:0 0 6px;font-size:18px}
+  .card p{margin:0;color:var(--dim);font-size:14px;line-height:1.5}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;color:#08130c;background:var(--accent);border-radius:999px;padding:3px 9px;margin-bottom:10px}
+  .tag.water{background:var(--water);color:#06121f}
+  .foot{color:var(--dim);font-size:12px;line-height:1.6;margin-top:24px}
+</style>
+</head>
+<body>
+<main>
+  <h1>PLAY<span>TEST</span></h1>
+  <p class="sub">Private game demos. No objectives, no scores to chase — just prototypes to touch. Unlisted and no-indexed; you need the link to find this page.</p>
+
+  <a class="card" href="/playtest/watershed/">
+    <span class="tag water">DEMO 01 · PLAYABLE</span>
+    <h2>🌊 Watershed</h2>
+    <p>A zen water &amp; land sandbox. Raise and dig the terrain, place springs, and let running water do the building — it carves channels, carries silt, and lays down new land where it slows. Where the ground stays wet, green things move in on their own.</p>
+  </a>
+
+  <p class="foot">How demos land here: build on the Mac → export for web → drop the files in <b>site/playtest/&lt;name&gt;/</b> in the mtcstw-site-deploy repo → push through the normal deploy gate. Serving cost is effectively $0 (static assets on the existing site Worker).</p>
+</main>
+</body>
+</html>

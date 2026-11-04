@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Watershed — Playtest Demo 01 · v0.3</title>
+<title>Watershed — Playtest Demo 01 · v0.4</title>
 <style>
-  :root{--bg:#0b100e;--panel:#131e18;--ink:#edf4ee;--dim:#a7bcae;--accent:#5fd68f;--water:#46a8e0;--line:#26402f}
+  :root{--bg:#0e100e;--panel:#16181a;--ink:#eef2ee;--dim:#a9b3ab;--accent:#7bc98f;--water:#6db6dd;--line:#2a2d26}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;background:radial-gradient(120% 90% at 50% 0%,#122019 0%,var(--bg) 55%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+  html,body{margin:0;padding:0;background:radial-gradient(120% 90% at 50% 0%,#181c18 0%,var(--bg) 55%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
   body{padding:12px 12px calc(16px + env(safe-area-inset-bottom))}
   main{max-width:680px;margin:0 auto}
   header{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-  h1{font-size:19px;letter-spacing:.12em;margin:4px 0}
+  h1{font-size:19px;letter-spacing:.12em;margin:4px 0;font-weight:650}
   h1 span{color:var(--water)}
-  .ver{font-size:10.5px;font-weight:700;letter-spacing:.07em;background:#1d3a29;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
+  .ver{font-size:10.5px;font-weight:700;letter-spacing:.07em;background:#1d241e;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
   a.back{color:var(--dim);font-size:13px;text-decoration:none}
-  .sub{color:var(--dim);font-size:13.5px;line-height:1.5;margin:2px 0 10px}
-  #stage{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#17334d;box-shadow:0 14px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.04)}
+  .sub{color:var(--dim);font-size:13.5px;line-height:1.55;margin:2px 0 10px}
+  #stage{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#24384a;box-shadow:0 18px 50px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.05)}
   canvas{display:block;width:100%;aspect-ratio:1/1;touch-action:none}
   #legend{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px}
   .lg{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px}
@@ -28,7 +28,7 @@
   #tools{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
   .tool{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:11px 2px;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
   .tool .ic{display:block;font-size:19px;margin-bottom:3px}
-  .tool.on{border-color:var(--accent);background:#1c3527;color:#fff;box-shadow:0 0 0 1px var(--accent) inset}
+  .tool.on{border-color:var(--accent);background:#1d2a20;color:#fff;box-shadow:0 0 0 1px var(--accent) inset}
   #lights{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 4px}
   .lightbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:9px 2px;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
   .lightbtn.on{border-color:#d3a270;background:#2c2417;color:#fff;box-shadow:0 0 0 1px #d3a270 inset}
@@ -43,7 +43,7 @@
 <body>
 <main>
   <header>
-    <h1>🌊 WATER<span>SHED</span><span class="ver">v0.3 TILT</span></h1>
+    <h1>🌊 WATER<span>SHED</span><span class="ver">v0.4 MODERN</span></h1>
     <a class="back" href="/playtest/">← all demos</a>
   </header>
   <p class="sub">No objective. Shape the land, place a spring, then just watch the water work — it carves channels, carries silt, and lays down new land where it slows. The colors are Louisiana's own: measured from real bayou, marsh, and Gulf photographs. Try the three lights — the land reads differently in each.</p>
@@ -207,34 +207,33 @@ function step(){
   }
 }
 
-/* ================= RENDERER — v0.3 tilt pass =================
-   Oblique-tilted heightfield mesh in the Style Sheet v1 palette.
-   Land is a continuous corner-averaged mesh (the grid disappears);
-   water is drawn at its true level; one low warm sun from the west.
-   Light modes (Day / Dusk amber / Blue hour) retint the whole world. */
+/* ================= RENDERER — v0.4 modern pass =================
+   Same tilt, same palette, same sim. What changed is HOW it is drawn:
+   colors live on the mesh NODES (averaged from cells) with smooth
+   hillshade + ambient occlusion + distance haze baked in, and every
+   quad is drawn as bilinear sub-quads — facets melt into gradients.
+   Water is a smooth node-level surface with feathered shores.
+   Crowns are soft radial-gradient sprites, not clip-art circles. */
 var cv = document.getElementById('cv');
 var ctx = cv.getContext('2d');
 var mesh = document.createElement('canvas'); mesh.width = cv.width; mesh.height = cv.height;
 var mctx = mesh.getContext('2d');
 
-/* projection: sx = OX + x*S ; sy = OY + y*S*TILTY - (height-HBASE)*HSCALE */
 var S = 5.55, TILTY = 0.60, HSCALE = 148, HBASE = 0.30;
 var OX = (cv.width - N * S) / 2, OY = 64;
 function projX(x){ return OX + x * S; }
 function projY(y, hh){ return OY + y * S * TILTY - (hh - HBASE) * HSCALE; }
 
-/* --- Style Sheet v1 palette of record (measured from Shane's photos) --- */
 var PAL = {
   bayouDeep:[64,62,44], riverGrey:[96,116,139], channel:[63,91,129], turquoise:[73,116,120],
   skyRefl:[195,207,222], silt:[164,160,144], wetEarth:[84,81,61], wetSand:[180,180,172],
   marshOlive:[109,110,84], canopy:[89,97,67], landShadow:[35,37,25], fieldGreen:[63,75,39],
   caneGold:[142,104,54], humidSky:[155,186,221], duskAmber:[211,162,112], foam:[246,242,233]
 };
-/* light modes: global tint [r,g,b] lerp factor + backdrop stops */
 var LIGHTS = {
-  day:  { tint:[255,255,255], tf:0.00, bg:["#9bbadd","#5d7d99","#2c4657"], vig:"rgba(4,10,7,0.30)", shadeAmp:1.0 },
-  dusk: { tint:[211,162,112], tf:0.30, bg:["#d3a270","#7a5a52","#2e2a33"], vig:"rgba(16,8,4,0.36)", shadeAmp:1.25 },
-  blue: { tint:[88,109,142],  tf:0.34, bg:["#586d8e","#33455e","#131c28"], vig:"rgba(2,6,14,0.42)", shadeAmp:0.85 }
+  day:  { tint:[255,255,255], tf:0.00, bg:["#9bbadd","#5d7d99","#2c4657"], vig:"rgba(4,10,7,0.26)", shadeAmp:1.0,  haze:[155,186,221], hazeAmt:0.30, glow:[470,66,160,"rgba(255,250,230,0.30)"] },
+  dusk: { tint:[211,162,112], tf:0.30, bg:["#d3a270","#7a5a52","#2e2a33"], vig:"rgba(16,8,4,0.34)", shadeAmp:1.25, haze:[216,164,110], hazeAmt:0.22, glow:[86,150,200,"rgba(255,170,90,0.40)"] },
+  blue: { tint:[88,109,142],  tf:0.34, bg:["#586d8e","#33455e","#131c28"], vig:"rgba(2,6,14,0.40)", shadeAmp:0.85, haze:[88,109,142],  hazeAmt:0.38, glow:[480,56,150,"rgba(170,200,255,0.16)"] }
 };
 var lightMode = "day";
 function tinted(c){
@@ -247,99 +246,80 @@ function css(c, a){
                          : "rgba(" + (t[0]|0) + "," + (t[1]|0) + "," + (t[2]|0) + "," + a + ")";
 }
 
-/* corner-averaged node heights: the mesh that hides the grid */
-var nodeH = new Float32Array((N+1)*(N+1));
+/* --- node fields (N+1)^2 --- */
+var NN = N + 1;
+var nodeH = new Float32Array(NN*NN);
+var nodeX = new Float32Array(NN*NN), nodeY = new Float32Array(NN*NN);
+var nodeR = new Float32Array(NN*NN), nodeG = new Float32Array(NN*NN), nodeB = new Float32Array(NN*NN);
+var nodeWL = new Float32Array(NN*NN);                       // water level at node
+var nodeWX = new Float32Array(NN*NN), nodeWY = new Float32Array(NN*NN);
+var nodeWR = new Float32Array(NN*NN), nodeWG = new Float32Array(NN*NN), nodeWB = new Float32Array(NN*NN);
+var bedR = new Float32Array(CELLS), bedG = new Float32Array(CELLS), bedB = new Float32Array(CELLS);
+var watR = new Float32Array(CELLS), watG = new Float32Array(CELLS), watB = new Float32Array(CELLS);
+function nidx(x,y){ return y*NN + x; }
+
 function buildNodes(){
-  var x, y, i;
+  var x, y, xx, yy;
   for(y=0;y<=N;y++) for(x=0;x<=N;x++){
     var x0 = Math.max(x-1,0), x1 = Math.min(x,N-1), y0 = Math.max(y-1,0), y1 = Math.min(y,N-1);
-    var sum = 0, n = 0, xx, yy;
+    var sum = 0, n = 0;
     for(yy=y0;yy<=y1;yy++) for(xx=x0;xx<=x1;xx++){ sum += h[yy*N+xx]; n++; }
-    nodeH[y*(N+1)+x] = sum / n;
+    var ni = nidx(x,y);
+    nodeH[ni] = sum / n;
+    nodeX[ni] = projX(x); nodeY[ni] = projY(y, nodeH[ni]);
   }
 }
-function nodeAt(x,y){ return nodeH[y*(N+1)+x]; }
-
-var tmpC = [0,0,0];
-/* dry-land color from the sheet: wet earth low -> silt -> cane gold high & dry */
 function landBase(hi, moisture, out){
   var dry = clamp((hi - 0.30) / 0.75, 0, 1);
   var a, b, t;
   if(dry < 0.5){ a = PAL.wetEarth; b = PAL.silt; t = dry * 2; }
   else { a = PAL.silt; b = PAL.caneGold; t = (dry - 0.5) * 2 * 0.75; }
   out[0] = mix(a[0], b[0], t); out[1] = mix(a[1], b[1], t); out[2] = mix(a[2], b[2], t);
-  // moisture pulls everything toward marsh olive / wet earth
   var mw = clamp(moisture, 0, 1);
   out[0] = mix(out[0], PAL.marshOlive[0], mw * 0.35);
   out[1] = mix(out[1], PAL.marshOlive[1], mw * 0.35);
   out[2] = mix(out[2], PAL.marshOlive[2], mw * 0.35);
 }
-
-var meshEvery = 1, meshFrame = 0, slowFrames = 0, lastMeshMs = 0;
-function renderMesh(){
-  var t0 = (typeof performance !== "undefined" ? performance.now() : 0);
-  buildNodes();
-  var L = LIGHTS[lightMode];
-  // backdrop: humid sky gradient behind the diorama
-  var bg = mctx.createLinearGradient(0, 0, 0, cv.height);
-  bg.addColorStop(0, L.bg[0]); bg.addColorStop(0.55, L.bg[1]); bg.addColorStop(1, L.bg[2]);
-  mctx.fillStyle = bg; mctx.fillRect(0, 0, cv.width, cv.height);
-  var x, y, i;
-  /* land + water in painter order, far (north) rows first */
+var tmpC = [0,0,0];
+function buildCellColors(){
+  var i, x, y;
   for(y=0;y<N;y++) for(x=0;x<N;x++){
     i = idx(x,y);
     var wi = w[i], hi = h[i];
-    var h00 = nodeAt(x,y), h10 = nodeAt(x+1,y), h01 = nodeAt(x,y+1), h11 = nodeAt(x+1,y+1);
-    var x0 = projX(x), x1 = projX(x+1);
-    if(wi <= 0.018){
-      /* --- land quad --- */
-      landBase(hi, wet[i], tmpC);
-      var r = tmpC[0], g = tmpC[1], b = tmpC[2];
-      var shore = (x>0 && w[i-1]>0.018) || (x<N-1 && w[i+1]>0.018) || (y>0 && w[i-N]>0.018) || (y<N-1 && w[i+N]>0.018);
-      if(shore || wet[i] > 0.55){
-        var sf = shore ? 0.62 : (wet[i]-0.55)*1.1;
-        r = mix(r, PAL.wetSand[0], sf); g = mix(g, PAL.wetSand[1], sf); b = mix(b, PAL.wetSand[2], sf);
+    /* bed color (always computed — it shows at shores and under shallows) */
+    landBase(hi, wet[i], tmpC);
+    var r = tmpC[0], g = tmpC[1], b = tmpC[2];
+    var shore = wi <= 0.018 && ((x>0 && w[i-1]>0.018) || (x<N-1 && w[i+1]>0.018) || (y>0 && w[i-N]>0.018) || (y<N-1 && w[i+N]>0.018));
+    if(shore || wet[i] > 0.55){
+      var sf = shore ? 0.62 : (wet[i]-0.55)*1.1;
+      r = mix(r, PAL.wetSand[0], sf); g = mix(g, PAL.wetSand[1], sf); b = mix(b, PAL.wetSand[2], sf);
+    }
+    var dark = clamp(wet[i], 0, 1) * 0.30;
+    r *= (1-dark*0.85); g *= (1-dark*0.72); b *= (1-dark*0.55);
+    var v = veg[i];
+    if(v > 0.02){
+      if(v < 0.38){
+        var sp = clamp(v/0.38, 0, 1);
+        var speck = hash2(x, y) < sp * 0.85 ? 1 : 0.25;
+        var k = sp*0.75*speck;
+        r = mix(r, PAL.marshOlive[0], k); g = mix(g, PAL.marshOlive[1], k); b = mix(b, PAL.marshOlive[2], k);
+      } else if(v < 0.72){
+        var gr2 = (v-0.38)/0.34;
+        r = mix(r, PAL.fieldGreen[0], gr2*0.82); g = mix(g, PAL.fieldGreen[1], gr2*0.82); b = mix(b, PAL.fieldGreen[2], gr2*0.82);
+      } else {
+        var fr = (v-0.72)/0.28;
+        r = mix(r, PAL.canopy[0], fr*0.85); g = mix(g, PAL.canopy[1], fr*0.85); b = mix(b, PAL.canopy[2], fr*0.85);
       }
-      var dark = clamp(wet[i], 0, 1) * 0.30;
-      r *= (1-dark*0.85); g *= (1-dark*0.72); b *= (1-dark*0.55);
-      var v = veg[i];
-      if(v > 0.02){
-        if(v < 0.38){
-          var sp = clamp(v/0.38, 0, 1);
-          var speck = hash2(x, y) < sp * 0.85 ? 1 : 0.25;
-          var k = sp*0.75*speck;
-          r = mix(r, PAL.marshOlive[0], k); g = mix(g, PAL.marshOlive[1], k); b = mix(b, PAL.marshOlive[2], k);
-        } else if(v < 0.72){
-          var gr2 = (v-0.38)/0.34;
-          r = mix(r, PAL.fieldGreen[0], gr2*0.82); g = mix(g, PAL.fieldGreen[1], gr2*0.82); b = mix(b, PAL.fieldGreen[2], gr2*0.82);
-        } else {
-          var fr = (v-0.72)/0.28;
-          r = mix(r, PAL.canopy[0], fr*0.85); g = mix(g, PAL.canopy[1], fr*0.85); b = mix(b, PAL.canopy[2], fr*0.85);
-        }
-      }
-      // hillshade: one sun from the west; slope faces darken toward land shadow
-      var gx = h00 + h01 - h10 - h11, gy = h00 + h10 - h01 - h11;
-      var sh = clamp((gx*0.30 - gy*0.10) * 3.4, -0.34, 0.30) * L.shadeAmp;
-      var shf = 1 + sh;
-      tmpC[0] = r*shf; tmpC[1] = g*shf; tmpC[2] = b*shf;
-      mctx.fillStyle = css(tmpC);
-      mctx.beginPath();
-      mctx.moveTo(x0, projY(y, h00)); mctx.lineTo(x1, projY(y, h10));
-      mctx.lineTo(x1, projY(y+1, h11)); mctx.lineTo(x0, projY(y+1, h01));
-      mctx.closePath(); mctx.fill();
-      if(wi > 0.004){ // puddle sheen on damp ground
-        mctx.fillStyle = css(PAL.skyRefl, 0.35);
-        mctx.fill();
-      }
-    } else {
-      /* --- water quad at true level --- */
-      var lvl = hi + wi;
+    }
+    if(wi > 0.004 && wi <= 0.018){ r = mix(r, PAL.skyRefl[0], 0.30); g = mix(g, PAL.skyRefl[1], 0.30); b = mix(b, PAL.skyRefl[2], 0.30); }
+    bedR[i] = r; bedG[i] = g; bedB[i] = b;
+    /* water color */
+    if(wi > 0.018){
       var d = clamp(Math.pow(wi * 2.2, 0.72), 0, 1);
       var r2, g2, b2;
       if(d < 0.45){ var q = d/0.45; r2 = mix(PAL.skyRefl[0], PAL.turquoise[0], q); g2 = mix(PAL.skyRefl[1], PAL.turquoise[1], q); b2 = mix(PAL.skyRefl[2], PAL.turquoise[2], q); }
       else if(d < 0.8){ var q2 = (d-0.45)/0.35; r2 = mix(PAL.turquoise[0], PAL.riverGrey[0], q2); g2 = mix(PAL.turquoise[1], PAL.riverGrey[1], q2); b2 = mix(PAL.turquoise[2], PAL.riverGrey[2], q2); }
       else { var q3 = (d-0.8)/0.2; r2 = mix(PAL.riverGrey[0], PAL.channel[0], q3); g2 = mix(PAL.riverGrey[1], PAL.channel[1], q3); b2 = mix(PAL.riverGrey[2], PAL.channel[2], q3); }
-      // slow still water in low ground goes bayou: sky mirror over dark bed
       var bed = clamp((0.55 - hi) * 1.6, 0, 1) * (1 - d);
       r2 = mix(r2, PAL.bayouDeep[0], bed*0.45); g2 = mix(g2, PAL.bayouDeep[1], bed*0.45); b2 = mix(b2, PAL.bayouDeep[2], bed*0.45);
       var shimmer = Math.sin(T*0.055 + x*0.55 + y*0.30) * 7 + Math.sin(T*0.021 - x*0.18 + y*0.42) * 5;
@@ -347,48 +327,184 @@ function renderMesh(){
       var glint = hash2(x + ((T/14)|0)*57, y - ((T/14)|0)*31);
       if(glint > 0.965 && wi > 0.05){ r2 += 46; g2 += 46; b2 += 40; }
       if(sed[i] > 0.008){ var st = clamp(sed[i]*5.5,0,0.5); r2 = mix(r2, PAL.silt[0], st); g2 = mix(g2, PAL.silt[1], st); b2 = mix(b2, PAL.silt[2], st); }
+      watR[i] = r2; watG[i] = g2; watB[i] = b2;
+    }
+  }
+}
+function buildNodeColors(){
+  var L = LIGHTS[lightMode];
+  var x, y, xx, yy;
+  for(y=0;y<=N;y++) for(x=0;x<=N;x++){
+    var ni = nidx(x,y);
+    var x0 = Math.max(x-1,0), x1 = Math.min(x,N-1), y0 = Math.max(y-1,0), y1 = Math.min(y,N-1);
+    var sr=0, sg=0, sb=0, swr=0, swg=0, swb=0, slvl=0, n=0, nw=0;
+    for(yy=y0;yy<=y1;yy++) for(xx=x0;xx<=x1;xx++){
+      var ci = yy*N+xx;
+      sr += bedR[ci]; sg += bedG[ci]; sb += bedB[ci]; n++;
+      if(w[ci] > 0.018){ swr += watR[ci]; swg += watG[ci]; swb += watB[ci]; slvl += h[ci] + w[ci]; nw++; }
+    }
+    /* hillshade + ambient occlusion from the node heightfield */
+    var hx0 = nodeH[nidx(Math.max(x-1,0),y)], hx1 = nodeH[nidx(Math.min(x+1,N),y)];
+    var hy0 = nodeH[nidx(x,Math.max(y-1,0))], hy1 = nodeH[nidx(x,Math.min(y+1,N))];
+    var sh = clamp(((hx0-hx1)*0.5 - (hy0-hy1)*0.18) * 2.6, -0.30, 0.30) * L.shadeAmp;
+    var nsum = 0, nn2 = 0;
+    for(yy=Math.max(y-1,0);yy<=Math.min(y+1,N);yy++) for(xx=Math.max(x-1,0);xx<=Math.min(x+1,N);xx++){
+      if(xx===x && yy===y) continue; nsum += nodeH[nidx(xx,yy)]; nn2++;
+    }
+    var conc = nsum/nn2 - nodeH[ni];
+    var ao = clamp(conc * 2.4, 0, 0.40);
+    var crest = clamp(-conc * 0.8, 0, 0.06);
+    var shadeF = clamp(1 + sh, 0.55, 1.18) * (1 - ao) + crest;
+    var hz = 1 - y / N, hzf = hz*hz * L.hazeAmt;
+    var r = sr/n, g = sg/n, b = sb/n;
+    r *= shadeF; g *= shadeF; b *= shadeF;
+    r = mix(r, L.haze[0], hzf); g = mix(g, L.haze[1], hzf); b = mix(b, L.haze[2], hzf);
+    var tc = tinted([r,g,b]);
+    nodeR[ni] = tc[0]; nodeG[ni] = tc[1]; nodeB[ni] = tc[2];
+    /* water node: level + color (hazed harder — far water mirrors the sky) */
+    if(nw > 0){
+      nodeWL[ni] = slvl / nw;
+      var wr = swr/nw, wg = swg/nw, wb = swb/nw;
+      var whz = hz*hz * Math.min(0.55, L.hazeAmt * 1.35);
+      wr = mix(wr, L.haze[0], whz); wg = mix(wg, L.haze[1], whz); wb = mix(wb, L.haze[2], whz);
+      var tw = tinted([wr,wg,wb]);
+      nodeWR[ni] = tw[0]; nodeWG[ni] = tw[1]; nodeWB[ni] = tw[2];
+    } else {
+      nodeWL[ni] = nodeH[ni];
+      nodeWR[ni] = nodeR[ni]; nodeWG[ni] = nodeG[ni]; nodeWB[ni] = nodeB[ni];
+    }
+    nodeWX[ni] = projX(x); nodeWY[ni] = projY(y, nodeWL[ni]);
+  }
+}
+
+/* fill with last-style caching */
+var lastFill = "";
+function setFill(r, g, b, a){
+  var s = a === undefined ? "rgb(" + (r|0) + "," + (g|0) + "," + (b|0) + ")"
+                          : "rgba(" + (r|0) + "," + (g|0) + "," + (b|0) + "," + a + ")";
+  if(s !== lastFill){ mctx.fillStyle = s; lastFill = s; }
+}
+function quad4(xa,ya,xb,yb,xc,yc,xd,yd){
+  mctx.beginPath();
+  mctx.moveTo(xa,ya); mctx.lineTo(xb,yb); mctx.lineTo(xc,yc); mctx.lineTo(xd,yd);
+  mctx.closePath(); mctx.fill();
+}
+/* bilinear sub-quad split: corners c[4] = 00,10,11,01 of {x,y,r,g,b} */
+function drawSub(c){
+  var tm = { x:(c[0].x+c[1].x)/2, y:(c[0].y+c[1].y)/2, r:(c[0].r+c[1].r)/2, g:(c[0].g+c[1].g)/2, b:(c[0].b+c[1].b)/2 };
+  var rm = { x:(c[1].x+c[2].x)/2, y:(c[1].y+c[2].y)/2, r:(c[1].r+c[2].r)/2, g:(c[1].g+c[2].g)/2, b:(c[1].b+c[2].b)/2 };
+  var bm = { x:(c[3].x+c[2].x)/2, y:(c[3].y+c[2].y)/2, r:(c[3].r+c[2].r)/2, g:(c[3].g+c[2].g)/2, b:(c[3].b+c[2].b)/2 };
+  var lm = { x:(c[0].x+c[3].x)/2, y:(c[0].y+c[3].y)/2, r:(c[0].r+c[3].r)/2, g:(c[0].g+c[3].g)/2, b:(c[0].b+c[3].b)/2 };
+  var ce = { x:(tm.x+bm.x)/2, y:(tm.y+bm.y)/2, r:(c[0].r+c[1].r+c[2].r+c[3].r)/4, g:(c[0].g+c[1].g+c[2].g+c[3].g)/4, b:(c[0].b+c[1].b+c[2].b+c[3].b)/4 };
+  setFill(c[0].r, c[0].g, c[0].b);       quad4(c[0].x, c[0].y, tm.x, tm.y, ce.x, ce.y, lm.x, lm.y);
+  setFill(tm.r, tm.g, tm.b);             quad4(tm.x, tm.y, c[1].x, c[1].y, rm.x, rm.y, ce.x, ce.y);
+  setFill(ce.r, ce.g, ce.b);             quad4(ce.x, ce.y, rm.x, rm.y, c[2].x, c[2].y, bm.x, bm.y);
+  setFill(lm.r, lm.g, lm.b);             quad4(lm.x, lm.y, ce.x, ce.y, bm.x, bm.y, c[3].x, c[3].y);
+}
+var CN = [null,null,null,null];
+function corner(arr, ni, wx, wy){
+  return { x: wx, y: wy, r: arr === 0 ? nodeR[ni] : nodeWR[ni], g: arr === 0 ? nodeG[ni] : nodeWG[ni], b: arr === 0 ? nodeB[ni] : nodeWB[ni] };
+}
+
+var meshEvery = 2, meshFrame = 0, meshDirty = true, lastMeshMs = 0;
+function renderMesh(){
+  var t0 = (typeof performance !== "undefined" ? performance.now() : 0);
+  buildNodes(); buildCellColors(); buildNodeColors();
+  var L = LIGHTS[lightMode];
+  var bg = mctx.createLinearGradient(0, 0, 0, cv.height);
+  bg.addColorStop(0, L.bg[0]); bg.addColorStop(0.55, L.bg[1]); bg.addColorStop(1, L.bg[2]);
+  mctx.fillStyle = bg; lastFill = "";
+  mctx.fillRect(0, 0, cv.width, cv.height);
+  // sun glow
+  var gl = mctx.createRadialGradient(L.glow[0], L.glow[1], 8, L.glow[0], L.glow[1], L.glow[2]);
+  gl.addColorStop(0, L.glow[3]); gl.addColorStop(1, "rgba(0,0,0,0)");
+  mctx.fillStyle = gl; mctx.fillRect(0, 0, cv.width, cv.height);
+  // soft ground shadow under the diorama
+  var baseY = projY(N, 0.30) + 34;
+  var shg = mctx.createRadialGradient(cv.width/2, baseY + 14, 20, cv.width/2, baseY + 14, 268);
+  shg.addColorStop(0, "rgba(0,0,0,0.34)"); shg.addColorStop(1, "rgba(0,0,0,0)");
+  mctx.save(); mctx.translate(cv.width/2, baseY + 14); mctx.scale(1, 0.16); mctx.translate(-cv.width/2, -(baseY + 14));
+  mctx.fillStyle = shg; mctx.fillRect(0, baseY - 240, cv.width, 480); mctx.restore();
+  var x, y, i;
+  for(y=0;y<N;y++) for(x=0;x<N;x++){
+    i = idx(x,y);
+    var n00 = nidx(x,y), n10 = nidx(x+1,y), n11 = nidx(x+1,y+1), n01 = nidx(x,y+1);
+    if(w[i] <= 0.018){
+      CN[0] = corner(0, n00, nodeX[n00], nodeY[n00]);
+      CN[1] = corner(0, n10, nodeX[n10], nodeY[n10]);
+      CN[2] = corner(0, n11, nodeX[n11], nodeY[n11]);
+      CN[3] = corner(0, n01, nodeX[n01], nodeY[n01]);
+      drawSub(CN);
+    } else {
+      CN[0] = corner(1, n00, nodeWX[n00], nodeWY[n00]);
+      CN[1] = corner(1, n10, nodeWX[n10], nodeWY[n10]);
+      CN[2] = corner(1, n11, nodeWX[n11], nodeWY[n11]);
+      CN[3] = corner(1, n01, nodeWX[n01], nodeWY[n01]);
+      drawSub(CN);
+      // feathered foam: a soft band hugging the shore side of the surface
       var isShoreWater = (x>0 && w[i-1]<=0.018) || (x<N-1 && w[i+1]<=0.018) || (y>0 && w[i-N]<=0.018) || (y<N-1 && w[i+N]<=0.018);
-      tmpC[0] = r2; tmpC[1] = g2; tmpC[2] = b2;
-      mctx.fillStyle = css(tmpC);
-      mctx.beginPath();
-      mctx.moveTo(x0, projY(y, lvl)); mctx.lineTo(x1, projY(y, lvl));
-      mctx.lineTo(x1, projY(y+1, lvl)); mctx.lineTo(x0, projY(y+1, lvl));
-      mctx.closePath(); mctx.fill();
-      if(isShoreWater){ // warm foam right at the waterline
-        var fm = 0.30 + 0.12 * Math.sin(T*0.12 + (x+y)*1.7);
-        mctx.fillStyle = css(PAL.foam, fm);
-        mctx.fill();
+      if(isShoreWater){
+        var cxp = (CN[0].x+CN[1].x+CN[2].x+CN[3].x)/4, cyp = (CN[0].y+CN[1].y+CN[2].y+CN[3].y)/4;
+        var fm = 0.16 + 0.06 * Math.sin(T*0.12 + (x+y)*1.7);
+        var fc = tinted(PAL.foam);
+        setFill(fc[0], fc[1], fc[2], clamp(fm, 0.08, 0.26).toFixed(3));
+        quad4(
+          CN[0].x + (cxp-CN[0].x)*0.30, CN[0].y + (cyp-CN[0].y)*0.30,
+          CN[1].x + (cxp-CN[1].x)*0.30, CN[1].y + (cyp-CN[1].y)*0.30,
+          CN[2].x + (cxp-CN[2].x)*0.30, CN[2].y + (cyp-CN[2].y)*0.30,
+          CN[3].x + (cxp-CN[3].x)*0.30, CN[3].y + (cyp-CN[3].y)*0.30);
+        lastFill = "";
       }
     }
   }
-  /* diorama skirt: the cut-earth front face (south edge), strata going down */
-  var baseY = projY(N, 0.30) + 34;
+  /* diorama skirt: cut-earth front face (south edge) */
   for(x=0;x<N;x++){
-    var hb = nodeAt(x, N), hb2 = nodeAt(x+1, N);
+    var hb = nodeH[nidx(x,N)], hb2 = nodeH[nidx(x+1,N)];
     var sx0 = projX(x), sx1 = projX(x+1);
-    mctx.fillStyle = css(PAL.wetEarth);
-    mctx.beginPath();
-    mctx.moveTo(sx0, projY(N, hb)); mctx.lineTo(sx1, projY(N, hb2));
-    mctx.lineTo(sx1, baseY); mctx.lineTo(sx0, baseY); mctx.closePath(); mctx.fill();
-    mctx.fillStyle = css(PAL.landShadow, 0.55);
-    mctx.beginPath();
-    mctx.moveTo(sx0, projY(N, hb) + 13); mctx.lineTo(sx1, projY(N, hb2) + 13);
-    mctx.lineTo(sx1, baseY); mctx.lineTo(sx0, baseY); mctx.closePath(); mctx.fill();
+    setFill(tinted(PAL.wetEarth)[0], tinted(PAL.wetEarth)[1], tinted(PAL.wetEarth)[2]);
+    quad4(sx0, projY(N, hb), sx1, projY(N, hb2), sx1, baseY, sx0, baseY);
+    var ls = tinted(PAL.landShadow);
+    setFill(ls[0], ls[1], ls[2], 0.55);
+    quad4(sx0, projY(N, hb) + 13, sx1, projY(N, hb2) + 13, sx1, baseY, sx0, baseY);
+    lastFill = "";
   }
   lastMeshMs = (typeof performance !== "undefined" ? performance.now() : 0) - t0;
-  // auto-quality: if the mesh is expensive, redraw it at half rate (sim unaffected)
-  if(lastMeshMs > 26){ if(++slowFrames >= 20 && meshEvery === 1){ meshEvery = 2; } }
-  else slowFrames = 0;
+  if(lastMeshMs > 30 && meshEvery < 3) meshEvery++;
+  else if(lastMeshMs < 13 && meshEvery > 1) meshEvery--;
 }
+
+/* --- soft crown sprites (radial gradients, rebuilt per light mode) --- */
+var crowns = [];
+function makeCrowns(){
+  crowns = [];
+  var bases = [ tinted([26,38,18]), tinted(PAL.canopy), tinted([44,58,30]) ];
+  var his = [ tinted(PAL.marshOlive), tinted([126,140,84]), tinted(PAL.canopy) ];
+  for(var s=0;s<3;s++){
+    var c = document.createElement('canvas'); c.width = 120; c.height = 120;
+    var g2 = c.getContext('2d');
+    var rg = g2.createRadialGradient(46, 42, 6, 60, 56, 58);
+    rg.addColorStop(0, "rgba(" + (his[s][0]|0) + "," + (his[s][1]|0) + "," + (his[s][2]|0) + ",0.95)");
+    rg.addColorStop(0.55, "rgba(" + (bases[s][0]|0) + "," + (bases[s][1]|0) + "," + (bases[s][2]|0) + ",0.95)");
+    rg.addColorStop(0.85, "rgba(" + (bases[s][0]*0.7|0) + "," + (bases[s][1]*0.7|0) + "," + (bases[s][2]*0.7|0) + ",0.85)");
+    rg.addColorStop(1, "rgba(0,0,0,0)");
+    g2.fillStyle = rg; g2.fillRect(0, 0, 120, 120);
+    // a second offset puff for an irregular silhouette
+    var rg2 = g2.createRadialGradient(78, 66, 4, 78, 66, 34);
+    rg2.addColorStop(0, "rgba(" + (bases[s][0]|0) + "," + (bases[s][1]|0) + "," + (bases[s][2]|0) + ",0.8)");
+    rg2.addColorStop(1, "rgba(0,0,0,0)");
+    g2.fillStyle = rg2; g2.fillRect(0, 0, 120, 120);
+    crowns.push(c);
+  }
+}
+makeCrowns();
 
 function render(){
   T++;
-  if(meshFrame % meshEvery === 0) renderMesh();
+  if(meshDirty || meshFrame % meshEvery === 0){ renderMesh(); meshDirty = false; }
   meshFrame++;
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.drawImage(mesh, 0, 0);
   var x, y, i;
-  /* --- overlays in projected space --- */
   // flow streaks on the water surface
   ctx.lineWidth = 1.4;
   for(y=2;y<N-2;y+=2) for(x=2;x<N-2;x+=2){
@@ -402,7 +518,6 @@ function render(){
     var ph = ((T*0.9 + (x*7+y*13)) % 12) / 12;
     var fx = x+0.5 + ux*ph*0.8, fy = y+0.5 + uy*ph*0.8;
     var lvl = h[i] + w[i];
-    var cxp = projX(fx), cyp = projY(fy, lvl);
     var a2 = clamp(mag*26, 0.06, 0.4) * (0.45 + 0.55*Math.sin(ph*3.14159));
     ctx.strokeStyle = "rgba(240,250,255," + a2.toFixed(3) + ")";
     ctx.beginPath();
@@ -410,24 +525,20 @@ function render(){
     ctx.lineTo(projX(fx + ux*0.34), projY(fy + uy*0.34, lvl));
     ctx.stroke();
   }
-  // cypress crowns over mature growth, grounded on the tilted surface
+  // soft cypress crowns
   for(y=1;y<N-1;y++) for(x=1;x<N-1;x++){
     i = idx(x,y);
     if(veg[i] < 0.74 || w[i] > 0.018) continue;
     if(hash2(x*3, y*3) < 0.42) continue;
     var fx2 = x + 0.22 + hash2(x,y+9)*0.56, fy2 = y + 0.22 + hash2(x+4,y)*0.56;
     var bx = projX(fx2), by = projY(fy2, h[i]);
-    var rad = S * (0.62 + hash2(x+8,y+2)*0.4);
-    ctx.fillStyle = "rgba(10,16,8,0.35)";
-    ctx.beginPath(); ctx.ellipse(bx + rad*0.22, by + rad*0.10, rad*0.95, rad*0.42, 0, 0, 6.2832); ctx.fill();
-    ctx.fillStyle = css([30,44,20], 0.9);
-    ctx.beginPath(); ctx.arc(bx, by - rad*0.55, rad, 0, 6.2832); ctx.fill();
-    ctx.fillStyle = css(PAL.canopy, 0.95);
-    ctx.beginPath(); ctx.arc(bx - rad*0.14, by - rad*0.72, rad*0.78, 0, 6.2832); ctx.fill();
-    ctx.fillStyle = css(PAL.marshOlive, 0.55);
-    ctx.beginPath(); ctx.arc(bx - rad*0.30, by - rad*0.92, rad*0.30, 0, 6.2832); ctx.fill();
+    var size = S * (1.45 + hash2(x+8,y+2)*0.85);
+    ctx.fillStyle = "rgba(8,12,6,0.28)";
+    ctx.beginPath(); ctx.ellipse(bx + size*0.10, by + size*0.05, size*0.42, size*0.17, 0, 0, 6.2832); ctx.fill();
+    var spr = crowns[(hash2(x+21,y+7)*3)|0];
+    ctx.drawImage(spr, bx - size/2, by - size*0.86, size, size);
   }
-  // springs: ripples (squashed by the tilt) + bubbling source
+  // springs: ripples + bubbling source
   if(T % 26 === 0) for(var s2=0;s2<springs.length;s2++) ripples.push({x:springs[s2].x, y:springs[s2].y, r:0.4, a:0.5});
   for(var rp=ripples.length-1; rp>=0; rp--){
     var R = ripples[rp]; R.r += 0.24; R.a -= 0.016;
@@ -484,7 +595,6 @@ function canvasPos(e){
   var px = (cx-rect.left)/rect.width*cv.width, py = (cy-rect.top)/rect.height*cv.height;
   var gx = (px - OX) / S;
   var gy = (py - OY) / (S * TILTY);
-  // refine twice using the height under the guessed cell
   for(var k=0;k<2;k++){
     var ci = idx(clamp(Math.round(gx-0.5),0,N-1), clamp(Math.round(gy-0.5),0,N-1));
     gy = (py - OY + (h[ci] + w[ci] - HBASE) * HSCALE) / (S * TILTY);
@@ -538,7 +648,8 @@ lightsEl.addEventListener('click', function(e){
   var all = lightsEl.querySelectorAll('.lightbtn');
   for(var i=0;i<all.length;i++) all[i].classList.remove('on');
   btn.classList.add('on');
-  meshFrame = 0; // force a mesh redraw in the new light
+  makeCrowns();
+  meshDirty = true;
 });
 document.getElementById('brush').addEventListener('input', function(e){ brush = parseInt(e.target.value,10); });
 var pauseBtn = document.getElementById('pause');

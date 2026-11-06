@@ -447,6 +447,13 @@ export const OPENING_PRESETS = [
   { name: 'The Operator', ground: 'mill', leverage: 'state' },
 ];
 export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch' };
+// The Founder (W30): the player's identity. Paints from the palette of record,
+// excluding the houses' identity colors. Player Teal is the Desk's default.
+export const PAINTS = [
+  { name: 'Player Teal', hex: '#2F7E79' }, { name: 'River', hex: '#60748B' }, { name: 'Cane', hex: '#8E6836' },
+  { name: 'Safety', hex: '#C08A3E' }, { name: 'Rust', hex: '#7A4A38' }, { name: 'Slate', hex: '#4E5A63' },
+];
+export function companyOf(w) { return w.company ?? { name: 'Bayou Freight Co.', paint: '#2F7E79' }; }
 export const treeOf = (good) => TREES[good] ?? 'Other';
 export function createWorld(seed = 1, opts = {}) {
   const w = {
@@ -481,6 +488,7 @@ export function createWorld(seed = 1, opts = {}) {
     ],
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
     offer: null, offerCount: 0, // the Living Graph's first generator (W29)
+    company: { name: 'Bayou Freight Co.', paint: '#2F7E79' }, // the Founder (W30)
     dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
     craneGoods: {},          // goods the cranes touched since the last boundary
     boats: { docks: 3, delcambre: 3 },
@@ -521,6 +529,8 @@ export function createWorld(seed = 1, opts = {}) {
   for (const id of Object.keys(NODES)) { w.pollution[id] = 0; w.population[id] = 100; w.dev[id] = { scores: { industrial: 0, port: 0, care: 0, agri: 0, tourist: 0 }, archetype: null }; w.parcels[id] = { left: 4, owned: 0 }; }
   w.state.rngA = (seed * 2654435761) >>> 0;
   w.state.pending = drawStatePolicy(w);
+  if (opts.companyName) w.company.name = String(opts.companyName).slice(0, 28);
+  if (opts.paint && PAINTS.some(p => p.hex === opts.paint)) w.company.paint = opts.paint;
   if (opts.ground || opts.leverage) applyOpening(w, opts);
   else {
     addVehicle(w, 'box', 'caneA');
@@ -971,6 +981,12 @@ function applyIntents(w) {
       spinoffHouse(w, it.house);
     } else if (it.type === 'offerAnswer') {
       answerOffer(w, !!it.accept);
+    } else if (it.type === 'offerCounter') {
+      counterOffer(w);
+    } else if (it.type === 'setCompany') {
+      if (it.name) w.company.name = String(it.name).slice(0, 28);
+      if (it.paint && PAINTS.some(p => p.hex === it.paint)) w.company.paint = it.paint;
+      note(w, `The company trades as ${w.company.name}, in ${PAINTS.find(p => p.hex === w.company.paint)?.name ?? 'its colors'}.`, 'news');
     } else if (it.type === 'setWage') {
       if (!['tight', 'fair', 'generous'].includes(it.wage)) continue;
       if (w.tick < w.crews.unionUntil && it.wage !== 'fair') { note(w, `The bargain holds: wages stay Fair until Day ${Math.floor(w.crews.unionUntil / 24) + 1}.`, 'warn'); continue; }
@@ -1830,7 +1846,7 @@ export function eraReport(w) {
   const arch = Object.keys(NODES).filter(id => w.dev[id].archetype).map(id => `${NODES[id].name} the ${w.dev[id].archetype === 'agri' ? 'Agri' : w.dev[id].archetype[0].toUpperCase() + w.dev[id].archetype.slice(1)}`);
   const endingNames = { dominance: 'Dominance', monopoly: 'Monopoly', lastOneStanding: 'Last One Standing' };
   const lines = [
-    `The company has run ${seasons} seasons (${Math.floor(w.tick / 24)} days) out of the Gulf parishes.`,
+    `The company has run ${seasons} seasons (${Math.floor(w.tick / 24)} days) out of the Gulf parishes — it trades as ${companyOf(w).name}.`,
     `It has moved ${w.stats.deliveredTons.toFixed(0)}t of freight and earned $${Math.round(w.stats.earned).toLocaleString()} hauling, $${Math.round(w.stats.unitIncome).toLocaleString()} from its own units, $${Math.round(w.stats.dividends).toLocaleString()} in dividends. Its largest single delivery was worth $${Math.round(w.stats.biggestDelivery).toLocaleString()}.`,
     `Regional Control stands at ${(w.crown.current * 100).toFixed(1)}% (${w.crown.rule} reading; raw ${(raw * 100).toFixed(1)}%, capped ${(capped * 100).toFixed(1)}%; peak ${(w.crown.peak * 100).toFixed(1)}%). Of $${Math.round(world).toLocaleString()} the region moved in the last 30 days, $${Math.round(player).toLocaleString()} moved through this network${topTrees.length ? ` — strongest trees: ${topTrees.join(' · ')}` : ''}.`,
     w.crown.ending ? `The era is named: ${endingNames[w.crown.ending.path]} (Day ${Math.floor(w.crown.ending.tick / 24) + 1}).` : `No ending yet — the crown is unwon, and the work continues.`,
@@ -1891,31 +1907,80 @@ export function maybeOffer(w, forceKind = null) {
   note(w, `An offer lands: ${offer.text}`, 'news');
   return offer;
 }
-function answerOffer(w, accept) {
+function answerOffer(w, accept, priceOverride = null) {
   const o = w.offer;
   if (!o) return;
   w.offer = null;
   if (!accept) { note(w, 'The offer lapses, declined.', 'news'); return; }
+  const price = priceOverride ?? o.price;
   if (o.kind === 'unit-deal') {
-    if (w.money < o.price) { note(w, `The ${UNITS[o.unitId].name} deal falls through — the cash is not there.`, 'warn'); return; }
-    w.money -= o.price;
+    if (w.money < price) { note(w, `The ${UNITS[o.unitId].name} deal falls through — the cash is not there.`, 'warn'); return; }
+    w.money -= price;
     const prev = w.units[o.unitId].owner;
-    if (prev !== 'player' && HOUSES[prev]) w.houses[prev].cash += o.price;
+    if (prev !== 'player' && HOUSES[prev]) w.houses[prev].cash += price;
     w.units[o.unitId].owner = 'player';
-    note(w, `${UNITS[o.unitId].name} is yours — bought from ${prev} at the offered price. The ground changed hands; what moves on it is now your question.`, 'good');
+    note(w, `${UNITS[o.unitId].name} is yours — bought from ${prev} at $${price.toLocaleString()}. The ground changed hands; what moves on it is now your question.`, 'good');
   } else if (o.kind === 'house-bid') {
     if (w.units[o.unitId].owner !== 'player') return;
-    w.money += o.price;
-    if (HOUSES[o.house]) w.houses[o.house].cash = Math.max(0, w.houses[o.house].cash - o.price);
+    w.money += price;
+    if (HOUSES[o.house]) w.houses[o.house].cash = Math.max(0, w.houses[o.house].cash - price);
     w.units[o.unitId].owner = o.house;
     const nid = UNITS[o.unitId].node;
     for (const g of Object.keys(w.positions[nid] ?? {})) delete w.positions[nid][g]; // the manifest walks with the unit (S4.9)
-    note(w, `${UNITS[o.unitId].name} sold to ${o.house} at their bid. Their flag flies over your old ground now.`, 'news');
+    note(w, `${UNITS[o.unitId].name} sold to ${o.house} at $${price.toLocaleString()}. Their flag flies over your old ground now.`, 'news');
   } else if (o.kind === 'quest') {
     const item = pickItem(w, o.good);
     w.contracts.push({ id: w.nextId++, issuer: o.nodeId, good: o.good, item: item.n, qty: o.qty, delivered: 0, pricePerTon: Math.round(o.pricePerTon * (item.m ?? 1)), deadlineTick: w.tick + 3 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: false, quest: true });
     note(w, `The rush is yours: ${o.qty}t of ${GOODS[o.good].name} to ${NODES[o.nodeId].name} inside three days. The board carries it.`, 'good');
   }
+}
+
+// Negotiation (W30): one counter per offer, answered by a printed rule.
+export function counterPriceOf(o) { return o.kind === 'unit-deal' ? Math.round(o.price * 0.9) : o.kind === 'house-bid' ? Math.round(o.price * 1.1) : null; }
+function counterOffer(w) {
+  const o = w.offer;
+  if (!o || o.countered || o.kind === 'quest') return;
+  const counter = counterPriceOf(o);
+  if (counter === null) return;
+  o.countered = true;
+  const book = unitValue(w, o.unitId);
+  if (o.kind === 'unit-deal') {
+    if (counter >= Math.round(book * 0.85)) { note(w, `${o.house} takes the counter — $${counter.toLocaleString()} it is.`, 'news'); answerOffer(w, true, counter); }
+    else note(w, `${o.house} waves the counter off — $${counter.toLocaleString()} is under their floor. The original offer stands.`, 'news');
+  } else {
+    const manifest = unitManifest(w, o.unitId).reduce((s, m) => s + m.value, 0);
+    if (counter <= Math.round(book * 1.30) + Math.round(manifest)) { note(w, `${o.house} grumbles and takes the counter — $${counter.toLocaleString()}.`, 'news'); answerOffer(w, true, counter); }
+    else note(w, `${o.house} laughs the counter off — $${counter.toLocaleString()} is past their ceiling. The original bid stands.`, 'news');
+  }
+}
+// The houses trade with each other (W30): the market moves when the player does nothing.
+function houseMarketStep(w) {
+  if (nextRandom(w) >= 1 / 7) return;
+  // a cash-poor house sells its weakest unit back to the Families at the bid
+  const poor = Object.keys(HOUSES).filter(h => !w.houses[h].delisted && w.houses[h].subOf !== 'player' && w.houses[h].cash < 800);
+  for (const h of poor) {
+    const mine = Object.keys(UNITS).filter(id => w.units[id].owner === h);
+    if (mine.length > 2) {
+      mine.sort((a, b) => (w.units[a].incomeAvg || 0) - (w.units[b].incomeAvg || 0));
+      const unitId = mine[0], price = Math.round(unitValue(w, unitId) * 0.96);
+      w.houses[h].cash += price; w.units[unitId].owner = 'The Families';
+      note(w, `${h}, short of cash, sells ${UNITS[unitId].name} back to The Families for $${price.toLocaleString()}. The market provides.`, 'news');
+      return;
+    }
+  }
+  // a cash-rich house buys the best ground it can afford — from the Families or a rival
+  const buyers = Object.keys(HOUSES).filter(h => !w.houses[h].delisted && w.houses[h].subOf !== 'player' && w.houses[h].cash > 6000);
+  if (!buyers.length) return;
+  const buyer = buyers[Math.floor(nextRandom(w) * buyers.length)];
+  const pool = Object.keys(UNITS).filter(id => { const o = w.units[id].owner; return o !== 'player' && o !== buyer && !(HOUSES[o] && w.houses[o].subOf === 'player'); });
+  const afford = pool.filter(id => unitValue(w, id) <= w.houses[buyer].cash * 0.8);
+  if (!afford.length) return;
+  afford.sort((a, b) => (w.units[b].incomeAvg || 0) - (w.units[a].incomeAvg || 0));
+  const unitId = afford[0], price = Math.round(unitValue(w, unitId)), seller = w.units[unitId].owner;
+  w.houses[buyer].cash -= price;
+  if (HOUSES[seller]) w.houses[seller].cash += price;
+  w.units[unitId].owner = buyer;
+  note(w, `${buyer} buys ${UNITS[unitId].name} (${NODES[UNITS[unitId].node].name}) from ${seller} for $${price.toLocaleString()} — the houses trade among themselves now.`, 'news');
 }
 
 function dayBoundary(w) {
@@ -1971,6 +2036,7 @@ function dayBoundary(w) {
   generateContracts(w);
   if (w.offer && w.tick > w.offer.expiresTick) { note(w, `The offer from ${w.offer.house ?? 'the market'} expired unanswered.`, 'news'); w.offer = null; }
   maybeOffer(w);
+  houseMarketStep(w);
   // burn jitter: every sink's appetite breathes ±10% a day (seeded)
   for (const [id, def] of Object.entries(NODES)) {
     const n = w.nodes[id];
@@ -2062,5 +2128,6 @@ export function snapshot(w) { return JSON.stringify(w); }
 export function restore(json) {
   const w = JSON.parse(json);
   w.intents = [];
+  if (!w.company) w.company = { name: 'Bayou Freight Co.', paint: '#2F7E79' }; // saves from before the Founder (W30)
   return w;
 }

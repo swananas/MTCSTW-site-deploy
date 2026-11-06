@@ -49,7 +49,7 @@
 <body>
 <div id="app">
   <header>
-    <div class="brand">HAUL</div>
+    <div class="brand" id="brand">HAUL</div>
     <div class="money" id="money">$750</div>
     <span id="delta"></span>
     <span id="infl" title="Influence with the State"></span>
@@ -75,10 +75,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v15';
-const CURRENT_PHASE = 1.5;
+const SAVE_KEY = 'haul-save-v16';
+const CURRENT_PHASE = 1.6;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -87,7 +87,7 @@ let w;
 function bootWorld() {
   let start = {};
   try { start = JSON.parse(localStorage.getItem('haul-start') ?? '{}'); } catch { /* a bad start note never bricks the dock */ }
-  return createWorld(20261106, { mode: start.mode === 'sandbox' ? 'sandbox' : 'campaign', ground: start.ground, leverage: start.leverage });
+  return createWorld(20261106, { mode: start.mode === 'sandbox' ? 'sandbox' : 'campaign', ground: start.ground, leverage: start.leverage, companyName: start.companyName, paint: start.paint });
 }
 try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : bootWorld(); }
 catch { w = createWorld(20261106); }
@@ -191,7 +191,7 @@ function draw(now) {
     const a = pt(rt.from), b = pt(rt.to);
     const isSel = sel?.kind === 'route' && sel.id === rt.id;
     const hasBarge = w.vehicles.some(v => v.routeId === rt.id && v.type === 'barge');
-    ctx.strokeStyle = rt.paused ? 'rgba(120,120,110,.5)' : hasBarge ? 'rgba(47,95,158,.85)' : isSel ? '#14524e' : 'rgba(31,111,107,.8)';
+    ctx.strokeStyle = rt.paused ? 'rgba(120,120,110,.5)' : hasBarge ? 'rgba(47,95,158,.85)' : companyOf(w).paint;
     ctx.lineWidth = isSel ? 3.5 : 2.5;
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
@@ -209,9 +209,10 @@ function draw(now) {
       p = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
     } else if (v.at) p = pt(v.at);
     if (!p) continue;
-    ctx.fillStyle = v.cargo ? '#22312a' : '#5a6e60';
+    ctx.fillStyle = companyOf(w).paint;
     ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : v.type === 'barge' ? 6.5 : 4, 0, 7); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
+    if (v.cargo) { ctx.fillStyle = '#22312a'; ctx.fillRect(p.x - 2, p.y - 1.5, 4, 3); }
   }
   // rival trucks: the houses' own freight, in their paint (W27)
   { const r0 = cv.getBoundingClientRect();
@@ -241,6 +242,10 @@ function draw(now) {
       ctx.lineWidth = 1;
     }
     const isSel = sel?.kind === 'node' && sel.id === id;
+    if (PRIMARY_UNIT[id] && w.units[PRIMARY_UNIT[id]].owner === 'player') { // your ground wears your paint (W30)
+      ctx.strokeStyle = companyOf(w).paint; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 15.5, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
+    }
     ctx.fillStyle = isSel ? '#fff8e2' : '#f5f1e4';
     ctx.strokeStyle = 'rgba(34,49,42,.55)'; ctx.lineWidth = isSel ? 2.4 : 1.2;
     ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, 7); ctx.fill(); ctx.stroke(); ctx.lineWidth = 1;
@@ -427,6 +432,7 @@ function renderCrown(el) {
   const endingNames = { dominance: 'Dominance', monopoly: 'Monopoly', lastOneStanding: 'Last One Standing' };
   const bar = (label, val, target) => `<div class="status">${label}<div style="height:8px;background:#eee;border-radius:4px;margin-top:3px"><div style="height:8px;width:${Math.min(100, val / target * 100)}%;background:#c9a44e;border-radius:4px"></div></div></div>`;
   if (!setHTML(el, `<div class="card"><h3>👑 The Crown — Regional Control</h3>
+    <div class="status" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="background:${companyOf(w).paint};color:#fff;border-radius:6px;padding:2px 8px;font-weight:700">${companyOf(w).name}</span><span>${w.vehicles.length} vehicles · ${Object.keys(UNITS).filter(u => w.units[u].owner === 'player').length} units held · ${Object.keys(w.stakes).filter(h => w.houses[h].subOf === 'player').length} subsidiaries</span>${PAINTS.map(p => `<button data-repaint="${p.hex}" title="${p.name}" style="background:${p.hex};width:20px;height:20px;border-radius:50%;border:${companyOf(w).paint === p.hex ? '3px solid #22312a' : '2px solid #fff'};padding:0"></button>`).join('')}</div>
     <div class="sub">${w.mode === 'sandbox' ? 'Sandbox: the meter runs and no era is judged.' : 'Campaign: three roads to the crown. An ending is recorded, never a stop.'} Control is your share of the region's moved value, trailing 30 days.</div>
     ${w.crown.ending ? `<div class="status" style="background:#f7ecd0;border-color:#c9a44e">👑 <b>${endingNames[w.crown.ending.path]}</b> — the era was named on Day ${Math.floor(w.crown.ending.tick / 24) + 1}.${Object.keys(w.crown.achieved).length > 1 ? ` Also achieved: ${Object.keys(w.crown.achieved).filter(k => k !== w.crown.ending.path).map(k => endingNames[k]).join(' · ')}.` : ''} The work continues.</div>` : ''}
     <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Control now: <b>${pct(w.crown.current)}</b> · peak ${pct(w.crown.peak)} · reading: <b>${w.crown.rule}</b> (raw ${pct(w.crown.raw)} · capped ${pct(w.crown.capped)})</span><button data-crownrule="${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}">Read ${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}</button></div>
@@ -439,13 +445,17 @@ function renderCrown(el) {
     ${showEra ? `<div style="margin-top:6px">${eraReport(w).map(l => `<div class="status">${l}</div>`).join('')}</div>` : ''}
     </div>`)) return;
   el.querySelector('[data-crownrule]').onclick = (e) => Q({ type: 'setCrownRule', rule: e.target.dataset.crownrule });
+  el.querySelectorAll('[data-repaint]').forEach(b => b.onclick = () => Q({ type: 'setCompany', paint: b.dataset.repaint }));
   el.querySelector('[data-era]').onclick = () => { showEra = !showEra; renderSheet(); };
 }
 let startMode = 'campaign', startGround = 'cane', startLeverage = 'motion';
+let startName = '', startPaint = '#2F7E79';
+try { const s0 = JSON.parse(localStorage.getItem('haul-start') ?? '{}'); if (s0.companyName) startName = s0.companyName; if (s0.paint) startPaint = s0.paint; } catch { /* defaults stand */ }
 function renderStart(el) {
   const g = GROUNDS.find(x => x.id === startGround), l = LEVERAGES.find(x => x.id === startLeverage);
   if (!setHTML(el, `<div class="card"><h3>Open your company — the two picks</h3>
     <div class="sub">Ninety-six openings: pick your GROUND (where your family stands) and your LEVERAGE (what you bring). Opening replaces the current run.</div>
+    <div style="display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap"><span style="font-weight:700">Your company</span><input id="start-name" maxlength="28" placeholder="Bayou Freight Co." value="${startName.replace(/"/g, '&quot;')}" style="flex:1;min-width:140px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;font-size:13px">${PAINTS.map(p => `<button data-spaint="${p.hex}" title="${p.name}" style="background:${p.hex};width:24px;height:24px;border-radius:50%;border:${startPaint === p.hex ? '3px solid #22312a' : '2px solid #fff'};padding:0"></button>`).join('')}</div>
     <div style="display:flex;gap:4px;margin:4px 0">${[['campaign', '👑 Campaign'], ['sandbox', '🏖 Sandbox']].map(([m, label]) => `<button data-smode="${m}" ${startMode === m ? 'class="primary"' : ''}>${label}</button>`).join('')}</div>
     <div style="font-weight:700;margin-top:4px">The classic five</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap">${OPENING_PRESETS.map(p => `<button data-preset="${p.ground}|${p.leverage}" ${startGround === p.ground && startLeverage === p.leverage ? 'class="primary"' : ''}>${p.name}</button>`).join('')}</div>
@@ -461,8 +471,11 @@ function renderStart(el) {
   el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const [gr, lv] = b.dataset.preset.split('|'); startGround = gr; startLeverage = lv; renderSheet(); });
   el.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { startGround = b.dataset.ground; renderSheet(); });
   el.querySelectorAll('[data-lev]').forEach(b => b.onclick = () => { startLeverage = b.dataset.lev; renderSheet(); });
+  el.querySelectorAll('[data-spaint]').forEach(b => b.onclick = () => { startPaint = b.dataset.spaint; renderSheet(); });
+  const nm = el.querySelector('#start-name'); if (nm) nm.onchange = () => { startName = nm.value.trim(); };
   el.querySelector('[data-launch]').onclick = () => {
-    localStorage.setItem('haul-start', JSON.stringify({ ground: startGround, leverage: startLeverage, mode: startMode }));
+    const liveName = el.querySelector('#start-name')?.value.trim() ?? startName;
+    localStorage.setItem('haul-start', JSON.stringify({ ground: startGround, leverage: startLeverage, mode: startMode, companyName: liveName, paint: startPaint }));
     localStorage.removeItem(SAVE_KEY);
     location.reload();
   };
@@ -575,11 +588,14 @@ function renderOffer() {
   if (!o) { el.style.display = 'none'; setHTML(el, ''); return; }
   el.style.display = 'block';
   const days = Math.max(1, Math.ceil((o.expiresTick - w.tick) / 24));
-  setHTML(el, `🤝 <b>An offer:</b> ${o.text} <span class="status">(expires in ${days}d)</span><button class="primary" data-offer="1">Accept</button><button data-offer="0">Decline</button>`);
+  const counter = !o.countered && o.kind === 'unit-deal' ? Math.round(o.price * 0.9) : !o.countered && o.kind === 'house-bid' ? Math.round(o.price * 1.1) : null;
+  setHTML(el, `🤝 <b>An offer:</b> ${o.text} <span class="status">(expires in ${days}d)</span><button class="primary" data-offer="1">Accept</button>${counter !== null ? `<button data-offer="counter">Counter $${counter.toLocaleString()}</button>` : ''}<button data-offer="0">Decline</button>`);
 }
 $('offer').addEventListener('click', e => {
   const b = e.target.closest('[data-offer]');
-  if (b) Q({ type: 'offerAnswer', accept: b.dataset.offer === '1' });
+  if (!b) return;
+  if (b.dataset.offer === 'counter') Q({ type: 'offerCounter' });
+  else Q({ type: 'offerAnswer', accept: b.dataset.offer === '1' });
 });
 function renderEvents() {
   const el = $('events');
@@ -707,6 +723,8 @@ function frame(now) {
   }
   const day = Math.floor(w.tick / 24) + 1, hour = w.tick % 24;
   $('money').textContent = '$' + Math.round(w.money).toLocaleString();
+  $('brand').textContent = companyOf(w).name === 'Bayou Freight Co.' ? 'HAUL' : companyOf(w).name.toUpperCase().slice(0, 22);
+  $('brand').style.color = companyOf(w).paint;
   if (prevMoney !== null && w.money < prevMoney - 19) { $('delta').textContent = '−$' + Math.round(prevMoney - w.money).toLocaleString(); flashUntil = now + 1400; }
   if (now > flashUntil && $('delta').textContent) $('delta').textContent = '';
   prevMoney = w.money;

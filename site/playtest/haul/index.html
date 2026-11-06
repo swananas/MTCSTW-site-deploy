@@ -144,9 +144,9 @@ const TOWNS_LIT = new Set(['lafayette', 'grandisle', 'natchez', 'vicksburg', 'ca
 // Per-place lift (INTEGRATION-2.5D §3), the Desk's table carried to build scale
 // (x0.34, bluff plinths folded in for Natchez and Vicksburg): height is class.
 const PLACE_LIFT = { caneA: 1.7, caneB: 1.7, ricefarm: 1.7, timber: 1.4, victoria: 1.7, kingsville: 1.4, valley: 2.0, deltaFarms: 1.7, lafayette: 3.7, grandisle: 2.7, natchez: 5.4, vicksburg: 6.4, cairo: 3.1, westHelena: 4.8, docks: 5.1, delcambre: 4.4, port: 5.8, fourchon: 5.4, beaumont: 5.4, mill: 4.1, bogalusa: 4.1, sawmill: 3.7, processor: 3.7, refinery: 4.8, gasplant: 4.4, distributor: 4.1, shipyard: 4.4, molding: 4.1, houstonChem: 5.1, nola: 8.2, batonrouge: 7.5, houstonPort: 6.8, corpus: 7.1, memphis: 7.5, stLouis: 8.2 };
-function mixHex(a, b, t) { // palette blends only - no new hues (the Desk's shading law)
+function mixHex(a, b, t) { // palette blends only - no new hues (the Desk's shading law); returns hex so blends compose
   const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
-  return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * t)).join(',')})`;
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join('');
 }
 let dusk = false; // Day is the default light; Dusk is one overlay pass (section 7)
 const liftEase = {}; // W39: each place's lift eases toward its dormancy class - wake is an event, never a pop-in
@@ -279,7 +279,7 @@ function draw(now) {
     const p = pt(id);
     const R = CITIES.has(id) ? 15 : 13;
     // dormancy (W39, LT-08 section 9): the lift eases toward the place's class
-    const dorm = w.dormancy[id] ?? 2, dTarget = dorm === 0 ? 0 : dorm === 1 ? 0.4 : 1;
+    const dorm = w.dormancy[id] ?? 2, dTarget = dorm === 0 ? (view.level === 1 ? 0 : 0.4) : dorm === 1 ? 0.4 : 1; // the dot is the CHART-distance form (LT-08 section 9): at Region and Ground a dormant place keeps a low grey silhouette - asleep, still a place
     liftEase[id] = liftEase[id] === undefined ? dTarget : liftEase[id] + (dTarget - liftEase[id]) * 0.04;
     const f = liftEase[id];
     if (f < 0.15) { // the dormant face: a chart dot - position + state, asleep not absent
@@ -330,6 +330,11 @@ function draw(now) {
       ctx.beginPath(); ctx.ellipse(p.x, topY, R, R * .36, 0, 0, 7); ctx.stroke();
       ctx.strokeStyle = 'rgba(245,241,228,.3)'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(p.x - 1, topY - 1, R, R * .36, 0, Math.PI * 1.05, Math.PI * 1.6); ctx.stroke(); ctx.lineWidth = 1;
+    }
+    if ((w.dormancy[id] ?? 2) === 0) { // a dormant place at working distance: low, grey, dashed - asleep with a face
+      ctx.strokeStyle = 'rgba(90,95,85,.7)'; ctx.lineWidth = 1.4; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.ellipse(p.x, topY, R + 1, (R + 1) * .36, 0, 0, 7); ctx.stroke();
+      ctx.setLineDash([]); ctx.lineWidth = 1;
     }
     if (PRIMARY_UNIT[id] && w.units[PRIMARY_UNIT[id]].owner === 'player') { // your ground wears your paint, on the rim
       ctx.strokeStyle = companyOf(w).paint; ctx.lineWidth = 2.2;

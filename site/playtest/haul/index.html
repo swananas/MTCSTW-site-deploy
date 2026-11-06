@@ -16,7 +16,7 @@
   #delta { font-weight:800; color:#b3402e; font-size:13.5px; min-width:52px; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
-  .speeds button, .card button, #newgame, #boardbtn, #skillbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
   #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
   #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
@@ -53,6 +53,7 @@
     <div class="clock" id="clock">Day 1 · 00:00</div>
     <button id="boardbtn" title="Contracts board">📋</button>
     <button id="skillbtn" title="Company skills">🎓</button>
+    <button id="portbtn" title="Portfolio — units & titles">🏦</button>
     <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
   </header>
@@ -63,10 +64,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v04';
-const CURRENT_PHASE = 0.4;
+const SAVE_KEY = 'haul-save-v05';
+const CURRENT_PHASE = 0.5;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -93,6 +94,7 @@ function save() { try { localStorage.setItem(SAVE_KEY, snapshot(w)); } catch {} 
 $('newgame').onclick = () => { localStorage.removeItem(SAVE_KEY); w = createWorld(20261106); sel = null; pendingRoute = null; panel = null; renderSheet(); };
 $('boardbtn').onclick = () => { panel = panel === 'board' ? null : 'board'; renderSheet(); };
 $('skillbtn').onclick = () => { panel = panel === 'skills' ? null : 'skills'; renderSheet(); };
+$('portbtn').onclick = () => { panel = panel === 'portfolio' ? null : 'portfolio'; renderSheet(); };
 $('speeds').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   speed = +b.dataset.s;
@@ -304,9 +306,46 @@ function renderSkills(el) {
     <div style="font-weight:700;margin-top:6px">OPERATIONS</div>${branchHtml('OPERATIONS')}</div>`)) return;
   el.querySelectorAll('[data-skill]').forEach(b => b.onclick = () => Q({ type: 'buySkill', skillId: b.dataset.skill }));
 }
+function unitAsk(w, unitId) {
+  return Math.round(unitValue(w, unitId) * 1.04 + unitManifest(w, unitId).reduce((s, m) => s + m.qty * m.price, 0));
+}
+function renderPortfolio(el) {
+  const owned = Object.keys(UNITS).filter(u => w.units[u].owner === 'player');
+  const forSale = Object.keys(UNITS).filter(u => w.units[u].owner !== 'player')
+    .map(u => ({ u, ask: unitAsk(w, u) })).sort((a, b) => a.ask - b.ask);
+  const moves = { SCALE: 0, INTEGRATE: 0, DIVERSIFY: 0 };
+  for (const l of w.ledger) moves[l.move]++;
+  const posRows = Object.entries(w.positions).filter(([, q]) => q > 0.01).map(([key, qty]) => {
+    const [nodeId, good] = key.split('|');
+    const price = w.nodes[nodeId].prices[good] ?? 0;
+    const bleed = qty * (w.warehouses[nodeId] ? 0.2 : 0.4);
+    return { nodeId, good, qty, price, bleed };
+  });
+  const row = (inner, btn) => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>${inner}</span>${btn}</div>`;
+  if (!setHTML(el, `<div class="card"><h3>🏦 Portfolio</h3>
+    <div class="sub">A company is a portfolio: <b>units</b> (the businesses), <b>routes</b>, and <b>titles</b> (stock you own in place). Every growth act is one of three moves — so far: <b>${moves.SCALE} SCALE · ${moves.INTEGRATE} INTEGRATE · ${moves.DIVERSIFY} DIVERSIFY</b>. Units have paid you <b>$${Math.round(w.stats.unitIncome).toLocaleString()}</b>; storage on titles has cost <b>$${Math.round(w.stats.storagePaid).toLocaleString()}</b>.</div>
+    ${owned.length ? '<div style="font-weight:700;margin-top:4px">Your units</div>' + owned.map(u => row(
+      `<b>${UNITS[u].name}</b> · ${NODES[UNITS[u].node].name} — paid $${Math.round(w.units[u].lastIncome).toLocaleString()} yesterday · worth $${unitValue(w, u).toLocaleString()}`,
+      `<button data-sellunit="${u}">Sell $${Math.round(unitValue(w, u) * 0.96 + unitManifest(w, u).reduce((s, m) => s + m.qty * m.price, 0)).toLocaleString()}</button>`)).join('') : '<div class="status" style="opacity:.7">You own no units yet — hauling pays by the trip; owning pays every day.</div>'}
+    ${posRows.length ? '<div style="font-weight:700;margin-top:6px">Titles held (stock owned in place)</div>' + posRows.map(p => row(
+      `<b>${p.qty.toFixed(0)}t ${GOODS[p.good].name}</b> at ${NODES[p.nodeId].name} — now $${Math.round(p.qty * p.price).toLocaleString()} · bleeds $${p.bleed.toFixed(0)}/day`,
+      `<button data-sellpos="${p.nodeId}|${p.good}">Sell all</button>`)).join('') : ''}
+    <div style="font-weight:700;margin-top:6px">Units for sale</div>
+    ${forSale.map(({ u, ask }) => {
+      const man = unitManifest(w, u);
+      return row(
+        `<b>${UNITS[u].name}</b> · ${NODES[UNITS[u].node].name} — ${w.units[u].owner} · ~$${Math.round(w.units[u].incomeAvg).toLocaleString()}/day${man.length ? ` · incl. ${man.map(m => `${m.qty.toFixed(0)}t ${GOODS[m.good].name.toLowerCase()}`).join(' + ')} on site` : ''}`,
+        `<button data-buyunit="${u}" ${w.money < ask ? 'disabled' : ''}>Buy $${ask.toLocaleString()}</button>`);
+    }).join('')}
+    </div>`)) return;
+  el.querySelectorAll('[data-buyunit]').forEach(b => b.onclick = () => Q({ type: 'buyUnit', unitId: b.dataset.buyunit }));
+  el.querySelectorAll('[data-sellunit]').forEach(b => b.onclick = () => Q({ type: 'sellUnit', unitId: b.dataset.sellunit }));
+  el.querySelectorAll('[data-sellpos]').forEach(b => b.onclick = () => { const [nodeId, good] = b.dataset.sellpos.split('|'); Q({ type: 'sellReceipt', nodeId, good, qty: 1e9 }); });
+}
 function renderSheet() {
   const el = $('sheet');
   if (panel === 'board') return renderBoard(el);
+  if (panel === 'portfolio') return renderPortfolio(el);
   if (panel === 'skills') return renderSkills(el);
   if (sel?.kind === 'route') {
     const rt = w.routes.find(x => x.id === sel.id);
@@ -351,6 +390,9 @@ function renderSheet() {
   if (!setHTML(el, `<div class="card"><h3>${def.name}</h3>
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
+    ${PRIMARY_UNIT[id] ? `<div class="status">🏛 <b>${UNITS[PRIMARY_UNIT[id]].name}</b> — owned by ${w.units[PRIMARY_UNIT[id]].owner === 'player' ? '<b>you</b>' : w.units[PRIMARY_UNIT[id]].owner} · paid $${Math.round(w.units[PRIMARY_UNIT[id]].lastIncome).toLocaleString()} yesterday${w.units[PRIMARY_UNIT[id]].owner === 'player' ? ' · your freight loads ×0.9 faster here' : ''}</div>` : ''}
+    ${Object.keys(GOODS).filter(g => positionsAt(w, id, g) > 0.01).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>📜 You hold title to <b>${positionsAt(w, id, g).toFixed(0)}t ${GOODS[g].name}</b> here — it does not burn, rot aside; storage bleeds daily.</span><button data-psell="${g}">Sell</button></div>`).join('')}
+    ${Object.keys(GOODS).filter(g => w.nodes[id].prices[g] > 0 && availOf(w, id, g) >= 5).slice(0, 4).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Hold <b>${GOODS[g].name}</b> in place — buy the title, the pile never moves.</span><button data-pbuy="${g}" ${w.money < w.nodes[id].prices[g] * 10 ? 'disabled' : ''}>Hold 10t · $${Math.round(w.nodes[id].prices[g] * 10).toLocaleString()}</button></div>`).join('')}
     ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
     ${WATER_NODES.has(id) ? `<div class="status">🌊 The river runs <b>${w.river.level.toFixed(2)}</b> — ${w.river.state === 'shallows' ? '<b>shallows: barges load half</b>' : w.river.state === 'high' ? '<b>high water: barges slow to 60%</b>' : 'fair for barges'}${w.skills.owned.dredge ? ' · your dredging buys you depth to 0.80' : ''}</div>` : ''}
     ${w.yards[id] ? `<div class="status">🛤 <b>Rail yard here.</b> ${trackMode ? 'The map is quoting iron: tap a neighbor to lay track to it.' : 'Open track mode to lay iron from here.'}</div>` : ''}
@@ -370,6 +412,8 @@ function renderSheet() {
   const bt = $('b-boat'); if (bt) bt.onclick = () => Q({ type: 'buyBoat', nodeId: id });
   const yd = $('b-yard'); if (yd) yd.onclick = () => Q({ type: 'buildYard', nodeId: id });
   const tm = $('b-track'); if (tm) tm.onclick = () => { trackMode = !trackMode; renderSheet(); };
+  el.querySelectorAll('[data-pbuy]').forEach(b => b.onclick = () => Q({ type: 'buyReceipt', nodeId: id, good: b.dataset.pbuy, qty: 10 }));
+  el.querySelectorAll('[data-psell]').forEach(b => b.onclick = () => Q({ type: 'sellReceipt', nodeId: id, good: b.dataset.psell, qty: 1e9 }));
 }
 function renderRoutes() {
   const el = $('routes');
@@ -509,6 +553,8 @@ function frame(now) {
   const openCount = w.contracts.filter(c => c.state === 'open').length;
   $('boardbtn').textContent = openCount ? `📋 ${openCount}` : '📋';
   $('skillbtn').textContent = w.skills.points ? `🎓 ${w.skills.points}` : '🎓';
+  const ownedUnits = Object.values(w.units).filter(u => u.owner === 'player').length;
+  $('portbtn').textContent = ownedUnits ? `🏦 ${ownedUnits}` : '🏦';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes();
   if (frame.n++ % 20 === 0 && !touched($('sheet'))) renderSheet();

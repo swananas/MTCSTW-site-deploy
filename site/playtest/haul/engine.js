@@ -167,7 +167,7 @@ export const SKILLS = {
   connoisseur: { branch: 'LOGISTICS', name: 'The Connoisseur', tier: 5, cost: 2, phase: 0.2, blurb: 'Turnaround −20% everywhere, again. Queues bow to you.' },
   preventive:  { branch: 'OPERATIONS', name: 'Preventive Culture', tier: 1, phase: 0.2, blurb: 'Breakdowns half as often.' },
   automation:  { branch: 'OPERATIONS', name: 'Automation', tier: 2, phase: 0.2, blurb: 'Handling −15% more at your warehouse nodes.' },
-  tiering:     { branch: 'OPERATIONS', name: 'Unit Tiering', tier: 3, phase: 0.5, blurb: 'Upgrade a unit a tier: throughput up, visibly.' },
+  tiering:     { branch: 'OPERATIONS', name: 'Unit Tiering', tier: 3, phase: 0.5, blurb: 'Owned units pay +15% — the portfolio, professionalized.' },
   fleetstd:    { branch: 'OPERATIONS', name: 'Fleet Standardization', tier: 4, phase: 0.2, blurb: '3+ vehicles of a type: that type runs 10% cheaper.' },
   machineshop: { branch: 'OPERATIONS', name: 'The Machine Shop', tier: 5, cost: 2, phase: 0.2, blurb: 'Your handling stack may go to ×0.45 — the floor itself moves.' },
 };
@@ -181,6 +181,74 @@ function nextRandom(w) {
 }
 
 // --- world construction ---
+// --- the units (S4: the atoms of ownership) + the receipts desk (S5 L-6/L-7) ---
+export const UNITS = {
+  caneFieldA: { name: 'Cane Field A', node: 'caneA', kind: 'producer', good: 'cane', margin: 0.30, floor: 4000, owner: 'The Families' },
+  caneFieldB: { name: 'Cane Field B', node: 'caneB', kind: 'producer', good: 'cane', margin: 0.30, floor: 4000, owner: 'Boudreaux' },
+  sugarMill:  { name: 'Thibodaux Sugar Mill', node: 'mill', kind: 'converter', good: 'sugar', margin: 0.30, floor: 9000, owner: 'Boudreaux' },
+  riceFarm:   { name: 'The Rice Farm', node: 'ricefarm', kind: 'producer', good: 'rice', margin: 0.30, floor: 4000, owner: 'The Families' },
+  timberStand:{ name: 'Piney Woods Stand', node: 'timber', kind: 'producer', good: 'timber', margin: 0.30, floor: 4000, owner: 'The Families' },
+  sawmill:    { name: 'The Sawmill', node: 'sawmill', kind: 'converter', good: 'lumber', margin: 0.30, floor: 9000, owner: 'The Families' },
+  empireDocks:{ name: 'Empire Docks', node: 'docks', kind: 'producer', good: 'shrimp', margin: 0.30, floor: 4000, owner: 'The Families' },
+  iceHouse:   { name: 'The Ice House', node: 'docks', kind: 'infra', good: 'shrimp', margin: 0.10, floor: 5000, owner: 'The Families' },
+  delcambreDock: { name: 'Delcambre Dock', node: 'delcambre', kind: 'producer', good: 'shrimp', margin: 0.30, floor: 4000, owner: 'The Families' },
+  processorUnit: { name: 'Seafood Processing', node: 'processor', kind: 'converter', good: 'packed', margin: 0.30, floor: 9000, owner: 'Pelican' },
+  refineryRow:{ name: 'Refinery Row', node: 'refinery', kind: 'converter', good: 'fuel', margin: 0.30, floor: 9000, owner: 'Maison' },
+  gasPlant:   { name: 'The Gas Plant', node: 'gasplant', kind: 'converter', good: 'oxygen', margin: 0.30, floor: 9000, owner: 'Maison' },
+  nolaRetail: { name: 'New Orleans Retail & Care', node: 'nola', kind: 'sink', margin: 0.15, floor: 6000, owner: 'The Families' },
+  brRetail:   { name: 'Baton Rouge Retail & Care', node: 'batonrouge', kind: 'sink', margin: 0.15, floor: 6000, owner: 'The Families' },
+  theDistributor: { name: 'The Distributor', node: 'distributor', kind: 'sink', margin: 0.20, floor: 9000, owner: 'Pelican' },
+  portCranes: { name: 'Port Cranes', node: 'port', kind: 'infra', good: null, margin: 0, floor: 5000, owner: 'The Families' },
+  lafayetteRetail: { name: 'Lafayette Retail & Clinic', node: 'lafayette', kind: 'sink', margin: 0.15, floor: 6000, owner: 'The Families' },
+  houmaShipyard: { name: 'Houma Shipyard', node: 'shipyard', kind: 'sink', margin: 0.18, floor: 6000, owner: 'The Families' },
+  fourchonServices: { name: 'Fourchon Rig Services', node: 'fourchon', kind: 'sink', margin: 0.15, floor: 6000, owner: 'Maison' },
+  grandIsleHotel: { name: 'Grand Isle Hotel', node: 'grandisle', kind: 'sink', margin: 0.20, floor: 6000, owner: 'The Families' },
+};
+export const PRIMARY_UNIT = {};
+for (const [id, u] of Object.entries(UNITS)) PRIMARY_UNIT[u.node] ??= id;
+export const CONTRACT_ITEMS = {
+  cane: 'Cane, field-run', sugar: 'Raw sugar, bulk', shrimp: 'Shrimp, heads-on', packed: 'Packed shrimp, graded',
+  rice: 'Rice, milled', timber: 'Timber, standing-cut', lumber: 'Lumber, graded', crude: 'Crude, sweet',
+  fuel: 'Fuel, rack', oxygen: 'Oxygen, industrial', med: 'Nitrile gloves, cases', pharma: 'Vaccines & sera',
+  provisions: 'Provisions, mixed', steel: 'Steel, plate',
+};
+export function unitTradeGoods(unit) {
+  const def = NODES[unit.node];
+  if (unit.kind === 'producer') return [unit.good];
+  if (unit.kind === 'converter') return [def.converts.in, def.converts.out];
+  if (unit.kind === 'sink') return Object.keys(def.consumes ?? {}).filter(g => def.consumes[g] !== 9999);
+  return unit.good ? [unit.good] : [];
+}
+export function unitManifest(w, unitId) {
+  const unit = UNITS[unitId];
+  return unitTradeGoods(unit).map(good => ({ good, qty: stockOf(w, unit.node, good), price: w.nodes[unit.node].prices[good] ?? 0 }))
+    .filter(m => m.qty > 0.01 && m.price > 0);
+}
+export function unitValue(w, unitId) {
+  const unit = UNITS[unitId], st = w.units[unitId];
+  return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 240));
+}
+export function positionsAt(w, nodeId, good) { return w.positions[`${nodeId}|${good}`] ?? 0; }
+export function availOf(w, nodeId, good) { return Math.max(0, stockOf(w, nodeId, good) - positionsAt(w, nodeId, good)); }
+// The three-move grammar (S4.5): every growth act is exactly one move.
+export function classifyAct(w, it) {
+  switch (it.type) {
+    case 'buyVehicle': case 'buyBoat': case 'buySkill': return 'SCALE';
+    case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': return 'INTEGRATE';
+    case 'addRoute': return routeDiversifies(w, it.from, it.to) ? 'DIVERSIFY' : 'SCALE';
+    default: return 'OPERATE';
+  }
+}
+function routeDiversifies(w, from, to) {
+  const src = NODES[from], dst = NODES[to];
+  for (const good of Object.keys(GOODS)) {
+    const producible = src.produces?.[good] || src.converts?.out === good || (good === 'shrimp' && from in (w.boats ?? {}));
+    const wanted = dst.converts?.in === good || dst.consumes?.[good];
+    if (producible && wanted && !w.hauledGoods[good]) return true;
+  }
+  return false;
+}
+
 export function createWorld(seed = 1) {
   const w = {
     tick: 0, money: 750, seed,
@@ -193,8 +261,13 @@ export function createWorld(seed = 1) {
     yards: {},               // nodeId -> true
     river: { level: 1.0, trend: 0, state: 'fair' },
     skills: { points: 0, owned: {}, milestones: {} },
+    units: {},               // unitId -> { owner, incomeAvg, lastIncome }
+    positions: {},           // 'node|good' -> tons held in place (receipts desk)
+    ledger: [],              // the three-move grammar, recorded (S4.5)
+    hauledGoods: {},         // good -> true once the company has delivered it
+    cranePending: 0,         // Port Cranes income accrued between ship calls
     intents: [], ticker: [],
-    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {} },
+    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0 },
     laneCounts: {},          // 'from|to|good' -> spot deliveries (crystallization, K-2)
     nextId: 1,
   };
@@ -207,6 +280,7 @@ export function createWorld(seed = 1) {
     }
     for (const [good, qty] of Object.entries(def.stock0 ?? {})) addStock(w, id, good, qty, 0);
   }
+  for (const [unitId, unit] of Object.entries(UNITS)) w.units[unitId] = { owner: unit.owner, incomeAvg: 0, lastIncome: 0 };
   addVehicle(w, 'box', 'caneA');
   note(w, 'Your company opens with one box truck at Cane Field A and $750. The mill is hungry.', 'news');
   return w;
@@ -283,6 +357,8 @@ export function handlingMult(w, nodeId) {
   let m = 1;
   if (w.skills.owned.dispatch) m *= 0.8;
   if (w.skills.owned.connoisseur) m *= 0.8;
+  const primary = PRIMARY_UNIT[nodeId];
+  if (primary && w.units[primary]?.owner === 'player') m *= 0.9; // own-freight-first (S4.6)
   if (w.warehouses[nodeId]) {
     m *= 0.85;
     if (w.skills.owned.automation) m *= 0.85;
@@ -317,7 +393,7 @@ function priceStep(w) {
   for (const [id, def] of Object.entries(NODES)) {
     const n = w.nodes[id];
     for (const [good, anchor] of Object.entries(def.anchors ?? {})) {
-      const scarcity = anchor * factorFor(def, good, stockOf(w, id, good));
+      const scarcity = anchor * factorFor(def, good, availOf(w, id, good)); // scarcity reads AVAILABLE stock — a corner starves the shelf, not the ledger (S3.5)
       const f = n.flow[good];
       const tot = f.demand + f.out + f.in;
       const pressure = Math.max(-0.18, Math.min(0.18, (f.demand + f.out - f.in) / Math.max(tot, 2) * 0.18 * Math.min(1, tot / 4 + 0.25)));
@@ -371,6 +447,8 @@ function skillGateOk(w, id) {
 // --- intents (applied at tick boundaries) ---
 function applyIntents(w) {
   for (const it of w.intents.splice(0)) {
+    const move = classifyAct(w, it);
+    if (move !== 'OPERATE') { w.ledger.push({ tick: w.tick, move, type: it.type }); if (w.ledger.length > 300) w.ledger.splice(0, w.ledger.length - 300); }
     if (it.type === 'buyVehicle') {
       const spec = VEHICLES[it.vehicleType];
       if (!spec) continue;
@@ -404,6 +482,45 @@ function applyIntents(w) {
       w.money -= YARD_COST;
       w.yards[it.nodeId] = true;
       note(w, `Rail yard built at ${NODES[it.nodeId].name} — trains can load here once the iron reaches it.`, 'buy');
+    } else if (it.type === 'buyUnit') {
+      const unit = UNITS[it.unitId], st = w.units[it.unitId];
+      if (!unit || !st || st.owner === 'player') continue;
+      const manifest = unitManifest(w, it.unitId);
+      const manifestCost = manifest.reduce((s, m) => s + m.qty * m.price, 0);
+      const price = Math.round(unitValue(w, it.unitId) * 1.04 + manifestCost);
+      if (w.money < price) { note(w, `${unit.name} would cost $${price.toLocaleString()} (incl. $${Math.round(manifestCost).toLocaleString()} of stock on site) — not yet.`, 'warn'); continue; }
+      w.money -= price;
+      st.owner = 'player';
+      note(w, `${unit.name} is yours — $${price.toLocaleString()}${manifest.length ? `, including ${manifest.map(m => `${m.qty.toFixed(0)}t of ${GOODS[m.good].name.toLowerCase()}`).join(' and ')} on site` : ''}. Nothing else moved: the manifest is the sale.`, 'buy');
+    } else if (it.type === 'sellUnit') {
+      const unit = UNITS[it.unitId], st = w.units[it.unitId];
+      if (!unit || !st || st.owner !== 'player') continue;
+      const manifest = unitManifest(w, it.unitId);
+      const manifestValue = manifest.reduce((s, m) => s + m.qty * m.price, 0);
+      const price = Math.round(unitValue(w, it.unitId) * 0.96 + manifestValue);
+      w.money += price;
+      st.owner = 'The Families';
+      note(w, `${unit.name} sold for $${price.toLocaleString()} (incl. on-site stock at live prices).`, 'buy');
+    } else if (it.type === 'buyReceipt') {
+      const price = w.nodes[it.nodeId]?.prices[it.good];
+      if (!price) continue;
+      const room = availOf(w, it.nodeId, it.good);
+      const qty = Math.min(it.qty, room, w.money / price);
+      if (qty < 0.5) { note(w, `No room to hold ${GOODS[it.good].name} at ${NODES[it.nodeId].name} — the unheld stock is spoken for or the cash is short.`, 'warn'); continue; }
+      w.money -= qty * price;
+      const key = `${it.nodeId}|${it.good}`;
+      w.positions[key] = (w.positions[key] ?? 0) + qty;
+      note(w, `Bought in place: ${qty.toFixed(0)}t of ${GOODS[it.good].name.toLowerCase()} at ${NODES[it.nodeId].name} for $${Math.round(qty * price).toLocaleString()} — the pile never moves; the title did. Storage bleeds daily.`, 'buy');
+    } else if (it.type === 'sellReceipt') {
+      const key = `${it.nodeId}|${it.good}`;
+      const held = w.positions[key] ?? 0;
+      const qty = Math.min(it.qty, held);
+      if (qty < 0.01) continue;
+      const price = w.nodes[it.nodeId].prices[it.good] ?? 0;
+      w.money += qty * price;
+      w.positions[key] -= qty;
+      if (w.positions[key] < 0.01) delete w.positions[key];
+      note(w, `Sold in place: ${qty.toFixed(0)}t of ${GOODS[it.good].name.toLowerCase()} at ${NODES[it.nodeId].name} for $${Math.round(qty * price).toLocaleString()}.`, 'buy');
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -499,7 +616,7 @@ function consume(w) {
       const jit = n.jitter[good] ?? 1;
       const want = perDay * jit / HOURS_PER_DAY;
       n.flow[good].demand += want;
-      const avail = stockOf(w, id, good);
+      const avail = availOf(w, id, good); // held stock (positions) is not the world's to burn
       const use = Math.min(want, avail, dcAllowance);
       if (use > 0) { takeStock(w, id, good, use); n.flow[good].out += use; dcAllowance -= use; }
     }
@@ -508,6 +625,8 @@ function consume(w) {
 function agePerishables(w) {
   for (const [id] of Object.entries(NODES)) {
     const n = w.nodes[id];
+    const before = {};
+    for (const lot of n.lots) before[lot.good] = (before[lot.good] ?? 0) + lot.qty;
     for (let i = n.lots.length - 1; i >= 0; i--) {
       const lot = n.lots[i];
       const age = (w.tick - lot.born) * (lot.clockMult ?? 1) * (ICE_MULT[id] ?? 1);
@@ -515,6 +634,16 @@ function agePerishables(w) {
         n.lots.splice(i, 1);
         w.stats.rotTons += lot.qty; w.stats.rotEvents++;
         note(w, `${lot.qty.toFixed(1)}t of ${GOODS[lot.good].name.toLowerCase()} rotted at ${NODES[id].name} — the 72-hour clock ran out.`, 'rot');
+      }
+    }
+    // held stock rots with the pile it sits in (L-7: the corner bleeds)
+    for (const good of Object.keys(before)) {
+      const key = `${id}|${good}`, held = w.positions[key];
+      if (!held) continue;
+      const after = stockOf(w, id, good);
+      if (before[good] > 0 && after < before[good]) {
+        w.positions[key] = held * (after / before[good]);
+        if (w.positions[key] < 0.01) delete w.positions[key];
       }
     }
   }
@@ -565,6 +694,12 @@ function tryLoad(w, v, r) {
   const portions = takeStock(w, r.from, good, qty);
   const sum = portions.reduce((s, p) => s + p.qty, 0);
   if (sum <= 0.01) return;
+  // loading your own held stock releases the position (the title merges back)
+  const posKey = `${r.from}|${good}`;
+  if (w.positions[posKey]) {
+    w.positions[posKey] -= Math.min(w.positions[posKey], sum);
+    if (w.positions[posKey] < 0.01) delete w.positions[posKey];
+  }
   // cold chain: your carried clocks run slow once you're certified
   if (w.skills.owned.coldchain && GOODS[good].perishHours) for (const p of portions) p.clockMult = Math.min(p.clockMult ?? 1, 2 / 3);
   const born = portions.find(p => p.born !== null)?.born ?? null;
@@ -614,6 +749,7 @@ function finishUnload(w, v) {
     else addStock(w, dest, good, landed, cargo.born);
     dn.flow[good].in += landed; dn.flow[good].playerIn += landed;
     w.stats.byGood[good] = (w.stats.byGood[good] || 0) + landed;
+    w.hauledGoods[good] = true;
   }
   const km = legKm(w, v, r.from, r.to);
   const opCost = qty * km * VEHICLES[v.type].opPerTKm * opCostMult(w, v);
@@ -692,7 +828,7 @@ function generateContracts(w) {
   const day = Math.floor(w.tick / HOURS_PER_DAY);
   // lapse stale offers + expired taken contracts
   for (const c of w.contracts) {
-    if (c.state === 'open' && w.tick > c.postedTick + 3 * HOURS_PER_DAY) c.state = 'lapsed';
+    if (c.state === 'open' && w.tick > c.postedTick + 3 * HOURS_PER_DAY) { c.state = 'lapsed'; c.lapsedTick = w.tick; }
     if (c.state === 'taken' && w.tick > c.deadlineTick) {
       c.state = 'lapsed';
       note(w, `A contract lapsed: ${GOODS[c.good].name} to ${NODES[c.issuer].name} — the unfilled premium is gone, nothing else is.`, 'warn');
@@ -709,6 +845,10 @@ function generateContracts(w) {
       const price = w.nodes[id].prices[good], anchor = def.anchors?.[good];
       if (!anchor || stock >= 0.35 * target || price < anchor * 1.03) continue;
       if (w.contracts.some(c => c.issuer === id && c.good === good && (c.state === 'open' || c.state === 'taken'))) continue;
+      // a lapsed want rests two days before it may shout again — otherwise
+      // the first six deficits alternate forever and the tail (the clinical
+      // goods) starves off the board permanently
+      if (w.contracts.some(c => c.issuer === id && c.good === good && c.lapsedTick !== undefined && w.tick - c.lapsedTick < 2 * HOURS_PER_DAY)) continue;
       candidates.push({ id, good, target, stock, anchor });
     }
   }
@@ -720,8 +860,10 @@ function generateContracts(w) {
     const pricePerTon = Math.round(Math.min(cand.anchor * 2.2, spot * (1 + premium)));
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
-    w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, qty, delivered: 0, pricePerTon, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
-    note(w, `On the board: ${qty}t of ${GOODS[cand.good].name.toLowerCase()} to ${NODES[cand.id].name} at $${pricePerTon}/t — ${NODES[cand.id].name} is running dry.`, 'route');
+    const item = cand.good === 'pharma' && nextRandom(w) < 0.4 ? 'Insulin (cold pack)' : CONTRACT_ITEMS[cand.good];
+    const finalPrice = item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon;
+    w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, item, qty, delivered: 0, pricePerTon: finalPrice, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
+    note(w, `On the board: ${qty}t of ${item.toLowerCase()} to ${NODES[cand.id].name} at $${finalPrice}/t — ${NODES[cand.id].name} is running dry.`, 'route');
   }
   // crystallization: a lane you've run 3 times asks to become standing (K-2)
   for (const [lane, n] of Object.entries(w.laneCounts)) {
@@ -731,7 +873,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }
@@ -782,12 +924,56 @@ function shipCall(w) {
     const q = stockOf(w, 'port', good);
     if (q > 0) { w.nodes.port.stock[good] = 0; w.nodes.port.flow[good].out += q; sailed += q; }
   }
+  const landed = Object.values(SHIP_MANIFEST).reduce((s, q) => s + q, 0);
+  w.cranePending += landed * 6 + sailed * 2; // Port Cranes income (W20), paid at day boundary
   const [n1, n2] = shipCallDays(w);
   note(w, `The ship is in at the Port: med supplies, pharma and provisions on the dock${sailed >= 5 ? `; ${sailed.toFixed(0)}t of exports sailed with her` : ''}. Next calls: Day ${n1} and Day ${n2}.`, 'news');
 }
 
+// --- ownership economics (W20): yesterday's flows pay today's owners ---
+function unitIncomeDay(w) {
+  for (const [unitId, unit] of Object.entries(UNITS)) {
+    const st = w.units[unitId], node = w.nodes[unit.node];
+    let gross = 0;
+    if (unit.kind === 'producer') gross = node.flow[unit.good].in * (node.prices[unit.good] ?? 0) * unit.margin;
+    else if (unit.kind === 'converter') {
+      const def = NODES[unit.node];
+      const outQty = node.flow[def.converts.out].in;
+      const marginPerTon = (node.prices[def.converts.out] ?? 0) - (node.prices[def.converts.in] ?? 0) / def.converts.ratio;
+      gross = Math.max(0, outQty * marginPerTon) * unit.margin;
+    } else if (unit.kind === 'sink') {
+      let sum = 0;
+      for (const [good, perDay] of Object.entries(NODES[unit.node].consumes ?? {})) {
+        if (perDay === 9999) continue;
+        sum += node.flow[good].out * (node.prices[good] ?? 0);
+      }
+      gross = sum * unit.margin;
+    } else if (unitId === 'iceHouse') gross = w.nodes.docks.flow.shrimp.in * (w.nodes.docks.prices.shrimp ?? 0) * unit.margin;
+    else if (unitId === 'portCranes') { gross = w.cranePending; w.cranePending = 0; }
+    let income = gross;
+    if (st.owner === 'player' && w.skills.owned.tiering) income *= 1.15;
+    st.lastIncome = income;
+    st.incomeAvg = st.incomeAvg === 0 ? income : st.incomeAvg * 0.8 + income * 0.2;
+    if (st.owner === 'player' && income > 0) { w.money += income; w.stats.unitIncome += income; }
+  }
+}
+function storageBleed(w) {
+  let bleed = 0;
+  for (const [key, qty] of Object.entries(w.positions)) {
+    const nodeId = key.split('|')[0];
+    bleed += qty * (w.warehouses[nodeId] ? 0.2 : 0.4);
+  }
+  if (bleed > 0) {
+    w.money -= bleed;
+    w.stats.storagePaid += bleed;
+    if (bleed >= 15) note(w, `Storage on held stock: −$${Math.round(bleed)} today — the corner bleeds by design.`, 'warn');
+  }
+}
+
 // --- day & season boundaries ---
 function dayBoundary(w) {
+  unitIncomeDay(w);   // reads yesterday's flows before receipts reset them
+  storageBleed(w);
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
   const f = w.fishery;

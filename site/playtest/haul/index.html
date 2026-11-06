@@ -81,7 +81,7 @@
 import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf, MAP_BOX, REFITS, WEATHERS } from './engine.js';
 
 const SAVE_KEY = 'haul-save-v19';
-const CURRENT_PHASE = 2.3; // Wave 15: spread, butter, the spending desk, zoom in levels (saves migrate in restore())
+const CURRENT_PHASE = 2.4; // Wave 16: THE SEAM + DORMANCY (LT-08 section 9) (saves migrate in restore())
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -149,6 +149,7 @@ function mixHex(a, b, t) { // palette blends only - no new hues (the Desk's shad
   return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * t)).join(',')})`;
 }
 let dusk = false; // Day is the default light; Dusk is one overlay pass (section 7)
+const liftEase = {}; // W39: each place's lift eases toward its dormancy class - wake is an event, never a pop-in
 function nodeState(id) { // the ring tells the story: hungry blush · surging gold · thin amber · fed green
   const def = NODES[id], node = w.nodes[id];
   let worst = Infinity;
@@ -277,12 +278,23 @@ function draw(now) {
   for (const [id, def] of Object.entries(NODES)) {
     const p = pt(id);
     const R = CITIES.has(id) ? 15 : 13;
-    const H = PLACE_LIFT[id] ?? 2, topY = p.y - H;
-    placeGeom[id] = { p, R, H, topY };
+    // dormancy (W39, LT-08 section 9): the lift eases toward the place's class
+    const dorm = w.dormancy[id] ?? 2, dTarget = dorm === 0 ? 0 : dorm === 1 ? 0.4 : 1;
+    liftEase[id] = liftEase[id] === undefined ? dTarget : liftEase[id] + (dTarget - liftEase[id]) * 0.04;
+    const f = liftEase[id];
+    if (f < 0.15) { // the dormant face: a chart dot - position + state, asleep not absent
+      placeGeom[id] = { p, R, H: 0, topY: p.y, dot: true };
+      ctx.fillStyle = mixHex('#f5f1e4', '#8a8d80', .55);
+      ctx.beginPath(); ctx.arc(p.x, p.y, CITIES.has(id) ? 6 : 5, 0, 7); ctx.fill();
+      continue;
+    }
+    const H = (PLACE_LIFT[id] ?? 2) * f, topY = p.y - H;
+    placeGeom[id] = { p, R, H, topY, dot: false };
     ctx.fillStyle = 'rgba(64,62,44,.35)'; // 2 - cast shadow: one NW sun, the spec's vector
     ctx.beginPath(); ctx.ellipse(p.x + 6 + .55 * H, p.y + 8 + .8 * H, R, R * .36, 0, 0, 7); ctx.fill();
+    const grey = (1 - f) * 0.45; // a stirring place wears its grey until it wakes
     const grd = ctx.createLinearGradient(0, topY, 0, p.y + R * .36); // 3 - skirt: class on the side
-    grd.addColorStop(0, mixHex('#f5f1e4', '#232519', .30)); grd.addColorStop(1, mixHex('#f5f1e4', '#232519', .44));
+    grd.addColorStop(0, mixHex(mixHex('#f5f1e4', '#232519', .30), '#8a8d80', grey)); grd.addColorStop(1, mixHex(mixHex('#f5f1e4', '#232519', .44), '#8a8d80', grey));
     ctx.fillStyle = grd;
     ctx.beginPath();
     ctx.moveTo(p.x - R, topY);
@@ -304,6 +316,15 @@ function draw(now) {
   for (const [id, def] of Object.entries(NODES)) {
     const { p, R, H, topY } = placeGeom[id], node = w.nodes[id];
     const st = nodeState(id); // 5 - the rim carries state, with its relief light copy
+    if (placeGeom[id].dot) { // the dormant rim: dashed, in the state color - state never retires
+      ctx.strokeStyle = st ?? 'rgba(90,95,85,.65)'; ctx.lineWidth = 1.6; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(p.x, p.y, (CITIES.has(id) ? 6 : 5) + 2.5, 0, 7); ctx.stroke();
+      ctx.setLineDash([]); ctx.lineWidth = 1;
+      if (sel?.kind === 'node' && sel.id === id) { ctx.strokeStyle = '#22312a'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(p.x, p.y, (CITIES.has(id) ? 6 : 5) + 5, 0, 7); ctx.stroke(); ctx.lineWidth = 1; }
+      ctx.font = '9.5px system-ui'; ctx.fillStyle = 'rgba(34,49,42,.85)'; ctx.textAlign = 'center';
+      if (view.level > 1 || CITIES.has(id) || sel?.id === id) ctx.fillText(def.name, p.x, p.y + 14);
+      continue;
+    }
     if (st) {
       ctx.strokeStyle = st; ctx.lineWidth = 2.2;
       ctx.beginPath(); ctx.ellipse(p.x, topY, R, R * .36, 0, 0, 7); ctx.stroke();

@@ -586,6 +586,7 @@ export function createWorld(seed = 1, opts = {}) {
     crown: { rule: 'capped', streak: 0, achieved: {}, ending: null, current: 0, raw: 0, capped: 0, peak: 0 },
     moveLog: [],             // trailing 30 days of moved value (W23)
     nodeFlowLog: [],         // trailing 30 days of per-node flow totals (W27 coverage)
+    dormancy: {},            // per-place sleep class (W39): 0 dormant · 1 stirring · 2 awake; unmeasured = awake
     capital: { timberStock: 3000, soil: { caneA: 100, caneB: 100, ricefarm: 100 }, marsh: 100 }, // natural capital (W27)
     rivalTrucks: [
       { house: 'Boudreaux', from: 'caneB', to: 'mill', good: 'cane', state: 'loading', hours: 0, cargo: 0, trips: 0 },
@@ -1972,6 +1973,9 @@ export function coverageOf(w) {
   const engaged = majors.filter(id => rows.reduce((a, r) => a + (r[id] ?? 0), 0) > 0.5).length;
   return engaged / majors.length;
 }
+export function engagementOf(w, nodeId) { // trailing-3-day out-flow at one place (W39: the dormancy measure)
+  return w.nodeFlowLog.slice(-3).reduce((a, r) => a + (r[nodeId] ?? 0), 0);
+}
 
 // --- the Crown (W23): moved value, the meter, the endings, the report ---
 export function controlShares(w) {
@@ -2239,6 +2243,15 @@ function dayBoundary(w) {
   }
   // the day's flows, logged before receipts reset them (W27 coverage reads this)
   { const row = {}; for (const id of Object.keys(NODES)) { const n = w.nodes[id]; row[id] = Object.values(n.flow).reduce((a, f) => a + f.out, 0); } w.nodeFlowLog.push(row); if (w.nodeFlowLog.length > 30) w.nodeFlowLog.shift(); }
+  // dormancy (W39, LT-08 section 9): a place sleeps when nothing leaves it;
+  // waking is an event with a face. Unmeasured worlds (log < 3 days) stand awake.
+  if (w.nodeFlowLog.length >= 3) {
+    for (const id of Object.keys(NODES)) {
+      const e = engagementOf(w, id), cls = e <= 0.05 ? 0 : e <= 0.5 ? 1 : 2, was = w.dormancy[id] ?? 2;
+      if (cls > was) note(w, cls === 2 ? `🌅 ${NODES[id].name} wakes — goods are moving there again.` : `🌤 ${NODES[id].name} stirs — a little freight is moving.`, 'news');
+      w.dormancy[id] = cls;
+    }
+  }
   controlStep(w);
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
@@ -2445,6 +2458,7 @@ export function restore(json) {
   if (w.driverSeq === undefined) w.driverSeq = 0;
   for (const v of w.vehicles) { if (!v.driver) { v.driver = DRIVERS[w.driverSeq % DRIVERS.length]; w.driverSeq++; } if (v.sickTick === undefined) v.sickTick = -1; }
   for (const [nid, pc] of Object.entries(w.parcels)) { const pu = PRIMARY_UNIT[nid]; if (pu && w.units[pu]?.owner === 'player' && pc.owned >= 4 && pc.left === 0) pc.left = 1; } // the Home Quarter, for saves that earned it before it was named (W37)
+  if (!w.dormancy) w.dormancy = {}; // W39: dormancy arrives; unmeasured places stand awake
   for (const k of ['wagesPaid', 'upkeepPaid', 'repairsPaid', 'opexPaid', 'sickDays']) if (w.stats[k] === undefined) w.stats[k] = 0;
   return w;
 }

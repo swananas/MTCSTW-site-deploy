@@ -14,6 +14,9 @@
   header .brand { font-weight:800; letter-spacing:.14em; font-size:15px; }
   header .money { font-weight:800; color:var(--teal); font-size:16px; }
   #delta { font-weight:800; color:#b3402e; font-size:13.5px; min-width:52px; }
+  #infl { font-weight:700; color:#5b4a8a; font-size:13.5px; }
+  #events { display:none; padding:4px 10px; background:#f3e9d2; border-bottom:1px solid var(--line); font-size:12.5px; }
+  #events div { padding:1px 0; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
   .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
@@ -47,6 +50,7 @@
     <div class="brand">HAUL</div>
     <div class="money" id="money">$750</div>
     <span id="delta"></span>
+    <span id="infl" title="Influence with the State"></span>
     <div class="speeds" id="speeds">
       <button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
     </div>
@@ -59,16 +63,17 @@
     <button id="newgame" title="Start over">↺</button>
   </header>
   <canvas id="map"></canvas>
+  <div id="events"></div>
   <div id="routes"></div>
   <div id="ticker"></div>
   <div id="sheet"></div>
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, sharePrice, houseEquity, loanOwed } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v06';
-const CURRENT_PHASE = 0.6;
+const SAVE_KEY = 'haul-save-v07';
+const CURRENT_PHASE = 0.7;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -363,6 +368,11 @@ function renderMarket(el) {
   if (!setHTML(el, `<div class="card"><h3>📈 The Market</h3>
     <div class="sub">The houses are listed: 10% shows you their pulse, 25% opens their books, over half makes them yours to direct, all of it retires the name. Dividends paid to you so far: <b>$${Math.round(w.stats.dividends).toLocaleString()}</b>.</div>
     <div class="status">🏛 <b>The State:</b> ${w.state.policy ? `<b>${pol(w.state.policy).name}</b> in force — ${pol(w.state.policy).blurb}` : 'no policy in force yet — the first enacts at the season turn.'} Next debate: <b>${pol(w.state.pending)?.name}</b> — ${pol(w.state.pending)?.blurb}</div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>⚖ Influence: <b>${w.influence}</b> · Posture: <b>${w.posture}</b>${w.posture === 'partner' ? ' (gains ×1.5, favors −1)' : w.posture === 'adversarial' ? ' (gains ×½, contracts +15%)' : ''}</span><span style="display:flex;gap:4px;flex:none">${['partner', 'independent', 'adversarial'].map(p => `<button data-posture="${p}" ${w.posture === p ? 'class="primary"' : ''}>${p[0].toUpperCase() + p.slice(1)}</button>`).join('')}</span></div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>State actions — favors the government can do a hauler:</span><span style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end"><button data-saction="dredge" ${w.influence < (w.posture === 'partner' ? 3 : 4) ? 'disabled' : ''}>Emergency dredge · ${w.posture === 'partner' ? 3 : 4}⚖</button><button data-saction="stockpile" ${w.influence < (w.posture === 'partner' ? 4 : 5) ? 'disabled' : ''}>Stockpile release · ${w.posture === 'partner' ? 4 : 5}⚖</button></span></div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Charter next season's debate (${w.posture === 'partner' ? 7 : 8}⚖):</span><span style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end">${STATE_DECK.map(p => `<button data-charter="${p.id}" ${w.influence < (w.posture === 'partner' ? 7 : 8) || w.state.pending === p.id ? 'disabled' : ''}>${p.name}</button>`).join('')}</span></div>
+    ${w.crews.unionOffer ? row(`<b>Your crews have organized.</b> Their bargain: Fair wages locked two seasons, breakdowns down a fifth — a stability contract, not a surrender. Refuse, and a season of grievance follows.`, `<button data-accept-union="1" class="primary">Sign the bargain</button><button data-decline-union="1">Refuse</button>`) : ''}
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>🚚 <b>Crews</b> — wages: <b>${w.crews.wage}</b>${w.tick < w.crews.unionUntil ? ` · bargain holds to Day ${Math.floor(w.crews.unionUntil / 24) + 1}` : ''}${w.tick < w.crews.grievanceUntil ? ' · <b>grievance active</b>' : ''} · Tight miles cost ×0.9 but hands tire (handling ×1.1, breakdowns ×1.5); Generous costs ×1.12 with steadier hands.</span><span style="display:flex;gap:4px;flex:none">${['tight', 'fair', 'generous'].map(wg => `<button data-wage="${wg}" ${w.crews.wage === wg ? 'class="primary"' : ''}>${wg[0].toUpperCase() + wg.slice(1)}</button>`).join('')}</span></div>
     ${offer ? row(`<b>${offer.house}</b> offers emancipation: <b>$${offer.price.toLocaleString()}</b> for all your shares, at a premium. Control flows; nobody leaves.`, `<button data-accept-eman="1" class="primary">Accept</button><button data-decline-eman="1">Decline</button>`) : ''}
     <div style="font-weight:700;margin-top:6px">The listed houses</div>
     ${houseRows}
@@ -381,6 +391,12 @@ function renderMarket(el) {
   el.querySelectorAll('[data-borrow]').forEach(b => b.onclick = () => Q({ type: 'borrow', unitId: b.dataset.borrow }));
   const acc = el.querySelector('[data-accept-eman]'); if (acc) acc.onclick = () => Q({ type: 'acceptEmancipation' });
   const dec = el.querySelector('[data-decline-eman]'); if (dec) dec.onclick = () => Q({ type: 'declineEmancipation' });
+  el.querySelectorAll('[data-posture]').forEach(b => b.onclick = () => Q({ type: 'setPosture', posture: b.dataset.posture }));
+  el.querySelectorAll('[data-saction]').forEach(b => b.onclick = () => Q({ type: 'stateAction', action: b.dataset.saction }));
+  el.querySelectorAll('[data-charter]').forEach(b => b.onclick = () => Q({ type: 'charterPolicy', policyId: b.dataset.charter }));
+  el.querySelectorAll('[data-wage]').forEach(b => b.onclick = () => Q({ type: 'setWage', wage: b.dataset.wage }));
+  const au = el.querySelector('[data-accept-union]'); if (au) au.onclick = () => Q({ type: 'acceptUnion' });
+  const du = el.querySelector('[data-decline-union]'); if (du) du.onclick = () => Q({ type: 'declineUnion' });
 }
 function renderSheet() {
   const el = $('sheet');
@@ -432,7 +448,10 @@ function renderSheet() {
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
     ${PRIMARY_UNIT[id] ? `<div class="status">🏛 <b>${UNITS[PRIMARY_UNIT[id]].name}</b> — owned by ${w.units[PRIMARY_UNIT[id]].owner === 'player' ? '<b>you</b>' : w.units[PRIMARY_UNIT[id]].owner} · paid $${Math.round(w.units[PRIMARY_UNIT[id]].lastIncome).toLocaleString()} yesterday${w.units[PRIMARY_UNIT[id]].owner === 'player' ? ' · your freight loads ×0.9 faster here' : ''}</div>` : ''}
-    ${Object.keys(GOODS).filter(g => positionsAt(w, id, g) > 0.01).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>📜 You hold title to <b>${positionsAt(w, id, g).toFixed(0)}t ${GOODS[g].name}</b> here — it does not burn, rot aside; storage bleeds daily.</span><button data-psell="${g}">Sell</button></div>`).join('')}
+    <div class="status">🌍 People <b>${Math.round(w.population[id])}</b>${w.dev[id].archetype ? ` · a <b>${w.dev[id].archetype === 'agri' ? 'Agri' : w.dev[id].archetype[0].toUpperCase() + w.dev[id].archetype.slice(1)}</b> place` : ''} · pollution <b>${Math.round(w.pollution[id])}</b>${COASTAL.includes(id) ? ` · Gulf health rides on coasts like this` : ''}${w.parcels[id].owned ? ` · you hold <b>${w.parcels[id].owned}</b> parcel${w.parcels[id].owned > 1 ? 's' : ''} here (+10% unit income, cleaner air)` : ''}</div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Land: ${w.parcels[id].left} of 4 parcels unclaimed — land does not print.</span><span style="display:flex;gap:4px;flex:none">${w.parcels[id].left > 0 ? `<button data-parcel="${id}" ${w.money < parcelPrice(w, id) ? 'disabled' : ''}>Buy parcel · $${parcelPrice(w, id).toLocaleString()}</button>` : ''}${COASTAL.includes(id) && w.pollution[id] > 0 ? `<button data-marsh="${id}" ${w.money < 800 ? 'disabled' : ''}>Restore marsh · $800</button>` : ''}</span></div>
+    ${Object.keys(GOODS).filter(g => positionsAt(w, id, g) > 0.01).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>📜 You hold title to <b>${positionsAt(w, id, g).toFixed(0)}t ${GOODS[g].name}</b> here — it does not burn, rot aside; storage bleeds daily.</span><span style="display:flex;gap:4px;flex:none"><button data-psell="${g}">Sell</button></span></div>`).join('')}
+    ${Object.keys(GOODS).some(g => positionsAt(w, id, g) > 0.01) ? `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>⚖ The State can break every corner at this node — all your titles here sold at live prices.</span><button data-release="${id}" ${w.influence < (w.posture === 'partner' ? 5 : 6) ? 'disabled' : ''}>Release orders · ${w.posture === 'partner' ? 5 : 6}⚖</button></div>` : ''}
     ${Object.keys(GOODS).filter(g => w.nodes[id].prices[g] > 0 && availOf(w, id, g) >= 5).slice(0, 4).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Hold <b>${GOODS[g].name}</b> in place — buy the title, the pile never moves.</span><button data-pbuy="${g}" ${w.money < w.nodes[id].prices[g] * 10 ? 'disabled' : ''}>Hold 10t · $${Math.round(w.nodes[id].prices[g] * 10).toLocaleString()}</button></div>`).join('')}
     ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
     ${WATER_NODES.has(id) ? `<div class="status">🌊 The river runs <b>${w.river.level.toFixed(2)}</b> — ${w.river.state === 'shallows' ? '<b>shallows: barges load half</b>' : w.river.state === 'high' ? '<b>high water: barges slow to 60%</b>' : 'fair for barges'}${w.skills.owned.dredge ? ' · your dredging buys you depth to 0.80' : ''}</div>` : ''}
@@ -455,6 +474,9 @@ function renderSheet() {
   const tm = $('b-track'); if (tm) tm.onclick = () => { trackMode = !trackMode; renderSheet(); };
   el.querySelectorAll('[data-pbuy]').forEach(b => b.onclick = () => Q({ type: 'buyReceipt', nodeId: id, good: b.dataset.pbuy, qty: 10 }));
   el.querySelectorAll('[data-psell]').forEach(b => b.onclick = () => Q({ type: 'sellReceipt', nodeId: id, good: b.dataset.psell, qty: 1e9 }));
+  el.querySelectorAll('[data-parcel]').forEach(b => b.onclick = () => Q({ type: 'buyParcel', nodeId: b.dataset.parcel }));
+  el.querySelectorAll('[data-marsh]').forEach(b => b.onclick = () => Q({ type: 'restoreMarsh', nodeId: b.dataset.marsh }));
+  el.querySelectorAll('[data-release]').forEach(b => b.onclick = () => Q({ type: 'stateAction', action: 'release', nodeId: b.dataset.release }));
 }
 function renderRoutes() {
   const el = $('routes');
@@ -471,6 +493,16 @@ function renderRoutes() {
     sel = { kind: 'route', id: +s.dataset.sel }; renderSheet();
   });
   el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => Q({ type: 'removeRoute', routeId: +b.dataset.rm }));
+}
+function renderEvents() {
+  const el = $('events');
+  if (!w.events.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  setHTML(el, w.events.map(ev => {
+    const card = EVENT_DECK.find(c => c.id === ev.card);
+    const active = w.tick >= ev.startsTick && w.tick <= ev.endsTick;
+    return `<div>${active ? '🔴' : '🌀'} <b>${card.name}</b> — ${active ? `running, ends Day ${Math.floor(ev.endsTick / 24) + 1}` : `expected ~Day ${Math.floor(ev.startsTick / 24) + 1}`}${ev.card === 'hurricane' && ev.revealed ? ` · landfall: <b>${NODES[ev.landfall].name}</b>` : ''}</div>`;
+  }).join(''));
 }
 function renderTicker() {
   setHTML($('ticker'), w.ticker.slice(-5).reverse().map(t => `<div class="${t.kind}">${t.text}</div>`).join(''));
@@ -598,7 +630,8 @@ function frame(now) {
   $('portbtn').textContent = ownedUnits ? `🏦 ${ownedUnits}` : '🏦';
   $('mktbtn').textContent = w.emancipation ? '📈 !' : '📈';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
-  draw(now); renderTicker(); renderRoutes();
+  draw(now); renderTicker(); renderRoutes(); renderEvents();
+  $('infl').textContent = w.influence > 0 ? `⚖ ${w.influence}` : '';
   if (frame.n++ % 20 === 0 && !touched($('sheet'))) renderSheet();
   requestAnimationFrame(frame);
 }

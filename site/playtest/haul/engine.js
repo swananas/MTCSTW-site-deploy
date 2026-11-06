@@ -129,7 +129,10 @@ export function waterDistance(from, to) {
 }
 // The Ice House radius (S1 E08-b): lots ashore here age at ×0.30 — iced time.
 export const ICE_MULT = { docks: 0.3, processor: 0.3 };
-export function fisheryFactor(w) { return Math.max(0.3, Math.min(1.1, w.fishery.stock / 85)); }
+export function fisheryFactor(w) {
+  if (w.tick < (w.fishery.closedUntil ?? 0)) return 0; // the State has closed the Gulf (W22)
+  return Math.max(0.3, Math.min(1.1, w.fishery.stock / 85)) * (w.evMods.fishery ?? 1);
+}
 
 // --- rail: track is laid segment by segment; trains run only on iron ---
 export function trackKey(a, b) { return [a, b].sort().join('|'); }
@@ -155,7 +158,7 @@ export function bargeCapMult(w, owned) {
   const threshold = owned && w.skills.owned.dredge ? 0.80 : 0.90;
   return w.river.level < threshold ? 0.5 : 1;
 }
-export function bargeSpeedMult(w) { return w.river.level > 1.05 ? 0.6 : 1; }
+export function bargeSpeedMult(w) { if (w.evMods.waterGrounded) return 0; return w.river.level > 1.05 ? 0.6 : 1; }
 
 // Skill trees, 0.2 scope: LOGISTICS + OPERATIONS (S6.7, priced in W17).
 // phase: the phase whose systems make the node live; earlier = display-locked.
@@ -275,7 +278,7 @@ export function availOf(w, nodeId, good) { return Math.max(0, stockOf(w, nodeId,
 export function classifyAct(w, it) {
   switch (it.type) {
     case 'buyVehicle': case 'buyBoat': case 'buySkill': return 'SCALE';
-    case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': case 'buyShares': return 'INTEGRATE';
+    case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': case 'buyShares': case 'buyParcel': return 'INTEGRATE';
     case 'addRoute': return routeDiversifies(w, it.from, it.to) ? 'DIVERSIFY' : 'SCALE';
     default: return 'OPERATE';
   }
@@ -290,13 +293,59 @@ function routeDiversifies(w, from, to) {
   return false;
 }
 
+export const COASTAL = ['docks', 'delcambre', 'processor', 'port', 'fourchon', 'grandisle', 'shipyard', 'nola'];
+export const HURRICANE_CONE = ['docks', 'processor', 'port', 'fourchon', 'grandisle', 'shipyard', 'nola'];
+export const EVENT_DECK = [
+  { id: 'hurricane', name: 'Hurricane', days: 5 },
+  { id: 'river-high', name: 'River High', days: 7 },
+  { id: 'river-low', name: 'River Low', days: 7 },
+  { id: 'refinery-outage', name: 'Refinery Outage', days: 5 },
+  { id: 'red-tide', name: 'Red Tide', days: 10 },
+  { id: 'cane-blight', name: 'Cane Blight', days: 15 },
+  { id: 'mardi-gras', name: 'Mardi Gras', days: 5 },
+  { id: 'heat-wave', name: 'Heat Wave', days: 7 },
+  { id: 'export-boom', name: 'Export Boom', days: 10 },
+  { id: 'dredge-gift', name: 'The Dredge Gift', days: 1 },
+];
+export const PARCEL_BASE = (nodeId) => {
+  const def = NODES[nodeId];
+  if (nodeId === 'port' || nodeId === 'nola' || nodeId === 'batonrouge') return 1400;
+  if (def.converts || nodeId === 'distributor' || nodeId === 'shipyard' || nodeId === 'refinery') return 900;
+  return 500;
+};
+export function parcelPrice(w, nodeId) {
+  const p = w.parcels[nodeId];
+  if (!p || p.left <= 0) return Infinity;
+  const devTotal = Object.values(w.dev[nodeId]?.scores ?? {}).reduce((s, x) => s + x, 0);
+  return Math.round(PARCEL_BASE(nodeId) * (1 + devTotal / 50) * (2 - p.left / 4));
+}
+export function evBurnMult(w, nodeId, good) {
+  let m = 1;
+  const ev = w.evMods;
+  if (ev.burnNode?.[nodeId]) m *= ev.burnNode[nodeId];
+  if (ev.burnKey?.[`${nodeId}|${good}`]) m *= ev.burnKey[`${nodeId}|${good}`];
+  if (ev.burnCat?.[good] && HURRICANE_CONE.includes(nodeId) && (NODES[nodeId].consumes?.[good] ?? 0) !== 9999) m *= ev.burnCat[good];
+  m *= 0.7 + 0.3 * ((w.population[nodeId] ?? 100) / 100); // people are the demand (W22)
+  if (w.dev[nodeId]?.archetype === 'care' && CARE_NODES.has(nodeId)) m *= 1.1;
+  return m;
+}
 export function createWorld(seed = 1) {
   const w = {
     tick: 0, money: 750, seed,
     rng: { a: seed | 0 },
     nodes: {}, vehicles: [], routes: [], contracts: [],
     warehouses: {},          // nodeId -> true (player-built, 0.2: one per node)
-    fishery: { stock: 80, dayCatch: 0, warned: false },
+    fishery: { stock: 80, dayCatch: 0, warned: false, closedUntil: 0 },
+    influence: 0,            // the second currency (State full, W22)
+    posture: 'independent',  // partner | independent | adversarial
+    crews: { wage: 'fair', tightDays: 0, unionUntil: 0, grievanceUntil: 0, unionOffer: false },
+    events: [],              // the conflict deck, live + forecast (W22)
+    evMods: {},              // today's event weather, recomputed at the boundary
+    pollution: {},           // nodeId -> 0..100
+    population: {},          // nodeId -> 50..150 (100 = the place as drawn)
+    dev: {},                 // nodeId -> { scores, archetype }
+    parcels: {},             // nodeId -> { left, owned } — land is the zero-sum
+    shipWait: false,
     boats: { docks: 3, delcambre: 3 },
     track: {},               // 'a|b' -> { doneTick }
     yards: {},               // nodeId -> true
@@ -331,6 +380,7 @@ export function createWorld(seed = 1) {
     w.houses[house] = { cash: HOUSE_START_CASH[house] ?? 0, incomeAvg: 0, subOf: null, dial: null, integrated: false, buybackFund: 0, delisted: false, lastTrade: -9999, emanCooldownUntil: 0 };
     if (HOUSES[house].listed) w.stakes[house] = 0;
   }
+  for (const id of Object.keys(NODES)) { w.pollution[id] = 0; w.population[id] = 100; w.dev[id] = { scores: { industrial: 0, port: 0, care: 0, agri: 0, tourist: 0 }, archetype: null }; w.parcels[id] = { left: 4, owned: 0 }; }
   w.state.rngA = (seed * 2654435761) >>> 0;
   w.state.pending = drawStatePolicy(w);
   addVehicle(w, 'box', 'caneA');
@@ -401,7 +451,7 @@ export function capOf(w, nodeId, good) {
   else if (def.converts?.out === good) cap = 160;
   else if (def.consumes?.[good]) cap = 130;
   else cap = 60;
-  if (w.warehouses[nodeId] && cap !== Infinity) cap += 500;
+  if (w.warehouses[nodeId] && cap !== Infinity) cap += 500 * w.warehouses[nodeId];
   return cap;
 }
 // the handling stack (W17): all your turnaround, one multiplier
@@ -411,6 +461,9 @@ export function handlingMult(w, nodeId) {
   if (w.skills.owned.connoisseur) m *= 0.8;
   const primary = PRIMARY_UNIT[nodeId];
   if (primary && w.units[primary]?.owner === 'player') m *= 0.9; // own-freight-first (S4.6)
+  if (w.dev[nodeId]?.archetype === 'industrial') m *= 0.95; // an Industrial place handles practiced (W22)
+  if (w.crews.wage === 'tight') m *= 1.1;
+  else if (w.crews.wage === 'generous') m *= 0.95;
   if (w.warehouses[nodeId]) {
     m *= 0.85;
     if (w.skills.owned.automation) m *= 0.85;
@@ -450,7 +503,8 @@ function priceStep(w) {
       const tot = f.demand + f.out + f.in;
       const pressure = Math.max(-0.18, Math.min(0.18, (f.demand + f.out - f.in) / Math.max(tot, 2) * 0.18 * Math.min(1, tot / 4 + 0.25)));
       let target = scarcity * (1 + pressure);
-      if (id === 'port' && w.state.mods.port) target *= w.state.mods.port; // Export Subsidy (State lite)
+      if (id === 'port') target *= (w.state.mods.port ?? 1) * (w.evMods.port ?? 1) * (w.dev[id]?.archetype === 'port' ? 1.03 : 1); // subsidy × boom × a Port place (W22)
+      if (id === 'grandisle' && (good === 'packed' || good === 'provisions') && w.dev[id]?.archetype === 'tourist') target *= 1.06;
       target = Math.max(scarcity * 0.6, Math.min(scarcity * 1.4, target)); // the ±40% sanity band
       const cur = n.prices[good] || anchor;
       n.prices[good] = Math.round((cur + 0.25 * (target - cur)) * 100) / 100;
@@ -681,6 +735,72 @@ function applyIntents(w) {
       w.houses[offer.house].emanCooldownUntil = w.tick + TICKS_PER_SEASON;
       note(w, `You decline ${offer.house}'s buyback. The offer rests for a season.`, 'news');
       w.emancipation = null;
+    } else if (it.type === 'buyParcel') {
+      const price = parcelPrice(w, it.nodeId);
+      if (!isFinite(price)) continue;
+      if (w.money < price) { note(w, `A parcel at ${NODES[it.nodeId].name} runs $${price.toLocaleString()} — not yet.`, 'warn'); continue; }
+      w.money -= price;
+      w.parcels[it.nodeId].left--; w.parcels[it.nodeId].owned++;
+      note(w, `Parcel bought at ${NODES[it.nodeId].name} for $${price.toLocaleString()} — land under the business: +10% unit income here, and your stewardship cleans its air. ${w.parcels[it.nodeId].left} parcels remain; land does not print.`, 'buy');
+    } else if (it.type === 'restoreMarsh') {
+      if (!COASTAL.includes(it.nodeId) || w.money < 800) continue;
+      w.money -= 800;
+      w.pollution[it.nodeId] = Math.max(0, w.pollution[it.nodeId] - 15);
+      note(w, `Marsh restored at ${NODES[it.nodeId].name} — the water clears (−15 pollution) and the parish notices.`, 'buy');
+    } else if (it.type === 'setWage') {
+      if (!['tight', 'fair', 'generous'].includes(it.wage)) continue;
+      if (w.tick < w.crews.unionUntil && it.wage !== 'fair') { note(w, `The bargain holds: wages stay Fair until Day ${Math.floor(w.crews.unionUntil / 24) + 1}.`, 'warn'); continue; }
+      w.crews.wage = it.wage;
+      note(w, `Crew wages: ${it.wage === 'tight' ? 'Tight — cheaper miles, tired hands, and the crews keep count' : it.wage === 'generous' ? 'Generous — dearer miles, steady hands' : 'Fair — the standard bargain'}.`, 'news');
+    } else if (it.type === 'acceptUnion') {
+      if (!w.crews.unionOffer) continue;
+      w.crews.unionOffer = false;
+      w.crews.wage = 'fair';
+      w.crews.unionUntil = w.tick + 2 * TICKS_PER_SEASON;
+      note(w, `The bargain is signed: Fair wages for two seasons, breakdowns down — stability, contracted.`, 'buy');
+    } else if (it.type === 'declineUnion') {
+      if (!w.crews.unionOffer) continue;
+      w.crews.unionOffer = false;
+      w.crews.grievanceUntil = w.tick + TICKS_PER_SEASON;
+      note(w, `You refuse the bargain. Thirty days of grievance begin: double breakdown odds and sick days on the roster.`, 'warn');
+    } else if (it.type === 'setPosture') {
+      if (!['partner', 'independent', 'adversarial'].includes(it.posture)) continue;
+      w.posture = it.posture;
+      note(w, `Your posture toward the State: ${it.posture} — ${it.posture === 'partner' ? 'influence flows faster and favors come cheaper' : it.posture === 'adversarial' ? 'they pay your contracts a fixer\'s premium and trust you half as fast' : 'neither courted nor fought'}.`, 'news');
+    } else if (it.type === 'stateAction') {
+      const discount = w.posture === 'partner' ? 1 : 0;
+      if (it.action === 'dredge') {
+        const cost = 4 - discount;
+        if (w.influence < cost) { note(w, `An emergency dredge takes ${cost} influence — you hold ${w.influence}.`, 'warn'); continue; }
+        w.influence -= cost;
+        w.river.level = Math.min(1.14, w.river.level + 0.06);
+        note(w, `The State dredges on your word: the river runs +0.06 deeper today.`, 'buy');
+      } else if (it.action === 'stockpile') {
+        const cost = 5 - discount;
+        const starved = [...CARE_NODES].some(id => stockOf(w, id, 'med') < 0.35 * 10 || stockOf(w, id, 'pharma') < 0.35 * 10);
+        if (!starved) { note(w, `No care node is starved of med or pharma — the stockpile stays shut, and the ask costs nothing.`, 'warn'); continue; }
+        if (w.influence < cost) { note(w, `A stockpile release takes ${cost} influence — you hold ${w.influence}.`, 'warn'); continue; }
+        w.influence -= cost;
+        addStock(w, 'port', 'med', 15, 0); addStock(w, 'port', 'pharma', 6, 0); addStock(w, 'port', 'provisions', 20, 0);
+        note(w, `The State opens its stockpile at the Port: 15t med supplies, 6t pharma, 20t provisions — move them to the hospitals.`, 'buy');
+      } else if (it.action === 'release' && it.nodeId) {
+        const cost = 6 - discount;
+        const held = Object.keys(GOODS).filter(g => positionsAt(w, it.nodeId, g) > 0.01);
+        if (!held.length) { note(w, `No corner stands at ${NODES[it.nodeId].name} — nothing to release.`, 'warn'); continue; }
+        if (w.influence < cost) { note(w, `Release orders take ${cost} influence — you hold ${w.influence}.`, 'warn'); continue; }
+        w.influence -= cost;
+        let paid = 0;
+        for (const g of held) { const key = `${it.nodeId}|${g}`; paid += w.positions[key] * (w.nodes[it.nodeId].prices[g] ?? 0); delete w.positions[key]; }
+        w.money += paid;
+        note(w, `Release orders at ${NODES[it.nodeId].name}: every held title there is sold at live prices — $${Math.round(paid).toLocaleString()} returned. Corners answer to the State.`, 'warn');
+      }
+    } else if (it.type === 'charterPolicy') {
+      const cost = w.posture === 'partner' ? 7 : 8;
+      if (!STATE_DECK.some(p => p.id === it.policyId)) continue;
+      if (w.influence < cost) { note(w, `Chartering the debate takes ${cost} influence — you hold ${w.influence}.`, 'warn'); continue; }
+      w.influence -= cost;
+      w.state.pending = it.policyId;
+      note(w, `Next season's debate is chartered: ${STATE_DECK.find(p => p.id === it.policyId).name} will be the question.`, 'buy');
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -712,12 +832,15 @@ function applyIntents(w) {
         note(w, `Route ${NODES[r.from].name} → ${NODES[r.to].name} removed.`, 'route');
       }
     } else if (it.type === 'buyWarehouse') {
-      if (w.warehouses[it.nodeId]) continue;
-      if (w.money < 2400) { note(w, `Not enough cash for a warehouse ($2,400).`, 'warn'); continue; }
-      w.money -= 2400;
-      w.warehouses[it.nodeId] = true;
-      awardMilestone(w, 'firstWarehouse', 'first warehouse');
-      note(w, `Warehouse built at ${NODES[it.nodeId].name} — +500t storage, faster handling there.`, 'buy');
+      const count = w.warehouses[it.nodeId] ?? 0;
+      if (count >= 2) continue;
+      const cost = count === 0 ? 2400 : 3600;
+      if (count === 1 && (w.population[it.nodeId] ?? 100) < 110) { note(w, `A second warehouse needs a place that has grown — ${NODES[it.nodeId].name}'s prosperity is ${Math.round(w.population[it.nodeId])} of the 110 it takes (W9).`, 'warn'); continue; }
+      if (w.money < cost) { note(w, `Not enough cash for a warehouse ($${cost.toLocaleString()}).`, 'warn'); continue; }
+      w.money -= cost;
+      w.warehouses[it.nodeId] = count + 1;
+      if (count === 0) awardMilestone(w, 'firstWarehouse', 'first warehouse');
+      note(w, `Warehouse ${count === 1 ? 'II ' : ''}built at ${NODES[it.nodeId].name} — +500t storage, faster handling there.`, 'buy');
     } else if (it.type === 'takeContract') {
       const c = w.contracts.find(x => x.id === it.contractId && x.state === 'open');
       if (c) { c.state = 'taken'; note(w, `Contract taken: ${c.qty}t of ${GOODS[c.good].name} to ${NODES[c.issuer].name} at $${c.pricePerTon}/t by Day ${Math.floor(c.deadlineTick / 24) + 1}.`, 'route'); }
@@ -741,16 +864,16 @@ function produceAndConvert(w) {
     const n = w.nodes[id];
     for (const [good, perDay] of Object.entries(def.produces ?? {})) {
       const room = capOf(w, id, good) - stockOf(w, id, good);
-      const qty = Math.min(perDay / HOURS_PER_DAY, Math.max(0, room));
+      const qty = Math.min(perDay * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
       if (qty > 0) { addStock(w, id, good, qty, GOODS[good].perishHours ? null : 0); n.flow[good].in += qty; }
     }
     // the docks fish a shared, finite Gulf (W18): boats × yield factor
     if (id in w.boats) {
       const room = capOf(w, id, 'shrimp') - stockOf(w, id, 'shrimp');
-      const qty = Math.min(w.boats[id] * 3 * fisheryFactor(w) / HOURS_PER_DAY, Math.max(0, room));
+      const qty = Math.min(w.boats[id] * 3 * fisheryFactor(w) * (w.evMods.produce?.[id] ?? 1) / HOURS_PER_DAY, Math.max(0, room));
       if (qty > 0) { addStock(w, id, 'shrimp', qty, null); n.flow.shrimp.in += qty; w.fishery.dayCatch += qty; }
     }
-    if (def.converts) {
+    if (def.converts && !w.evMods.convertOff?.[id]) {
       const c = def.converts;
       const want = c.inPerDay / HOURS_PER_DAY;
       const avail = stockOf(w, id, c.in);
@@ -774,7 +897,7 @@ function consume(w) {
     for (const [good, perDay] of Object.entries(def.consumes ?? {})) {
       if (perDay === 9999) continue; // export absorbs in deliveries, not a burn
       const jit = n.jitter[good] ?? 1;
-      const want = perDay * jit / HOURS_PER_DAY * (CARE_NODES.has(id) && (good === 'med' || good === 'pharma') ? (w.state.mods.care ?? 1) : 1); // Clinic Funding (State lite)
+      const want = perDay * jit / HOURS_PER_DAY * (CARE_NODES.has(id) && (good === 'med' || good === 'pharma') ? (w.state.mods.care ?? 1) : 1) * evBurnMult(w, id, good); // Clinic Funding + the world's weather (W22)
       n.flow[good].demand += want;
       const avail = availOf(w, id, good); // held stock (positions) is not the world's to burn
       const use = Math.min(want, avail, dcAllowance);
@@ -811,9 +934,9 @@ function agePerishables(w) {
 
 // --- vehicles (SIM-CORE physics: continuous 1-hour budget per tick) ---
 function opCostMult(w, v) {
-  if (!w.skills.owned.fleetstd) return 1;
-  const same = w.vehicles.filter(x => x.type === v.type).length;
-  return same >= 3 ? 0.9 : 1;
+  let m = w.crews.wage === 'tight' ? 0.9 : w.crews.wage === 'generous' ? 1.12 : 1; // the wage bill rides every ton-km (W22)
+  if (w.skills.owned.fleetstd && w.vehicles.filter(x => x.type === v.type).length >= 3) m *= 0.9;
+  return m;
 }
 function bestLoad(w, r) {
   const goods = Object.keys(GOODS).filter(g => stockOf(w, r.from, g) > 0.01 && (NODES[r.to].consumes?.[g] || NODES[r.to].converts?.in === g));
@@ -924,6 +1047,12 @@ function finishUnload(w, v) {
     pay += cq * c.pricePerTon;
     if (c.delivered >= c.qty - 1e-9) {
       c.state = 'done'; w.stats.contractsDone++;
+      // the State notices fulfilled work (W22): +1 influence, +2 on-theme
+      const themed = (w.state.policy === 'clinic-funding' && (good === 'med' || good === 'pharma'))
+        || (w.state.policy === 'export-subsidy' && dest === 'port')
+        || (w.state.policy === 'road-crews' && (good === 'lumber' || good === 'fuel'));
+      const gain = Math.max(0, Math.round((themed ? 2 : 1) * (w.posture === 'partner' ? 1.5 : w.posture === 'adversarial' ? 0.5 : 1)));
+      if (gain > 0) { w.influence += gain; note(w, `The State takes note: +${gain} influence (${w.influence} banked).`, 'news'); }
       note(w, `Contract fulfilled: ${c.qty}t of ${GOODS[good].name.toLowerCase()} to ${NODES[dest].name} — $${Math.round(c.qty * c.pricePerTon)} at the locked price.`, 'pay');
       awardMilestone(w, 'firstContract', 'first contract fulfilled');
     }
@@ -1021,7 +1150,7 @@ function generateContracts(w) {
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
     const item = cand.good === 'pharma' && nextRandom(w) < 0.4 ? 'Insulin (cold pack)' : CONTRACT_ITEMS[cand.good];
-    const finalPrice = item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon;
+    const finalPrice = Math.round((item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon) * (w.posture === 'adversarial' ? 1.15 : 1));
     w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, item, qty, delivered: 0, pricePerTon: finalPrice, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
     note(w, `On the board: ${qty}t of ${item.toLowerCase()} to ${NODES[cand.id].name} at $${finalPrice}/t — ${NODES[cand.id].name} is running dry.`, 'route');
   }
@@ -1033,7 +1162,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }
@@ -1113,6 +1242,7 @@ function unitIncomeDay(w) {
     else if (unitId === 'portCranes') { gross = w.cranePending; w.cranePending = 0; }
     let income = gross;
     if (st.owner === 'player' && w.skills.owned.tiering) income *= 1.15;
+    if (st.owner === 'player' && w.parcels[unit.node].owned > 0) income *= 1.1; // land under the business (W22)
     st.lastIncome = income;
     st.incomeAvg = st.incomeAvg === 0 ? income : st.incomeAvg * 0.8 + income * 0.2;
     if (st.owner === 'player' && income > 0) {
@@ -1238,27 +1368,120 @@ function distributorDesk(w) {
   }
 }
 
+// --- the conflict deck (W22): forecast when drawn, honest when it lands ---
+function eventStep(w) {
+  for (const ev of w.events) {
+    if (ev.card === 'hurricane' && !ev.revealed && w.tick >= ev.startsTick - 3 * HOURS_PER_DAY) {
+      ev.landfall = HURRICANE_CONE[Math.floor(nextRandom(w) * HURRICANE_CONE.length)];
+      ev.revealed = true;
+      note(w, `The cone narrows: the hurricane makes landfall at ${NODES[ev.landfall].name} around Day ${Math.floor(ev.startsTick / 24) + 1}. Three days to ready the coast.`, 'warn');
+    }
+    if (!ev.announced && w.tick >= ev.startsTick) {
+      ev.announced = true;
+      if (ev.card === 'dredge-gift') { w.river.level = Math.min(1.14, w.river.level + 0.05); note(w, `The Dredge Gift: the corps deepens the channel — the river runs +0.05 today.`, 'news'); }
+      else note(w, `${EVENT_DECK.find(c => c.id === ev.card).name} begins — it runs to Day ${Math.floor(ev.endsTick / 24) + 1}. Nothing here breaks anything that cannot be rebuilt.`, 'warn');
+    }
+  }
+  w.events = w.events.filter(ev => w.tick <= ev.endsTick + HOURS_PER_DAY);
+  const mods = { fishery: 1, port: 1, riverTarget: null, waterGrounded: false, produce: {}, produceGood: {}, convertOff: {}, burnNode: {}, burnKey: {}, burnCat: {} };
+  for (const ev of w.events) {
+    if (w.tick < ev.startsTick || w.tick > ev.endsTick) continue;
+    switch (ev.card) {
+      case 'hurricane':
+        for (const id of HURRICANE_CONE) mods.produce[id] = id === ev.landfall ? 0.25 : 0.5;
+        mods.burnCat = { provisions: 1.5, fuel: 1.5, lumber: 1.5 };
+        if (w.tick < ev.startsTick + 2 * HOURS_PER_DAY) mods.waterGrounded = true;
+        break;
+      case 'river-high': mods.riverTarget = 1.12; break;
+      case 'river-low': mods.riverTarget = 0.82; break;
+      case 'refinery-outage': mods.convertOff.refinery = true; break;
+      case 'red-tide': mods.fishery = 0.5; break;
+      case 'cane-blight': mods.produceGood.cane = 0.6; break;
+      case 'mardi-gras':
+        for (const id of ['grandisle', 'nola']) for (const g of ['packed', 'provisions']) mods.burnKey[`${id}|${g}`] = 2;
+        break;
+      case 'heat-wave': for (const id of CARE_NODES) mods.burnNode[id] = 1.5; break;
+      case 'export-boom': mods.port = 1.15; break;
+    }
+  }
+  w.evMods = mods;
+}
+function drawEvent(w) {
+  const card = EVENT_DECK[Math.floor(nextRandom(w) * EVENT_DECK.length)];
+  const startsTick = w.tick + (10 + Math.floor(nextRandom(w) * 6)) * HOURS_PER_DAY;
+  const ev = { card: card.id, startsTick, endsTick: startsTick + card.days * HOURS_PER_DAY, revealed: false, announced: false, landfall: null };
+  w.events.push(ev);
+  note(w, `Forecast: ${card.name} is expected around Day ${Math.floor(startsTick / 24) + 1} and runs ${card.days} day${card.days === 1 ? '' : 's'}. The season tells you what it holds — ready is a choice.`, 'news');
+}
+// --- pollution, people, development: yesterday's flows shape the places ---
+function devStep(w) {
+  for (const [id, def] of Object.entries(NODES)) {
+    const n = w.nodes[id], pol = w.pollution[id];
+    let p = pol;
+    if (id === 'refinery' && n.flow.fuel.in > 0) p += 2;
+    if (id === 'sawmill' && n.flow.lumber.in > 0) p += 0.5;
+    if (id === 'port' && Object.values(n.flow).some(f => f.in + f.out > 0)) p += 0.3;
+    if (COASTAL.includes(id)) p -= 0.4;
+    if (w.parcels[id].owned > 0) p -= 0.2;
+    w.pollution[id] = Math.max(0, Math.min(100, p));
+    let trade = 0;
+    for (const g of Object.keys(GOODS)) trade += (n.flow[g].in + n.flow[g].out) * (n.prices[g] ?? 0);
+    let pop = w.population[id] + (trade > 2000 ? 0.6 : trade > 500 ? 0.2 : -0.1) - (w.pollution[id] >= 60 ? 0.7 : 0);
+    w.population[id] = Math.max(50, Math.min(150, pop));
+    const s = w.dev[id].scores;
+    if (def.converts) s.industrial += n.flow[def.converts.out].in * (n.prices[def.converts.out] ?? 0) / 500;
+    if (id === 'port') s.port += Object.values(n.flow).reduce((a, f) => a + f.in + f.out, 0) / 20;
+    if (CARE_NODES.has(id)) s.care += ((n.flow.med?.out ?? 0) + (n.flow.pharma?.out ?? 0)) * 2;
+    if (def.produces) for (const g of Object.keys(def.produces)) s.agri += n.flow[g].in / 10;
+    if (id === 'grandisle') s.tourist += Object.values(n.flow).reduce((a, f) => a + f.out, 0) * 3;
+    for (const k of Object.keys(s)) s[k] *= 0.99;
+    const ranked = Object.entries(s).sort((a, b) => b[1] - a[1]);
+    const [top, topScore] = ranked[0], second = ranked[1][1];
+    const cur = w.dev[id].archetype;
+    if (topScore >= 40 && topScore >= 1.5 * Math.max(second, 0.01) && (cur === top || topScore > 1.5 * (s[cur] ?? 0))) {
+      if (cur !== top) note(w, `${def.name} has become an ${top === 'agri' ? 'Agri' : top[0].toUpperCase() + top.slice(1)} place — what flows through a place, repeated, is what the place is.`, 'news');
+      w.dev[id].archetype = top;
+    }
+  }
+}
+
 // --- day & season boundaries ---
 function dayBoundary(w) {
+  eventStep(w);
   unitIncomeDay(w);   // reads yesterday's flows before receipts reset them
   storageBleed(w);
   loanStep(w);
   emancipationStep(w);
   maisonStep(w);
   distributorDesk(w);
+  devStep(w);
+  // crews: count the tight days; a grievance puts a vehicle out sick some days
+  if (w.crews.wage === 'tight') w.crews.tightDays += 1; else w.crews.tightDays = 0;
+  if (w.tick < w.crews.grievanceUntil && w.vehicles.length && nextRandom(w) < 0.08) {
+    const v = w.vehicles[Math.floor(nextRandom(w) * w.vehicles.length)];
+    v.downFrom = w.tick; v.downTo = w.tick + HOURS_PER_DAY;
+    note(w, `A ${VEHICLES[v.type].name.toLowerCase()} crew calls out sick — the grievance is costing days.`, 'warn');
+  }
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
   const f = w.fishery;
-  f.stock = Math.max(5, Math.min(100, f.stock + 0.045 * f.stock * (1 - f.stock / 100) - f.dayCatch * 0.09));
+  const gulfHealth = 100 - COASTAL.reduce((s, id) => s + w.pollution[id], 0) / COASTAL.length;
+  f.stock = Math.max(5, Math.min(100, f.stock + 0.045 * f.stock * (1 - f.stock / 100) * (gulfHealth / 100) - f.dayCatch * 0.09));
   f.dayCatch = 0;
+  if (f.stock < 25 && w.tick >= f.closedUntil) {
+    f.closedUntil = w.tick + 5 * HOURS_PER_DAY;
+    note(w, `The State closes the Gulf fishery at ${Math.round(f.stock)}% — five days with no catch while the stock breathes. Reopens Day ${Math.floor(f.closedUntil / 24) + 1}.`, 'warn');
+  }
   if (f.stock < 40 && !f.warned) { f.warned = true; note(w, `The Gulf stock is thinning (${Math.round(f.stock)}%) — every boat's nets come up lighter.`, 'warn'); }
   if (f.stock >= 45) f.warned = false;
-  if (w.tick % 120 === 48) shipCall(w);
+  if (w.tick % 120 === 48 && w.evMods.waterGrounded) { w.shipWait = true; note(w, `The ship waits offshore — the storm owns the river mouth today.`, 'warn'); }
+  else if ((w.tick % 120 === 48 || w.shipWait) && !w.evMods.waterGrounded) { shipCall(w); w.shipWait = false; }
   // the river walks (W19): seeded trend, clamped; transitions print
   const rv = w.river;
   rv.trend = Math.max(-0.01, Math.min(0.01, rv.trend + (nextRandom(w) - 0.5) * 0.008));
   rv.level = Math.max(0.78, Math.min(1.14, rv.level + rv.trend + (1.0 - rv.level) * 0.01));
   if (w.state.mods.river) rv.level = Math.min(1.14, rv.level + w.state.mods.river); // Dredge Program (State lite)
+  if (w.evMods.riverTarget != null) rv.level += (w.evMods.riverTarget - rv.level) * 0.3; // the river events pull hard (W22)
   const state = rv.level < 0.90 ? 'shallows' : rv.level > 1.05 ? 'high' : 'fair';
   if (state !== rv.state) {
     rv.state = state;
@@ -1308,11 +1531,21 @@ function directedSweep(w) {
 function seasonBoundary(w) {
   stateRotation(w);
   directedSweep(w);
+  drawEvent(w);
+  // the crews reckon the season (W22): a full Tight season organizes
+  if (w.crews.tightDays >= 700 && !w.crews.unionOffer && w.tick >= w.crews.unionUntil) {
+    w.crews.unionOffer = true;
+    note(w, `Your crews have organized. Their bargain is on the Market desk: fair wages locked two seasons and steadier hands — or refuse it and carry the grievance. The union is not an enemy; it is a counterparty.`, 'warn');
+  }
+  w.crews.tightDays = 0;
   w.skills.points++;
   note(w, `Season ${Math.floor(w.tick / TICKS_PER_SEASON)} complete — +1 skill point (${w.skills.points} banked).`, 'buy');
   // season breakdown rolls (S7.5 base form): schedule each hit inside the new season
   for (const v of w.vehicles) {
-    const p = 0.03 * (w.skills.owned.preventive ? 0.5 : 1);
+    let p = 0.03 * (w.skills.owned.preventive ? 0.5 : 1);
+    if (w.crews.wage === 'tight') p *= 1.5; else if (w.crews.wage === 'generous') p *= 0.6;
+    if (w.tick < w.crews.unionUntil) p *= 0.8; // the stability contract
+    if (w.tick < w.crews.grievanceUntil) p *= 2;
     if (nextRandom(w) < p) {
       v.downFrom = w.tick + Math.floor(nextRandom(w) * 29) * HOURS_PER_DAY;
       v.downTo = v.downFrom + HOURS_PER_DAY;
@@ -1342,7 +1575,7 @@ export function stateHash(w) {
     for (const g of Object.keys(GOODS)) mix(`${stockOf(w, id, g).toFixed(2)},`);
     for (const g of Object.keys(w.nodes[id].prices)) mix(`${w.nodes[id].prices[g]},`);
   }
-  mix(`|${w.vehicles.length}|${w.stats.trips}|${w.stats.deliveredTons.toFixed(1)}|${w.stats.rotTons.toFixed(1)}|${Object.values(w.stakes).join(',')}|${w.loans.length}|${Math.round(Object.values(w.houses).reduce((s, h) => s + h.cash, 0))}`);
+  mix(`|${w.vehicles.length}|${w.stats.trips}|${w.stats.deliveredTons.toFixed(1)}|${w.stats.rotTons.toFixed(1)}|${Object.values(w.stakes).join(',')}|${w.loans.length}|${Math.round(Object.values(w.houses).reduce((s, h) => s + h.cash, 0))}|${w.influence}|${w.events.length}`);
   return (h >>> 0).toString(16);
 }
 export function snapshot(w) { return JSON.stringify(w); }

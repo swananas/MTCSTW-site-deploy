@@ -79,6 +79,16 @@ let speed = 1, sel = null, pendingRoute = null, panel = null, trackMode = false,
 const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
 
+// Hotfix 0.4.2 (Shane: "Can't delete routes"): rebuilding innerHTML replaces
+// the element under the player's finger, so a tap that starts on one copy of
+// a button and ends on the next never becomes a click. Two rules fix it:
+// render only when the HTML actually changes, and never repaint a panel
+// within 400ms of a touch landing on it.
+const _lastHTML = new Map(), _touchedAt = new Map();
+function setHTML(el, html) { if (_lastHTML.get(el) === html) return false; _lastHTML.set(el, html); el.innerHTML = html; return true; }
+function touched(el) { return performance.now() - (_touchedAt.get(el) ?? -1e9) < 400; }
+for (const id of ['sheet', 'routes']) { const el = $(id); el.addEventListener('pointerdown', () => _touchedAt.set(el, performance.now()), true); }
+
 function save() { try { localStorage.setItem(SAVE_KEY, snapshot(w)); } catch {} }
 $('newgame').onclick = () => { localStorage.removeItem(SAVE_KEY); w = createWorld(20261106); sel = null; pendingRoute = null; panel = null; renderSheet(); };
 $('boardbtn').onclick = () => { panel = panel === 'board' ? null : 'board'; renderSheet(); };
@@ -270,11 +280,11 @@ function renderBoard(el) {
   const line = c => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
     <span>${c.standing ? '🔁 ' : ''}<b>${c.qty}t ${GOODS[c.good].name}</b> → ${NODES[c.issuer].name} · <b>$${c.pricePerTon}/t</b> · by Day ${Math.floor(c.deadlineTick / 24) + 1}${c.state === 'taken' ? ` · ${c.delivered.toFixed(0)}/${c.qty}t in` : ''}</span>
     ${c.state === 'open' ? `<button data-take="${c.id}">Take</button>` : ''}</div>`;
-  el.innerHTML = `<div class="card"><h3>📋 Contracts board</h3>
+  if (!setHTML(el, `<div class="card"><h3>📋 Contracts board</h3>
     <div class="sub">Born from real shortages — nobody posts for what nobody lacks. Deliveries to the named place count automatically; missing a deadline costs only the premium. ${done} fulfilled so far.</div>
     ${taken.length ? '<div style="font-weight:700;margin-top:4px">Yours</div>' + taken.map(line).join('') : ''}
     ${open.length ? '<div style="font-weight:700;margin-top:4px">Open</div>' + open.map(line).join('') : '<div class="status" style="opacity:.7">Nothing open right now — the morning brings new want.</div>'}
-    </div>`;
+    </div>`)) return;
   el.querySelectorAll('[data-take]').forEach(b => b.onclick = () => Q({ type: 'takeContract', contractId: +b.dataset.take }));
 }
 function renderSkills(el) {
@@ -288,10 +298,10 @@ function renderSkills(el) {
       <span>${owned ? '✓' : '·'} <b>${s.name}</b> — ${s.blurb}${lockedPhase ? ` <i>(lands Phase ${s.phase})</i>` : ''}</span>
       ${owned ? '' : `<button data-skill="${id}" ${!prevOk || lockedPhase || w.skills.points < cost ? 'disabled' : ''}>${cost} pt</button>`}</div>`;
   }).join('');
-  el.innerHTML = `<div class="card"><h3>🎓 Company skills — ${w.skills.points} point${w.skills.points === 1 ? '' : 's'} banked</h3>
+  if (!setHTML(el, `<div class="card"><h3>🎓 Company skills — ${w.skills.points} point${w.skills.points === 1 ? '' : 's'} banked</h3>
     <div class="sub">Earned by seasons survived and milestones. No respec mid-era: the tree is the company's shape.</div>
     <div style="font-weight:700;margin-top:4px">LOGISTICS</div>${branchHtml('LOGISTICS')}
-    <div style="font-weight:700;margin-top:6px">OPERATIONS</div>${branchHtml('OPERATIONS')}</div>`;
+    <div style="font-weight:700;margin-top:6px">OPERATIONS</div>${branchHtml('OPERATIONS')}</div>`)) return;
   el.querySelectorAll('[data-skill]').forEach(b => b.onclick = () => Q({ type: 'buySkill', skillId: b.dataset.skill }));
 }
 function renderSheet() {
@@ -307,7 +317,7 @@ function renderSheet() {
     const bargePrice = rt.from === 'shipyard' ? 15200 : VEHICLES.barge.cost;
     const policyName = { clock: 'Full-or-clock', full: 'Full loads only', scheduled: 'Scheduled (12h)' }[rt.policy ?? 'clock'];
     const nextPolicy = { clock: 'full', full: 'scheduled', scheduled: 'clock' }[rt.policy ?? 'clock'];
-    el.innerHTML = `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
+    if (!setHTML(el, `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
       <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
       ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
       <div class="row" style="margin-top:6px">
@@ -318,7 +328,7 @@ function renderSheet() {
         <button id="b-policy">Departure: ${policyName} ↻</button>
         <button id="b-pause">${rt.paused ? 'Resume route' : 'Pause route'}</button>
         <button id="b-rm">Remove</button>
-      </div></div>`;
+      </div></div>`)) return;
     $('b-addbox').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
     $('b-addsemi').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
     const bb = $('b-addbarge'); if (bb) bb.onclick = () => Q({ type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
@@ -330,15 +340,15 @@ function renderSheet() {
   }
   if (!sel) {
     const q = routeQuote(w, 'caneA', 'mill');
-    el.innerHTML = !w.routes.length
+    setHTML(el, !w.routes.length
       ? `<div class="hint"><b>Start here:</b> tap <b>Cane Field A</b> — the map will show you what every place pays for what it grows. Then tap the <b>Thibodaux Mill</b>: it pays about <b>+$${q ? q.spreadPerTon.toFixed(0) : '20'}/t</b> for cane, and your truck is already parked at the field.</div>`
-      : `<div class="hint"><b>Tap a place</b> to see its stocks — and what every other place pays for what it has. <b>Tap a route</b> (or its chip below) to manage its trucks. Empire's shrimp dies in 72 hours; watch the ring.</div>`;
+      : `<div class="hint"><b>Tap a place</b> to see its stocks — and what every other place pays for what it has. <b>Tap a route</b> (or its chip below) to manage its trucks. Empire's shrimp dies in 72 hours; watch the ring.</div>`);
     return;
   }
   const id = sel.id, def = NODES[id];
   const here = w.vehicles.filter(v => v.at === id);
   const myContracts = w.contracts.filter(c => c.issuer === id && (c.state === 'open' || c.state === 'taken'));
-  el.innerHTML = `<div class="card"><h3>${def.name}</h3>
+  if (!setHTML(el, `<div class="card"><h3>${def.name}</h3>
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
     ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
@@ -353,7 +363,7 @@ function renderSheet() {
       ${w.warehouses[id] ? '' : `<button id="b-wh" ${w.money < 2400 ? 'disabled' : ''}>Build warehouse · $2,400</button>`}
       ${(id in w.boats) ? `<button id="b-boat" ${w.money < 2200 ? 'disabled' : ''}>Buy shrimp boat · $2,200</button>` : ''}
       ${w.yards[id] ? `<button id="b-track" class="primary">🛤 ${trackMode ? 'Track mode: ON — tap a neighbor' : 'Lay track from here'}</button>` : `<button id="b-yard" ${w.money < YARD_COST ? 'disabled' : ''}>Build rail yard · $${YARD_COST.toLocaleString()}</button>`}
-    </div></div>`;
+    </div></div>`)) return;
   $('b-box').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'box', nodeId: id });
   $('b-semi').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'semi', nodeId: id });
   const wh = $('b-wh'); if (wh) wh.onclick = () => Q({ type: 'buyWarehouse', nodeId: id });
@@ -364,11 +374,13 @@ function renderSheet() {
 function renderRoutes() {
   const el = $('routes');
   if (!w.routes.length) { el.style.display = 'none'; return; }
+  if (touched(el)) return; // a finger is on the chips — don't swap them mid-tap
   el.style.display = 'block';
-  el.innerHTML = w.routes.map(r => {
+  const html = w.routes.map(r => {
     const n = w.vehicles.filter(v => v.routeId === r.id).length;
     return `<span data-sel="${r.id}" class="${sel?.kind === 'route' && sel.id === r.id ? 'sel' : ''}">${NODES[r.from].name} → ${NODES[r.to].name} · ${n}🚚 · $${r.earned.toLocaleString()}<b data-rm="${r.id}">✕</b></span>`;
   }).join('');
+  if (!setHTML(el, html)) return;
   el.querySelectorAll('[data-sel]').forEach(s => s.onclick = e => {
     if (e.target.dataset.rm) return;
     sel = { kind: 'route', id: +s.dataset.sel }; renderSheet();
@@ -376,7 +388,7 @@ function renderRoutes() {
   el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => Q({ type: 'removeRoute', routeId: +b.dataset.rm }));
 }
 function renderTicker() {
-  $('ticker').innerHTML = w.ticker.slice(-5).reverse().map(t => `<div class="${t.kind}">${t.text}</div>`).join('');
+  setHTML($('ticker'), w.ticker.slice(-5).reverse().map(t => `<div class="${t.kind}">${t.text}</div>`).join(''));
 }
 
 // --- input: tap-tap connects · drag pans · pinch & double-tap zoom ---
@@ -497,9 +509,9 @@ function frame(now) {
   const openCount = w.contracts.filter(c => c.state === 'open').length;
   $('boardbtn').textContent = openCount ? `📋 ${openCount}` : '📋';
   $('skillbtn').textContent = w.skills.points ? `🎓 ${w.skills.points}` : '🎓';
-  $('clock').innerHTML = `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`;
+  setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes();
-  if (frame.n++ % 20 === 0) renderSheet();
+  if (frame.n++ % 20 === 0 && !touched($('sheet'))) renderSheet();
   requestAnimationFrame(frame);
 }
 frame.n = 0;

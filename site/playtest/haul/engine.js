@@ -114,11 +114,20 @@ function applyIntents(w) {
       } else note(w, `Not enough cash for a ${VEHICLES[it.vehicleType].name}.`, 'warn');
     } else if (it.type === 'addRoute') {
       if (it.from === it.to) continue;
-      const r = { id: w.nextId++, from: it.from, to: it.to };
+      const existing = w.routes.find(r => r.from === it.from && r.to === it.to);
+      if (existing) {
+        const idle = w.vehicles.find(v => !v.routeId && v.at === it.from && v.phase === 'idle');
+        if (idle) assign(w, existing.id, idle.id);
+        continue;
+      }
+      const r = { id: w.nextId++, from: it.from, to: it.to, paused: false, trips: 0, earned: 0 };
       w.routes.push(r);
       const idle = w.vehicles.find(v => !v.routeId && v.at === it.from && v.phase === 'idle');
       if (idle) assign(w, r.id, idle.id);
       note(w, `Route drawn: ${NODES[it.from].name} → ${NODES[it.to].name} (${distance(it.from, it.to)} km).`, 'route');
+    } else if (it.type === 'toggleRoute') {
+      const r = w.routes.find(x => x.id === it.routeId);
+      if (r) { r.paused = !r.paused; note(w, `Route ${NODES[r.from].name} → ${NODES[r.to].name} ${r.paused ? 'paused' : 'resumed'}.`, 'route'); }
     } else if (it.type === 'assign') assign(w, it.routeId, it.vehicleId);
     else if (it.type === 'removeRoute') {
       w.routes = w.routes.filter(r => r.id !== it.routeId);
@@ -296,9 +305,31 @@ function idleAct(w, v) {
   if (!v.routeId) return;
   const r = w.routes.find(x => x.id === v.routeId);
   if (!r) { v.routeId = null; return; }
+  if (r.paused) return;
   if (v.at === r.from) tryLoad(w, v, r);
   else if (v.at === r.to) startLeg(w, v, r.to, r.from, null); // head back empty
   else startLeg(w, v, v.at, r.from, null); // wherever it is, reposition to the route head
+}
+
+// The map's quote: what would a load from `from` to `to` earn right now, per ton?
+// The UI prints this on the map itself — the money is visible before commitment.
+export function routeQuote(w, from, to) {
+  if (from === to) return null;
+  const destDef = NODES[to], srcDef = NODES[from];
+  const goods = Object.keys(GOODS).filter(g =>
+    (destDef.consumes?.[g] || destDef.converts?.in === g) &&
+    (srcDef.produces?.[g] || stockOf(w, from, g) > 0.01));
+  if (!goods.length) return null;
+  goods.sort((a, b) => {
+    const pa = GOODS[a].perishHours ? 0 : 1, pb = GOODS[b].perishHours ? 0 : 1;
+    if (pa !== pb) return pa - pb;
+    const sa = marginalPrice(w, to, a, 1) - marginalPrice(w, from, a, -1);
+    const sb = marginalPrice(w, to, b, 1) - marginalPrice(w, from, b, -1);
+    return sb - sa;
+  });
+  const good = goods[0];
+  const spread = marginalPrice(w, to, good, 1) - marginalPrice(w, from, good, -1);
+  return { good, spreadPerTon: Math.round(spread * 100) / 100, km: distance(from, to) };
 }
 
 function bestLoad(w, r) {
@@ -360,6 +391,7 @@ function finishUnload(w, v) {
     const pay = Math.max(0, Math.round(qty * spread - opCost));
     w.money += pay; w.stats.earned += pay; w.stats.trips++;
     w.stats.deliveredTons += qty;
+    r.trips++; r.earned += pay;
     if (pay > 0) note(w, `${qty.toFixed(1)}t ${GOODS[good].name.toLowerCase()} delivered to ${NODES[r.to].name} — freight paid $${pay} (${km} km).`, 'pay');
   }
   v.cargo = null;

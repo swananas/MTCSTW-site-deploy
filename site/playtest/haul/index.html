@@ -19,7 +19,7 @@
   #events div { padding:1px 0; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
-  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn, #crownbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
   #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
   #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
@@ -59,6 +59,7 @@
     <button id="skillbtn" title="Company skills">🎓</button>
     <button id="portbtn" title="Portfolio — units & titles">🏦</button>
     <button id="mktbtn" title="The Market — shares, loans, the State">📈</button>
+    <button id="crownbtn" title="The Crown — regional control & the Era Report">👑</button>
     <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
   </header>
@@ -70,10 +71,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v07';
-const CURRENT_PHASE = 0.7;
+const SAVE_KEY = 'haul-save-v08';
+const CURRENT_PHASE = 0.8;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -97,11 +98,12 @@ function touched(el) { return performance.now() - (_touchedAt.get(el) ?? -1e9) <
 for (const id of ['sheet', 'routes']) { const el = $(id); el.addEventListener('pointerdown', () => _touchedAt.set(el, performance.now()), true); }
 
 function save() { try { localStorage.setItem(SAVE_KEY, snapshot(w)); } catch {} }
-$('newgame').onclick = () => { localStorage.removeItem(SAVE_KEY); w = createWorld(20261106); sel = null; pendingRoute = null; panel = null; renderSheet(); };
+$('newgame').onclick = () => { panel = panel === 'start' ? null : 'start'; renderSheet(); };
 $('boardbtn').onclick = () => { panel = panel === 'board' ? null : 'board'; renderSheet(); };
 $('skillbtn').onclick = () => { panel = panel === 'skills' ? null : 'skills'; renderSheet(); };
 $('portbtn').onclick = () => { panel = panel === 'portfolio' ? null : 'portfolio'; renderSheet(); };
 $('mktbtn').onclick = () => { panel = panel === 'market' ? null : 'market'; renderSheet(); };
+$('crownbtn').onclick = () => { panel = panel === 'crown' ? null : 'crown'; renderSheet(); };
 $('speeds').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   speed = +b.dataset.s;
@@ -398,11 +400,48 @@ function renderMarket(el) {
   const au = el.querySelector('[data-accept-union]'); if (au) au.onclick = () => Q({ type: 'acceptUnion' });
   const du = el.querySelector('[data-decline-union]'); if (du) du.onclick = () => Q({ type: 'declineUnion' });
 }
+let showEra = false;
+function renderCrown(el) {
+  const pct = x => (x * 100).toFixed(1) + '%';
+  const housesHeld = Object.keys(w.stakes).filter(h => w.houses[h].subOf === 'player' || w.houses[h].delisted).length;
+  const endingNames = { dominance: 'Dominance', monopoly: 'Monopoly', lastOneStanding: 'Last One Standing' };
+  const bar = (label, val, target) => `<div class="status">${label}<div style="height:8px;background:#eee;border-radius:4px;margin-top:3px"><div style="height:8px;width:${Math.min(100, val / target * 100)}%;background:#c9a44e;border-radius:4px"></div></div></div>`;
+  if (!setHTML(el, `<div class="card"><h3>👑 The Crown — Regional Control</h3>
+    <div class="sub">${w.mode === 'sandbox' ? 'Sandbox: the meter runs and no era is judged.' : 'Campaign: three roads to the crown. An ending is recorded, never a stop.'} Control is your share of the region's moved value, trailing 30 days.</div>
+    ${w.crown.ending ? `<div class="status" style="background:#f7ecd0;border-color:#c9a44e">👑 <b>${endingNames[w.crown.ending.path]}</b> — the era was named on Day ${Math.floor(w.crown.ending.tick / 24) + 1}.${Object.keys(w.crown.achieved).length > 1 ? ` Also achieved: ${Object.keys(w.crown.achieved).filter(k => k !== w.crown.ending.path).map(k => endingNames[k]).join(' · ')}.` : ''} The work continues.</div>` : ''}
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Control now: <b>${pct(w.crown.current)}</b> · peak ${pct(w.crown.peak)} · reading: <b>${w.crown.rule}</b> (raw ${pct(w.crown.raw)} · capped ${pct(w.crown.capped)})</span><button data-crownrule="${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}">Read ${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}</button></div>
+    <div class="sub">The cap is the R3 house rule: under it, no single tree counts past 35% of your movement toward the crown. It stands until the house strikes it.</div>
+    ${bar(`👑 Monopoly — control at 75% on any day (now ${pct(w.crown.current)})`, w.crown.current, 0.75)}
+    ${bar(`🌊 Dominance — at 60% for a season (${Math.min(w.crown.streak, 30)}/30 days held)`, Math.min(w.crown.streak, 30), 30)}
+    <div class="status">🏛 Last One Standing — listed houses held or retired: <b>${housesHeld}/3</b></div>
+    <div style="margin-top:6px"><button data-era="1" class="primary">${showEra ? 'Hide the Era Report' : 'Read the Era Report'}</button></div>
+    ${showEra ? `<div style="margin-top:6px">${eraReport(w).map(l => `<div class="status">${l}</div>`).join('')}</div>` : ''}
+    </div>`)) return;
+  el.querySelector('[data-crownrule]').onclick = (e) => Q({ type: 'setCrownRule', rule: e.target.dataset.crownrule });
+  el.querySelector('[data-era]').onclick = () => { showEra = !showEra; renderSheet(); };
+}
+function renderStart(el) {
+  if (!setHTML(el, `<div class="card"><h3>Start a new company</h3>
+    <div class="sub">This run is replaced. The Gulf, however, will be exactly as difficult as you left it.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <button data-newmode="campaign" class="primary">👑 Campaign — the Crown judges</button>
+      <button data-newmode="sandbox">🏖 Sandbox — no endings, just the work</button>
+    </div>
+    <div class="sub">Campaign carries the three endings and the Era Report. Sandbox runs the same world and meter with no judgment at all.</div>
+    </div>`)) return;
+  el.querySelectorAll('[data-newmode]').forEach(b => b.onclick = () => {
+    localStorage.setItem('haul-mode', b.dataset.newmode);
+    localStorage.removeItem(SAVE_KEY);
+    location.reload();
+  });
+}
 function renderSheet() {
   const el = $('sheet');
   if (panel === 'board') return renderBoard(el);
   if (panel === 'portfolio') return renderPortfolio(el);
   if (panel === 'market') return renderMarket(el);
+  if (panel === 'crown') return renderCrown(el);
+  if (panel === 'start') return renderStart(el);
   if (panel === 'skills') return renderSkills(el);
   if (sel?.kind === 'route') {
     const rt = w.routes.find(x => x.id === sel.id);
@@ -629,6 +668,8 @@ function frame(now) {
   const ownedUnits = Object.values(w.units).filter(u => u.owner === 'player').length;
   $('portbtn').textContent = ownedUnits ? `🏦 ${ownedUnits}` : '🏦';
   $('mktbtn').textContent = w.emancipation ? '📈 !' : '📈';
+  $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
+  $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes(); renderEvents();
   $('infl').textContent = w.influence > 0 ? `⚖ ${w.influence}` : '';

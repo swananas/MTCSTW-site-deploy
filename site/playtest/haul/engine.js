@@ -329,7 +329,9 @@ export function evBurnMult(w, nodeId, good) {
   if (w.dev[nodeId]?.archetype === 'care' && CARE_NODES.has(nodeId)) m *= 1.1;
   return m;
 }
-export function createWorld(seed = 1) {
+export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel' };
+export const treeOf = (good) => TREES[good] ?? 'Other';
+export function createWorld(seed = 1, opts = {}) {
   const w = {
     tick: 0, money: 750, seed,
     rng: { a: seed | 0 },
@@ -346,6 +348,12 @@ export function createWorld(seed = 1) {
     dev: {},                 // nodeId -> { scores, archetype }
     parcels: {},             // nodeId -> { left, owned } — land is the zero-sum
     shipWait: false,
+    mode: opts.mode === 'sandbox' ? 'sandbox' : 'campaign', // the Crown judges campaigns only (W23)
+    crown: { rule: 'capped', streak: 0, achieved: {}, ending: null, current: 0, raw: 0, capped: 0, peak: 0 },
+    moveLog: [],             // trailing 30 days of moved value (W23)
+    daySettle: {},           // today's delivered value by tree (reset at the boundary)
+    dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
+    craneGoods: {},          // goods the cranes touched since the last boundary
     boats: { docks: 3, delcambre: 3 },
     track: {},               // 'a|b' -> { doneTick }
     yards: {},               // nodeId -> true
@@ -362,7 +370,7 @@ export function createWorld(seed = 1) {
     hauledGoods: {},         // good -> true once the company has delivered it
     cranePending: 0,         // Port Cranes income accrued between ship calls
     intents: [], ticker: [],
-    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0 },
+    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0, eventsSurvived: 0, influenceEarned: 0, seizures: 0, emancipations: 0, biggestDelivery: 0 },
     laneCounts: {},          // 'from|to|good' -> spot deliveries (crystallization, K-2)
     nextId: 1,
   };
@@ -722,6 +730,7 @@ function applyIntents(w) {
       const offer = w.emancipation;
       if (!offer) continue;
       const h = w.houses[offer.house];
+      w.stats.emancipations++;
       if (h.integrated) { h.buybackFund -= offer.price; unintegrateHouse(w, offer.house, true); }
       else h.cash -= offer.price;
       w.money += offer.price;
@@ -801,6 +810,10 @@ function applyIntents(w) {
       w.influence -= cost;
       w.state.pending = it.policyId;
       note(w, `Next season's debate is chartered: ${STATE_DECK.find(p => p.id === it.policyId).name} will be the question.`, 'buy');
+    } else if (it.type === 'setCrownRule') {
+      if (!['capped', 'uncapped'].includes(it.rule)) continue;
+      w.crown.rule = it.rule;
+      note(w, `The Crown reads ${it.rule === 'capped' ? 'capped — no tree counts past 35% of your movement' : 'uncapped — every dollar of movement counts whole'}. The R3 house rule stands as the house sets it.`, 'news');
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -1031,6 +1044,9 @@ function finishUnload(w, v) {
     }
     else addStock(w, dest, good, landed, cargo.born);
     dn.flow[good].in += landed; dn.flow[good].playerIn += landed;
+    const grossLanded = landed * (dn.prices[good] ?? 0);
+    w.daySettle[treeOf(good)] = (w.daySettle[treeOf(good)] ?? 0) + grossLanded; // moved value (W23)
+    if (grossLanded > w.stats.biggestDelivery) w.stats.biggestDelivery = grossLanded;
     w.stats.byGood[good] = (w.stats.byGood[good] || 0) + landed;
     w.hauledGoods[good] = true;
   }
@@ -1052,7 +1068,7 @@ function finishUnload(w, v) {
         || (w.state.policy === 'export-subsidy' && dest === 'port')
         || (w.state.policy === 'road-crews' && (good === 'lumber' || good === 'fuel'));
       const gain = Math.max(0, Math.round((themed ? 2 : 1) * (w.posture === 'partner' ? 1.5 : w.posture === 'adversarial' ? 0.5 : 1)));
-      if (gain > 0) { w.influence += gain; note(w, `The State takes note: +${gain} influence (${w.influence} banked).`, 'news'); }
+      if (gain > 0) { w.influence += gain; w.stats.influenceEarned += gain; note(w, `The State takes note: +${gain} influence (${w.influence} banked).`, 'news'); }
       note(w, `Contract fulfilled: ${c.qty}t of ${GOODS[good].name.toLowerCase()} to ${NODES[dest].name} — $${Math.round(c.qty * c.pricePerTon)} at the locked price.`, 'pay');
       awardMilestone(w, 'firstContract', 'first contract fulfilled');
     }
@@ -1207,11 +1223,12 @@ function shipCall(w) {
   for (const [good, qty] of Object.entries(SHIP_MANIFEST)) {
     addStock(w, 'port', good, qty, 0);
     w.nodes.port.flow[good].in += qty;
+    w.craneGoods[good] = (w.craneGoods[good] ?? 0) + qty;
   }
   let sailed = 0;
   for (const good of Object.keys(NODES.port.consumes)) {
     const q = stockOf(w, 'port', good);
-    if (q > 0) { w.nodes.port.stock[good] = 0; w.nodes.port.flow[good].out += q; sailed += q; }
+    if (q > 0) { w.nodes.port.stock[good] = 0; w.nodes.port.flow[good].out += q; sailed += q; w.craneGoods[good] = (w.craneGoods[good] ?? 0) + q; }
   }
   const landed = Object.values(SHIP_MANIFEST).reduce((s, q) => s + q, 0);
   w.cranePending += landed * 6 + sailed * 2; // Port Cranes income (W20), paid at day boundary
@@ -1222,23 +1239,28 @@ function shipCall(w) {
 // --- ownership economics (W20): yesterday's flows pay today's owners ---
 function unitIncomeDay(w) {
   const houseIncome = {};
+  const treeAcc = {}; let playerTotal = 0; const treeByUnit = {};
   for (const [unitId, unit] of Object.entries(UNITS)) {
     const st = w.units[unitId], node = w.nodes[unit.node];
     let gross = 0;
-    if (unit.kind === 'producer') gross = node.flow[unit.good].in * (node.prices[unit.good] ?? 0) * unit.margin;
+    if (unit.kind === 'producer') { gross = node.flow[unit.good].in * (node.prices[unit.good] ?? 0) * unit.margin; treeByUnit[unitId] = treeOf(unit.good); }
     else if (unit.kind === 'converter') {
       const def = NODES[unit.node];
       const outQty = node.flow[def.converts.out].in;
       const marginPerTon = (node.prices[def.converts.out] ?? 0) - (node.prices[def.converts.in] ?? 0) / def.converts.ratio;
       gross = Math.max(0, outQty * marginPerTon) * unit.margin;
+      treeByUnit[unitId] = treeOf(def.converts.out);
     } else if (unit.kind === 'sink') {
-      let sum = 0;
+      let sum = 0, bestGood = null, bestVal = -1;
       for (const [good, perDay] of Object.entries(NODES[unit.node].consumes ?? {})) {
         if (perDay === 9999) continue;
-        sum += node.flow[good].out * (node.prices[good] ?? 0);
+        const val = node.flow[good].out * (node.prices[good] ?? 0);
+        sum += val;
+        if (val > bestVal) { bestVal = val; bestGood = good; }
       }
       gross = sum * unit.margin;
-    } else if (unitId === 'iceHouse') gross = w.nodes.docks.flow.shrimp.in * (w.nodes.docks.prices.shrimp ?? 0) * unit.margin;
+      if (bestGood) treeByUnit[unitId] = treeOf(bestGood);
+    } else if (unitId === 'iceHouse') { gross = w.nodes.docks.flow.shrimp.in * (w.nodes.docks.prices.shrimp ?? 0) * unit.margin; treeByUnit[unitId] = 'Shrimp'; }
     else if (unitId === 'portCranes') { gross = w.cranePending; w.cranePending = 0; }
     let income = gross;
     if (st.owner === 'player' && w.skills.owned.tiering) income *= 1.15;
@@ -1246,11 +1268,19 @@ function unitIncomeDay(w) {
     st.lastIncome = income;
     st.incomeAvg = st.incomeAvg === 0 ? income : st.incomeAvg * 0.8 + income * 0.2;
     if (st.owner === 'player' && income > 0) {
+      let credited = income;
       if (st.brand && w.houses[st.brand]?.integrated) {
         // integration pays 75%; the rest builds the subsidiary's buyback fund
-        w.money += income * 0.75; w.stats.unitIncome += income * 0.75;
+        credited = income * 0.75;
+        w.money += credited; w.stats.unitIncome += credited;
         w.houses[st.brand].buybackFund += income * 0.25;
       } else { w.money += income; w.stats.unitIncome += income; }
+      playerTotal += credited;
+      if (unitId === 'portCranes') {
+        const tot = Object.values(w.craneGoods).reduce((s, q) => s + q, 0);
+        if (tot > 0) for (const [g, q] of Object.entries(w.craneGoods)) treeAcc[treeOf(g)] = (treeAcc[treeOf(g)] ?? 0) + credited * q / tot;
+        else treeAcc['Port'] = (treeAcc['Port'] ?? 0) + credited;
+      } else if (treeByUnit[unitId]) treeAcc[treeByUnit[unitId]] = (treeAcc[treeByUnit[unitId]] ?? 0) + credited;
     } else if (st.owner !== 'player' && income > 0) {
       w.houses[st.owner].cash += income;
       houseIncome[st.owner] = (houseIncome[st.owner] ?? 0) + income;
@@ -1267,6 +1297,7 @@ function unitIncomeDay(w) {
       w.money += div; w.stats.dividends += div;
     }
   }
+  w.dayUnit = { trees: treeAcc, houses: houseIncome, playerTotal };
 }
 function storageBleed(w) {
   let bleed = 0;
@@ -1286,6 +1317,7 @@ function loanStep(w) {
   for (const loan of w.loans) {
     if (loan.state !== 'open' || w.tick <= loan.graceUntil) continue;
     loan.state = 'seized';
+    w.stats.seizures++;
     w.units[loan.unitId].owner = 'Maison';
     delete w.units[loan.unitId].brand;
     note(w, `The grace ran out: Maison seizes ${UNITS[loan.unitId].name} against your unpaid note. Loan-to-own, as written. The bank is itself listed, remember.`, 'warn');
@@ -1382,6 +1414,7 @@ function eventStep(w) {
       else note(w, `${EVENT_DECK.find(c => c.id === ev.card).name} begins — it runs to Day ${Math.floor(ev.endsTick / 24) + 1}. Nothing here breaks anything that cannot be rebuilt.`, 'warn');
     }
   }
+  for (const ev of w.events) if (w.tick > ev.endsTick && !ev.counted) { ev.counted = true; w.stats.eventsSurvived++; }
   w.events = w.events.filter(ev => w.tick <= ev.endsTick + HOURS_PER_DAY);
   const mods = { fishery: 1, port: 1, riverTarget: null, waterGrounded: false, produce: {}, produceGood: {}, convertOff: {}, burnNode: {}, burnKey: {}, burnCat: {} };
   for (const ev of w.events) {
@@ -1445,6 +1478,76 @@ function devStep(w) {
   }
 }
 
+// --- the Crown (W23): moved value, the meter, the endings, the report ---
+export function controlShares(w) {
+  let player = 0, world = 0; const trees = {};
+  for (const row of w.moveLog) {
+    player += row.player; world += row.world;
+    for (const [t, v] of Object.entries(row.trees)) trees[t] = (trees[t] ?? 0) + v;
+  }
+  if (world <= 0 || player <= 0) return { raw: 0, capped: 0, trees, player, world };
+  const raw = player / world;
+  const treedTotal = Object.values(trees).reduce((s, v) => s + v, 0);
+  let cappedNum = player - treedTotal; // house-share movement passes whole
+  for (const v of Object.values(trees)) cappedNum += Math.min(v, 0.35 * player);
+  return { raw, capped: cappedNum / world, trees, player, world };
+}
+function crownEnding(w, path, line) {
+  w.crown.achieved[path] = w.tick;
+  if (!w.crown.ending) w.crown.ending = { path, tick: w.tick };
+  note(w, `👑 THE CROWN — ${line} The Era Report is written; the Crown desk (👑) holds it. The work, of course, continues.`, 'pay');
+}
+function controlStep(w) {
+  let world = 0;
+  for (const n of Object.values(w.nodes)) for (const g of Object.keys(GOODS)) world += n.flow[g].out * (n.prices[g] ?? 0);
+  const trees = {};
+  let player = 0;
+  for (const [t, v] of Object.entries(w.daySettle)) { trees[t] = (trees[t] ?? 0) + v; player += v; }
+  const du = w.dayUnit ?? { trees: {}, houses: {}, playerTotal: 0 };
+  for (const [t, v] of Object.entries(du.trees)) trees[t] = (trees[t] ?? 0) + v;
+  player += du.playerTotal;
+  for (const house of Object.keys(w.stakes)) {
+    const inc = du.houses[house] ?? 0;
+    if (inc <= 0) continue;
+    const h = w.houses[house];
+    player += (h.subOf === 'player' && !h.integrated) ? inc : inc * (w.stakes[house] ?? 0) / 100;
+  }
+  w.moveLog.push({ player, world, trees });
+  if (w.moveLog.length > 30) w.moveLog.shift();
+  w.daySettle = {}; w.dayUnit = null; w.craneGoods = {};
+  const { raw, capped } = controlShares(w);
+  const active = w.crown.rule === 'capped' ? capped : raw;
+  w.crown.current = active; w.crown.raw = raw; w.crown.capped = capped;
+  if (active > w.crown.peak) w.crown.peak = active;
+  if (w.mode !== 'campaign') return;
+  w.crown.streak = active >= 0.6 ? w.crown.streak + 1 : 0;
+  if (!w.crown.achieved.dominance && w.crown.streak >= 30) crownEnding(w, 'dominance', `Dominance: ${(active * 100).toFixed(0)}% of the region's moved value, held for a full season.`);
+  if (!w.crown.achieved.monopoly && active >= 0.75) crownEnding(w, 'monopoly', `Monopoly: ${(active * 100).toFixed(0)}% of everything that moves, moves through you.`);
+  const listed = Object.keys(w.stakes);
+  if (!w.crown.achieved.lastOneStanding && listed.length && listed.every(h => w.houses[h].subOf === 'player' || w.houses[h].delisted)) crownEnding(w, 'lastOneStanding', `Last One Standing: every listed house answers to you, or has retired its name.`);
+}
+export function eraReport(w) {
+  const { raw, capped, trees, player, world } = controlShares(w);
+  const seasons = (w.tick / TICKS_PER_SEASON).toFixed(1);
+  const owned = Object.keys(UNITS).filter(u => w.units[u].owner === 'player');
+  const subs = Object.keys(w.stakes).filter(h => w.houses[h].subOf === 'player');
+  const gone = Object.keys(w.stakes).filter(h => w.houses[h].delisted);
+  const topTrees = Object.entries(trees).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t, v]) => `${t} $${Math.round(v).toLocaleString()}`);
+  const arch = Object.keys(NODES).filter(id => w.dev[id].archetype).map(id => `${NODES[id].name} the ${w.dev[id].archetype === 'agri' ? 'Agri' : w.dev[id].archetype[0].toUpperCase() + w.dev[id].archetype.slice(1)}`);
+  const endingNames = { dominance: 'Dominance', monopoly: 'Monopoly', lastOneStanding: 'Last One Standing' };
+  const lines = [
+    `The company has run ${seasons} seasons (${Math.floor(w.tick / 24)} days) out of the Gulf parishes.`,
+    `It has moved ${w.stats.deliveredTons.toFixed(0)}t of freight and earned $${Math.round(w.stats.earned).toLocaleString()} hauling, $${Math.round(w.stats.unitIncome).toLocaleString()} from its own units, $${Math.round(w.stats.dividends).toLocaleString()} in dividends. Its largest single delivery was worth $${Math.round(w.stats.biggestDelivery).toLocaleString()}.`,
+    `Regional Control stands at ${(w.crown.current * 100).toFixed(1)}% (${w.crown.rule} reading; raw ${(raw * 100).toFixed(1)}%, capped ${(capped * 100).toFixed(1)}%; peak ${(w.crown.peak * 100).toFixed(1)}%). Of $${Math.round(world).toLocaleString()} the region moved in the last 30 days, $${Math.round(player).toLocaleString()} moved through this network${topTrees.length ? ` — strongest trees: ${topTrees.join(' · ')}` : ''}.`,
+    w.crown.ending ? `The era is named: ${endingNames[w.crown.ending.path]} (Day ${Math.floor(w.crown.ending.tick / 24) + 1}).` : `No ending yet — the crown is unwon, and the work continues.`,
+    `It holds ${owned.length} units outright${owned.length ? ` (${owned.map(u => UNITS[u].name).join(', ')})` : ''}${subs.length ? `; subsidiaries: ${subs.join(', ')}` : ''}${gone.length ? `; retired by buyout: ${gone.join(', ')}` : ''}. Stakes: ${Object.entries(w.stakes).filter(([, s]) => s > 0).map(([h, s]) => `${h} ${s}%`).join(' · ') || 'none'}.`,
+    `The ledger of dealings with power: ${w.stats.contractsDone} contracts fulfilled · ${w.stats.influenceEarned} influence earned · ${w.stats.seizures} units lost to Maison's book · ${w.stats.emancipations} emancipations granted.`,
+    `The world it worked in: the Gulf fishery stands at ${Math.round(w.fishery.stock)}% · ${w.stats.eventsSurvived} events weathered · ${arch.length ? `the map remade itself — ${arch.join(' · ')}` : 'the map is still the map it was'}.`,
+    `Cash on hand: $${Math.round(w.money).toLocaleString()}. The rest is land, iron, and name.`,
+  ];
+  return lines;
+}
+
 // --- day & season boundaries ---
 function dayBoundary(w) {
   eventStep(w);
@@ -1462,6 +1565,7 @@ function dayBoundary(w) {
     v.downFrom = w.tick; v.downTo = w.tick + HOURS_PER_DAY;
     note(w, `A ${VEHICLES[v.type].name.toLowerCase()} crew calls out sick — the grievance is costing days.`, 'warn');
   }
+  controlStep(w);
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
   const f = w.fishery;

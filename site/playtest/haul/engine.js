@@ -329,6 +329,39 @@ export function evBurnMult(w, nodeId, good) {
   if (w.dev[nodeId]?.archetype === 'care' && CARE_NODES.has(nodeId)) m *= 1.1;
   return m;
 }
+export const GROUNDS = [
+  { id: 'cane', name: 'Cane Country', node: 'caneA', vehicle: 'box', cash: 750, route: ['caneA', 'mill'], blurb: 'A truck, a cane field, and the mill road. The classic start.' },
+  { id: 'shrimp', name: 'Shrimp Blood', node: 'docks', vehicle: 'boat', cash: 600, blurb: 'Born on the Empire docks. The Gulf provides — mostly.' },
+  { id: 'rice', name: 'Rice Parish', node: 'ricefarm', vehicle: 'box', cash: 700, unit: 'riceFarm', blurb: 'The family rice farm is yours. What you grow is what you haul.' },
+  { id: 'timber', name: 'Timber Kin', node: 'timberstand', vehicle: 'box', cash: 650, unit: 'timberStand', blurb: 'The stand has been in the family since the longleaf days.' },
+  { id: 'mill', name: 'Mill Town', node: 'mill', vehicle: 'box', cash: 900, blurb: 'You grew up in the Sugar Mill’s shadow, and you know its thirst.' },
+  { id: 'port', name: 'Port Blood', node: 'port', vehicle: 'box', cash: 1000, blurb: 'Stevedore stock. The ships know your name.' },
+  { id: 'refinery', name: 'Refinery Hand', node: 'refinery', vehicle: 'box', cash: 850, blurb: 'You can read Refinery Row’s lights like weather.' },
+  { id: 'delcambre', name: 'Delcambre Nets', node: 'delcambre', vehicle: 'boat', cash: 550, blurb: 'Second dock, first pride. No ice house — work fast.' },
+  { id: 'fourchon', name: 'Bayou Runner', node: 'fourchon', vehicle: 'box', cash: 800, blurb: 'The last road before the Gulf. Everything passes you.' },
+  { id: 'nola', name: 'Hospital Corridor', node: 'nola', vehicle: 'box', cash: 950, blurb: 'You know what the hospitals burn through, and when.' },
+  { id: 'sawmill', name: 'Sawmill Hand', node: 'sawmill', vehicle: 'box', cash: 700, blurb: 'Lumber in your blood and sawdust in your boots.' },
+  { id: 'gasplant', name: 'Gas Plant Kin', node: 'gasplant', vehicle: 'box', cash: 800, blurb: 'Your people keep the oxygen flowing to the care corridor.' },
+  { id: 'batonrouge', name: 'Capital Clerk', node: 'batonrouge', vehicle: 'box', cash: 900, blurb: 'You filed papers in the capital. You know where the clinics hurt.' },
+  { id: 'lafayette', name: 'Clinic Run', node: 'lafayette', vehicle: 'box', cash: 850, blurb: 'The little clinic at the corridor’s end raised you.' },
+  { id: 'shipyard', name: 'Shipyard Apprentice', node: 'shipyard', vehicle: 'box', cash: 1100, blurb: 'Houma builds your barges cheaper — and now they build for you.' },
+  { id: 'grandisle', name: 'Island Keeper', node: 'grandisle', vehicle: 'box', cash: 675, blurb: 'The island at the end of the road. Tourists come; somebody feeds them.' },
+];
+export const LEVERAGES = [
+  { id: 'motion', name: 'Motion', blurb: 'You start moving: Dispatch Discipline is yours from day one.' },
+  { id: 'credit', name: 'Credit', blurb: 'Maison knows your name: your first note runs at 6%, not 12%.' },
+  { id: 'reputation', name: 'Reputation', blurb: 'Word travels ahead of you: +2 influence, contracts pay 5% more.' },
+  { id: 'people', name: 'People', blurb: 'Crews follow you into a storm: Generous wages from day one, breakdowns a tenth rarer forever.' },
+  { id: 'state', name: 'The State', blurb: 'A cousin in the capital: Partner posture and +3 influence at the start.' },
+  { id: 'environment', name: 'Environment', blurb: 'You read water and land: the Gulf starts at 90, and a home parcel is yours.' },
+];
+export const OPENING_PRESETS = [
+  { name: 'The Hauler', ground: 'cane', leverage: 'motion' },
+  { name: 'The Shrimper', ground: 'shrimp', leverage: 'environment' },
+  { name: 'The Planter', ground: 'rice', leverage: 'people' },
+  { name: 'The Broker', ground: 'port', leverage: 'credit' },
+  { name: 'The Operator', ground: 'mill', leverage: 'state' },
+];
 export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel' };
 export const treeOf = (good) => TREES[good] ?? 'Other';
 export function createWorld(seed = 1, opts = {}) {
@@ -349,6 +382,9 @@ export function createWorld(seed = 1, opts = {}) {
     parcels: {},             // nodeId -> { left, owned } — land is the zero-sum
     shipWait: false,
     mode: opts.mode === 'sandbox' ? 'sandbox' : 'campaign', // the Crown judges campaigns only (W23)
+    leverage: null,          // the second pick (W24)
+    flags: { creditUsed: false },
+    startNode: 'caneA',
     crown: { rule: 'capped', streak: 0, achieved: {}, ending: null, current: 0, raw: 0, capped: 0, peak: 0 },
     moveLog: [],             // trailing 30 days of moved value (W23)
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
@@ -391,9 +427,39 @@ export function createWorld(seed = 1, opts = {}) {
   for (const id of Object.keys(NODES)) { w.pollution[id] = 0; w.population[id] = 100; w.dev[id] = { scores: { industrial: 0, port: 0, care: 0, agri: 0, tourist: 0 }, archetype: null }; w.parcels[id] = { left: 4, owned: 0 }; }
   w.state.rngA = (seed * 2654435761) >>> 0;
   w.state.pending = drawStatePolicy(w);
-  addVehicle(w, 'box', 'caneA');
-  note(w, 'Your company opens with one box truck at Cane Field A and $750. The mill is hungry.', 'news');
+  if (opts.ground || opts.leverage) applyOpening(w, opts);
+  else {
+    addVehicle(w, 'box', 'caneA');
+    note(w, 'Your company opens with one box truck at Cane Field A and $750. The mill is hungry.', 'news');
+  }
   return w;
+}
+function applyOpening(w, opts) {
+  const g = GROUNDS.find(x => x.id === opts.ground) ?? GROUNDS[0];
+  w.money = g.cash;
+  w.startNode = g.node;
+  let vehicle = null;
+  if (g.vehicle === 'box') vehicle = addVehicle(w, 'box', g.node);
+  else if (g.vehicle === 'boat') w.boats[g.node] = (w.boats[g.node] ?? 0) + 1;
+  if (g.unit) w.units[g.unit].owner = 'player';
+  if (g.route && vehicle) {
+    const r = { id: w.nextId++, from: g.route[0], to: g.route[1], paused: false, trips: 0, earned: 0, policy: 'clock' };
+    w.routes.push(r);
+    vehicle.routeId = r.id;
+  }
+  const lev = LEVERAGES.find(x => x.id === opts.leverage);
+  if (lev) {
+    w.leverage = lev.id;
+    if (lev.id === 'motion') w.skills.owned.dispatch = true;
+    else if (lev.id === 'reputation') w.influence += 2;
+    else if (lev.id === 'people') w.crews.wage = 'generous';
+    else if (lev.id === 'state') { w.posture = 'partner'; w.influence += 3; }
+    else if (lev.id === 'environment') {
+      w.fishery.stock = 90;
+      if (w.parcels[g.node].left > 0) { w.parcels[g.node].left--; w.parcels[g.node].owned++; }
+    }
+  }
+  note(w, `Your company opens: ${g.name}${lev ? ` × ${lev.name}` : ''} — ${g.blurb}`, 'news');
 }
 function freshFlow() { return { in: 0, out: 0, demand: 0, playerIn: 0 }; }
 function addVehicle(w, type, nodeId) {
@@ -596,7 +662,7 @@ function buyoutHouse(w, house) {
 }
 export function loanOwed(w, loan) {
   const days = Math.max(0, (w.tick - loan.startTick) / HOURS_PER_DAY);
-  return Math.round(loan.principal * (1 + 0.004 * days));
+  return Math.round(loan.principal * (1 + ((loan.rate ?? 0.12) / 30) * days));
 }
 
 // --- intents (applied at tick boundaries) ---
@@ -715,8 +781,10 @@ function applyIntents(w) {
       if (maison.cash < principal) { note(w, `Maison cannot fund a $${principal.toLocaleString()} note right now — the bank is thin.`, 'warn'); continue; }
       maison.cash -= principal;
       w.money += principal;
-      w.loans.push({ id: w.nextId++, unitId: it.unitId, principal, startTick: w.tick, dueTick: w.tick + TICKS_PER_SEASON, graceUntil: w.tick + TICKS_PER_SEASON + 7 * HOURS_PER_DAY, state: 'open' });
-      note(w, `Maison lends you $${principal.toLocaleString()} against ${unit.name} — 60% of its value, 12% a season, due in 30 days with a week's grace. Default past grace and the unit is theirs: loan-to-own.`, 'buy');
+      const rate = (w.leverage === 'credit' && !w.flags.creditUsed) ? 0.06 : 0.12; // the Credit opening's one favor (W24)
+      if (rate === 0.06) w.flags.creditUsed = true;
+      w.loans.push({ id: w.nextId++, unitId: it.unitId, principal, rate, startTick: w.tick, dueTick: w.tick + TICKS_PER_SEASON, graceUntil: w.tick + TICKS_PER_SEASON + 7 * HOURS_PER_DAY, state: 'open' });
+      note(w, `Maison lends you $${principal.toLocaleString()} against ${unit.name} — 60% of its value, ${Math.round(rate * 100)}% a season${rate === 0.06 ? ' (your name carried the rate)' : ''}, due in 30 days with a week's grace. Default past grace and the unit is theirs: loan-to-own.`, 'buy');
     } else if (it.type === 'repay') {
       const loan = w.loans.find(l => l.id === it.loanId && l.state === 'open');
       if (!loan) continue;
@@ -836,8 +904,7 @@ function applyIntents(w) {
     } else if (it.type === 'toggleRoute') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r) { r.paused = !r.paused; note(w, `Route ${NODES[r.from].name} → ${NODES[r.to].name} ${r.paused ? 'paused' : 'resumed'}.`, 'route'); }
-    } else if (it.type === 'assign') assign(w, it.routeId, it.vehicleId);
-    else if (it.type === 'removeRoute') {
+    } else if (it.type === 'removeRoute') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r) {
         for (const v of w.vehicles) if (v.routeId === r.id && v.phase === 'idle') v.routeId = null;
@@ -1166,7 +1233,7 @@ function generateContracts(w) {
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
     const item = cand.good === 'pharma' && nextRandom(w) < 0.4 ? 'Insulin (cold pack)' : CONTRACT_ITEMS[cand.good];
-    const finalPrice = Math.round((item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon) * (w.posture === 'adversarial' ? 1.15 : 1));
+    const finalPrice = Math.round((item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon) * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1));
     w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, item, qty, delivered: 0, pricePerTon: finalPrice, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
     note(w, `On the board: ${qty}t of ${item.toLowerCase()} to ${NODES[cand.id].name} at $${finalPrice}/t — ${NODES[cand.id].name} is running dry.`, 'route');
   }
@@ -1178,7 +1245,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }
@@ -1650,6 +1717,7 @@ function seasonBoundary(w) {
     if (w.crews.wage === 'tight') p *= 1.5; else if (w.crews.wage === 'generous') p *= 0.6;
     if (w.tick < w.crews.unionUntil) p *= 0.8; // the stability contract
     if (w.tick < w.crews.grievanceUntil) p *= 2;
+    if (w.leverage === 'people') p *= 0.9; // loyal crews (W24)
     if (nextRandom(w) < p) {
       v.downFrom = w.tick + Math.floor(nextRandom(w) * 29) * HOURS_PER_DAY;
       v.downTo = v.downFrom + HOURS_PER_DAY;

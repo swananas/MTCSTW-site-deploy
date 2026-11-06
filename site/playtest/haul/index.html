@@ -54,6 +54,7 @@
     <div class="speeds" id="speeds">
       <button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
     </div>
+    <canvas id="ring" width="36" height="36" style="flex:none" title="Outer arc: the season · inner arc: the day"></canvas>
     <div class="clock" id="clock">Day 1 · 00:00</div>
     <button id="boardbtn" title="Contracts board">📋</button>
     <button id="skillbtn" title="Company skills">🎓</button>
@@ -71,16 +72,21 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v08';
-const CURRENT_PHASE = 0.8;
+const SAVE_KEY = 'haul-save-v10';
+const CURRENT_PHASE = 1.0;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
 const view = { s: 1, ox: 0, oy: 0 };
 let w;
-try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : createWorld(20261106); }
+function bootWorld() {
+  let start = {};
+  try { start = JSON.parse(localStorage.getItem('haul-start') ?? '{}'); } catch { /* a bad start note never bricks the dock */ }
+  return createWorld(20261106, { mode: start.mode === 'sandbox' ? 'sandbox' : 'campaign', ground: start.ground, leverage: start.leverage });
+}
+try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : bootWorld(); }
 catch { w = createWorld(20261106); }
 
 let speed = 1, sel = null, pendingRoute = null, panel = null, trackMode = false, lastTickAt = performance.now(), acc = 0;
@@ -420,20 +426,31 @@ function renderCrown(el) {
   el.querySelector('[data-crownrule]').onclick = (e) => Q({ type: 'setCrownRule', rule: e.target.dataset.crownrule });
   el.querySelector('[data-era]').onclick = () => { showEra = !showEra; renderSheet(); };
 }
+let startMode = 'campaign', startGround = 'cane', startLeverage = 'motion';
 function renderStart(el) {
-  if (!setHTML(el, `<div class="card"><h3>Start a new company</h3>
-    <div class="sub">This run is replaced. The Gulf, however, will be exactly as difficult as you left it.</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-      <button data-newmode="campaign" class="primary">👑 Campaign — the Crown judges</button>
-      <button data-newmode="sandbox">🏖 Sandbox — no endings, just the work</button>
-    </div>
-    <div class="sub">Campaign carries the three endings and the Era Report. Sandbox runs the same world and meter with no judgment at all.</div>
+  const g = GROUNDS.find(x => x.id === startGround), l = LEVERAGES.find(x => x.id === startLeverage);
+  if (!setHTML(el, `<div class="card"><h3>Open your company — the two picks</h3>
+    <div class="sub">Ninety-six openings: pick your GROUND (where your family stands) and your LEVERAGE (what you bring). Opening replaces the current run.</div>
+    <div style="display:flex;gap:4px;margin:4px 0">${[['campaign', '👑 Campaign'], ['sandbox', '🏖 Sandbox']].map(([m, label]) => `<button data-smode="${m}" ${startMode === m ? 'class="primary"' : ''}>${label}</button>`).join('')}</div>
+    <div style="font-weight:700;margin-top:4px">The classic five</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">${OPENING_PRESETS.map(p => `<button data-preset="${p.ground}|${p.leverage}" ${startGround === p.ground && startLeverage === p.leverage ? 'class="primary"' : ''}>${p.name}</button>`).join('')}</div>
+    <div style="font-weight:700;margin-top:6px">Pick One — Ground</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">${GROUNDS.map(x => `<button data-ground="${x.id}" ${startGround === x.id ? 'class="primary"' : ''}>${x.name} · $${x.cash}</button>`).join('')}</div>
+    <div class="sub">${g.blurb} Starts at ${NODES[g.node].name}${g.unit ? ` · holds the ${UNITS[g.unit].name}` : ''}${g.vehicle === 'boat' ? ' · one shrimp boat' : ' · one box truck'}${g.route ? ' · the first route is already drawn' : ''}.</div>
+    <div style="font-weight:700;margin-top:6px">Pick Two — Leverage</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">${LEVERAGES.map(x => `<button data-lev="${x.id}" ${startLeverage === x.id ? 'class="primary"' : ''}>${x.name}</button>`).join('')}</div>
+    <div class="sub">${l.blurb}</div>
+    <div style="margin-top:8px"><button data-launch="1" class="primary" style="font-size:14px;padding:9px 14px">Open as ${g.name} × ${l.name} (${startMode})</button></div>
     </div>`)) return;
-  el.querySelectorAll('[data-newmode]').forEach(b => b.onclick = () => {
-    localStorage.setItem('haul-mode', b.dataset.newmode);
+  el.querySelectorAll('[data-smode]').forEach(b => b.onclick = () => { startMode = b.dataset.smode; renderSheet(); });
+  el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const [gr, lv] = b.dataset.preset.split('|'); startGround = gr; startLeverage = lv; renderSheet(); });
+  el.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { startGround = b.dataset.ground; renderSheet(); });
+  el.querySelectorAll('[data-lev]').forEach(b => b.onclick = () => { startLeverage = b.dataset.lev; renderSheet(); });
+  el.querySelector('[data-launch]').onclick = () => {
+    localStorage.setItem('haul-start', JSON.stringify({ ground: startGround, leverage: startLeverage, mode: startMode }));
     localStorage.removeItem(SAVE_KEY);
     location.reload();
-  });
+  };
 }
 function renderSheet() {
   const el = $('sheet');
@@ -672,6 +689,16 @@ function frame(now) {
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes(); renderEvents();
+  { // the clock ring (kit sheet LT-02): outer arc the season, inner arc the day
+    const rc = $('ring').getContext('2d');
+    rc.clearRect(0, 0, 36, 36);
+    rc.lineWidth = 3; rc.strokeStyle = '#e3dac4';
+    rc.beginPath(); rc.arc(18, 18, 15, 0, Math.PI * 2); rc.stroke();
+    rc.strokeStyle = '#c9a44e';
+    rc.beginPath(); rc.arc(18, 18, 15, -Math.PI / 2, -Math.PI / 2 + (w.tick % 720) / 720 * Math.PI * 2); rc.stroke();
+    rc.strokeStyle = '#7a5c1e';
+    rc.beginPath(); rc.arc(18, 18, 10, -Math.PI / 2, -Math.PI / 2 + (w.tick % 24) / 24 * Math.PI * 2); rc.stroke();
+  }
   $('infl').textContent = w.influence > 0 ? `⚖ ${w.influence}` : '';
   if (frame.n++ % 20 === 0 && !touched($('sheet'))) renderSheet();
   requestAnimationFrame(frame);

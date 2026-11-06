@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex">
+<title>HAUL — Phase 0.1 · The Loop</title>
+<style>
+  :root { --ink:#22312a; --paper:#f2efe6; --teal:#1f6f6b; --amber:#b97e26; --red:#b3402e; --line:#c9c2ae; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; height:100%; background:#aebfa5; font-family: ui-rounded, system-ui, -apple-system, sans-serif; color:var(--ink); }
+  #app { display:flex; flex-direction:column; height:100dvh; max-width:560px; margin:0 auto; background:#c3d0b4; box-shadow:0 0 24px rgba(20,40,30,.25); }
+  header { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--paper); border-bottom:1px solid var(--line); }
+  header .brand { font-weight:800; letter-spacing:.14em; font-size:15px; }
+  header .money { font-weight:800; color:var(--teal); font-size:16px; }
+  header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
+  .speeds { display:flex; gap:4px; }
+  .speeds button, .card button, #newgame { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
+  #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
+  #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
+  #ticker div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:1.5px 0; opacity:.92; }
+  #ticker .pay { color:#9fd6a4; } #ticker .rot { color:#f0a08e; } #ticker .warn { color:#f2cd7e; }
+  #ticker .route { color:#a8cdea; } #ticker .buy { color:#d3b8ec; }
+  #sheet { background:var(--paper); border-top:1px solid var(--line); padding:10px; min-height:118px; }
+  .hint { font-size:13px; opacity:.8; line-height:1.45; }
+  .card h3 { margin:0 0 4px; font-size:16px; }
+  .card .sub { font-size:12px; opacity:.75; margin-bottom:6px; }
+  .card table { width:100%; border-collapse:collapse; font-size:13px; margin:4px 0 8px; }
+  .card td { padding:2.5px 0; } .card td.r { text-align:right; font-variant-numeric:tabular-nums; }
+  .bar { height:5px; background:#e3ddc9; border-radius:3px; overflow:hidden; width:86px; display:inline-block; vertical-align:middle; }
+  .bar i { display:block; height:100%; background:var(--teal); }
+  .card .row { display:flex; flex-wrap:wrap; gap:6px; }
+  .card button.primary { background:var(--teal); color:#fff; border-color:var(--teal); }
+  .card button:disabled { opacity:.45; }
+  #routes { font-size:12.5px; padding:6px 10px; background:#e9e4d2; border-top:1px solid var(--line); display:none; }
+  #routes span { display:inline-block; background:#fff; border:1px solid var(--line); border-radius:20px; padding:3px 6px 3px 10px; margin:2px 3px 2px 0; }
+  #routes b { cursor:pointer; color:var(--red); padding:0 3px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">HAUL</div>
+    <div class="money" id="money">$750</div>
+    <div class="speeds" id="speeds">
+      <button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
+    </div>
+    <div class="clock" id="clock">Day 1 · 00:00</div>
+    <button id="newgame" title="Start over">↺</button>
+  </header>
+  <canvas id="map"></canvas>
+  <div id="routes"></div>
+  <div id="ticker"></div>
+  <div id="sheet"></div>
+</div>
+
+<script type="module">
+import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, NODES, GOODS, VEHICLES } from './engine.js';
+
+const SAVE_KEY = 'haul-save-v01';
+let w;
+try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : createWorld(20261106); }
+catch { w = createWorld(20261106); }
+
+let speed = 1, selected = null, routeFrom = null, lastTickAt = performance.now(), acc = 0;
+const cv = document.getElementById('map'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+
+function save() { try { localStorage.setItem(SAVE_KEY, snapshot(w)); } catch {} }
+$('newgame').onclick = () => { localStorage.removeItem(SAVE_KEY); w = createWorld(20261106); selected = null; routeFrom = null; renderSheet(); };
+$('speeds').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  speed = +b.dataset.s;
+  document.querySelectorAll('#speeds button').forEach(x => x.classList.toggle('on', x === b));
+};
+
+// --- geometry ---
+function fit() {
+  const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+  cv.width = r.width * d; cv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', fit);
+function pt(id) {
+  const r = cv.getBoundingClientRect(), n = NODES[id];
+  return { x: (n.x / 100) * r.width, y: (n.y / 100) * r.height };
+}
+
+// --- drawing ---
+function draw() {
+  const r = cv.getBoundingClientRect();
+  const g = ctx.createLinearGradient(0, 0, 0, r.height);
+  g.addColorStop(0, '#c9d6bd'); g.addColorStop(1, '#a9bda0');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, r.width, r.height);
+  // the river, drawn simply: a soft band down the east
+  ctx.strokeStyle = 'rgba(110,150,160,.35)'; ctx.lineWidth = 16; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(r.width * .68, -10); ctx.bezierCurveTo(r.width * .60, r.height * .35, r.width * .78, r.height * .6, r.width * .74, r.height + 10); ctx.stroke();
+  ctx.lineWidth = 1;
+
+  // corridor graph, faint
+  ctx.strokeStyle = 'rgba(60,80,60,.18)';
+  const seen = new Set();
+  for (const id of Object.keys(NODES)) {
+    for (const other of Object.keys(NODES)) {
+      const k = [id, other].sort().join('|');
+      if (id === other || seen.has(k) || distance(id, other) > 240) continue;
+      seen.add(k);
+      const a = pt(id), b = pt(other);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+  }
+  // player routes, strong
+  for (const rt of w.routes) {
+    const a = pt(rt.from), b = pt(rt.to);
+    ctx.strokeStyle = routeFrom ? '#1f6f6b' : 'rgba(31,111,107,.75)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.lineWidth = 1;
+  }
+  if (routeFrom && selected !== routeFrom) { /* hint line drawn by routes stroke above */ }
+
+  // vehicles
+  for (const v of w.vehicles) {
+    let p = null;
+    if (v.phase === 'travel' && v.leg) {
+      const a = pt(v.leg.from), b = pt(v.leg.to), f = v.leg.km ? v.leg.progress / v.leg.km : 0;
+      p = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+    } else if (v.at) p = pt(v.at);
+    if (!p) continue;
+    ctx.fillStyle = v.cargo ? '#22312a' : '#5a6e60';
+    ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : 4, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
+  }
+
+  // nodes
+  for (const [id, def] of Object.entries(NODES)) {
+    const p = pt(id), node = w.nodes[id];
+    // perishable clock-ring: the oldest shrimp lot, readable alone
+    const lots = node.lots.filter(l => l.good === 'shrimp');
+    if (lots.length) {
+      const oldest = lots.reduce((a, b) => a.born < b.born ? a : b);
+      const remain = Math.max(0, 1 - (w.tick - oldest.born) / GOODS.shrimp.perishHours);
+      ctx.strokeStyle = remain > .5 ? '#3e9e5f' : remain > .25 ? '#b97e26' : '#b3402e';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 17, -Math.PI / 2, -Math.PI / 2 + remain * Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1;
+    }
+    ctx.fillStyle = selected === id ? '#fff8e2' : '#f5f1e4';
+    ctx.strokeStyle = routeFrom === id ? '#1f6f6b' : 'rgba(34,49,42,.55)';
+    ctx.lineWidth = routeFrom === id ? 2.5 : 1.2;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, 7); ctx.fill(); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = '#22312a'; ctx.font = '700 9px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(def.name.split(' ').map(s => s[0]).slice(0, 2).join(''), p.x, p.y + 3);
+    ctx.font = '10.5px system-ui'; ctx.fillStyle = 'rgba(34,49,42,.85)';
+    ctx.fillText(def.name, p.x, p.y + 24);
+    // stock pips
+    let i = 0;
+    for (const good of Object.keys(GOODS)) {
+      const q = stockOf(w, id, good);
+      if (q >= 1) {
+        ctx.fillStyle = 'rgba(31,111,107,.8)';
+        ctx.fillRect(p.x - 14 + i * 7, p.y - 20, Math.min(6, 1 + q / 12), 3.5);
+        i++;
+      }
+    }
+  }
+}
+
+// --- sheet (node card / hints) ---
+function goodsRows(id) {
+  const def = NODES[id];
+  const rows = [];
+  for (const [good, g] of Object.entries(GOODS)) {
+    const q = stockOf(w, id, good), price = w.nodes[id].prices[good];
+    const role = def.converts?.in === good ? 'feeds on it' : def.produces?.[good] ? 'produces' : def.consumes?.[good] ? (def.export ? 'exports' : 'consumes') : null;
+    if (!role && q < 0.05 && !price) continue;
+    const pct = Math.min(100, q / 1.2);
+    rows.push(`<tr><td>${g.name} ${role ? `<span style="opacity:.6">· ${role}</span>` : ''}</td>
+      <td><span class="bar"><i style="width:${pct}%"></i></span></td>
+      <td class="r">${q.toFixed(1)}t</td><td class="r">${price ? '$' + price.toFixed(0) + '/t' : '—'}</td></tr>`);
+  }
+  return rows.join('') || '<tr><td style="opacity:.6">Nothing here yet.</td></tr>';
+}
+function renderSheet() {
+  const el = $('sheet');
+  if (routeFrom) {
+    el.innerHTML = `<div class="hint"><b>Route from ${NODES[routeFrom].name}.</b> Tap a destination node to draw the route — a truck parked there (or the next one you buy there) will work it. Tap the origin again to cancel.</div>`;
+    return;
+  }
+  if (!selected) {
+    const trucks = w.vehicles.length;
+    el.innerHTML = `<div class="hint"><b>Tap a place</b> to see its stocks and prices. <b>Route</b> two places together and your trucks will haul what the far end wants — you're paid the price difference, minus the road.<br>
+    <span style="opacity:.75">You have ${trucks} truck${trucks === 1 ? '' : 's'} and ${w.routes.length} route${w.routes.length === 1 ? '' : 's'}. The Thibodaux mill is always hungry for cane; Empire's shrimp dies in 72 hours — watch the ring.</span></div>`;
+    return;
+  }
+  const id = selected, def = NODES[id];
+  const here = w.vehicles.filter(v => v.at === id && v.phase === 'idle').length;
+  el.innerHTML = `<div class="card"><h3>${def.name}</h3>
+    <div class="sub">${here} idle truck${here === 1 ? '' : 's'} here · tap another node with a route open to connect</div>
+    <table>${goodsRows(id)}</table>
+    <div class="row">
+      <button class="primary" id="b-route">Route from here →</button>
+      <button id="b-box" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>Buy box truck · $${VEHICLES.box.cost}</button>
+      <button id="b-semi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>Buy 18-wheeler · $${VEHICLES.semi.cost}</button>
+    </div></div>`;
+  $('b-route').onclick = () => { routeFrom = id; renderSheet(); };
+  $('b-box').onclick = () => { queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: id }); };
+  $('b-semi').onclick = () => { queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: id }); };
+}
+function renderRoutes() {
+  const el = $('routes');
+  if (!w.routes.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = w.routes.map(r => {
+    const truck = w.vehicles.find(v => v.routeId === r.id);
+    return `<span>${NODES[r.from].name} → ${NODES[r.to].name} · ${distance(r.from, r.to)}km ${truck ? '· 🚚' : '· <i>no truck</i>'}<b data-rm="${r.id}">✕</b></span>`;
+  }).join('');
+  el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => queueIntent(w, { type: 'removeRoute', routeId: +b.dataset.rm }));
+}
+function renderTicker() {
+  $('ticker').innerHTML = w.ticker.slice(-5).reverse().map(t => `<div class="${t.kind}">${t.text}</div>`).join('');
+}
+
+// --- input ---
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  let hit = null, best = 30;
+  for (const id of Object.keys(NODES)) {
+    const p = pt(id), d = Math.hypot(p.x - x, p.y - y);
+    if (d < best) { best = d; hit = id; }
+  }
+  if (hit && routeFrom && hit !== routeFrom) {
+    queueIntent(w, { type: 'addRoute', from: routeFrom, to: hit });
+    selected = hit; routeFrom = null;
+  } else if (hit && routeFrom === hit) { routeFrom = null; selected = hit; }
+  else selected = hit;
+  renderSheet();
+});
+
+// --- main loop: 1 tick = 1 game-hour = 0.4s at 1x (SIM-CORE cadence) ---
+function frame(now) {
+  const dt = now - lastTickAt; lastTickAt = now;
+  if (speed > 0) {
+    acc += dt;
+    const per = 400 / speed;
+    let n = 0;
+    while (acc >= per && n++ < 40) { tick(w); acc -= per; if (w.tick % 24 === 0) save(); }
+  }
+  const day = Math.floor(w.tick / 24) + 1, hour = w.tick % 24;
+  $('money').textContent = '$' + Math.round(w.money).toLocaleString();
+  $('clock').innerHTML = `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`;
+  draw(); renderTicker(); renderRoutes();
+  if (frame.n++ % 30 === 0) renderSheet();
+  requestAnimationFrame(frame);
+}
+frame.n = 0;
+fit(); renderSheet();
+requestAnimationFrame(frame);
+addEventListener('beforeunload', save);
+</script>
+</body>
+</html>

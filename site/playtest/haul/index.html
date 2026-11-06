@@ -13,6 +13,7 @@
   header { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--paper); border-bottom:1px solid var(--line); }
   header .brand { font-weight:800; letter-spacing:.14em; font-size:15px; }
   header .money { font-weight:800; color:var(--teal); font-size:16px; }
+  #delta { font-weight:800; color:#b3402e; font-size:13.5px; min-width:52px; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
   .speeds button, .card button, #newgame, #boardbtn, #skillbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
@@ -45,12 +46,14 @@
   <header>
     <div class="brand">HAUL</div>
     <div class="money" id="money">$750</div>
+    <span id="delta"></span>
     <div class="speeds" id="speeds">
       <button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
     </div>
     <div class="clock" id="clock">Day 1 · 00:00</div>
     <button id="boardbtn" title="Contracts board">📋</button>
     <button id="skillbtn" title="Company skills">🎓</button>
+    <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
   </header>
   <canvas id="map"></canvas>
@@ -60,10 +63,14 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
 
 const SAVE_KEY = 'haul-save-v04';
 const CURRENT_PHASE = 0.4;
+// Purchases apply the moment they're tapped — money moves NOW, even paused.
+const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
+// Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
+const view = { s: 1, ox: 0, oy: 0 };
 let w;
 try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : createWorld(20261106); }
 catch { w = createWorld(20261106); }
@@ -121,9 +128,12 @@ function statusText(v) {
 // --- drawing ---
 function draw(now) {
   const r = cv.getBoundingClientRect();
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const g = ctx.createLinearGradient(0, 0, 0, r.height);
   g.addColorStop(0, '#c9d6bd'); g.addColorStop(1, '#a9bda0');
   ctx.fillStyle = g; ctx.fillRect(0, 0, r.width, r.height);
+  ctx.setTransform(dpr * view.s, 0, 0, dpr * view.s, dpr * view.ox, dpr * view.oy);
   ctx.strokeStyle = 'rgba(110,150,160,.35)'; ctx.lineWidth = 16; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(r.width * .68, -10); ctx.bezierCurveTo(r.width * .60, r.height * .35, r.width * .78, r.height * .6, r.width * .74, r.height + 10); ctx.stroke();
   ctx.lineWidth = 1;
@@ -265,7 +275,7 @@ function renderBoard(el) {
     ${taken.length ? '<div style="font-weight:700;margin-top:4px">Yours</div>' + taken.map(line).join('') : ''}
     ${open.length ? '<div style="font-weight:700;margin-top:4px">Open</div>' + open.map(line).join('') : '<div class="status" style="opacity:.7">Nothing open right now — the morning brings new want.</div>'}
     </div>`;
-  el.querySelectorAll('[data-take]').forEach(b => b.onclick = () => queueIntent(w, { type: 'takeContract', contractId: +b.dataset.take }));
+  el.querySelectorAll('[data-take]').forEach(b => b.onclick = () => Q({ type: 'takeContract', contractId: +b.dataset.take }));
 }
 function renderSkills(el) {
   const branchHtml = branch => Object.entries(SKILLS).filter(([, s]) => s.branch === branch).sort((a, b) => a[1].tier - b[1].tier).map(([id, s]) => {
@@ -282,7 +292,7 @@ function renderSkills(el) {
     <div class="sub">Earned by seasons survived and milestones. No respec mid-era: the tree is the company's shape.</div>
     <div style="font-weight:700;margin-top:4px">LOGISTICS</div>${branchHtml('LOGISTICS')}
     <div style="font-weight:700;margin-top:6px">OPERATIONS</div>${branchHtml('OPERATIONS')}</div>`;
-  el.querySelectorAll('[data-skill]').forEach(b => b.onclick = () => queueIntent(w, { type: 'buySkill', skillId: b.dataset.skill }));
+  el.querySelectorAll('[data-skill]').forEach(b => b.onclick = () => Q({ type: 'buySkill', skillId: b.dataset.skill }));
 }
 function renderSheet() {
   const el = $('sheet');
@@ -309,13 +319,13 @@ function renderSheet() {
         <button id="b-pause">${rt.paused ? 'Resume route' : 'Pause route'}</button>
         <button id="b-rm">Remove</button>
       </div></div>`;
-    $('b-addbox').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
-    $('b-addsemi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
-    const bb = $('b-addbarge'); if (bb) bb.onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
-    const bt2 = $('b-addtrain'); if (bt2) bt2.onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'train', nodeId: rt.from, routeId: rt.id });
-    $('b-policy').onclick = () => queueIntent(w, { type: 'setPolicy', routeId: rt.id, policy: nextPolicy });
-    $('b-pause').onclick = () => queueIntent(w, { type: 'toggleRoute', routeId: rt.id });
-    $('b-rm').onclick = () => { queueIntent(w, { type: 'removeRoute', routeId: rt.id }); sel = null; };
+    $('b-addbox').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
+    $('b-addsemi').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
+    const bb = $('b-addbarge'); if (bb) bb.onclick = () => Q({ type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
+    const bt2 = $('b-addtrain'); if (bt2) bt2.onclick = () => Q({ type: 'buyVehicle', vehicleType: 'train', nodeId: rt.from, routeId: rt.id });
+    $('b-policy').onclick = () => Q({ type: 'setPolicy', routeId: rt.id, policy: nextPolicy });
+    $('b-pause').onclick = () => Q({ type: 'toggleRoute', routeId: rt.id });
+    $('b-rm').onclick = () => { Q({ type: 'removeRoute', routeId: rt.id }); sel = null; };
     return;
   }
   if (!sel) {
@@ -344,11 +354,11 @@ function renderSheet() {
       ${(id in w.boats) ? `<button id="b-boat" ${w.money < 2200 ? 'disabled' : ''}>Buy shrimp boat · $2,200</button>` : ''}
       ${w.yards[id] ? `<button id="b-track" class="primary">🛤 ${trackMode ? 'Track mode: ON — tap a neighbor' : 'Lay track from here'}</button>` : `<button id="b-yard" ${w.money < YARD_COST ? 'disabled' : ''}>Build rail yard · $${YARD_COST.toLocaleString()}</button>`}
     </div></div>`;
-  $('b-box').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: id });
-  $('b-semi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: id });
-  const wh = $('b-wh'); if (wh) wh.onclick = () => queueIntent(w, { type: 'buyWarehouse', nodeId: id });
-  const bt = $('b-boat'); if (bt) bt.onclick = () => queueIntent(w, { type: 'buyBoat', nodeId: id });
-  const yd = $('b-yard'); if (yd) yd.onclick = () => queueIntent(w, { type: 'buildYard', nodeId: id });
+  $('b-box').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'box', nodeId: id });
+  $('b-semi').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'semi', nodeId: id });
+  const wh = $('b-wh'); if (wh) wh.onclick = () => Q({ type: 'buyWarehouse', nodeId: id });
+  const bt = $('b-boat'); if (bt) bt.onclick = () => Q({ type: 'buyBoat', nodeId: id });
+  const yd = $('b-yard'); if (yd) yd.onclick = () => Q({ type: 'buildYard', nodeId: id });
   const tm = $('b-track'); if (tm) tm.onclick = () => { trackMode = !trackMode; renderSheet(); };
 }
 function renderRoutes() {
@@ -363,17 +373,77 @@ function renderRoutes() {
     if (e.target.dataset.rm) return;
     sel = { kind: 'route', id: +s.dataset.sel }; renderSheet();
   });
-  el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => queueIntent(w, { type: 'removeRoute', routeId: +b.dataset.rm }));
+  el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => Q({ type: 'removeRoute', routeId: +b.dataset.rm }));
 }
 function renderTicker() {
   $('ticker').innerHTML = w.ticker.slice(-5).reverse().map(t => `<div class="${t.kind}">${t.text}</div>`).join('');
 }
 
-// --- input: tap-tap connects, and the money is showing before you commit ---
-cv.addEventListener('pointerdown', e => {
-  panel = null;
+// --- input: tap-tap connects · drag pans · pinch & double-tap zoom ---
+const pointers = new Map();
+let downAt = null, dragged = false, pinchD = 0, lastTap = { t: 0, x: 0, y: 0 };
+function toWorld(e) {
   const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  let hit = null, best = 32;
+  return { x: (x - view.ox) / view.s, y: (y - view.oy) / view.s, sx: x, sy: y };
+}
+function clampView() {
+  const r = cv.getBoundingClientRect();
+  view.s = Math.max(1, Math.min(3.5, view.s));
+  const mx = (view.s - 1) * r.width + 70, my = (view.s - 1) * r.height + 70;
+  view.ox = Math.max(-mx, Math.min(70, view.ox));
+  view.oy = Math.max(-my, Math.min(70, view.oy));
+  $('viewbtn').style.display = view.s > 1.02 ? '' : 'none';
+}
+function zoomAt(sx, sy, ns) {
+  const r = cv.getBoundingClientRect();
+  const wx = (sx - view.ox) / view.s, wy = (sy - view.oy) / view.s;
+  view.s = Math.max(1, Math.min(3.5, ns));
+  view.ox = sx - wx * view.s; view.oy = sy - wy * view.s;
+  clampView();
+}
+$('viewbtn').onclick = () => { view.s = 1; view.ox = 0; view.oy = 0; clampView(); };
+cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, view.s * (e.deltaY < 0 ? 1.12 : 0.89)); }, { passive: false });
+cv.addEventListener('pointerdown', e => {
+  cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) { downAt = { x: e.clientX, y: e.clientY, t: performance.now() }; dragged = false; }
+  if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); dragged = true; }
+});
+cv.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y), r = cv.getBoundingClientRect();
+    if (pinchD > 0) zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, view.s * d / pinchD);
+    pinchD = d;
+  } else if (pointers.size === 1 && downAt) {
+    const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 9) dragged = true;
+    if (dragged && view.s > 1) { view.ox += dx; view.oy += dy; clampView(); }
+  }
+});
+cv.addEventListener('pointerup', e => {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchD = 0;
+  if (dragged || !downAt || performance.now() - downAt.t > 600) { downAt = null; return; }
+  downAt = null;
+  const p = toWorld(e);
+  // double-tap toggles zoom on the spot
+  const now = performance.now();
+  if (now - lastTap.t < 330 && Math.hypot(p.sx - lastTap.x, p.sy - lastTap.y) < 44) {
+    zoomAt(p.sx, p.sy, view.s > 1.4 ? 1 : 2.3);
+    lastTap = { t: 0, x: 0, y: 0 };
+    return;
+  }
+  lastTap = { t: now, x: p.sx, y: p.sy };
+  handleTap(p.x, p.y);
+});
+cv.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); downAt = null; });
+function handleTap(x, y) {
+  panel = null;
+  let hit = null, best = 32 / view.s;
   for (const id of Object.keys(NODES)) {
     const p = pt(id), d = Math.hypot(p.x - x, p.y - y);
     if (d < best) { best = d; hit = id; }
@@ -382,7 +452,7 @@ cv.addEventListener('pointerdown', e => {
     if (trackMode && sel?.kind === 'node' && sel.id !== hit) {
       const key = [sel.id, hit].sort().join('|');
       if (EDGES.some(([a, b]) => [a, b].sort().join('|') === key) && !w.track[key]) {
-        queueIntent(w, { type: 'layTrack', a: sel.id, b: hit });
+        Q({ type: 'layTrack', a: sel.id, b: hit });
         renderSheet(); return;
       }
     }
@@ -391,7 +461,7 @@ cv.addEventListener('pointerdown', e => {
       const existing = w.routes.find(rt => rt.from === sel.id && rt.to === hit);
       if (existing) sel = { kind: 'route', id: existing.id };
       else {
-        queueIntent(w, { type: 'addRoute', from: sel.id, to: hit });
+        Q({ type: 'addRoute', from: sel.id, to: hit });
         pendingRoute = { from: sel.id, to: hit };
         sel = { kind: 'node', id: hit };
       }
@@ -400,12 +470,13 @@ cv.addEventListener('pointerdown', e => {
   }
   // tap a route line to manage it
   for (const rt of w.routes) {
-    if (segDist(x, y, pt(rt.from), pt(rt.to)) < 14) { sel = { kind: 'route', id: rt.id }; renderSheet(); return; }
+    if (segDist(x, y, pt(rt.from), pt(rt.to)) < 14 / view.s) { sel = { kind: 'route', id: rt.id }; renderSheet(); return; }
   }
   sel = null; renderSheet();
-});
+}
 
 // --- main loop: 1 tick = 1 game-hour = 0.4s at 1x (SIM-CORE cadence) ---
+let prevMoney = null, flashUntil = 0;
 function frame(now) {
   const dt = now - lastTickAt; lastTickAt = now;
   if (speed > 0) {
@@ -420,6 +491,9 @@ function frame(now) {
   }
   const day = Math.floor(w.tick / 24) + 1, hour = w.tick % 24;
   $('money').textContent = '$' + Math.round(w.money).toLocaleString();
+  if (prevMoney !== null && w.money < prevMoney - 19) { $('delta').textContent = '−$' + Math.round(prevMoney - w.money).toLocaleString(); flashUntil = now + 1400; }
+  if (now > flashUntil && $('delta').textContent) $('delta').textContent = '';
+  prevMoney = w.money;
   const openCount = w.contracts.filter(c => c.state === 'open').length;
   $('boardbtn').textContent = openCount ? `📋 ${openCount}` : '📋';
   $('skillbtn').textContent = w.skills.points ? `🎓 ${w.skills.points}` : '🎓';

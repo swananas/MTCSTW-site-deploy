@@ -31,25 +31,25 @@ export const GOODS = {
 // anchors: the node's reference price per good ($/t) — the market breathes
 // around these (W15/W17). FULL-SCHEME S1 cards govern; Level-1 families only.
 export const NODES = {
-  caneA:     { name: 'Cane Field A', x: 44, y: 62, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
-  caneB:     { name: 'Cane Field B', x: 36, y: 54, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
-  mill:      { name: 'Thibodaux Mill', x: 50, y: 52, converts: { in: 'cane', out: 'sugar', inPerDay: 96, ratio: 0.125 }, anchors: { cane: 28, sugar: 290 } },
-  ricefarm:  { name: 'Rice Farm', x: 23, y: 57, produces: { rice: 14 }, anchors: { rice: 120 }, stock0: { rice: 10 } },
-  timber:    { name: 'Piney Woods', x: 27, y: 19, produces: { timber: 30 }, anchors: { timber: 45 }, stock0: { timber: 20 } },
-  sawmill:   { name: 'Sawmill', x: 30, y: 30, converts: { in: 'timber', out: 'lumber', inPerDay: 40, ratio: 0.4 }, anchors: { timber: 85, lumber: 210 } },
-  docks:     { name: 'Empire Docks', x: 74, y: 80, anchors: { shrimp: 180 }, stock0: { shrimp: 3 } },
-  delcambre: { name: 'Delcambre Dock', x: 35, y: 77, anchors: { shrimp: 175 }, stock0: { shrimp: 3 } },
-  processor: { name: 'Seafood Processor', x: 76, y: 72, converts: { in: 'shrimp', out: 'packed', inPerDay: 12, ratio: 10 / 12 }, anchors: { shrimp: 260, packed: 520 } },
-  refinery:  { name: 'Refinery Row', x: 58, y: 28, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.68 }, anchors: { crude: 190, fuel: 700 }, stock0: { crude: 60 } },
-  gasplant:  { name: 'Gas Plant', x: 55, y: 21, converts: { in: 'fuel', out: 'oxygen', inPerDay: 2, ratio: 4 }, anchors: { fuel: 740, oxygen: 240 } },
-  nola:      { name: 'New Orleans', x: 66, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800 } },
-  batonrouge:{ name: 'Baton Rouge', x: 50, y: 15, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320 } },
-  distributor:{ name: 'The Distributor', x: 64, y: 31, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260 } },
-  port:      { name: 'Port of New Orleans', x: 70, y: 44, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480 }, export: true },
-  lafayette: { name: 'Lafayette', x: 16, y: 40, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790 } },
-  shipyard:  { name: 'Houma Shipyard', x: 50, y: 67, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
-  fourchon:  { name: 'Port Fourchon', x: 57, y: 87, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
-  grandisle: { name: 'Grand Isle', x: 82, y: 90, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
+  caneA:     { name: 'Cane Field A', x: 40, y: 64, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
+  caneB:     { name: 'Cane Field B', x: 30, y: 50, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
+  mill:      { name: 'Thibodaux Mill', x: 48, y: 48, converts: { in: 'cane', out: 'sugar', inPerDay: 96, ratio: 0.125 }, anchors: { cane: 28, sugar: 290 } },
+  ricefarm:  { name: 'Rice Farm', x: 14, y: 58, produces: { rice: 14 }, anchors: { rice: 120 }, stock0: { rice: 10 } },
+  timber:    { name: 'Piney Woods', x: 18, y: 12, produces: { timber: 30 }, anchors: { timber: 45 }, stock0: { timber: 20 } },
+  sawmill:   { name: 'Sawmill', x: 24, y: 26, converts: { in: 'timber', out: 'lumber', inPerDay: 40, ratio: 0.4 }, anchors: { timber: 85, lumber: 210 } },
+  docks:     { name: 'Empire Docks', x: 80, y: 86, anchors: { shrimp: 180 }, stock0: { shrimp: 3 } },
+  delcambre: { name: 'Delcambre Dock', x: 26, y: 82, anchors: { shrimp: 175 }, stock0: { shrimp: 3 } },
+  processor: { name: 'Seafood Processor', x: 84, y: 74, converts: { in: 'shrimp', out: 'packed', inPerDay: 12, ratio: 10 / 12 }, anchors: { shrimp: 260, packed: 520 } },
+  refinery:  { name: 'Refinery Row', x: 60, y: 20, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.68 }, anchors: { crude: 190, fuel: 700 }, stock0: { crude: 60 } },
+  gasplant:  { name: 'Gas Plant', x: 52, y: 12, converts: { in: 'fuel', out: 'oxygen', inPerDay: 2, ratio: 4 }, anchors: { fuel: 740, oxygen: 240 } },
+  nola:      { name: 'New Orleans', x: 78, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800 } },
+  batonrouge:{ name: 'Baton Rouge', x: 44, y: 6, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320 } },
+  distributor:{ name: 'The Distributor', x: 74, y: 24, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260 } },
+  port:      { name: 'Port of New Orleans', x: 82, y: 46, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480 }, export: true },
+  lafayette: { name: 'Lafayette', x: 6, y: 38, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790 } },
+  shipyard:  { name: 'Houma Shipyard', x: 50, y: 72, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
+  fourchon:  { name: 'Port Fourchon', x: 58, y: 94, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
+  grandisle: { name: 'Grand Isle', x: 92, y: 96, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
 };
 
 // Corridor edges with freight kilometres (FULL-SCHEME S1.4 + W17 placements).
@@ -222,6 +222,10 @@ function note(w, text, kind = 'news') {
   if (w.ticker.length > 60) w.ticker.splice(0, w.ticker.length - 60);
 }
 export function queueIntent(w, intent) { w.intents.push(intent); }
+// Apply queued intents NOW, without advancing time — the UI flushes every
+// purchase through this so a buy lands (and deducts) the instant it's tapped,
+// even while paused. Advancing the world remains tick()'s job alone.
+export function flushIntents(w) { applyIntents(w); }
 
 // --- stock: non-perishables as bulk, perishables as dated lots (FIFO) ---
 export function stockOf(w, nodeId, good) {

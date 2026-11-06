@@ -78,8 +78,8 @@
 <script type="module">
 import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v18';
-const CURRENT_PHASE = 1.8;
+const SAVE_KEY = 'haul-save-v19';
+const CURRENT_PHASE = 1.9;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)

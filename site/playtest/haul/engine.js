@@ -23,6 +23,7 @@ export const GOODS = {
   compost:{ name: 'Compost', perishHours: 0 },
   spoil:  { name: 'Spoil',   perishHours: 0 },
   parts:  { name: 'Parts',   perishHours: 0 },
+  news:   { name: 'News Bundles', perishHours: 48 },
   paper:  { name: 'Paper & Board', perishHours: 0 },
   sterile:{ name: 'Sterile Packs', perishHours: 0 },
   sugar:  { name: 'Sugar',   perishHours: 0 },
@@ -241,6 +242,7 @@ export const UNITS = {
   thePacker:     { name: 'The Meat Packer', node: 'corpus', kind: 'converter', good: 'beef', margin: 0.30, floor: 9000, owner: 'Pelican', converts: { in: 'cattle', out: 'beef', inPerDay: 16, ratio: 0.55 } },
   compostYard:   { name: 'The Compost Yard', node: 'batonrouge', kind: 'converter', good: 'compost', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'scrap', out: 'compost', inPerDay: 15, ratio: 0.6 } },
   machineShop:   { name: 'The Machine Shop', node: 'shipyard', kind: 'converter', good: 'parts', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'steel', out: 'parts', inPerDay: 4, ratio: 0.5 } },
+  wireRoom:      { name: 'The Wire Room', node: 'nola', kind: 'converter', good: 'news', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'paper', out: 'news', inPerDay: 3, ratio: 0.8 } },
   sterilePacker: { name: 'The Sterile Packer', node: 'port', kind: 'converter', good: 'sterile', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'med', out: 'sterile', inPerDay: 4, ratio: 0.75 } },
   groceryWorks:  { name: 'The Grocery Works', node: 'ricefarm', kind: 'converter', good: 'provisions', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'rice', out: 'provisions', inPerDay: 10, ratio: 0.8 } },
 };
@@ -298,6 +300,7 @@ export const CONTRACT_ITEMS = {
   compost: [{ n: 'Compost, finished', m: 1 }],
   spoil: [{ n: 'Dredge spoil', m: 1 }],
   parts: [{ n: 'Parts, fleet assortment', m: 1 }, { n: 'Parts, marine', m: 1.1 }],
+  news: [{ n: 'News bundles, morning edition', m: 1 }, { n: 'News bundles, extras', m: 1.15 }],
 };
 // Level-2 items (W26): contracts name a FORM of the family good and settle in
 // family tons (A6); the item's mult is texture on the price, compressed well
@@ -456,8 +459,12 @@ export const OPENING_PRESETS = [
   { name: 'The Broker', ground: 'port', leverage: 'credit' },
   { name: 'The Operator', ground: 'mill', leverage: 'state' },
 ];
-export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch', scrap: 'Returns', compost: 'Returns', spoil: 'Returns', parts: 'Returns' };
-// The Reverse River's price table (W31): scrap trades where it's made; spoil is
+export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch', scrap: 'Returns', compost: 'Returns', spoil: 'Returns', parts: 'Returns', news: 'Wire' };
+// The Wire's price table (W33): word travels at a price; towns read daily.
+{ const WA = { nola: { news: 520 }, batonrouge: { news: 480 }, lafayette: { news: 460 }, beaumont: { news: 460 }, corpus: { news: 460 }, grandisle: { news: 500 }, distributor: { news: 470 } };
+  for (const [id, extra] of Object.entries(WA)) if (NODES[id]) Object.assign(NODES[id].anchors, extra);
+  const WN = { nola: 1.5, batonrouge: 1.2, lafayette: 1, beaumont: 1, corpus: 1, grandisle: 0.5, distributor: 1 };
+  for (const [id, amt] of Object.entries(WN)) if (NODES[id]) (NODES[id].consumes ??= {}).news = amt; }
 // wanted on the coast; parts are dear everywhere work is done.
 { const RA = { nola: { scrap: 30, spoil: 90, parts: 800 }, batonrouge: { scrap: 35, parts: 750 }, lafayette: { scrap: 28, parts: 700 }, distributor: { scrap: 32 }, beaumont: { scrap: 30, spoil: 90, parts: 700 }, corpus: { scrap: 30, spoil: 90, parts: 700 }, fourchon: { spoil: 90, parts: 750 }, grandisle: { spoil: 90 }, delcambre: { spoil: 90 }, processor: { spoil: 90 }, docks: { spoil: 90 }, shipyard: { spoil: 90, parts: 500 }, refinery: { parts: 650 }, mill: { parts: 650 }, sawmill: { parts: 650 }, pulpmill: { parts: 650 }, houstonChem: { parts: 650 }, molding: { parts: 650 } };
   for (const [id, extra] of Object.entries(RA)) if (NODES[id]) Object.assign(NODES[id].anchors, extra); }
@@ -471,6 +478,7 @@ export function companyOf(w) { return w.company ?? { name: 'Bayou Freight Co.', 
 // The Year (W32): four named seasons; the deck and the fields answer to them.
 export const CALENDAR = ['Mardi Gras', 'Crawfish & Planting', 'Hurricane Season', 'Harvest'];
 export function calendarOf(w) { const idx = Math.floor(w.tick / TICKS_PER_SEASON) % 4; return { idx, name: CALENDAR[idx] }; }
+export function activeEvent(w) { return w.events.find(ev => w.tick >= ev.startsTick && w.tick <= ev.endsTick) ?? null; }
 export function calendarMult(w, good) { const { idx } = calendarOf(w); return (good === 'cane' && idx === 3) || (good === 'citrus' && idx === 0) ? 1.5 : 1; }
 export const treeOf = (good) => TREES[good] ?? 'Other';
 export function createWorld(seed = 1, opts = {}) {
@@ -508,6 +516,7 @@ export function createWorld(seed = 1, opts = {}) {
     offer: null, offerCount: 0, // the Living Graph's first generator (W29)
     company: { name: 'Bayou Freight Co.', paint: '#2F7E79' }, // the Founder (W30)
     project: { stage: 0, lumber: 0, steel: 0 }, // the Gulf Line (W32): 0 none · 1 surveyed & stocking · 2 built
+    relief: null, // the crisis compact (W33): { active, tons, houses, infGiven, eventKey } | { declined: eventKey }
     dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
     craneGoods: {},          // goods the cranes touched since the last boundary
     boats: { docks: 3, delcambre: 3 },
@@ -702,6 +711,7 @@ function priceStep(w) {
       let target = scarcity * (1 + pressure);
       if (id === 'port') target *= (w.state.mods.port ?? 1) * (w.evMods.port ?? 1) * (w.dev[id]?.archetype === 'port' ? 1.03 : 1); // subsidy × boom × a Port place (W22)
       if (id === 'grandisle' && (good === 'packed' || good === 'provisions') && w.dev[id]?.archetype === 'tourist') target *= 1.06;
+      if (good === 'news' && activeEvent(w)) target *= 1.3; // in a crisis, word is the scarcest good on the chart (W33)
       target = Math.max(scarcity * 0.6, Math.min(scarcity * 1.4, target)); // the ±40% sanity band
       const cur = n.prices[good] || anchor;
       n.prices[good] = Math.round((cur + 0.25 * (target - cur)) * 100) / 100;
@@ -1342,6 +1352,12 @@ function finishUnload(w, v) {
     const grossLanded = landed * (dn.prices[good] ?? 0);
     w.daySettle[treeOf(good)] = (w.daySettle[treeOf(good)] ?? 0) + grossLanded; // moved value (W23)
     if (grossLanded > w.stats.biggestDelivery) w.stats.biggestDelivery = grossLanded;
+    // the relief compact counts what lands in the cone (W33)
+    if (w.relief?.active && activeEvent(w)?.card === 'hurricane' && HURRICANE_CONE.includes(dest) && (good === 'provisions' || good === 'packed' || good === 'med')) {
+      w.relief.tons += landed;
+      const due = Math.floor(w.relief.tons / 5) - w.relief.infGiven;
+      if (due > 0) { w.relief.infGiven += due; w.influence += due; w.stats.influenceEarned += due; note(w, `Relief lands at ${NODES[dest].name}: the compact's tally stands at ${Math.floor(w.relief.tons)}t of yours — the State marks your name (+${due}⚖).`, 'good'); }
+    }
     w.stats.byGood[good] = (w.stats.byGood[good] || 0) + landed;
     w.hauledGoods[good] = true;
   }
@@ -1920,6 +1936,13 @@ export function eraReport(w) {
 // a rush contract posts, a house grows or shrinks. Expiry is printed, never silent.
 export function maybeOffer(w, forceKind = null) {
   if (w.offer) return w.offer;
+  // the storm does not wait for the market's manners (W33): the compact preempts
+  const actEv = activeEvent(w);
+  if (actEv?.card === 'hurricane' && !(w.relief && (w.relief.active || w.relief.declinedKey === actEv.startsTick || w.relief.closedKey === actEv.startsTick))) {
+    w.offer = { kind: 'compact', house: 'The State', price: 0, expiresTick: Math.min(w.tick + 2 * HOURS_PER_DAY, actEv.endsTick), text: `The State proposes a RELIEF COMPACT for the storm: land provisions, packed food, or medicine in the cone and it counts — yours and the houses' together. Sixty tons before the storm passes, and the State remembers everyone who showed up.` };
+    w.offerCount++;
+    return w.offer;
+  }
   const day = Math.floor(w.tick / HOURS_PER_DAY) + 1;
   if (day < 2) return null;
   if (!forceKind && nextRandom(w) > 0.6) return null;
@@ -1945,7 +1968,7 @@ export function maybeOffer(w, forceKind = null) {
     const unitId = myUnits[Math.floor(nextRandom(w) * myUnits.length)];
     const houses = Object.keys(HOUSES).filter(h => !w.houses[h].delisted && w.houses[h].subOf !== 'player');
     const house = houses[Math.floor(nextRandom(w) * houses.length)] ?? 'The Families';
-    const manifest = unitManifest(w, unitId).reduce((s, m) => s + m.value, 0);
+    const manifest = unitManifest(w, unitId).reduce((s, m) => s + m.qty * m.price, 0);
     const price = Math.round(unitValue(w, unitId) * (1.10 + nextRandom(w) * 0.15)) + Math.round(manifest);
     offer = { kind, unitId, house, price, text: `${house} bids $${price.toLocaleString()} for your ${UNITS[unitId].name} (${NODES[UNITS[unitId].node].name}) — book value plus the manifest at live prices. They want your ground.` };
   } else {
@@ -1967,6 +1990,11 @@ function answerOffer(w, accept, priceOverride = null) {
   w.offer = null;
   if (!accept) { note(w, 'The offer lapses, declined.', 'news'); return; }
   const price = priceOverride ?? o.price;
+  if (o.kind === 'compact') { // the relief compact (W33)
+    if (accept) { w.relief = { active: true, key: activeEvent(w)?.startsTick ?? 0, tons: 0, houses: 0, infGiven: 0 }; note(w, 'The compact is signed. The houses roll their own trucks; yours count double in the only ledger that matters this week — the State\'s memory.', 'good'); }
+    else { w.relief = { declinedKey: activeEvent(w)?.startsTick ?? 0 }; note(w, 'You let the compact pass. The storm will be weathered by other hands; no one holds it against you, and no one remembers it for you either.', 'news'); }
+    return;
+  }
   if (o.kind === 'unit-deal') {
     if (w.money < price) { note(w, `The ${UNITS[o.unitId].name} deal falls through — the cash is not there.`, 'warn'); return; }
     w.money -= price;
@@ -2002,7 +2030,7 @@ function counterOffer(w) {
     if (counter >= Math.round(book * 0.85)) { note(w, `${o.house} takes the counter — $${counter.toLocaleString()} it is.`, 'news'); answerOffer(w, true, counter); }
     else note(w, `${o.house} waves the counter off — $${counter.toLocaleString()} is under their floor. The original offer stands.`, 'news');
   } else {
-    const manifest = unitManifest(w, o.unitId).reduce((s, m) => s + m.value, 0);
+    const manifest = unitManifest(w, o.unitId).reduce((s, m) => s + m.qty * m.price, 0);
     if (counter <= Math.round(book * 1.30) + Math.round(manifest)) { note(w, `${o.house} grumbles and takes the counter — $${counter.toLocaleString()}.`, 'news'); answerOffer(w, true, counter); }
     else note(w, `${o.house} laughs the counter off — $${counter.toLocaleString()} is past their ceiling. The original bid stands.`, 'news');
   }
@@ -2091,6 +2119,16 @@ function dayBoundary(w) {
   if (w.offer && w.tick > w.offer.expiresTick) { note(w, `The offer from ${w.offer.house ?? 'the market'} expired unanswered.`, 'news'); w.offer = null; }
   maybeOffer(w);
   houseMarketStep(w);
+  // the compact: the houses feed the tally daily; when the storm passes, it is reckoned (W33)
+  if (w.relief?.active) {
+    if (activeEvent(w)?.card === 'hurricane') w.relief.houses += 2 + nextRandom(w) * 3;
+    else {
+      const total = w.relief.tons + w.relief.houses;
+      if (total >= 60) { w.influence += 6; w.stats.influenceEarned += 6; note(w, `🌀 THE COMPACT HELD: ${Math.floor(total)}t of relief landed in the cone — ${Math.floor(w.relief.tons)}t of it yours. The State grants +6⚖, and the coast remembers who showed up.`, 'good'); }
+      else note(w, `The storm passes. The compact's tally closed at ${Math.floor(total)}t of the 60 it hoped for — ${Math.floor(w.relief.tons)}t of it yours. What landed, landed; the coast ate better for it.`, 'news');
+      w.relief = { closedKey: w.relief.key };
+    }
+  }
   // the Gulf Line's yards stock the work from Beaumont's own piles (W32)
   if (w.project?.stage === 1) {
     const p = w.project;

@@ -24,6 +24,7 @@ export const GOODS = {
   med:    { name: 'Med supplies', perishHours: 0 },
   pharma: { name: 'Pharma',  perishHours: 0 },
   provisions: { name: 'Provisions', perishHours: 0 },
+  steel:  { name: 'Steel',   perishHours: 0 },
 };
 
 // produces/consumes: tons per day. converts: one processing line.
@@ -39,15 +40,15 @@ export const NODES = {
   docks:     { name: 'Empire Docks', x: 74, y: 80, anchors: { shrimp: 180 }, stock0: { shrimp: 3 } },
   delcambre: { name: 'Delcambre Dock', x: 35, y: 77, anchors: { shrimp: 175 }, stock0: { shrimp: 3 } },
   processor: { name: 'Seafood Processor', x: 76, y: 72, converts: { in: 'shrimp', out: 'packed', inPerDay: 12, ratio: 10 / 12 }, anchors: { shrimp: 260, packed: 520 } },
-  refinery:  { name: 'Refinery Row', x: 58, y: 28, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.68 }, anchors: { crude: 190, fuel: 520 }, stock0: { crude: 60 } },
-  gasplant:  { name: 'Gas Plant', x: 55, y: 21, converts: { in: 'fuel', out: 'oxygen', inPerDay: 2, ratio: 4 }, anchors: { fuel: 560, oxygen: 240 } },
+  refinery:  { name: 'Refinery Row', x: 58, y: 28, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.68 }, anchors: { crude: 190, fuel: 700 }, stock0: { crude: 60 } },
+  gasplant:  { name: 'Gas Plant', x: 55, y: 21, converts: { in: 'fuel', out: 'oxygen', inPerDay: 2, ratio: 4 }, anchors: { fuel: 740, oxygen: 240 } },
   nola:      { name: 'New Orleans', x: 66, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800 } },
   batonrouge:{ name: 'Baton Rouge', x: 50, y: 15, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320 } },
-  distributor:{ name: 'The Distributor', x: 64, y: 31, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 700, med: 1250, pharma: 3100, provisions: 260 } },
-  port:      { name: 'Port of New Orleans', x: 70, y: 44, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180 }, export: true },
+  distributor:{ name: 'The Distributor', x: 64, y: 31, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260 } },
+  port:      { name: 'Port of New Orleans', x: 70, y: 44, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480 }, export: true },
   lafayette: { name: 'Lafayette', x: 16, y: 40, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790 } },
-  shipyard:  { name: 'Houma Shipyard', x: 50, y: 67, consumes: { lumber: 4, oxygen: 1 }, anchors: { lumber: 330, oxygen: 420 } },
-  fourchon:  { name: 'Port Fourchon', x: 57, y: 87, consumes: { fuel: 6, provisions: 2 }, anchors: { fuel: 860, provisions: 380 } },
+  shipyard:  { name: 'Houma Shipyard', x: 50, y: 67, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
+  fourchon:  { name: 'Port Fourchon', x: 57, y: 87, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
   grandisle: { name: 'Grand Isle', x: 82, y: 90, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
 };
 
@@ -93,7 +94,10 @@ export const VEHICLES = {
   box:  { name: 'Box truck',   cap: 4,  speed: 45, cost: 900,  opPerTKm: 0.36, mode: 'road', handlingPerTon: 0.08 },
   semi: { name: '18-wheeler',  cap: 16, speed: 55, cost: 3400, opPerTKm: 0.15, mode: 'road', handlingPerTon: 0.08 },
   barge:{ name: 'Barge (tug + 2)', cap: 800, speed: 11, cost: 19000, opPerTKm: 0.0049, mode: 'water', handlingPerTon: 0.01 },
+  train:{ name: 'Rail (loco + 5 cars)', cap: 200, speed: 70, cost: 28000, opPerTKm: 0.029, mode: 'rail', handlingPerTon: 0.02 },
 };
+export const TRACK_COST_PER_KM = 35000; // $35/m of record (S5.4)
+export const YARD_COST = 6000;
 
 // --- the water graph (S1 C1 mode honesty: a barge never takes I-10) ---
 export const WATER_EDGES = [
@@ -127,6 +131,32 @@ export function waterDistance(from, to) {
 export const ICE_MULT = { docks: 0.3, processor: 0.3 };
 export function fisheryFactor(w) { return Math.max(0.3, Math.min(1.1, w.fishery.stock / 85)); }
 
+// --- rail: track is laid segment by segment; trains run only on iron ---
+export function trackKey(a, b) { return [a, b].sort().join('|'); }
+export function railDistance(w, from, to) {
+  if (!w.yards[from] || !w.yards[to]) return 999;
+  if (from === to) return 0;
+  const d = { [from]: 0 }, pq = [[0, from]];
+  while (pq.length) {
+    pq.sort((x, y) => x[0] - y[0]);
+    const [du, u] = pq.shift();
+    if (du > d[u]) continue;
+    for (const [a, b, km] of EDGES) {
+      const seg = w.track[trackKey(a, b)];
+      if (!seg || seg.doneTick > w.tick) continue;
+      const v = u === a ? b : u === b ? a : null;
+      if (v && (d[v] === undefined || du + km < d[v])) { d[v] = du + km; pq.push([d[v], v]); }
+    }
+  }
+  return d[to] ?? 999;
+}
+// the river's moods, priced (W19)
+export function bargeCapMult(w, owned) {
+  const threshold = owned && w.skills.owned.dredge ? 0.80 : 0.90;
+  return w.river.level < threshold ? 0.5 : 1;
+}
+export function bargeSpeedMult(w) { return w.river.level > 1.05 ? 0.6 : 1; }
+
 // Skill trees, 0.2 scope: LOGISTICS + OPERATIONS (S6.7, priced in W17).
 // phase: the phase whose systems make the node live; earlier = display-locked.
 export const SKILLS = {
@@ -159,6 +189,9 @@ export function createWorld(seed = 1) {
     warehouses: {},          // nodeId -> true (player-built, 0.2: one per node)
     fishery: { stock: 80, dayCatch: 0, warned: false },
     boats: { docks: 3, delcambre: 3 },
+    track: {},               // 'a|b' -> { doneTick }
+    yards: {},               // nodeId -> true
+    river: { level: 1.0, trend: 0, state: 'fair' },
     skills: { points: 0, owned: {}, milestones: {} },
     intents: [], ticker: [],
     stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {} },
@@ -338,6 +371,7 @@ function applyIntents(w) {
       const spec = VEHICLES[it.vehicleType];
       if (!spec) continue;
       if (spec.mode === 'water' && !WATER_NODES.has(it.nodeId)) { note(w, `A ${spec.name.toLowerCase()} needs water — ${NODES[it.nodeId].name} has none.`, 'warn'); continue; }
+      if (spec.mode === 'rail' && !w.yards[it.nodeId]) { note(w, `A train needs a rail yard — ${NODES[it.nodeId].name} has none.`, 'warn'); continue; }
       const price = it.vehicleType === 'barge' && it.nodeId === 'shipyard' ? Math.round(spec.cost * 0.8) : spec.cost;
       if (w.money < price) { note(w, `Not enough cash for a ${spec.name} ($${price}).`, 'warn'); continue; }
       w.money -= price;
@@ -345,12 +379,27 @@ function applyIntents(w) {
       if (it.routeId) assign(w, it.routeId, v.id);
       if (it.vehicleType === 'semi') awardMilestone(w, 'firstSemi', 'first 18-wheeler');
       note(w, `${spec.name} bought at ${NODES[it.nodeId].name} for $${price}${price < spec.cost ? ' — the yard builds at −20%' : ''}.`, 'buy');
-    } else if (it.type === 'buyBoat') {
-      if (!(it.nodeId in w.boats)) continue;
+    } else if (it.type === 'buyBoat') {      if (!(it.nodeId in w.boats)) continue;
       if (w.money < 2200) { note(w, `Not enough cash for a shrimp boat ($2,200).`, 'warn'); continue; }
       w.money -= 2200;
       w.boats[it.nodeId]++;
       note(w, `Shrimp boat launched at ${NODES[it.nodeId].name} — ${w.boats[it.nodeId]} boats work this dock now, all drawing the same Gulf.`, 'buy');
+    } else if (it.type === 'layTrack') {
+      const edge = EDGES.find(([a, b]) => trackKey(a, b) === trackKey(it.a, it.b));
+      const key = trackKey(it.a, it.b);
+      if (!edge || w.track[key]) continue;
+      const km = edge[2], cost = TRACK_COST_PER_KM * km;
+      if (w.money < cost) { note(w, `Track ${NODES[it.a].name} ↔ ${NODES[it.b].name} costs $${cost.toLocaleString()} — the railroad is a commitment.`, 'warn'); continue; }
+      w.money -= cost;
+      const days = Math.max(1, Math.round(km / 10));
+      w.track[key] = { doneTick: w.tick + days * HOURS_PER_DAY };
+      note(w, `Surveyors out: track ${NODES[it.a].name} ↔ ${NODES[it.b].name} (${km} km, $${cost.toLocaleString()}) — laid by Day ${Math.floor(w.track[key].doneTick / HOURS_PER_DAY) + 1}.`, 'buy');
+    } else if (it.type === 'buildYard') {
+      if (w.yards[it.nodeId]) continue;
+      if (w.money < YARD_COST) { note(w, `A rail yard costs $${YARD_COST.toLocaleString()}.`, 'warn'); continue; }
+      w.money -= YARD_COST;
+      w.yards[it.nodeId] = true;
+      note(w, `Rail yard built at ${NODES[it.nodeId].name} — trains can load here once the iron reaches it.`, 'buy');
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -506,7 +555,8 @@ function tryLoad(w, v, r) {
   if (!good) return;
   if (!loadAllowed(w, v, r, good)) return;
   const spec = VEHICLES[v.type];
-  const qty = Math.min(spec.cap, stockOf(w, r.from, good));
+  const effCap = spec.mode === 'water' ? spec.cap * bargeCapMult(w, true) : spec.cap;
+  const qty = Math.min(effCap, stockOf(w, r.from, good));
   if (qty <= 0.01) return;
   const portions = takeStock(w, r.from, good, qty);
   const sum = portions.reduce((s, p) => s + p.qty, 0);
@@ -531,7 +581,10 @@ function depart(w, v) {
   startLeg(w, v, r.from, r.to, v.cargo);
 }
 function legKm(w, v, from, to) {
-  return VEHICLES[v.type].mode === 'water' ? waterDistance(from, to) : distance(from, to);
+  const mode = VEHICLES[v.type].mode;
+  if (mode === 'water') return waterDistance(from, to);
+  if (mode === 'rail') return railDistance(w, from, to);
+  return distance(from, to);
 }
 function arrive(w, v) {
   v.at = v.leg.to;
@@ -589,7 +642,7 @@ function finishUnload(w, v) {
   }
   w.money += pay; w.stats.earned += pay; w.stats.trips++;
   w.stats.deliveredTons += qty;
-  r.trips++; r.earned += pay;
+  r.trips++; r.earned += pay; r.tons = (r.tons ?? 0) + qty;
   // prints: a big fish moves the water (S3.12 M-3)
   dn.prices[good] = Math.round((dn.prices[good] || 0) * (1 - Math.min(0.06, landed * 0.004)) * 100) / 100;
   const sn = w.nodes[r.from];
@@ -607,7 +660,7 @@ function stepVehicle(w, v) {
       v.timer -= use; budget -= use;
       if (v.timer <= 1e-9) { if (v.phase === 'loading') depart(w, v); else finishUnload(w, v); }
     } else if (v.phase === 'travel') {
-      const speed = VEHICLES[v.type].speed;
+      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) : 1);
       const hoursNeeded = (v.leg.km - v.leg.progress) / speed;
       const use = Math.min(budget, hoursNeeded);
       v.leg.progress += use * speed; budget -= use;
@@ -624,6 +677,7 @@ function idleAct(w, v) {
   if (!r) { v.routeId = null; return; }
   if (r.paused) return;
   if (VEHICLES[v.type].mode === 'water' && waterDistance(r.from, r.to) >= 999) return; // mode honesty: no water, no work
+  if (VEHICLES[v.type].mode === 'rail' && railDistance(w, r.from, r.to) >= 999) return; // no iron, no train
   if (v.at === r.from) tryLoad(w, v, r);
   else if (v.at === r.to) startLeg(w, v, r.to, r.from, null);
   else startLeg(w, v, v.at, r.from, null);
@@ -713,7 +767,7 @@ export function shipCallDays(w) {
   }
   return out;
 }
-const SHIP_MANIFEST = { med: 30, pharma: 12, provisions: 40 };
+const SHIP_MANIFEST = { med: 30, pharma: 12, provisions: 40, steel: 10 };
 function shipCall(w) {
   for (const [good, qty] of Object.entries(SHIP_MANIFEST)) {
     addStock(w, 'port', good, qty, 0);
@@ -738,6 +792,20 @@ function dayBoundary(w) {
   if (f.stock < 40 && !f.warned) { f.warned = true; note(w, `The Gulf stock is thinning (${Math.round(f.stock)}%) — every boat's nets come up lighter.`, 'warn'); }
   if (f.stock >= 45) f.warned = false;
   if (w.tick % 120 === 48) shipCall(w);
+  // the river walks (W19): seeded trend, clamped; transitions print
+  const rv = w.river;
+  rv.trend = Math.max(-0.01, Math.min(0.01, rv.trend + (nextRandom(w) - 0.5) * 0.008));
+  rv.level = Math.max(0.78, Math.min(1.14, rv.level + rv.trend + (1.0 - rv.level) * 0.01));
+  const state = rv.level < 0.90 ? 'shallows' : rv.level > 1.05 ? 'high' : 'fair';
+  if (state !== rv.state) {
+    rv.state = state;
+    if (state === 'shallows') note(w, `The river is falling — ${rv.level.toFixed(2)} and shallows bite: barges load half until she rises.`, 'warn');
+    else if (state === 'high') note(w, `High water on the river (${rv.level.toFixed(2)}) — barge crews slow to 60% against the current.`, 'warn');
+    else note(w, `The river runs fair again (${rv.level.toFixed(2)}).`, 'news');
+  }
+  for (const [key, seg] of Object.entries(w.track)) {
+    if (seg.doneTick === w.tick) { const [a, b] = key.split('|'); note(w, `Track complete: ${NODES[a].name} ↔ ${NODES[b].name}. The iron is down.`, 'news'); }
+  }
   generateContracts(w);
   // burn jitter: every sink's appetite breathes ±10% a day (seeded)
   for (const [id, def] of Object.entries(NODES)) {

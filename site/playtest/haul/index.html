@@ -60,15 +60,15 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, ICE_MULT, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v03';
-const CURRENT_PHASE = 0.3;
+const SAVE_KEY = 'haul-save-v04';
+const CURRENT_PHASE = 0.4;
 let w;
 try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : createWorld(20261106); }
 catch { w = createWorld(20261106); }
 
-let speed = 1, sel = null, pendingRoute = null, panel = null, lastTickAt = performance.now(), acc = 0;
+let speed = 1, sel = null, pendingRoute = null, panel = null, trackMode = false, lastTickAt = performance.now(), acc = 0;
 const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
 
@@ -109,6 +109,7 @@ function statusText(v) {
   }
   if (r?.paused) return `parked — route paused`;
   if (r && VEHICLES[v.type].mode === 'water' && waterDistance(r.from, r.to) >= 999) return `beached — no water runs between these places`;
+  if (r && VEHICLES[v.type].mode === 'rail' && railDistance(w, r.from, r.to) >= 999) return `no iron — trains need yards at both ends and laid track between them`;
   if (r && v.at === r.from) {
     const q = routeQuote(w, r.from, r.to);
     return q && stockOf(w, r.from, q.good) > 0.05 ? `ready at ${NODES[v.at].name}` : `waiting at ${NODES[v.at].name} — nothing to carry yet`;
@@ -132,6 +133,17 @@ function draw(now) {
   for (const [a, b] of EDGES) {
     const pa = pt(a), pb = pt(b);
     ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+  }
+  // laid iron: heavy dark line once down, dashed while the crews work
+  for (const key of Object.keys(w.track)) {
+    const [a, b] = key.split('|');
+    const pa = pt(a), pb = pt(b);
+    const done = w.track[key].doneTick <= w.tick;
+    ctx.strokeStyle = done ? 'rgba(38,34,30,.9)' : 'rgba(38,34,30,.4)';
+    ctx.lineWidth = done ? 3.4 : 2;
+    if (!done) ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineWidth = 1;
   }
   // player routes
   for (const rt of w.routes) {
@@ -197,11 +209,22 @@ function draw(now) {
     }
   }
   // THE MAP QUOTES YOU: with a place selected, every destination shows its money
+  // (in track mode, it quotes iron instead)
   if (sel?.kind === 'node') {
     ctx.font = '700 10.5px system-ui'; ctx.textAlign = 'center';
     for (const id of Object.keys(NODES)) {
       if (id === sel.id) continue;
       const p = pt(id);
+      if (trackMode) {
+        const edge = EDGES.find(([a, b]) => (a === sel.id && b === id) || (a === id && b === sel.id));
+        if (!edge) continue;
+        const laid = w.track[[sel.id, id].sort().join('|')];
+        const text = laid ? (laid.doneTick > w.tick ? '🛤 laying…' : '🛤 iron down') : `🛤 lay track · $${(TRACK_COST_PER_KM * edge[2] / 1000).toFixed(0)}k`;
+        const width = ctx.measureText(text).width + 12;
+        ctx.fillStyle = laid ? '#38332c' : '#7a2d20'; ctx.beginPath(); ctx.roundRect(p.x - width / 2, p.y - 40, width, 16, 8); ctx.fill();
+        ctx.fillStyle = '#f2efe6'; ctx.fillText(text, p.x, p.y - 28.5);
+        continue;
+      }
       const existing = w.routes.find(rt => rt.from === sel.id && rt.to === id);
       const q = routeQuote(w, sel.id, id);
       let text = null, bg = '#22312a';
@@ -276,11 +299,12 @@ function renderSheet() {
     const nextPolicy = { clock: 'full', full: 'scheduled', scheduled: 'clock' }[rt.policy ?? 'clock'];
     el.innerHTML = `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
       <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
-      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
+      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
       <div class="row" style="margin-top:6px">
         <button class="primary" id="b-addbox" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>＋ Box truck · $${VEHICLES.box.cost}</button>
         <button class="primary" id="b-addsemi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>＋ 18-wheeler · $${VEHICLES.semi.cost}</button>
         ${waterKm < 999 ? `<button class="primary" id="b-addbarge" ${w.money < bargePrice ? 'disabled' : ''}>＋ Barge · $${bargePrice.toLocaleString()}${rt.from === 'shipyard' ? ' (yard price)' : ''}</button>` : ''}
+        ${railDistance(w, rt.from, rt.to) < 999 ? `<button class="primary" id="b-addtrain" ${w.money < VEHICLES.train.cost ? 'disabled' : ''}>＋ Train · $${VEHICLES.train.cost.toLocaleString()}</button>` : (w.yards[rt.from] || w.yards[rt.to] ? `<span class="status">🚂 trains need yards at both ends and laid iron between them</span>` : '')}
         <button id="b-policy">Departure: ${policyName} ↻</button>
         <button id="b-pause">${rt.paused ? 'Resume route' : 'Pause route'}</button>
         <button id="b-rm">Remove</button>
@@ -288,6 +312,7 @@ function renderSheet() {
     $('b-addbox').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
     $('b-addsemi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
     const bb = $('b-addbarge'); if (bb) bb.onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
+    const bt2 = $('b-addtrain'); if (bt2) bt2.onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'train', nodeId: rt.from, routeId: rt.id });
     $('b-policy').onclick = () => queueIntent(w, { type: 'setPolicy', routeId: rt.id, policy: nextPolicy });
     $('b-pause').onclick = () => queueIntent(w, { type: 'toggleRoute', routeId: rt.id });
     $('b-rm').onclick = () => { queueIntent(w, { type: 'removeRoute', routeId: rt.id }); sel = null; };
@@ -307,6 +332,8 @@ function renderSheet() {
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
     ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
+    ${WATER_NODES.has(id) ? `<div class="status">🌊 The river runs <b>${w.river.level.toFixed(2)}</b> — ${w.river.state === 'shallows' ? '<b>shallows: barges load half</b>' : w.river.state === 'high' ? '<b>high water: barges slow to 60%</b>' : 'fair for barges'}${w.skills.owned.dredge ? ' · your dredging buys you depth to 0.80' : ''}</div>` : ''}
+    ${w.yards[id] ? `<div class="status">🛤 <b>Rail yard here.</b> ${trackMode ? 'The map is quoting iron: tap a neighbor to lay track to it.' : 'Open track mode to lay iron from here.'}</div>` : ''}
     ${(id in w.boats) ? `<div class="status">⛵ ${w.boats[id]} shrimp boats · Gulf stock <b>${Math.round(w.fishery.stock)}%</b> — nets yield ×${fisheryFactor(w).toFixed(2)}${ICE_MULT[id] ? ' · 🧊 the Ice House keeps shrimp ~3× longer here' : ' · no ice here — the clock runs honest'}</div>` : ''}
     ${myContracts.map(c => `<div class="status">📋 ${c.state === 'taken' ? 'Your contract' : 'Board'}: ${c.qty}t ${GOODS[c.good].name} at $${c.pricePerTon}/t · ${c.delivered.toFixed(0)}/${c.qty}t · by Day ${Math.floor(c.deadlineTick / 24) + 1}</div>`).join('')}
     ${here.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('')}
@@ -315,11 +342,14 @@ function renderSheet() {
       <button id="b-semi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>Buy 18-wheeler here · $${VEHICLES.semi.cost}</button>
       ${w.warehouses[id] ? '' : `<button id="b-wh" ${w.money < 2400 ? 'disabled' : ''}>Build warehouse · $2,400</button>`}
       ${(id in w.boats) ? `<button id="b-boat" ${w.money < 2200 ? 'disabled' : ''}>Buy shrimp boat · $2,200</button>` : ''}
+      ${w.yards[id] ? `<button id="b-track" class="primary">🛤 ${trackMode ? 'Track mode: ON — tap a neighbor' : 'Lay track from here'}</button>` : `<button id="b-yard" ${w.money < YARD_COST ? 'disabled' : ''}>Build rail yard · $${YARD_COST.toLocaleString()}</button>`}
     </div></div>`;
   $('b-box').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: id });
   $('b-semi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: id });
   const wh = $('b-wh'); if (wh) wh.onclick = () => queueIntent(w, { type: 'buyWarehouse', nodeId: id });
   const bt = $('b-boat'); if (bt) bt.onclick = () => queueIntent(w, { type: 'buyBoat', nodeId: id });
+  const yd = $('b-yard'); if (yd) yd.onclick = () => queueIntent(w, { type: 'buildYard', nodeId: id });
+  const tm = $('b-track'); if (tm) tm.onclick = () => { trackMode = !trackMode; renderSheet(); };
 }
 function renderRoutes() {
   const el = $('routes');
@@ -349,7 +379,15 @@ cv.addEventListener('pointerdown', e => {
     if (d < best) { best = d; hit = id; }
   }
   if (hit) {
+    if (trackMode && sel?.kind === 'node' && sel.id !== hit) {
+      const key = [sel.id, hit].sort().join('|');
+      if (EDGES.some(([a, b]) => [a, b].sort().join('|') === key) && !w.track[key]) {
+        queueIntent(w, { type: 'layTrack', a: sel.id, b: hit });
+        renderSheet(); return;
+      }
+    }
     if (sel?.kind === 'node' && sel.id !== hit) {
+      trackMode = false;
       const existing = w.routes.find(rt => rt.from === sel.id && rt.to === hit);
       if (existing) sel = { kind: 'route', id: existing.id };
       else {
@@ -357,7 +395,7 @@ cv.addEventListener('pointerdown', e => {
         pendingRoute = { from: sel.id, to: hit };
         sel = { kind: 'node', id: hit };
       }
-    } else sel = { kind: 'node', id: hit };
+    } else { if (sel?.id !== hit) trackMode = false; sel = { kind: 'node', id: hit }; }
     renderSheet(); return;
   }
   // tap a route line to manage it

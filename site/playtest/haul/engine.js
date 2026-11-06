@@ -91,7 +91,7 @@ export const NODES = {
 // THE FIXED BOX (W36): the map's balance, set mathematically before it grows —
 // every place's position is the authored layout carried into the box by one
 // transform about its center. Distances are authored kilometers and never move.
-export const MAP_BOX = { cx: 18, cy: -4, hw: 112, hh: 136, k: 1.3 }; // sized to the ×1.3 spread of the authored layout plus margin; from here the box is law — new ground fits inside it or the box is re-ruled on its face
+export const MAP_BOX = { cx: 18, cy: -4, hw: 138, hh: 168, k: 1.6 }; // W36 set the box by formula (the ×1.3 spread plus margin); W37 deepens the spread to ×1.6 and the box is re-sized by the same formula — the law is unchanged: every place inside, or the box is re-ruled on its face
 for (const n of Object.values(NODES)) { n.x = MAP_BOX.cx + (n.x - MAP_BOX.cx) * MAP_BOX.k; n.y = MAP_BOX.cy + (n.y - MAP_BOX.cy) * MAP_BOX.k; }
 export const EDGES = [
   ['caneA', 'mill', 22], ['caneB', 'mill', 22], ['caneA', 'caneB', 15],
@@ -246,6 +246,9 @@ export const REFITS = {
   boss: { name: 'The Good Boss', cost: 3000, blurb: 'Wages ×1.1 — and sick days halve. People show up for a good boss.' },
   wire: { name: 'Weather Wire', cost: 1500, blurb: "Tomorrow's sky, in the header, every dawn." },
   spare: { name: 'Spare Rig', cost: 6500, blurb: 'One spare truck and a rested driver: the first breakdown or sick day each day is covered.' },
+  dispatch2: { name: 'Second Dispatcher', cost: 5200, blurb: 'Another voice on the radio: loading and unloading run 10% quicker at every stop, everywhere.' },
+  fleetpolicy: { name: 'Fleet Policy', cost: 4600, blurb: 'Insurance with a local agent who answers: repair bills land at 60%.' },
+  cots: { name: 'Cots & Coffee', cost: 2400, blurb: 'A bunkhouse and a bottomless pot at the yard: drivers call in sick 30% less.' },
 };
 const UPKEEP = { box: 6, semi: 14, barge: 40, train: 85 };
 const WAGE = { tight: 22, fair: 28, generous: 36 };
@@ -759,6 +762,7 @@ export function handlingMult(w, nodeId) {
     const joint = w.routes.some(r => r.to === nodeId) && w.routes.some(r => r.from === nodeId);
     if (joint) m *= 0.85;
   }
+  if (w.refits.dispatch2) m *= 0.9; // a second dispatcher (W37): every stop, everywhere
   const floor = w.skills.owned.machineshop ? 0.45 : 0.6;
   return Math.max(floor, m);
 }
@@ -974,6 +978,8 @@ function applyIntents(w) {
       if (w.money < price) { note(w, `${unit.name} would cost $${price.toLocaleString()} (incl. $${Math.round(manifestCost).toLocaleString()} of stock on site) — not yet.`, 'warn'); continue; }
       w.money -= price;
       st.owner = 'player';
+      const homePc = w.parcels[unit.node]; // the Home Quarter (W37): holding the ground's work opens a fifth parcel
+      if (homePc && homePc.owned >= 4 && homePc.left === 0) { homePc.left = 1; note(w, `🏠 Owning ${unit.name} opens the home quarter at ${NODES[unit.node].name} — a fifth parcel can be claimed there.`, 'buy'); }
       note(w, `${unit.name} is yours — $${price.toLocaleString()}${manifest.length ? `, including ${manifest.map(m => `${m.qty.toFixed(0)}t of ${GOODS[m.good].name.toLowerCase()}`).join(' and ')} on site` : ''}. Nothing else moved: the manifest is the sale.`, 'buy');
     } else if (it.type === 'sellUnit') {
       const unit = UNITS[it.unitId], st = w.units[it.unitId];
@@ -2187,7 +2193,7 @@ function overheadStep(w) {
   const firstDawn = w.tick === 0; // the company opened this morning: wages and upkeep post, but nothing has worn and no one is sick yet
   let wages = 0, upkeep = 0, repairs = 0, opex = 0;
   const wageRate = Math.round(WAGE[w.crews.wage] * (w.refits.boss ? 1.1 : 1));
-  const sickP = 0.022 * (w.crews.wage === 'tight' ? 1.6 : w.crews.wage === 'generous' ? 0.6 : 1) * (w.refits.boss ? 0.5 : 1);
+  const sickP = 0.022 * (w.crews.wage === 'tight' ? 1.6 : w.crews.wage === 'generous' ? 0.6 : 1) * (w.refits.boss ? 0.5 : 1) * (w.refits.cots ? 0.7 : 1);
   for (const v of w.vehicles) {
     wages += wageRate; upkeep += UPKEEP[v.type] ?? 6;
     if (!firstDawn && v.downTo <= w.tick && nextWx(w) < sickP) { // the driver is a person
@@ -2196,7 +2202,7 @@ function overheadStep(w) {
     }
     const rp = REPAIR[v.type]; // repairs: the money face of wear
     if (!firstDawn && rp && nextWx(w) < rp[0] * (w.skills.owned.preventive ? 0.5 : 1)) {
-      const bill = Math.round((rp[1] + nextWx(w) * (rp[2] - rp[1])) * (w.refits.depot ? 0.5 : 1));
+      const bill = Math.round((rp[1] + nextWx(w) * (rp[2] - rp[1])) * (w.refits.depot ? 0.5 : 1) * (w.refits.fleetpolicy ? 0.6 : 1));
       repairs += bill;
       if (bill >= 150) note(w, `🔧 ${v.driver}'s ${VEHICLES[v.type].name.toLowerCase()} throws a repair — $${bill}.`, 'warn');
     }
@@ -2438,6 +2444,7 @@ export function restore(json) {
   if (w.spareDay === undefined) w.spareDay = -1;
   if (w.driverSeq === undefined) w.driverSeq = 0;
   for (const v of w.vehicles) { if (!v.driver) { v.driver = DRIVERS[w.driverSeq % DRIVERS.length]; w.driverSeq++; } if (v.sickTick === undefined) v.sickTick = -1; }
+  for (const [nid, pc] of Object.entries(w.parcels)) { const pu = PRIMARY_UNIT[nid]; if (pu && w.units[pu]?.owner === 'player' && pc.owned >= 4 && pc.left === 0) pc.left = 1; } // the Home Quarter, for saves that earned it before it was named (W37)
   for (const k of ['wagesPaid', 'upkeepPaid', 'repairsPaid', 'opexPaid', 'sickDays']) if (w.stats[k] === undefined) w.stats[k] = 0;
   return w;
 }

@@ -21,7 +21,7 @@
   #events div { padding:1px 0; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
-  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn, #crownbtn, #ladderbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn, #crownbtn, #ladderbtn, #impbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
   #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
   #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
@@ -63,6 +63,7 @@
     <button id="portbtn" title="Portfolio — units & titles">🏦</button>
     <button id="mktbtn" title="The Market — shares, loans, the State">📈</button>
     <button id="crownbtn" title="The Crown — regional control & the Era Report">👑</button>
+    <button id="impbtn" title="Improve — every way to spend, one desk">🛠</button>
     <button id="ladderbtn" title="The Ladder — the progression queue">🧭</button>
     <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
@@ -80,11 +81,11 @@
 import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf, MAP_BOX, REFITS, WEATHERS } from './engine.js';
 
 const SAVE_KEY = 'haul-save-v19';
-const CURRENT_PHASE = 2.2; // Wave 14: THE LIFT — the Desk's 2.5D construction integrated (saves migrate in restore())
+const CURRENT_PHASE = 2.3; // Wave 15: spread, butter, the spending desk, zoom in levels (saves migrate in restore())
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
-const view = { s: 1, ox: 0, oy: 0 };
+const view = { s: 1, ox: 0, oy: 0, level: 2, region: 'la', anchorXY: null }; // zoom lives in LEVELS now (W38)
 let w;
 function bootWorld() {
   let start = {};
@@ -116,6 +117,7 @@ $('portbtn').onclick = () => { panel = panel === 'portfolio' ? null : 'portfolio
 $('mktbtn').onclick = () => { panel = panel === 'market' ? null : 'market'; renderSheet(); };
 $('crownbtn').onclick = () => { panel = panel === 'crown' ? null : 'crown'; renderSheet(); };
 $('ladderbtn').onclick = () => { panel = panel === 'ladder' ? null : 'ladder'; renderSheet(); };
+$('impbtn').onclick = () => { panel = panel === 'improve' ? null : 'improve'; renderSheet(); };
 $('speeds').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   speed = +b.dataset.s;
@@ -328,9 +330,9 @@ function draw(now) {
       for (const [dx, dy] of [[-.38, -.06], [.3, .1], [.02, -.2]]) { ctx.beginPath(); ctx.arc(p.x + dx * R, topY + dy * R, 1.3, 0, 7); ctx.fill(); }
     }
     ctx.font = '9.5px system-ui'; ctx.fillStyle = 'rgba(34,49,42,.85)';
-    ctx.fillText(def.name, p.x, p.y + R * .36 + 12);
+    if (view.level > 1 || CITIES.has(id) || sel?.id === id) ctx.fillText(def.name, p.x, p.y + R * .36 + 12); // Chart level names cities only (W38)
     let i = 0;
-    for (const good of Object.keys(GOODS)) {
+    if (view.level >= 3) for (const good of Object.keys(GOODS)) { // stock pips are Ground detail (W38)
       const q = stockOf(w, id, good);
       if (q >= 1) {
         ctx.fillStyle = 'rgba(31,111,107,.8)';
@@ -368,7 +370,7 @@ function draw(now) {
     } }
   // THE MAP QUOTES YOU: with a place selected, every destination shows its money
   // (in track mode, it quotes iron instead)
-  if (sel?.kind === 'node') {
+  if (sel?.kind === 'node' && view.level >= 2) { // price pills live at Region and Ground (W38)
     ctx.font = '700 10.5px system-ui'; ctx.textAlign = 'center';
     for (const id of Object.keys(NODES)) {
       if (id === sel.id) continue;
@@ -608,6 +610,55 @@ function renderStart(el) {
     location.reload();
   };
 }
+function renderImprove(el) { // THE SPENDING DESK (W37): every purchasable thing in the game, one clickable surface
+  const selId = sel?.kind === 'node' ? sel.id : null;
+  const row = (label, btn) => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>${label}</span><span style="flex:none">${btn}</span></div>`;
+  let place = `<div class="sub">Tap a place on the chart and its ground works appear here — warehouse, parcels, the standing unit, vehicles delivered there.</div>`;
+  if (selId) {
+    const def = NODES[selId], pu = PRIMARY_UNIT[selId];
+    const unitBtn = pu ? (w.units[pu].owner === 'player'
+      ? `<button data-isell="${pu}">Sell · $${Math.round(unitValue(w, pu) * 0.96).toLocaleString()}</button>`
+      : `<button data-ibuy="${pu}" ${w.money < unitAsk(w, pu) ? 'disabled' : ''}>Buy · $${unitAsk(w, pu).toLocaleString()}</button>`) : '';
+    const whCount = w.warehouses[selId] ?? 0, whPrice = whCount === 0 ? 2400 : 3600;
+    const whGate = whCount >= 2 ? 'two stand ✓' : whCount === 1 && (w.population[selId] ?? 100) < 110 ? `a second needs a town of 110 (now ${Math.round(w.population[selId] ?? 100)})` : null;
+    place = `
+    ${whGate ? row(`🏭 Warehouse at ${def.name} — ${whCount} standing (+500t every cap, handling ×0.85)`, `<b>${whGate}</b>`) : row(`🏭 ${whCount ? 'Second warehouse' : 'Warehouse'} at ${def.name} — +500t on every cap there, your handling ×0.85`, `<button data-iwh="${selId}" ${w.money < whPrice ? 'disabled' : ''}>Build · $${whPrice.toLocaleString()}</button>`)}
+    ${row(`🌍 Land at ${def.name} — you hold ${w.parcels[selId].owned} of ${w.parcels[selId].owned + w.parcels[selId].left} parcels (+10% unit income each, cleaner air)`, w.parcels[selId].left > 0 ? `<button data-iparc="${selId}" ${w.money < parcelPrice(w, selId) ? 'disabled' : ''}>Buy parcel · $${parcelPrice(w, selId).toLocaleString()}</button>` : '<b>fully held ✓</b>')}
+    ${COASTAL.includes(selId) && w.pollution[selId] > 0 ? row(`🌿 Restore marsh at ${def.name} — pollution −15, the marsh heals`, `<button data-imarsh="${selId}" ${w.money < 800 ? 'disabled' : ''}>Restore · $800</button>`) : ''}
+    ${w.yards[selId] ? row(`🛤 Rail yard stands at ${def.name}`, '<b>built ✓</b>') : row(`🛤 Rail yard at ${def.name} — trains can load where iron reaches`, `<button data-iyard="${selId}" ${w.money < YARD_COST ? 'disabled' : ''}>Build · $${YARD_COST.toLocaleString()}</button>`)}
+    ${pu ? row(`${GLYPH[selId] ?? '🏠'} <b>${UNITS[pu].name}</b> at ${def.name} — ${w.units[pu].owner === 'player' ? 'yours' : 'held by ' + (HOUSES[w.units[pu].owner]?.name ?? 'The Families')}`, unitBtn) : ''}
+    ${(selId in w.boats) ? row(`🦐 A shrimp boat works out of ${def.name} (${w.boats[selId]} on the water)`, `<button data-iboat="${selId}" ${w.money < 2200 ? 'disabled' : ''}>Buy boat · $2,200</button>`) : ''}`;
+  }
+  const fleetAt = selId ?? w.vehicles[0]?.at ?? 'caneA';
+  const openParcels = Object.keys(NODES).filter(id => w.parcels[id].left > 0).sort((a, b) => parcelPrice(w, a) - parcelPrice(w, b)).slice(0, 5);
+  const holdings = Object.keys(NODES).filter(id => w.parcels[id].owned > 0);
+  if (!setHTML(el, `<div class="card"><h3>🛠 Improve — the spending desk</h3>
+    <div class="sub">Everything the company can buy, on one surface — $${Math.round(w.money).toLocaleString()} in the till. The dawn settlement (wages · upkeep · yard · repairs) is the cost of standing still; this desk is the way forward.</div>
+    <div style="font-weight:700;margin-top:4px">📍 At ${selId ? NODES[selId].name : 'a place'}</div>${place}
+    <div style="font-weight:700;margin-top:6px">🚚 Fleet — delivered to ${NODES[fleetAt].name}${selId ? '' : ' (tap a place to choose where)'}</div>
+    ${row(`Box truck — 4t, the errand runner`, `<button data-iveh="box" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>Buy · $${VEHICLES.box.cost.toLocaleString()}</button>`)}
+    ${row(`18-wheeler — 16t, the road's workhorse`, `<button data-iveh="semi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>Buy · $${VEHICLES.semi.cost.toLocaleString()}</button>`)}
+    ${WATER_NODES.includes(fleetAt) ? row(`Barge — 800t, the river's patience`, `<button data-iveh="barge" ${w.money < VEHICLES.barge.cost ? 'disabled' : ''}>Buy · $${VEHICLES.barge.cost.toLocaleString()}</button>`) : ''}
+    ${w.yards[fleetAt] ? row(`Train — 200t, where the iron reaches`, `<button data-iveh="train" ${w.money < VEHICLES.train.cost ? 'disabled' : ''}>Buy · $${VEHICLES.train.cost.toLocaleString()}</button>`) : ''}
+    <div style="font-weight:700;margin-top:6px">🔧 Refits — fitted once, working forever</div>
+    ${Object.entries(REFITS).map(([id, rf]) => row(`<b>${rf.name}</b> — ${rf.blurb}`, w.refits[id] ? '<b>fitted ✓</b>' : `<button data-irefit="${id}" ${w.money < rf.cost ? 'disabled' : ''}>Fit · $${rf.cost.toLocaleString()}</button>`)).join('')}
+    <div style="font-weight:700;margin-top:6px">🎓 Skills — next up (the full tree lives at 🎓) · ${w.skills.points} point${w.skills.points === 1 ? '' : 's'} banked</div>
+    ${Object.entries(SKILLS).filter(([id, s]) => !w.skills.owned[id] && (s.phase ?? 0.2) <= CURRENT_PHASE + 1e-9).slice(0, 6).map(([id, s]) => row(`<b>${s.name}</b> — ${s.blurb}`, `<button data-iskill="${id}" ${w.skills.points < (s.cost ?? 1) ? 'disabled' : ''}>${s.cost ?? 1} pt</button>`)).join('') || '<div class="status">Every available skill is learned. The tree is the company\'s shape.</div>'}
+    <div style="font-weight:700;margin-top:6px">🌍 Land — money can be printed by policy; trees cannot</div>
+    ${holdings.length ? `<div class="status">You hold ${holdings.reduce((n, id) => n + w.parcels[id].owned, 0)} parcels across ${holdings.map(id => `${NODES[id].name} ×${w.parcels[id].owned}`).join(' · ')}</div>` : '<div class="status">No land held yet — the first parcel is the cheapest ground in the parish.</div>'}
+    ${openParcels.map(id => row(`${GLYPH[id] ?? '🏠'} ${NODES[id].name} — ${w.parcels[id].left} of ${w.parcels[id].owned + w.parcels[id].left} unclaimed`, `<button data-iparc="${id}" ${w.money < parcelPrice(w, id) ? 'disabled' : ''}>Buy · $${parcelPrice(w, id).toLocaleString()}</button>`)).join('')}
+  </div>`)) return;
+  el.querySelectorAll('[data-iwh]').forEach(b => b.onclick = () => Q({ type: 'buyWarehouse', nodeId: b.dataset.iwh }));
+  el.querySelectorAll('[data-iparc]').forEach(b => b.onclick = () => Q({ type: 'buyParcel', nodeId: b.dataset.iparc }));
+  el.querySelectorAll('[data-imarsh]').forEach(b => b.onclick = () => Q({ type: 'restoreMarsh', nodeId: b.dataset.imarsh }));
+  el.querySelectorAll('[data-iyard]').forEach(b => b.onclick = () => Q({ type: 'buildYard', nodeId: b.dataset.iyard }));
+  el.querySelectorAll('[data-ibuy]').forEach(b => b.onclick = () => Q({ type: 'buyUnit', unitId: b.dataset.ibuy }));
+  el.querySelectorAll('[data-isell]').forEach(b => b.onclick = () => Q({ type: 'sellUnit', unitId: b.dataset.isell }));
+  el.querySelectorAll('[data-iboat]').forEach(b => b.onclick = () => Q({ type: 'buyBoat', nodeId: b.dataset.iboat }));
+  el.querySelectorAll('[data-iveh]').forEach(b => b.onclick = () => Q({ type: 'buyVehicle', vehicleType: b.dataset.iveh, nodeId: fleetAt }));
+  el.querySelectorAll('[data-irefit]').forEach(b => b.onclick = () => Q({ type: 'buyRefit', refitId: b.dataset.irefit }));
+  el.querySelectorAll('[data-iskill]').forEach(b => b.onclick = () => Q({ type: 'buySkill', skillId: b.dataset.iskill }));
+}
 function renderSheet() {
   const el = $('sheet');
   if (panel === 'board') return renderBoard(el);
@@ -615,6 +666,7 @@ function renderSheet() {
   if (panel === 'market') return renderMarket(el);
   if (panel === 'crown') return renderCrown(el);
   if (panel === 'ladder') return renderLadder(el);
+  if (panel === 'improve') return renderImprove(el);
   if (panel === 'start') return renderStart(el);
   if (panel === 'skills') return renderSkills(el);
   if (sel?.kind === 'route') {
@@ -755,39 +807,62 @@ function toWorld(e) {
   const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   return { x: (x - view.ox) / view.s, y: (y - view.oy) / view.s, sx: x, sy: y };
 }
-function clampView() {
+function fitView(frame) { // a frame (data units) -> the one scale + offset that fits it
   const r = cv.getBoundingClientRect();
-  view.s = Math.max(0.7, Math.min(3.5, view.s)); // the chart can pull back past the Ring now — scroll room is the point (W36)
-  const mx = Math.max(0, view.s - 1) * r.width + 170, my = Math.max(0, view.s - 1) * r.height + 170;
-  view.ox = Math.max(-mx, Math.min(170, view.ox));
-  view.oy = Math.max(-my, Math.min(170, view.oy));
-  $('viewbtn').style.display = view.s > 1.02 ? '' : 'none';
+  const sc = Math.min(3.5, Math.min(WXSPAN / (frame.x[1] - frame.x[0]), WYSPAN / (frame.y[1] - frame.y[0])));
+  return { s: sc, ox: -((frame.x[0] - WX0) / WXSPAN) * r.width * sc + (r.width - ((frame.x[1] - frame.x[0]) / WXSPAN) * r.width * sc) / 2,
+               oy: -((frame.y[0] - WY0) / WYSPAN) * r.height * sc + (r.height - ((frame.y[1] - frame.y[0]) / WYSPAN) * r.height * sc) / 2 };
 }
-function zoomAt(sx, sy, ns) {
+function levelFrame() { // W38: each level owns exactly one frame
+  if (view.level === 1) return { x: [WX0, WX0 + WXSPAN], y: [WY0, WY0 + WYSPAN] };
+  if (view.level === 2) return CHARTS[view.region];
+  const c = view.anchorXY ?? { x: MAP_BOX.cx, y: MAP_BOX.cy };
+  return { x: [c.x - 48, c.x + 48], y: [c.y - 48, c.y + 48] };
+}
+function clampView() { // pan lives inside the level's frame, with slack by level; scale is the level's own
+  const home = fitView(levelFrame());
+  if (!viewAnim && !pinching) view.s = home.s;
   const r = cv.getBoundingClientRect();
-  const wx = (sx - view.ox) / view.s, wy = (sy - view.oy) / view.s;
-  view.s = Math.max(0.7, Math.min(3.5, ns));
-  view.ox = sx - wx * view.s; view.oy = sy - wy * view.s;
-  clampView();
+  const slack = view.level === 1 ? 0 : view.level === 2 ? 0.30 : 0.75;
+  view.ox = Math.max(home.ox - slack * r.width, Math.min(home.ox + slack * r.width, view.ox));
+  view.oy = Math.max(home.oy - slack * r.height, Math.min(home.oy + slack * r.height, view.oy));
+  $('viewbtn').style.display = (view.level === 2 && view.region === 'la') ? 'none' : '';
 }
-$('viewbtn').onclick = () => homeView();
-// chart pages (W31 · E1): framed views over the one chart — growth stops squeezing it
-const CHARTS = { la: { x: [-6, 123], y: [0, 135] }, tx: { x: [-74, 11], y: [16, 132] }, river: { x: [15, 71], y: [-142, 18] } }; // frames measured off the boxed layout (W36)
-function homeView() { setChart(CHARTS.la); } // the chart opens Louisiana-first, with scroll room on every side (W36)
-function setChart(range) {
-  const r = cv.getBoundingClientRect();
-  if (!range) { view.s = 1; view.ox = 0; view.oy = 0; }
-  else {
-    view.s = Math.min(3.5, Math.min(WXSPAN / (range.x[1] - range.x[0]), WYSPAN / (range.y[1] - range.y[0])));
-    view.ox = -((range.x[0] - WX0) / WXSPAN) * r.width * view.s + (r.width - ((range.x[1] - range.x[0]) / WXSPAN) * r.width * view.s) / 2;
-    view.oy = -((range.y[0] - WY0) / WYSPAN) * r.height * view.s + (r.height - ((range.y[1] - range.y[0]) / WYSPAN) * r.height * view.s) / 2;
-  }
-  clampView();
-  $('viewbtn').style.display = view.s > 1.02 ? '' : 'none';
+let viewAnim = null; // level changes glide (W37 butter): easeOutCubic between the two frames
+function animateView(to, dur = 280) {
+  viewAnim = { from: { s: view.s, ox: view.ox, oy: view.oy }, to, t0: performance.now(), dur };
 }
-document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => setChart(CHARTS[b.dataset.chart] ?? null));
+function goLevel(level, opts = {}) {
+  if (opts.region) view.region = opts.region;
+  if (opts.anchorXY) view.anchorXY = opts.anchorXY;
+  if (opts.anchor) view.anchorXY = { x: NODES[opts.anchor].x, y: NODES[opts.anchor].y };
+  view.level = level;
+  const to = fitView(levelFrame());
+  if (opts.snap) { view.s = to.s; view.ox = to.ox; view.oy = to.oy; viewAnim = null; clampView(); }
+  else animateView(to);
+}
+function homeView(snap = false) { goLevel(2, { region: 'la', snap }); } // home: Level 2, Louisiana (W38)
+function regionAt(x, y) { for (const [k, f] of Object.entries(CHARTS)) if (x >= f.x[0] && x <= f.x[1] && y >= f.y[0] && y <= f.y[1]) return k; return 'la'; }
+function nearestNode(x, y) { let hit = null, best = 26; for (const [id, n] of Object.entries(NODES)) { const d = Math.hypot(n.x - x, n.y - y); if (d < best) { best = d; hit = id; } } return hit; }
+function stepIn(x, y) { // toward the ground, anchored where the finger is (data coords)
+  if (view.level === 1) goLevel(2, { region: regionAt(x, y) });
+  else if (view.level === 2) { const hit = nearestNode(x, y); goLevel(3, hit ? { anchor: hit } : { anchorXY: { x, y } }); }
+}
+function stepOut() { if (view.level === 3) goLevel(2); else if (view.level === 2) goLevel(1); else homeView(); }
+let pinching = false, pinchCenter = null;
+function pinchZoom(cx, cy, ns) { // live stretch during the gesture; the level settles on release
+  const wx = (cx - view.ox) / view.s, wy = (cy - view.oy) / view.s;
+  view.s = Math.max(0.5, Math.min(4.2, ns));
+  view.ox = cx - wx * view.s; view.oy = cy - wy * view.s;
+  pinchCenter = { x: WX0 + (cx - view.ox) / view.s / cv.getBoundingClientRect().width * WXSPAN, y: WY0 + (cy - view.oy) / view.s / cv.getBoundingClientRect().height * WYSPAN };
+}
+$('viewbtn').onclick = () => stepOut();
+// chart pages (W31 - E1) are Level 2's regions now (W38)
+const CHARTS = { la: { x: [-11, 146], y: [2, 166] }, tx: { x: [-94, 9], y: [21, 163] }, river: { x: [14, 82], y: [-174, 22] } }; // frames measured off the boxed layout (W37 spread)
+document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => { const k = b.dataset.chart; if (!k) goLevel(1); else goLevel(2, { region: k }); });
 $('duskbtn').onclick = () => { dusk = !dusk; $('duskbtn').style.background = dusk ? '#54513D' : ''; $('duskbtn').style.color = dusk ? '#f5f1e4' : ''; };
-cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, view.s * (e.deltaY < 0 ? 1.12 : 0.89)); }, { passive: false });
+let lastWheelStep = 0;
+cv.addEventListener('wheel', e => { e.preventDefault(); const now = performance.now(); if (now - lastWheelStep < 350) return; lastWheelStep = now; const p = toWorld(e); if (e.deltaY < 0) stepIn(p.x, p.y); else stepOut(); }, { passive: false });
 cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -799,18 +874,29 @@ cv.addEventListener('pointermove', e => {
   const prev = pointers.get(e.pointerId);
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pointers.size === 2) {
+    pinching = true;
     const [a, b] = [...pointers.values()];
     const d = Math.hypot(a.x - b.x, a.y - b.y), r = cv.getBoundingClientRect();
-    if (pinchD > 0) zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, view.s * d / pinchD);
+    if (pinchD > 0) pinchZoom((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, view.s * d / pinchD);
     pinchD = d;
   } else if (pointers.size === 1 && downAt) {
     const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
     if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 9) dragged = true;
-    if (dragged && view.s > 1) { view.ox += dx; view.oy += dy; clampView(); }
+    if (dragged && view.level > 1) { viewAnim = null; view.ox += dx; view.oy += dy; clampView(); }
   }
 });
 cv.addEventListener('pointerup', e => {
   pointers.delete(e.pointerId);
+  if (pinching && pointers.size < 2) { // the stretch settles to the nearest level (W38)
+    pinching = false; pinchD = 0;
+    const home = fitView(levelFrame());
+    const up = view.level < 3 ? fitView(view.level === 1 ? CHARTS[regionAt(pinchCenter?.x ?? MAP_BOX.cx, pinchCenter?.y ?? MAP_BOX.cy)] : { x: [(pinchCenter?.x ?? MAP_BOX.cx) - 48, (pinchCenter?.x ?? MAP_BOX.cx) + 48], y: [(pinchCenter?.y ?? MAP_BOX.cy) - 48, (pinchCenter?.y ?? MAP_BOX.cy) + 48] }) : null;
+    const down = view.level > 1 ? fitView(view.level === 3 ? CHARTS[view.region] : { x: [WX0, WX0 + WXSPAN], y: [WY0, WY0 + WYSPAN] }) : null;
+    if (up && view.s > (home.s + up.s) / 2) stepIn(pinchCenter?.x ?? MAP_BOX.cx, pinchCenter?.y ?? MAP_BOX.cy);
+    else if (down && view.s < (home.s + down.s) / 2) stepOut();
+    else goLevel(view.level);
+    downAt = null; return;
+  }
   if (pointers.size < 2) pinchD = 0;
   if (dragged || !downAt || performance.now() - downAt.t > 600) { downAt = null; return; }
   downAt = null;
@@ -818,7 +904,7 @@ cv.addEventListener('pointerup', e => {
   // double-tap toggles zoom on the spot
   const now = performance.now();
   if (now - lastTap.t < 330 && Math.hypot(p.sx - lastTap.x, p.sy - lastTap.y) < 44) {
-    zoomAt(p.sx, p.sy, view.s > 1.4 ? 1 : 2.3);
+    stepIn(p.x, p.y); // double-tap steps a level in (W38)
     lastTap = { t: 0, x: 0, y: 0 };
     return;
   }
@@ -850,7 +936,8 @@ function handleTap(x, y) {
         pendingRoute = { from: sel.id, to: hit };
         sel = { kind: 'node', id: hit };
       }
-    } else { if (sel?.id !== hit) trackMode = false; sel = { kind: 'node', id: hit }; }
+    } else if (sel?.kind === 'node' && sel.id === hit && view.level < 3) { goLevel(3, { anchor: hit }); renderSheet(); return; }
+    else { if (sel?.id !== hit) trackMode = false; sel = { kind: 'node', id: hit }; }
     renderSheet(); return;
   }
   // tap a route line to manage it
@@ -890,7 +977,17 @@ function frame(now) {
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   setHTML($('clock'), `${calendarOf(w).name} · Day ${day}<br>${String(hour).padStart(2, '0')}:00 ${WEATHERS[w.weather].icon}${w.refits.wire ? ` → ${WEATHERS[w.weatherNext].icon}` : ''}`);
-  draw(now); renderTicker(); renderRoutes(); renderEvents(); renderOffer();
+  if (viewAnim) { // the glide (W38): easeOutCubic between level frames
+    const t = Math.min(1, (now - viewAnim.t0) / viewAnim.dur), e = 1 - Math.pow(1 - t, 3);
+    view.s = viewAnim.from.s + (viewAnim.to.s - viewAnim.from.s) * e;
+    view.ox = viewAnim.from.ox + (viewAnim.to.ox - viewAnim.from.ox) * e;
+    view.oy = viewAnim.from.oy + (viewAnim.to.oy - viewAnim.from.oy) * e;
+    if (t >= 1) { viewAnim = null; clampView(); }
+  }
+  // butter (W37): a paused, unchanged chart does not redraw - motion is spent only where something moves
+  const stillKey = [w.tick, view.s.toFixed(3), view.ox.toFixed(1), view.oy.toFixed(1), view.level, sel?.kind, sel?.id, dusk].join('|');
+  if (speed > 0 || viewAnim || !w.routes.length || stillKey !== frame.lastKey) { draw(now); frame.lastKey = stillKey; }
+  renderTicker(); renderRoutes(); renderEvents(); renderOffer();
   { // the clock ring (kit sheet LT-02): outer arc the season, inner arc the day
     const rc = $('ring').getContext('2d');
     rc.clearRect(0, 0, 36, 36);
@@ -906,7 +1003,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 frame.n = 0;
-fit(); homeView(); renderSheet();
+fit(); homeView(true); renderSheet();
 requestAnimationFrame(frame);
 addEventListener('beforeunload', save);
 </script>

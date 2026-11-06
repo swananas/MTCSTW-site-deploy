@@ -24,6 +24,8 @@ export const GOODS = {
   spoil:  { name: 'Spoil',   perishHours: 0 },
   parts:  { name: 'Parts',   perishHours: 0 },
   news:   { name: 'News Bundles', perishHours: 48 },
+  soy:    { name: 'Soybeans', perishHours: 0 },
+  meal:   { name: 'Soy Meal', perishHours: 0 },
   paper:  { name: 'Paper & Board', perishHours: 0 },
   sterile:{ name: 'Sterile Packs', perishHours: 0 },
   sugar:  { name: 'Sugar',   perishHours: 0 },
@@ -65,14 +67,22 @@ export const NODES = {
   shipyard:  { name: 'Houma Shipyard', x: 50, y: 72, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
   fourchon:  { name: 'Port Fourchon', x: 58, y: 94, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
   grandisle: { name: 'Grand Isle', x: 92, y: 96, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
+  // --- the Interior River (W34): the Mississippi run ---
+  natchez:   { name: 'Natchez', x: 34, y: -12, consumes: { provisions: 3, med: 1, news: 1 }, anchors: { provisions: 300, med: 1350, news: 480, scrap: 26 } },
+  vicksburg: { name: 'Vicksburg', x: 30, y: -34, consumes: { provisions: 3, med: 1, news: 1 }, anchors: { provisions: 290, med: 1300, news: 460, cotton: 300, scrap: 26 } },
+  deltaFarms:{ name: 'The Delta', x: 38, y: -52, produces: { bolls: 18, soy: 16 }, anchors: { bolls: 55, soy: 90 }, stock0: { bolls: 12, soy: 10 } },
+  westHelena:{ name: 'West Helena', x: 22, y: -64, converts: { in: 'soy', out: 'meal', inPerDay: 20, ratio: 0.5 }, anchors: { soy: 130, meal: 240 } },
+  memphis:   { name: 'Memphis', x: 34, y: -78, consumes: { sugar: 6, packed: 5, rice: 6, provisions: 10, lumber: 4, meal: 3, cotton: 9999 }, anchors: { sugar: 340, packed: 620, rice: 250, provisions: 300, lumber: 330, meal: 300, cotton: 340, news: 470, scrap: 28 } },
+  cairo:     { name: 'Cairo', x: 52, y: -92, consumes: { provisions: 2, news: 0.8 }, anchors: { provisions: 310, news: 470, scrap: 24 } },
+  stLouis:   { name: 'St. Louis', x: 44, y: -104, consumes: { soy: 9999, cotton: 9999 }, anchors: { soy: 150, cotton: 360, med: 1000, pharma: 2600, provisions: 210, steel: 430 }, export: true },
   // --- Texas (Wave 5): the wider Gulf. Coords run west of Louisiana's chart. ---
   houstonPort: { name: 'Port of Houston', x: -40, y: 32, produces: { spoil: 4 }, consumes: { pellets: 9999, molded: 9999, cotton: 9999, beef: 9999, sugar: 9999, packed: 9999, rice: 9999, lumber: 9999 }, anchors: { pellets: 430, molded: 720, cotton: 300, beef: 900, sugar: 330, packed: 600, rice: 240, lumber: 310, med: 950, pharma: 2500, provisions: 200, steel: 500, spoil: 40 }, export: true },
   houstonChem: { name: 'Houston Chemical Row', x: -46, y: 20, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.55, by: { good: 'pellets', ratio: 0.25 } }, anchors: { crude: 185, fuel: 690, pellets: 380 }, stock0: { crude: 60 } },
   molding:   { name: 'Pasadena Molding Works', x: -32, y: 18, converts: { in: 'pellets', out: 'molded', inPerDay: 20, ratio: 0.6 }, anchors: { pellets: 430, molded: 700 } },
   beaumont:  { name: 'Beaumont', x: -12, y: 36, consumes: { sugar: 1.5, rice: 1.5, provisions: 3, fuel: 2, pellets: 2, lumber: 1 }, anchors: { sugar: 350, rice: 260, provisions: 320, fuel: 790, pellets: 460, lumber: 330, med: 1400 } },
   corpus:    { name: 'Corpus Christi', x: -30, y: 68, consumes: { provisions: 3, fuel: 2, med: 1, beef: 1.5, citrus: 1 }, anchors: { provisions: 330, fuel: 800, med: 1500, beef: 950, citrus: 350, cotton: 320 } },
-  victoria:  { name: 'Cotton Country', x: -42, y: 52, produces: { bolls: 24 }, anchors: { bolls: 60, cotton: 260 }, stock0: { bolls: 20 } },
-  kingsville:{ name: 'King Ranch Country', x: -40, y: 82, produces: { cattle: 20 }, anchors: { cattle: 700 }, stock0: { cattle: 15 } },
+  victoria:  { name: 'Cotton Country', x: -42, y: 52, produces: { bolls: 24 }, consumes: { meal: 1.5 }, anchors: { bolls: 60, cotton: 260, meal: 310 }, stock0: { bolls: 20 } },
+  kingsville:{ name: 'King Ranch Country', x: -40, y: 82, produces: { cattle: 20 }, consumes: { meal: 2 }, anchors: { cattle: 700, meal: 320 }, stock0: { cattle: 15 } },
   valley:    { name: 'The Valley', x: -26, y: 94, produces: { citrus: 16 }, anchors: { citrus: 240 }, stock0: { citrus: 10 } },
 };
 
@@ -87,6 +97,7 @@ export const EDGES = [
   ['batonrouge', 'refinery', 48], ['batonrouge', 'nola', 130], ['refinery', 'nola', 88],
   ['pulpmill', 'batonrouge', 60], ['pulpmill', 'refinery', 55], ['pulpmill', 'gasplant', 40], ['pulpmill', 'sawmill', 95], ['pulpmill', 'timber', 120],
   ['beaumont', 'lafayette', 55], ['houstonPort', 'beaumont', 85], ['houstonChem', 'houstonPort', 25], ['molding', 'houstonChem', 30], ['molding', 'houstonPort', 35], ['victoria', 'houstonPort', 95], ['victoria', 'corpus', 110], ['corpus', 'houstonPort', 130], ['kingsville', 'corpus', 60], ['valley', 'corpus', 150], ['valley', 'kingsville', 95], ['beaumont', 'houstonChem', 95],
+  ['batonrouge', 'natchez', 130], ['natchez', 'vicksburg', 105], ['vicksburg', 'deltaFarms', 95], ['deltaFarms', 'westHelena', 55], ['westHelena', 'memphis', 105], ['memphis', 'cairo', 135], ['cairo', 'stLouis', 85],
   ['refinery', 'port', 96], ['refinery', 'gasplant', 12], ['gasplant', 'nola', 100],
   ['gasplant', 'batonrouge', 30], ['ricefarm', 'lafayette', 48], ['ricefarm', 'mill', 58],
   ['ricefarm', 'delcambre', 42], ['delcambre', 'docks', 62], ['delcambre', 'processor', 58],
@@ -133,8 +144,9 @@ export const WATER_EDGES = [
   ['docks', 'delcambre', 60], ['delcambre', 'processor', 55], ['shipyard', 'docks', 28],
   ['shipyard', 'processor', 30], ['shipyard', 'fourchon', 40], ['port', 'docks', 105],
   ['houstonPort', 'port', 320], ['houstonPort', 'beaumont', 60], ['houstonPort', 'houstonChem', 30], ['corpus', 'houstonPort', 170], ['corpus', 'port', 380], ['beaumont', 'port', 260],
+  ['batonrouge', 'natchez', 140], ['natchez', 'vicksburg', 110], ['vicksburg', 'deltaFarms', 90], ['deltaFarms', 'westHelena', 60], ['westHelena', 'memphis', 110], ['memphis', 'cairo', 140], ['cairo', 'stLouis', 90],
 ];
-export const WATER_NODES = new Set(['port', 'nola', 'refinery', 'batonrouge', 'fourchon', 'grandisle', 'docks', 'processor', 'delcambre', 'shipyard', 'houstonPort', 'beaumont', 'corpus', 'houstonChem']);
+export const WATER_NODES = new Set(['port', 'nola', 'refinery', 'batonrouge', 'fourchon', 'grandisle', 'docks', 'processor', 'delcambre', 'shipyard', 'houstonPort', 'beaumont', 'corpus', 'houstonChem', 'natchez', 'vicksburg', 'deltaFarms', 'westHelena', 'memphis', 'cairo', 'stLouis']);
 const WADJ = {};
 for (const id of WATER_NODES) WADJ[id] = [];
 for (const [a, b, km] of WATER_EDGES) { WADJ[a].push([b, km]); WADJ[b].push([a, km]); }
@@ -243,6 +255,9 @@ export const UNITS = {
   compostYard:   { name: 'The Compost Yard', node: 'batonrouge', kind: 'converter', good: 'compost', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'scrap', out: 'compost', inPerDay: 15, ratio: 0.6 } },
   machineShop:   { name: 'The Machine Shop', node: 'shipyard', kind: 'converter', good: 'parts', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'steel', out: 'parts', inPerDay: 4, ratio: 0.5 } },
   wireRoom:      { name: 'The Wire Room', node: 'nola', kind: 'converter', good: 'news', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'paper', out: 'news', inPerDay: 3, ratio: 0.8 } },
+  deltaCompany:  { name: 'The Delta Company', node: 'deltaFarms', kind: 'producer', good: 'soy', margin: 0.30, floor: 4000, owner: 'Boudreaux' },
+  memphisGin:    { name: 'The Memphis Gin', node: 'memphis', kind: 'converter', good: 'cotton', margin: 0.30, floor: 9000, owner: 'Pelican', converts: { in: 'bolls', out: 'cotton', inPerDay: 20, ratio: 0.45 } },
+  gatewayCranes: { name: 'Gateway Cranes', node: 'stLouis', kind: 'infra', good: null, margin: 0, floor: 5000, owner: 'The Families' },
   sterilePacker: { name: 'The Sterile Packer', node: 'port', kind: 'converter', good: 'sterile', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'med', out: 'sterile', inPerDay: 4, ratio: 0.75 } },
   groceryWorks:  { name: 'The Grocery Works', node: 'ricefarm', kind: 'converter', good: 'provisions', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'rice', out: 'provisions', inPerDay: 10, ratio: 0.8 } },
 };
@@ -301,6 +316,8 @@ export const CONTRACT_ITEMS = {
   spoil: [{ n: 'Dredge spoil', m: 1 }],
   parts: [{ n: 'Parts, fleet assortment', m: 1 }, { n: 'Parts, marine', m: 1.1 }],
   news: [{ n: 'News bundles, morning edition', m: 1 }, { n: 'News bundles, extras', m: 1.15 }],
+  soy: [{ n: 'Soybeans, #2 yellow', m: 1 }, { n: 'Soybeans, food grade', m: 1.15 }],
+  meal: [{ n: 'Soy meal, 48% protein', m: 1 }],
 };
 // Level-2 items (W26): contracts name a FORM of the family good and settle in
 // family tons (A6); the item's mult is texture on the price, compressed well
@@ -326,7 +343,7 @@ export function unitManifest(w, unitId) {
 }
 export function unitValue(w, unitId) {
   const unit = UNITS[unitId], st = w.units[unitId];
-  return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 240));
+  return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 150)); // W35: the book multiplier — money slows (was ×240)
 }
 // --- the houses (S6: listed companies — a subsidiary is a full company
 // plus an owner field and a dial; the architecture law, S13 0.6 gate) ---
@@ -459,7 +476,7 @@ export const OPENING_PRESETS = [
   { name: 'The Broker', ground: 'port', leverage: 'credit' },
   { name: 'The Operator', ground: 'mill', leverage: 'state' },
 ];
-export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch', scrap: 'Returns', compost: 'Returns', spoil: 'Returns', parts: 'Returns', news: 'Wire' };
+export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch', scrap: 'Returns', compost: 'Returns', spoil: 'Returns', parts: 'Returns', news: 'Wire', soy: 'Delta', meal: 'Delta' };
 // The Wire's price table (W33): word travels at a price; towns read daily.
 { const WA = { nola: { news: 520 }, batonrouge: { news: 480 }, lafayette: { news: 460 }, beaumont: { news: 460 }, corpus: { news: 460 }, grandisle: { news: 500 }, distributor: { news: 470 } };
   for (const [id, extra] of Object.entries(WA)) if (NODES[id]) Object.assign(NODES[id].anchors, extra);
@@ -475,6 +492,34 @@ export const PAINTS = [
   { name: 'Safety', hex: '#C08A3E' }, { name: 'Rust', hex: '#7A4A38' }, { name: 'Slate', hex: '#4E5A63' },
 ];
 export function companyOf(w) { return w.company ?? { name: 'Bayou Freight Co.', paint: '#2F7E79' }; }
+// The Ladder (W35): the progression queue, derived from the world — the road the
+// player was already walking, with the miles marked. No objectives are imposed.
+export function ladderOf(w) {
+  const ownedUnits = Object.keys(UNITS).filter(u => w.units[u].owner === 'player').length;
+  const skillsSpent = Object.values(w.skills.owned).filter(Boolean).length;
+  const txNodes = ['houstonPort', 'houstonChem', 'molding', 'beaumont', 'corpus', 'victoria', 'kingsville', 'valley'];
+  const riverNodes = ['natchez', 'vicksburg', 'deltaFarms', 'westHelena', 'memphis', 'cairo', 'stLouis'];
+  const touched = (list) => w.routes.some(r => list.includes(r.from) || list.includes(r.to));
+  const cashGap = (cost) => w.money >= cost ? '' : `$${Math.round(cost - w.money).toLocaleString()} to go`;
+  const steps = [
+    { id: 'route', name: 'Draw your first route', done: w.routes.length >= 1 || w.stats.trips > 0, gap: 'tap two places' },
+    { id: 'tons100', name: 'Move 100 tons', done: w.stats.deliveredTons >= 100, gap: `${Math.floor(w.stats.deliveredTons)}/100t moved` },
+    { id: 'semi', name: 'Buy an 18-wheeler', done: w.vehicles.some(v => v.type === 'semi'), gap: cashGap(3400) },
+    { id: 'warehouse', name: 'Raise a warehouse', done: Object.values(w.warehouses).some(n => n > 0), gap: cashGap(2400) },
+    { id: 'unit', name: 'Own your first unit', done: ownedUnits >= 1, gap: 'the Portfolio desk prices every place' },
+    { id: 'skills3', name: 'Three skills deep', done: skillsSpent >= 3, gap: `${skillsSpent}/3 learned` },
+    { id: 'barge', name: 'Float a barge', done: w.vehicles.some(v => v.type === 'barge'), gap: cashGap(19000) },
+    { id: 'iron', name: 'Lay iron of your own', done: Object.keys(w.yards).length >= 1, gap: cashGap(6000) + ' for the first yard' },
+    { id: 'texas', name: 'Work Texas ground', done: touched(txNodes), gap: 'a route over the Sabine' },
+    { id: 'river', name: 'Run the river', done: touched(riverNodes), gap: 'a route past Baton Rouge, north' },
+    { id: 'gulfline', name: 'Build the Gulf Line', done: w.project?.stage === 2, gap: w.project?.stage === 1 ? `yards: lumber ${Math.floor(w.project.lumber)}/60t · steel ${Math.floor(w.project.steel)}/40t` : cashGap(5000) + ' to survey' },
+    { id: 'subsidiary', name: 'Take a subsidiary', done: Object.values(w.houses).some(h => h.subOf === 'player'), gap: 'past 50% of any listed house' },
+    { id: 'control25', name: 'Regional Control 25%', done: (w.crown.peak ?? 0) >= 0.25, gap: `peak ${((w.crown.peak ?? 0) * 100).toFixed(1)}%` },
+    { id: 'dominance', name: 'The Dominance road', done: (w.crown.peak ?? 0) >= 0.6, gap: `peak ${((w.crown.peak ?? 0) * 100).toFixed(1)}% of 60%` },
+  ];
+  const nextIdx = steps.findIndex(s => !s.done);
+  return steps.map((s, i) => ({ ...s, state: s.done ? 'done' : i === nextIdx ? 'next' : 'queued' }));
+}
 // The Year (W32): four named seasons; the deck and the fields answer to them.
 export const CALENDAR = ['Mardi Gras', 'Crawfish & Planting', 'Hurricane Season', 'Harvest'];
 export function calendarOf(w) { const idx = Math.floor(w.tick / TICKS_PER_SEASON) % 4; return { idx, name: CALENDAR[idx] }; }
@@ -511,6 +556,7 @@ export function createWorld(seed = 1, opts = {}) {
       { house: 'Pelican', from: 'processor', to: 'distributor', good: 'packed', state: 'loading', hours: 0, cargo: 0, trips: 0 },
       { house: 'Maison', from: 'refinery', to: 'fourchon', good: 'fuel', state: 'loading', hours: 0, cargo: 0, trips: 0 },
       { house: 'Maison', from: 'houstonChem', to: 'molding', good: 'pellets', state: 'loading', hours: 0, cargo: 0, trips: 0 },
+      { house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', state: 'loading', hours: 0, cargo: 0, trips: 0 },
     ],
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
     offer: null, offerCount: 0, // the Living Graph's first generator (W29)
@@ -535,6 +581,7 @@ export function createWorld(seed = 1, opts = {}) {
     hauledGoods: {},         // good -> true once the company has delivered it
     cranePending: 0,         // Port Cranes income accrued between ship calls
     cranePendingH: 0,        // Houston Cranes, same rates, its own ledger (W28)
+    cranePendingS: 0,        // Gateway Cranes at St. Louis, third ledger (W34)
     intents: [], ticker: [],
     stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0, eventsSurvived: 0, influenceEarned: 0, seizures: 0, emancipations: 0, biggestDelivery: 0 },
     laneCounts: {},          // 'from|to|good' -> spot deliveries (crystallization, K-2)
@@ -1444,7 +1491,7 @@ function generateContracts(w) {
   const day = Math.floor(w.tick / HOURS_PER_DAY);
   // lapse stale offers + expired taken contracts
   for (const c of w.contracts) {
-    if (c.state === 'open' && w.tick > c.postedTick + 3 * HOURS_PER_DAY) { c.state = 'lapsed'; c.lapsedTick = w.tick; }
+    if (c.state === 'open' && w.tick > c.postedTick + 4 * HOURS_PER_DAY) { c.state = 'lapsed'; c.lapsedTick = w.tick; } // W35: missions stand 4 days (was 3)
     if (c.state === 'taken' && w.tick > c.deadlineTick) {
       c.state = 'lapsed';
       if (c.forward) { // a promise the player made (W32): bounded teeth
@@ -1454,7 +1501,7 @@ function generateContracts(w) {
       } else note(w, `A contract lapsed: ${GOODS[c.good].name} to ${NODES[c.issuer].name} — the unfilled premium is gone, nothing else is.`, 'warn');
     }
   }
-  if (w.contracts.filter(c => c.state === 'open' || c.state === 'taken').length >= 6) return;
+  if (w.contracts.filter(c => c.state === 'open' || c.state === 'taken').length >= 5) return; // W35: the board refills under 5 live (was 6)
   const candidates = [];
   for (const [id, def] of Object.entries(NODES)) {
     const goods = new Set([...Object.keys(def.consumes ?? {}), ...(def.converts ? [def.converts.in] : [])]);
@@ -1483,9 +1530,9 @@ function generateContracts(w) {
   if (candidates.length > 3) { const rot = (day * 3) % candidates.length; candidates.push(...candidates.splice(0, rot)); }
   for (const cand of candidates.slice(0, 3)) {
     const depth = 1 - cand.stock / cand.target;
-    const premium = 0.4 + 0.8 * depth;
+    const premium = 0.25 + 0.55 * depth; // W35: softer premiums (was 0.4 + 0.8)
     const spot = w.nodes[cand.id].prices[cand.good];
-    const pricePerTon = Math.round(Math.min(cand.anchor * 2.2, spot * (1 + premium)));
+    const pricePerTon = Math.round(Math.min(cand.anchor * 1.8, spot * (1 + premium))); // W35: cap ×1.8 (was ×2.2)
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
     const item = pickItem(w, cand.good);
@@ -1501,7 +1548,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good][0].n, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good][0].n, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.25 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }
@@ -1558,6 +1605,27 @@ function shipCallHouston(w) {
   w.cranePendingH += landed * 6 + sailed * 2;
   note(w, `The ship is in at Houston: med, pharma, provisions and steel on the dock${sailed >= 5 ? `; ${sailed.toFixed(0)}t of Texas exports sailed with her` : ''}. The Gulf has two doors now.`, 'news');
 }
+const STL_MANIFEST = { med: 15, pharma: 6, provisions: 25, steel: 15 };
+function shipCallStl(w) {
+  for (const [good, qty] of Object.entries(STL_MANIFEST)) {
+    addStock(w, 'stLouis', good, qty, 0);
+    w.nodes.stLouis.flow[good].in += qty;
+    w.craneGoods[good] = (w.craneGoods[good] ?? 0) + qty;
+  }
+  let sailed = 0;
+  for (const good of Object.keys(NODES.stLouis.consumes)) {
+    const q = stockOf(w, 'stLouis', good);
+    if (q > 0) { w.nodes.stLouis.stock[good] = 0; w.nodes.stLouis.flow[good].out += q; sailed += q; w.craneGoods[good] = (w.craneGoods[good] ?? 0) + q; }
+  }
+  const landed = Object.values(STL_MANIFEST).reduce((s, q) => s + q, 0);
+  w.cranePendingS = (w.cranePendingS ?? 0) + landed * 6 + sailed * 2;
+  note(w, `The packet is in at St. Louis: med, pharma, provisions — and northern STEEL, for the yards down-river${sailed >= 5 ? `; ${sailed.toFixed(0)}t of soy and cotton went north with her` : ''}. The river has a door at the top now.`, 'news');
+}
+export function riverCallDays(w) {
+  const day = Math.floor(w.tick / HOURS_PER_DAY) + 1;
+  const first = day <= 2 ? 2 : 2 + Math.ceil((day - 2) / 5) * 5;
+  return [first, first + 5];
+}
 function shipCall(w) {
   for (const [good, qty] of Object.entries(SHIP_MANIFEST)) {
     addStock(w, 'port', good, qty, 0);
@@ -1603,6 +1671,7 @@ function unitIncomeDay(w) {
     } else if (unitId === 'iceHouse') { gross = w.nodes.docks.flow.shrimp.in * (w.nodes.docks.prices.shrimp ?? 0) * unit.margin; treeByUnit[unitId] = 'Shrimp'; }
     else if (unitId === 'portCranes') { gross = w.cranePending; w.cranePending = 0; }
     else if (unitId === 'houstonCranes') { gross = w.cranePendingH; w.cranePendingH = 0; }
+    else if (unitId === 'gatewayCranes') { gross = w.cranePendingS ?? 0; w.cranePendingS = 0; }
     let income = gross;
     if (st.owner === 'player' && w.skills.owned.tiering) income *= 1.15;
     if (st.owner === 'player' && w.parcels[unit.node].owned > 0) income *= 1.1; // land under the business (W22)
@@ -1945,7 +2014,7 @@ export function maybeOffer(w, forceKind = null) {
   }
   const day = Math.floor(w.tick / HOURS_PER_DAY) + 1;
   if (day < 2) return null;
-  if (!forceKind && nextRandom(w) > 0.6) return null;
+  if (!forceKind && nextRandom(w) > 0.35) return null; // W35: offers drip slower (was 0.6)
   const kinds = [];
   const foreignUnits = Object.keys(UNITS).filter(id => w.units[id].owner !== 'player');
   if (foreignUnits.length) kinds.push('unit-deal');
@@ -2099,6 +2168,7 @@ function dayBoundary(w) {
   if (w.tick % 120 === 48 && w.evMods.waterGrounded) { w.shipWait = true; note(w, `The ship waits offshore — the storm owns the river mouth today.`, 'warn'); }
   else if ((w.tick % 120 === 48 || w.shipWait) && !w.evMods.waterGrounded) { shipCall(w); w.shipWait = false; }
   if (w.tick % 120 === 96 && !w.evMods.waterGrounded) shipCallHouston(w); // Houston's door: Days 5, 10, 15… (W28)
+  if (w.tick % 120 === 24 && !w.evMods.waterGrounded) shipCallStl(w); // the river door: Days 2, 7, 12… (W34)
   // the river walks (W19): seeded trend, clamped; transitions print
   const rv = w.river;
   rv.trend = Math.max(-0.01, Math.min(0.01, rv.trend + (nextRandom(w) - 0.5) * 0.008));
@@ -2264,5 +2334,17 @@ export function restore(json) {
   w.intents = [];
   if (!w.company) w.company = { name: 'Bayou Freight Co.', paint: '#2F7E79' }; // saves from before the Founder (W30)
   if (!w.project) w.project = { stage: 0, lumber: 0, steel: 0 }; // saves from before the Year (W32)
+  // saves from before the River (W34): places and units the chart gained since
+  // are born fresh into an old world — a playtester's run is never bricked by growth
+  for (const [id, def] of Object.entries(NODES)) {
+    if (w.nodes[id]) continue;
+    w.nodes[id] = { stock: {}, lots: [], prices: {}, flow: {}, jitter: {}, priceDayStart: {} };
+    for (const g of Object.keys(GOODS)) w.nodes[id].flow[g] = freshFlow();
+    for (const [good, anchor] of Object.entries(def.anchors ?? {})) { w.nodes[id].prices[good] = anchor; w.nodes[id].priceDayStart[good] = anchor; }
+    for (const [good, qty] of Object.entries(def.stock0 ?? {})) addStock(w, id, good, qty, 0);
+  }
+  for (const [unitId, unit] of Object.entries(UNITS)) if (!w.units[unitId]) w.units[unitId] = { owner: unit.owner, incomeAvg: 0, lastIncome: 0 };
+  for (const n of Object.values(w.nodes)) for (const g of Object.keys(GOODS)) if (!n.flow[g]) n.flow[g] = freshFlow(); // goods the world gained (W31–W34)
+  if (w.rivalTrucks && w.rivalTrucks.length < 6) w.rivalTrucks.push({ house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', state: 'loading', hours: 0, cargo: 0, trips: 0 });
   return w;
 }

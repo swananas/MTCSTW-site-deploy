@@ -21,7 +21,7 @@
   #events div { padding:1px 0; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
-  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn, #crownbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn, #crownbtn, #ladderbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
   #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
   #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
@@ -63,11 +63,12 @@
     <button id="portbtn" title="Portfolio — units & titles">🏦</button>
     <button id="mktbtn" title="The Market — shares, loans, the State">📈</button>
     <button id="crownbtn" title="The Crown — regional control & the Era Report">👑</button>
+    <button id="ladderbtn" title="The Ladder — the progression queue">🧭</button>
     <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
   </header>
   <canvas id="map"></canvas>
-  <div id="chartbar" style="display:flex;gap:4px;padding:3px 10px;background:#f3e9d2;border-bottom:1px solid var(--line);font-size:12px;align-items:center"><span style="opacity:.75">Chart:</span><button data-chart="all">🌎 All</button><button data-chart="la">⚜ Louisiana</button><button data-chart="tx">★ Texas</button></div>
+  <div id="chartbar" style="display:flex;gap:4px;padding:3px 10px;background:#f3e9d2;border-bottom:1px solid var(--line);font-size:12px;align-items:center"><span style="opacity:.75">Chart:</span><button data-chart="all">🌎 All</button><button data-chart="la">⚜ Louisiana</button><button data-chart="tx">★ Texas</button><button data-chart="river">🌊 The River</button></div>
   <div id="events"></div>
   <div id="offer"></div>
   <div id="routes"></div>
@@ -76,10 +77,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf } from './engine.js';
 
 const SAVE_KEY = 'haul-save-v19';
-const CURRENT_PHASE = 1.9;
+const CURRENT_PHASE = 2; // Wave 12: the chart's second age (1.10 is not a float; saves migrate in restore())
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -114,6 +115,7 @@ $('skillbtn').onclick = () => { panel = panel === 'skills' ? null : 'skills'; re
 $('portbtn').onclick = () => { panel = panel === 'portfolio' ? null : 'portfolio'; renderSheet(); };
 $('mktbtn').onclick = () => { panel = panel === 'market' ? null : 'market'; renderSheet(); };
 $('crownbtn').onclick = () => { panel = panel === 'crown' ? null : 'crown'; renderSheet(); };
+$('ladderbtn').onclick = () => { panel = panel === 'ladder' ? null : 'ladder'; renderSheet(); };
 $('speeds').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   speed = +b.dataset.s;
@@ -126,9 +128,24 @@ function fit() {
 }
 addEventListener('resize', fit);
 const WX0 = -70, WXSPAN = 170; // the chart's west edge (Wave 5): Texas runs to x −64, Louisiana to 100
-function pt(id) {
-  const r = cv.getBoundingClientRect(), n = NODES[id];
-  return { x: ((n.x - WX0) / WXSPAN) * r.width, y: (n.y / 100) * r.height };
+const WY0 = -115, WYSPAN = 225; // the chart's north edge (Wave 11): St. Louis stands at y −104
+function ptXY(x, y) {
+  const r = cv.getBoundingClientRect();
+  return { x: ((x - WX0) / WXSPAN) * r.width, y: ((y - WY0) / WYSPAN) * r.height };
+}
+function pt(id) { const n = NODES[id]; return ptXY(n.x, n.y); }
+// Emblems (W35 — Shane: "little emblems so you don't have to click every place"):
+// what a place IS, in one glyph; cities draw larger and keep their click-depth
+const GLYPH = { port: '⚓', nola: '🎭', grandisle: '🏝', caneA: '🌾', caneB: '🌾', ricefarm: '🌾', mill: '🏭', dock: '🦐', delcambre: '🦐', processor: '🦐', timber: '🌲', sawmill: '🪵', refinery: '🛢', gasplant: '🔥', fourchon: '⚓', shipyard: '🔧', bogalusa: '📄', icehouse: '🧊', distributor: '🏬', batonrouge: '🏛', lafayette: '🎶', houstonPort: '⚓', houstonChem: '🧪', molding: '🧩', beaumont: '🛢', corpus: '⚓', victoria: '🌾', kingsville: '🐂', valley: '🍊', natchez: '🏛', vicksburg: '⚔', deltaFarms: '🌱', westHelena: '⚙', memphis: '🎸', cairo: '🌉', stLouis: '🌉' };
+const CITIES = new Set(['nola', 'batonrouge', 'memphis', 'stLouis', 'houstonPort', 'distributor']);
+function nodeState(id) { // the ring tells the story: hungry blush · surging gold · thin amber · fed green
+  const def = NODES[id], node = w.nodes[id];
+  let worst = Infinity;
+  for (const [good, rate] of Object.entries(def.consumes ?? {})) worst = Math.min(worst, stockOf(w, id, good) / Math.max(rate, 0.01));
+  if (worst < 3) return '#b3402e';
+  for (const [good, anchor] of Object.entries(def.anchors ?? {})) if ((node.prices[good] ?? anchor) > anchor * 1.25) return '#b8860b';
+  if (worst < 6) return '#b97e26';
+  return def.consumes ? '#3e9e5f' : null;
 }
 function segDist(px, py, a, b) {
   const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1;
@@ -165,7 +182,16 @@ function draw(now) {
   const g = ctx.createLinearGradient(0, 0, 0, r.height);
   g.addColorStop(0, '#c9d6bd'); g.addColorStop(1, '#a9bda0');
   ctx.fillStyle = g; ctx.fillRect(0, 0, r.width, r.height);
+  ctx.fillStyle = 'rgba(88,104,84,.30)'; ctx.fillRect(0, 0, r.width, r.height); // beyond the Ring, the chart recedes (W35)
   ctx.setTransform(dpr * view.s, 0, 0, dpr * view.s, dpr * view.ox, dpr * view.oy);
+  // THE RING (W35): the scope of the map, drawn as one boundary — the Gulf
+  // Coast and the inland river country inside it; nothing outside pretends
+  { ctx.beginPath();
+    for (let k = 0; k <= 48; k++) { const a = k / 48 * Math.PI * 2, p = ptXY(18 + Math.cos(a) * 90, -4 + Math.sin(a) * 106); k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(247,242,222,.55)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(122,92,30,.30)'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = 'rgba(122,92,30,.8)'; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1; }
   ctx.strokeStyle = 'rgba(110,150,160,.35)'; ctx.lineWidth = 16; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(r.width * .68, -10); ctx.bezierCurveTo(r.width * .60, r.height * .35, r.width * .78, r.height * .6, r.width * .74, r.height + 10); ctx.stroke();
   ctx.lineWidth = 1;
@@ -218,7 +244,7 @@ function draw(now) {
   // rival trucks: the houses' own freight, in their paint (W27)
   { const r0 = cv.getBoundingClientRect();
     for (const t of w.rivalTrucks) {
-      const tp = truckPos(w, t), s = { x: ((tp.x - WX0) / WXSPAN) * r0.width, y: (tp.y / 100) * r0.height };
+      const tp = truckPos(w, t), s = ptXY(tp.x, tp.y);
       ctx.fillStyle = HOUSES[t.house].paint;
       ctx.beginPath(); ctx.roundRect(s.x - 5, s.y - 3.5, 10, 7, 2); ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.lineWidth = 1;
@@ -243,15 +269,19 @@ function draw(now) {
       ctx.lineWidth = 1;
     }
     const isSel = sel?.kind === 'node' && sel.id === id;
+    const R = CITIES.has(id) ? 15 : 13;
+    const st = nodeState(id); // the state ring (W35): read the place without opening it
+    if (st) { ctx.strokeStyle = st; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(p.x, p.y, R + 3.5, 0, 7); ctx.stroke(); ctx.lineWidth = 1; }
     if (PRIMARY_UNIT[id] && w.units[PRIMARY_UNIT[id]].owner === 'player') { // your ground wears your paint (W30)
       ctx.strokeStyle = companyOf(w).paint; ctx.lineWidth = 2.6;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 15.5, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, R + 6.5, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
     }
     ctx.fillStyle = isSel ? '#fff8e2' : '#f5f1e4';
     ctx.strokeStyle = 'rgba(34,49,42,.55)'; ctx.lineWidth = isSel ? 2.4 : 1.2;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, 7); ctx.fill(); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, 7); ctx.fill(); ctx.stroke(); ctx.lineWidth = 1;
     ctx.fillStyle = '#22312a'; ctx.font = '700 9px system-ui'; ctx.textAlign = 'center';
     ctx.fillText(def.name.split(' ').map(s => s[0]).slice(0, 2).join(''), p.x, p.y + 3);
+    ctx.font = '10px system-ui'; ctx.fillText(GLYPH[id] ?? '🏠', p.x + R + 3, p.y - R + 4); // the emblem (W35)
     ctx.font = '9.5px system-ui'; ctx.fillStyle = 'rgba(34,49,42,.85)';
     ctx.fillText(def.name, p.x, p.y + 24);
     let i = 0;
@@ -439,6 +469,14 @@ function renderMarket(el) {
   const du = el.querySelector('[data-decline-union]'); if (du) du.onclick = () => Q({ type: 'declineUnion' });
 }
 let showEra = false;
+function renderLadder(el) { // the progression queue (W35): the road, with the miles marked
+  const steps = ladderOf(w);
+  const done = steps.filter(s => s.state === 'done').length;
+  setHTML(el, `<div class="card wide"><h3>🧭 The Ladder — ${companyOf(w).name}</h3>
+  <div class="sub">${done} of ${steps.length} miles walked. Nothing here is an order — it's the road you were already on, in order, with the next gap in plain numbers.</div>
+  ${steps.map(s => `<div class="status" style="${s.state === 'next' ? 'background:#fdf3d0;border:1px solid #c9a44e;border-radius:8px;padding:4px 8px' : s.state === 'done' ? 'opacity:.75' : 'opacity:.55'}">${s.state === 'done' ? '✅' : s.state === 'next' ? '➡️' : '·'} <b>${s.name}</b>${s.state !== 'done' ? ` <span style="float:right">${s.gap}</span>` : ''}</div>`).join('')}
+  </div>`);
+}
 function renderCrown(el) {
   const pct = x => (x * 100).toFixed(1) + '%';
   const housesHeld = Object.keys(w.stakes).filter(h => w.houses[h].subOf === 'player' || w.houses[h].delisted).length;
@@ -501,6 +539,7 @@ function renderSheet() {
   if (panel === 'portfolio') return renderPortfolio(el);
   if (panel === 'market') return renderMarket(el);
   if (panel === 'crown') return renderCrown(el);
+  if (panel === 'ladder') return renderLadder(el);
   if (panel === 'start') return renderStart(el);
   if (panel === 'skills') return renderSkills(el);
   if (sel?.kind === 'route') {
@@ -545,7 +584,14 @@ function renderSheet() {
   const id = sel.id, def = NODES[id];
   const here = w.vehicles.filter(v => v.at === id);
   const myContracts = w.contracts.filter(c => c.issuer === id && (c.state === 'open' || c.state === 'taken'));
-  if (!setHTML(el, `<div class="card"><h3>${def.name}</h3>
+  // the card answers has / wants / clock before it offers a verb (W35 declunk)
+  const topStock = Object.keys(GOODS).map(g => [g, stockOf(w, id, g)]).sort((a, b) => b[1] - a[1])[0];
+  const wantList = Object.entries(def.consumes ?? {}).map(([g, rate]) => [g, stockOf(w, id, g) / Math.max(rate, 0.01)]).sort((a, b) => a[1] - b[1]);
+  const chipHas = topStock && topStock[1] >= 1 ? `📦 has ${GOODS[topStock[0]].name} ${Math.floor(topStock[1])}t` : '📦 bare shelves';
+  const chipWant = wantList.length ? `🛒 wants ${GOODS[wantList[0][0]].name} · ${wantList[0][1] >= 99 ? 'deep stock' : wantList[0][1].toFixed(1) + ' days left'}` : '🛒 buys at the anchor table below';
+  const chipClock = id === 'port' ? `🕐 ships Day ${shipCallDays(w)[0]}` : id === 'houstonPort' ? `🕐 ships on Houston's call` : id === 'stLouis' ? `🕐 packets Day ${riverCallDays(w)[0]}` : `🕐 ${calendarOf(w).name} · Day ${Math.floor(w.tick / 24) + 1}`;
+  if (!setHTML(el, `<div class="card"><h3>${GLYPH[id] ?? '🏠'} ${def.name}</h3>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 6px"><span style="background:#eef3e4;border:1px solid var(--line);border-radius:20px;padding:2px 9px;font-size:12px">${chipHas}</span><span style="background:#fdf3d0;border:1px solid var(--line);border-radius:20px;padding:2px 9px;font-size:12px">${chipWant}</span><span style="background:#e8eef5;border:1px solid var(--line);border-radius:20px;padding:2px 9px;font-size:12px">${chipClock}</span></div>
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
     ${PRIMARY_UNIT[id] ? `<div class="status">🏛 <b>${UNITS[PRIMARY_UNIT[id]].name}</b> — owned by ${w.units[PRIMARY_UNIT[id]].owner === 'player' ? '<b>you</b>' : w.units[PRIMARY_UNIT[id]].owner} · paid $${Math.round(w.units[PRIMARY_UNIT[id]].lastIncome).toLocaleString()} yesterday${w.units[PRIMARY_UNIT[id]].owner === 'player' ? ' · your freight loads ×0.9 faster here' : ''}</div>` : ''}
@@ -557,6 +603,7 @@ function renderSheet() {
     ${Object.keys(GOODS).some(g => positionsAt(w, id, g) > 0.01) ? `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>⚖ The State can break every corner at this node — all your titles here sold at live prices.</span><button data-release="${id}" ${w.influence < (w.posture === 'partner' ? 5 : 6) ? 'disabled' : ''}>Release orders · ${w.posture === 'partner' ? 5 : 6}⚖</button></div>` : ''}
     ${Object.keys(GOODS).filter(g => w.nodes[id].prices[g] > 0 && availOf(w, id, g) >= 5).slice(0, 4).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Hold <b>${GOODS[g].name}</b> in place — buy the title, the pile never moves.</span><button data-pbuy="${g}" ${w.money < w.nodes[id].prices[g] * 10 ? 'disabled' : ''}>Hold 10t · $${Math.round(w.nodes[id].prices[g] * 10).toLocaleString()}</button></div>`).join('')}
     ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
+    ${id === 'stLouis' ? `<div class="status">🚢 Next river packets: <b>Day ${riverCallDays(w)[0]}</b> and <b>Day ${riverCallDays(w)[1]}</b> — med, pharma, provisions and STEEL land here; soy and cotton sail south on the same call.</div>` : ''}
     ${WATER_NODES.has(id) ? `<div class="status">🌊 The river runs <b>${w.river.level.toFixed(2)}</b> — ${w.river.state === 'shallows' ? '<b>shallows: barges load half</b>' : w.river.state === 'high' ? '<b>high water: barges slow to 60%</b>' : 'fair for barges'}${w.skills.owned.dredge ? ' · your dredging buys you depth to 0.80' : ''}</div>` : ''}
     ${w.yards[id] ? `<div class="status">🛤 <b>Rail yard here.</b> ${trackMode ? 'The map is quoting iron: tap a neighbor to lay track to it.' : 'Open track mode to lay iron from here.'}</div>` : ''}
     ${(id in w.boats) ? `<div class="status">⛵ ${w.boats[id]} shrimp boats · Gulf stock <b>${Math.round(w.fishery.stock)}%</b> — nets yield ×${fisheryFactor(w).toFixed(2)}${ICE_MULT[id] ? ' · 🧊 the Ice House keeps shrimp ~3× longer here' : ' · no ice here — the clock runs honest'}</div>` : ''}
@@ -650,14 +697,19 @@ function zoomAt(sx, sy, ns) {
 }
 $('viewbtn').onclick = () => { view.s = 1; view.ox = 0; view.oy = 0; clampView(); };
 // chart pages (W31 · E1): framed views over the one chart — growth stops squeezing it
+const CHARTS = { la: { x: [-8, 102], y: [-4, 104] }, tx: { x: [-70, 10], y: [6, 104] }, river: { x: [2, 78], y: [-114, 6] } };
 function setChart(range) {
   const r = cv.getBoundingClientRect();
   if (!range) { view.s = 1; view.ox = 0; view.oy = 0; }
-  else { view.s = Math.min(3.5, WXSPAN / (range[1] - range[0])); view.ox = -((range[0] - WX0) / WXSPAN) * r.width * view.s; view.oy = 0; }
+  else {
+    view.s = Math.min(3.5, Math.min(WXSPAN / (range.x[1] - range.x[0]), WYSPAN / (range.y[1] - range.y[0])));
+    view.ox = -((range.x[0] - WX0) / WXSPAN) * r.width * view.s + (r.width - ((range.x[1] - range.x[0]) / WXSPAN) * r.width * view.s) / 2;
+    view.oy = -((range.y[0] - WY0) / WYSPAN) * r.height * view.s + (r.height - ((range.y[1] - range.y[0]) / WYSPAN) * r.height * view.s) / 2;
+  }
   clampView();
   $('viewbtn').style.display = view.s > 1.02 ? '' : 'none';
 }
-document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => setChart(b.dataset.chart === 'la' ? [-8, 100] : b.dataset.chart === 'tx' ? [-70, 8] : null));
+document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => setChart(CHARTS[b.dataset.chart] ?? null));
 cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, view.s * (e.deltaY < 0 ? 1.12 : 0.89)); }, { passive: false });
 cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId);

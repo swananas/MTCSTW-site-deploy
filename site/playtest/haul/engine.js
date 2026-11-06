@@ -468,6 +468,10 @@ export const PAINTS = [
   { name: 'Safety', hex: '#C08A3E' }, { name: 'Rust', hex: '#7A4A38' }, { name: 'Slate', hex: '#4E5A63' },
 ];
 export function companyOf(w) { return w.company ?? { name: 'Bayou Freight Co.', paint: '#2F7E79' }; }
+// The Year (W32): four named seasons; the deck and the fields answer to them.
+export const CALENDAR = ['Mardi Gras', 'Crawfish & Planting', 'Hurricane Season', 'Harvest'];
+export function calendarOf(w) { const idx = Math.floor(w.tick / TICKS_PER_SEASON) % 4; return { idx, name: CALENDAR[idx] }; }
+export function calendarMult(w, good) { const { idx } = calendarOf(w); return (good === 'cane' && idx === 3) || (good === 'citrus' && idx === 0) ? 1.5 : 1; }
 export const treeOf = (good) => TREES[good] ?? 'Other';
 export function createWorld(seed = 1, opts = {}) {
   const w = {
@@ -503,6 +507,7 @@ export function createWorld(seed = 1, opts = {}) {
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
     offer: null, offerCount: 0, // the Living Graph's first generator (W29)
     company: { name: 'Bayou Freight Co.', paint: '#2F7E79' }, // the Founder (W30)
+    project: { stage: 0, lumber: 0, steel: 0 }, // the Gulf Line (W32): 0 none · 1 surveyed & stocking · 2 built
     dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
     craneGoods: {},          // goods the cranes touched since the last boundary
     boats: { docks: 3, delcambre: 3 },
@@ -997,6 +1002,10 @@ function applyIntents(w) {
       answerOffer(w, !!it.accept);
     } else if (it.type === 'offerCounter') {
       counterOffer(w);
+    } else if (it.type === 'postForward') {
+      postForward(w, it);
+    } else if (it.type === 'fundProject') {
+      fundProject(w, it.part);
     } else if (it.type === 'setCompany') {
       if (it.name) w.company.name = String(it.name).slice(0, 28);
       if (it.paint && PAINTS.some(p => p.hex === it.paint)) w.company.paint = it.paint;
@@ -1128,7 +1137,7 @@ function produceAndConvert(w) {
       let capMult = 1;
       if (id === 'timber') capMult = w.capital.timberStock >= 600 ? 1 : 0.35 + 0.65 * Math.max(0, w.capital.timberStock) / 600;
       if (w.capital.soil[id] !== undefined) capMult = 0.7 + 0.3 * w.capital.soil[id] / 100;
-      const qty = Math.min(perDay * capMult * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
+      const qty = Math.min(perDay * capMult * calendarMult(w, good) * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
       if (qty > 0) { addStock(w, id, good, qty, GOODS[good].perishHours ? null : 0); n.flow[good].in += qty; if (id === 'timber') w.capital.timberStock = Math.max(0, w.capital.timberStock - qty); }
     }
     // the docks fish a shared, finite Gulf (W18): boats × yield factor
@@ -1422,7 +1431,11 @@ function generateContracts(w) {
     if (c.state === 'open' && w.tick > c.postedTick + 3 * HOURS_PER_DAY) { c.state = 'lapsed'; c.lapsedTick = w.tick; }
     if (c.state === 'taken' && w.tick > c.deadlineTick) {
       c.state = 'lapsed';
-      note(w, `A contract lapsed: ${GOODS[c.good].name} to ${NODES[c.issuer].name} — the unfilled premium is gone, nothing else is.`, 'warn');
+      if (c.forward) { // a promise the player made (W32): bounded teeth
+        const penalty = Math.min(Math.round(0.2 * (c.qty - c.delivered) * c.pricePerTon), Math.max(0, Math.floor(w.money)));
+        w.money -= penalty;
+        note(w, `Your forward lapsed: ${GOODS[c.good].name} to ${NODES[c.issuer].name}, ${(c.qty - c.delivered).toFixed(0)}t undelivered — the broken promise costs $${penalty.toLocaleString()}. The desk remembers; the region shrugs.`, 'warn');
+      } else note(w, `A contract lapsed: ${GOODS[c.good].name} to ${NODES[c.issuer].name} — the unfilled premium is gone, nothing else is.`, 'warn');
     }
   }
   if (w.contracts.filter(c => c.state === 'open' || c.state === 'taken').length >= 6) return;
@@ -1752,7 +1765,17 @@ function eventStep(w) {
   w.evMods = mods;
 }
 function drawEvent(w) {
-  const card = EVENT_DECK[Math.floor(nextRandom(w) * EVENT_DECK.length)];
+  // the deck answers to the calendar (W32): storms in their season, blight at harvest
+  const { idx } = calendarOf(w);
+  const pool = [];
+  for (const card of EVENT_DECK) {
+    if (card.id === 'hurricane' && idx !== 2) continue;
+    if (card.id === 'mardi-gras' && idx !== 0) continue;
+    pool.push(card);
+    if (card.id === 'cane-blight' && idx === 3) pool.push(card);
+    if (card.id === 'heat-wave' && idx === 2) pool.push(card);
+  }
+  const card = pool[Math.floor(nextRandom(w) * pool.length)];
   const startsTick = w.tick + (10 + Math.floor(nextRandom(w) * 6)) * HOURS_PER_DAY;
   const ev = { card: card.id, startsTick, endsTick: startsTick + card.days * HOURS_PER_DAY, revealed: false, announced: false, landfall: null };
   w.events.push(ev);
@@ -1886,6 +1909,7 @@ export function eraReport(w) {
     `The world it worked in: the Gulf fishery stands at ${Math.round(w.fishery.stock)}% · ${w.stats.eventsSurvived} events weathered · ${arch.length ? `the map remade itself — ${arch.join(' · ')}` : 'the map is still the map it was'}.`,
     `Cash on hand: $${Math.round(w.money).toLocaleString()}. The rest is land, iron, and name.`,
   ];
+  if (w.project?.stage === 2) lines.push('It built the Gulf Line — through rail from the Sabine to Houston, its name on the chart in iron.');
   return lines;
 }
 
@@ -2067,6 +2091,15 @@ function dayBoundary(w) {
   if (w.offer && w.tick > w.offer.expiresTick) { note(w, `The offer from ${w.offer.house ?? 'the market'} expired unanswered.`, 'news'); w.offer = null; }
   maybeOffer(w);
   houseMarketStep(w);
+  // the Gulf Line's yards stock the work from Beaumont's own piles (W32)
+  if (w.project?.stage === 1) {
+    const p = w.project;
+    const takeL = Math.min(60 - p.lumber, stockOf(w, 'beaumont', 'lumber'));
+    if (takeL > 0) { takeStock(w, 'beaumont', 'lumber', takeL); p.lumber += takeL; }
+    const takeS = Math.min(40 - p.steel, stockOf(w, 'beaumont', 'steel'));
+    if (takeS > 0) { takeStock(w, 'beaumont', 'steel', takeS); p.steel += takeS; }
+    if (takeL > 0 || takeS > 0) note(w, `The Gulf Line yards take on material at Beaumont: lumber ${Math.floor(p.lumber)}/60t · steel ${Math.floor(p.steel)}/40t.`, 'news');
+  }
   // burn jitter: every sink's appetite breathes ±10% a day (seeded)
   for (const [id, def] of Object.entries(NODES)) {
     const n = w.nodes[id];
@@ -2107,6 +2140,33 @@ function directedSweep(w) {
     note(w, `${house} (directed) sweeps $${Math.round(sweep).toLocaleString()} of surplus to shareholders — your cut $${Math.round(mine).toLocaleString()}.`, 'buy');
   }
 }
+function postForward(w, it) {
+  const def = NODES[it.nodeId];
+  if (!def || !it.good) return;
+  const wanted = (def.consumes && def.consumes[it.good] !== undefined && def.consumes[it.good] !== 9999) || def.converts?.in === it.good;
+  if (!wanted) return;
+  const qty = Math.max(5, Math.min(60, Math.round(it.qty || 25)));
+  const price = w.nodes[it.nodeId].prices[it.good];
+  if (!price) return;
+  w.contracts.push({ id: w.nextId++, issuer: it.nodeId, good: it.good, item: pickItem(w, it.good).n, qty, delivered: 0, pricePerTon: Math.round(price), state: 'taken', postedTick: w.tick, deadlineTick: w.tick + TICKS_PER_SEASON, forward: true });
+  note(w, `Forward posted: ${qty}t of ${GOODS[it.good].name} to ${def.name} at $${Math.round(price).toLocaleString()}/t, locked — deliver within the season, whatever the spot does.`, 'buy');
+}
+function fundProject(w, part) {
+  const p = w.project ?? (w.project = { stage: 0, lumber: 0, steel: 0 });
+  if (part === 'survey' && p.stage === 0) {
+    if (w.money < 5000) { note(w, 'The Gulf Line survey costs $5,000 — the cash is not there.', 'warn'); return; }
+    w.money -= 5000; p.stage = 1;
+    note(w, 'Surveyors walk the Sabine bottoms with chains and flags. The Gulf Line is a line on the chart now — Beaumont\'s yards will stock the work: 60t of lumber, 40t of steel.', 'news');
+  } else if (part === 'build' && p.stage === 1) {
+    if (p.lumber < 60 || p.steel < 40) { note(w, `The yards are not full: lumber ${Math.floor(p.lumber)}/60t · steel ${Math.floor(p.steel)}/40t at Beaumont.`, 'warn'); return; }
+    if (w.money < 12000) { note(w, 'The Gulf Line\'s construction costs $12,000 — the cash is not there.', 'warn'); return; }
+    w.money -= 12000; p.stage = 2;
+    for (const [a, b] of [['beaumont', 'lafayette'], ['beaumont', 'houstonPort'], ['houstonPort', 'houstonChem']]) { w.track[trackKey(a, b)] = { doneTick: -1 }; w.track[trackKey(b, a)] = { doneTick: -1 }; }
+    w.yards.beaumont = true; w.yards.houstonPort = true;
+    note(w, '🏗 THE GULF LINE OPENS. Through rail, Baton Rouge\'s country to Houston\'s — laid from Beaumont lumber and shipyard steel, yards standing at Beaumont and the Port of Houston. Your iron crosses the Sabine now.', 'good');
+  }
+}
+
 function seasonBoundary(w) {
   stateRotation(w);
   directedSweep(w);
@@ -2119,6 +2179,7 @@ function seasonBoundary(w) {
   w.crews.tightDays = 0;
   w.skills.points++;
   note(w, `Season ${Math.floor(w.tick / TICKS_PER_SEASON)} complete — +1 skill point (${w.skills.points} banked).`, 'buy');
+  { const cal = calendarOf(w); note(w, `📅 The year turns: ${cal.name} begins.${cal.idx === 2 ? ' The cone is a matter of when, not if — the harbors watch the Gulf.' : cal.idx === 3 ? ' The cane stands tall: harvest weight is on the fields.' : cal.idx === 0 ? ' Citrus comes in with the cold, and the city dresses for carnival.' : ' Crawfish boil, seed goes in the ground, the rivers run kind.'}`, 'news'); }
   // season breakdown rolls (S7.5 base form): schedule each hit inside the new season
   for (const v of w.vehicles) {
     let p = 0.03 * (w.skills.owned.preventive ? 0.5 : 1);
@@ -2164,5 +2225,6 @@ export function restore(json) {
   const w = JSON.parse(json);
   w.intents = [];
   if (!w.company) w.company = { name: 'Bayou Freight Co.', paint: '#2F7E79' }; // saves from before the Founder (W30)
+  if (!w.project) w.project = { stage: 0, lumber: 0, steel: 0 }; // saves from before the Year (W32)
   return w;
 }

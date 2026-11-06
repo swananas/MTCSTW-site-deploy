@@ -76,10 +76,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v17';
-const CURRENT_PHASE = 1.7;
+const SAVE_KEY = 'haul-save-v18';
+const CURRENT_PHASE = 1.8;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -309,19 +309,31 @@ function goodsRows(id) {
   }
   return rows.join('') || '<tr><td style="opacity:.6">Nothing here yet.</td></tr>';
 }
+let fwdNode = 'nola', fwdGood = 'sugar', fwdQty = 25;
 function renderBoard(el) {
   const open = w.contracts.filter(c => c.state === 'open');
+  const fwdNodes = Object.entries(NODES).filter(([, d]) => Object.entries(d.consumes ?? {}).some(([, v]) => v !== 9999) || d.converts).map(([id]) => id);
+  if (!fwdNodes.includes(fwdNode)) fwdNode = fwdNodes[0];
+  const fwdGoods = [...new Set([...Object.entries(NODES[fwdNode].consumes ?? {}).filter(([, v]) => v !== 9999).map(([g]) => g), ...(NODES[fwdNode].converts ? [NODES[fwdNode].converts.in] : [])])];
+  if (!fwdGoods.includes(fwdGood)) fwdGood = fwdGoods[0];
   const taken = w.contracts.filter(c => c.state === 'taken');
   const done = w.contracts.filter(c => c.state === 'done').length;
   const line = c => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-    <span>${c.standing ? '🔁 ' : ''}<b>${c.qty}t ${GOODS[c.good].name}</b> → ${NODES[c.issuer].name} · <b>$${c.pricePerTon}/t</b> · by Day ${Math.floor(c.deadlineTick / 24) + 1}${c.state === 'taken' ? ` · ${c.delivered.toFixed(0)}/${c.qty}t in` : ''}</span>
+    <span>${c.standing ? '🔁 ' : ''}${c.forward ? '🔒 ' : ''}<b>${c.qty}t ${GOODS[c.good].name}</b> → ${NODES[c.issuer].name} · <b>$${c.pricePerTon}/t</b> · by Day ${Math.floor(c.deadlineTick / 24) + 1}${c.state === 'taken' ? ` · ${c.delivered.toFixed(0)}/${c.qty}t in` : ''}</span>
     ${c.state === 'open' ? `<button data-take="${c.id}">Take</button>` : ''}</div>`;
   if (!setHTML(el, `<div class="card"><h3>📋 Contracts board</h3>
     <div class="sub">Born from real shortages — nobody posts for what nobody lacks. Deliveries to the named place count automatically; missing a deadline costs only the premium. ${done} fulfilled so far.</div>
     ${taken.length ? '<div style="font-weight:700;margin-top:4px">Yours</div>' + taken.map(line).join('') : ''}
     ${open.length ? '<div style="font-weight:700;margin-top:4px">Open</div>' + open.map(line).join('') : '<div class="status" style="opacity:.7">Nothing open right now — the morning brings new want.</div>'}
+    <div style="font-weight:700;margin-top:8px">🔒 Post a forward — your promise, your price</div>
+    <div class="sub">Lock today's price for a delivery within the season. Kept promises pay the locked price whatever the spot does; a lapsed forward costs 20% of the unfilled value.</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><select id="fwd-node">${fwdNodes.map(id => `<option value="${id}" ${fwdNode === id ? 'selected' : ''}>${NODES[id].name}</option>`).join('')}</select><select id="fwd-good">${fwdGoods.map(g => `<option value="${g}" ${fwdGood === g ? 'selected' : ''}>${GOODS[g].name}</option>`).join('')}</select>${[10, 25, 50].map(q => `<button data-fwdqty="${q}" ${fwdQty === q ? 'class="primary"' : ''}>${q}t</button>`).join('')}<button data-fwdpost="1" class="primary">Post at $${Math.round(w.nodes[fwdNode].prices[fwdGood] ?? 0).toLocaleString()}/t</button></div>
     </div>`)) return;
   el.querySelectorAll('[data-take]').forEach(b => b.onclick = () => Q({ type: 'takeContract', contractId: +b.dataset.take }));
+  el.querySelectorAll('[data-fwdqty]').forEach(b => b.onclick = () => { fwdQty = +b.dataset.fwdqty; renderSheet(); });
+  const fn = el.querySelector('#fwd-node'); if (fn) fn.onchange = () => { fwdNode = fn.value; renderSheet(); };
+  const fg = el.querySelector('#fwd-good'); if (fg) fg.onchange = () => { fwdGood = fg.value; renderSheet(); };
+  const fp = el.querySelector('[data-fwdpost]'); if (fp) fp.onclick = () => Q({ type: 'postForward', nodeId: fwdNode, good: fwdGood, qty: fwdQty });
 }
 function renderSkills(el) {
   const branchHtml = branch => Object.entries(SKILLS).filter(([, s]) => s.branch === branch).sort((a, b) => a[1].tier - b[1].tier).map(([id, s]) => {
@@ -441,12 +453,14 @@ function renderCrown(el) {
     ${bar(`👑 Monopoly — control at 75% on any day (now ${pct(w.crown.current)})`, w.crown.current, 0.75)}
     ${bar(`🌊 Dominance — at 60% for a season (${Math.min(w.crown.streak, 30)}/30 days held)`, Math.min(w.crown.streak, 30), 30)}
     <div class="status">🏛 Last One Standing — listed houses held or retired: <b>${housesHeld}/3</b></div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>🏗 <b>The Gulf Line</b> — ${w.project?.stage === 2 ? 'OPEN: through rail Louisiana↔Texas on your iron.' : w.project?.stage === 1 ? `surveyed · yards at Beaumont hold lumber ${Math.floor(w.project.lumber)}/60t · steel ${Math.floor(w.project.steel)}/40t` : 'a through railroad, Beaumont to Houston — unbuilt.'}</span>${w.project?.stage === 0 ? '<button data-project="survey" class="primary">Survey · $5,000</button>' : w.project?.stage === 1 && w.project.lumber >= 60 && w.project.steel >= 40 ? '<button data-project="build" class="primary">Build · $12,000</button>' : ''}</div>
     <div class="status">🗺 Map engagement: <b>${Math.round(coverageOf(w) * 100)}%</b> of major places traded in the last three days ${coverageOf(w) >= 0.5 ? '— healthy' : coverageOf(w) >= 0.25 ? '— thin but alive' : '— starving; under 25% the graph calls it a map defect'} · 🌿 Marsh <b>${Math.round(w.capital.marsh)}</b> · 🌲 Standing timber <b>${Math.round(w.capital.timberStock).toLocaleString()}t</b></div>
     <div style="margin-top:6px"><button data-era="1" class="primary">${showEra ? 'Hide the Era Report' : 'Read the Era Report'}</button></div>
     ${showEra ? `<div style="margin-top:6px">${eraReport(w).map(l => `<div class="status">${l}</div>`).join('')}</div>` : ''}
     </div>`)) return;
   el.querySelector('[data-crownrule]').onclick = (e) => Q({ type: 'setCrownRule', rule: e.target.dataset.crownrule });
   el.querySelectorAll('[data-repaint]').forEach(b => b.onclick = () => Q({ type: 'setCompany', paint: b.dataset.repaint }));
+  el.querySelectorAll('[data-project]').forEach(b => b.onclick = () => Q({ type: 'fundProject', part: b.dataset.project }));
   el.querySelector('[data-era]').onclick = () => { showEra = !showEra; renderSheet(); };
 }
 let startMode = 'campaign', startGround = 'cane', startLeverage = 'motion';
@@ -746,7 +760,7 @@ function frame(now) {
   $('mktbtn').textContent = w.emancipation ? '📈 !' : '📈';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
-  setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
+  setHTML($('clock'), `${calendarOf(w).name} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes(); renderEvents(); renderOffer();
   { // the clock ring (kit sheet LT-02): outer arc the season, inner arc the day
     const rc = $('ring').getContext('2d');

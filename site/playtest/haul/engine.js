@@ -19,6 +19,10 @@ export const GOODS = {
   citrus: { name: 'Citrus',  perishHours: 96 },
   pellets:{ name: 'Plastic Pellets', perishHours: 0 },
   molded: { name: 'Molded Goods', perishHours: 0 },
+  scrap:  { name: 'Scrap',   perishHours: 0 },
+  compost:{ name: 'Compost', perishHours: 0 },
+  spoil:  { name: 'Spoil',   perishHours: 0 },
+  parts:  { name: 'Parts',   perishHours: 0 },
   paper:  { name: 'Paper & Board', perishHours: 0 },
   sterile:{ name: 'Sterile Packs', perishHours: 0 },
   sugar:  { name: 'Sugar',   perishHours: 0 },
@@ -40,10 +44,10 @@ export const GOODS = {
 // anchors: the node's reference price per good ($/t) — the market breathes
 // around these (W15/W17). FULL-SCHEME S1 cards govern; Level-1 families only.
 export const NODES = {
-  caneA:     { name: 'Cane Field A', x: 40, y: 64, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
-  caneB:     { name: 'Cane Field B', x: 30, y: 50, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
+  caneA:     { name: 'Cane Field A', x: 40, y: 64, produces: { cane: 24 }, consumes: { compost: 2 }, anchors: { cane: 8, compost: 120 }, stock0: { cane: 24 } },
+  caneB:     { name: 'Cane Field B', x: 30, y: 50, produces: { cane: 24 }, consumes: { compost: 2 }, anchors: { cane: 8, compost: 120 }, stock0: { cane: 24 } },
   mill:      { name: 'Thibodaux Mill', x: 48, y: 48, converts: { in: 'cane', out: 'sugar', inPerDay: 96, ratio: 0.125 }, anchors: { cane: 28, sugar: 290 } },
-  ricefarm:  { name: 'Rice Farm', x: 14, y: 58, produces: { rice: 14 }, anchors: { rice: 120, provisions: 240 }, stock0: { rice: 10 } },
+  ricefarm:  { name: 'Rice Farm', x: 14, y: 58, produces: { rice: 14 }, consumes: { compost: 2 }, anchors: { rice: 120, provisions: 240, compost: 120 }, stock0: { rice: 10 } },
   pulpmill:  { name: 'Bogalusa', x: 66, y: 6, converts: { in: 'timber', out: 'paper', inPerDay: 30, ratio: 0.3 }, anchors: { timber: 85, paper: 340 } },
   timber:    { name: 'Piney Woods', x: 18, y: 12, produces: { timber: 30 }, anchors: { timber: 45 }, stock0: { timber: 20 } },
   sawmill:   { name: 'Sawmill', x: 24, y: 26, converts: { in: 'timber', out: 'lumber', inPerDay: 40, ratio: 0.4 }, anchors: { timber: 85, lumber: 210 } },
@@ -55,13 +59,13 @@ export const NODES = {
   nola:      { name: 'New Orleans', x: 78, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2, paper: 1, sterile: 1.5 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800, paper: 430, sterile: 3900 } },
   batonrouge:{ name: 'Baton Rouge', x: 44, y: 6, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4, paper: 1, sterile: 1.5 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320, paper: 430, sterile: 3800 } },
   distributor:{ name: 'The Distributor', x: 74, y: 24, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12, paper: 2, sterile: 1 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260, paper: 420, sterile: 2900 } },
-  port:      { name: 'Port of New Orleans', x: 82, y: 46, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480, paper: 400, sterile: 2340 }, export: true },
+  port:      { name: 'Port of New Orleans', x: 82, y: 46, produces: { spoil: 4 }, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480, paper: 400, sterile: 2340, spoil: 40 }, export: true },
   lafayette: { name: 'Lafayette', x: 6, y: 38, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7, sterile: 0.5 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790, sterile: 3900 } },
   shipyard:  { name: 'Houma Shipyard', x: 50, y: 72, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
   fourchon:  { name: 'Port Fourchon', x: 58, y: 94, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
   grandisle: { name: 'Grand Isle', x: 92, y: 96, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
   // --- Texas (Wave 5): the wider Gulf. Coords run west of Louisiana's chart. ---
-  houstonPort: { name: 'Port of Houston', x: -40, y: 32, consumes: { pellets: 9999, molded: 9999, cotton: 9999, beef: 9999, sugar: 9999, packed: 9999, rice: 9999, lumber: 9999 }, anchors: { pellets: 430, molded: 720, cotton: 300, beef: 900, sugar: 330, packed: 600, rice: 240, lumber: 310, med: 950, pharma: 2500, provisions: 200, steel: 500 }, export: true },
+  houstonPort: { name: 'Port of Houston', x: -40, y: 32, produces: { spoil: 4 }, consumes: { pellets: 9999, molded: 9999, cotton: 9999, beef: 9999, sugar: 9999, packed: 9999, rice: 9999, lumber: 9999 }, anchors: { pellets: 430, molded: 720, cotton: 300, beef: 900, sugar: 330, packed: 600, rice: 240, lumber: 310, med: 950, pharma: 2500, provisions: 200, steel: 500, spoil: 40 }, export: true },
   houstonChem: { name: 'Houston Chemical Row', x: -46, y: 20, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.55, by: { good: 'pellets', ratio: 0.25 } }, anchors: { crude: 185, fuel: 690, pellets: 380 }, stock0: { crude: 60 } },
   molding:   { name: 'Pasadena Molding Works', x: -32, y: 18, converts: { in: 'pellets', out: 'molded', inPerDay: 20, ratio: 0.6 }, anchors: { pellets: 430, molded: 700 } },
   beaumont:  { name: 'Beaumont', x: -12, y: 36, consumes: { sugar: 1.5, rice: 1.5, provisions: 3, fuel: 2, pellets: 2, lumber: 1 }, anchors: { sugar: 350, rice: 260, provisions: 320, fuel: 790, pellets: 460, lumber: 330, med: 1400 } },
@@ -235,6 +239,8 @@ export const UNITS = {
   cottonGin:     { name: 'The Cotton Gin', node: 'victoria', kind: 'converter', good: 'cotton', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'bolls', out: 'cotton', inPerDay: 20, ratio: 0.45 } },
   kingRanch:     { name: 'King Ranch Country', node: 'kingsville', kind: 'producer', good: 'cattle', margin: 0.30, floor: 4000, owner: 'The Families' },
   thePacker:     { name: 'The Meat Packer', node: 'corpus', kind: 'converter', good: 'beef', margin: 0.30, floor: 9000, owner: 'Pelican', converts: { in: 'cattle', out: 'beef', inPerDay: 16, ratio: 0.55 } },
+  compostYard:   { name: 'The Compost Yard', node: 'batonrouge', kind: 'converter', good: 'compost', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'scrap', out: 'compost', inPerDay: 15, ratio: 0.6 } },
+  machineShop:   { name: 'The Machine Shop', node: 'shipyard', kind: 'converter', good: 'parts', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'steel', out: 'parts', inPerDay: 4, ratio: 0.5 } },
   sterilePacker: { name: 'The Sterile Packer', node: 'port', kind: 'converter', good: 'sterile', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'med', out: 'sterile', inPerDay: 4, ratio: 0.75 } },
   groceryWorks:  { name: 'The Grocery Works', node: 'ricefarm', kind: 'converter', good: 'provisions', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'rice', out: 'provisions', inPerDay: 10, ratio: 0.8 } },
 };
@@ -288,6 +294,10 @@ export const CONTRACT_ITEMS = {
   cattle: [{ n: 'Cattle, on the hoof', m: 1 }],
   beef: [{ n: 'Beef, boxed', m: 1 }, { n: 'Beef, ground trim', m: 0.95 }],
   citrus: [{ n: 'Citrus, Valley grapefruit', m: 1 }, { n: 'Citrus, oranges', m: 1.05 }],
+  scrap: [{ n: 'Scrap, mixed', m: 1 }],
+  compost: [{ n: 'Compost, finished', m: 1 }],
+  spoil: [{ n: 'Dredge spoil', m: 1 }],
+  parts: [{ n: 'Parts, fleet assortment', m: 1 }, { n: 'Parts, marine', m: 1.1 }],
 };
 // Level-2 items (W26): contracts name a FORM of the family good and settle in
 // family tons (A6); the item's mult is texture on the price, compressed well
@@ -446,7 +456,11 @@ export const OPENING_PRESETS = [
   { name: 'The Broker', ground: 'port', leverage: 'credit' },
   { name: 'The Operator', ground: 'mill', leverage: 'state' },
 ];
-export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch' };
+export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care', pellets: 'Petrochem', molded: 'Petrochem', bolls: 'Ranch', cotton: 'Ranch', cattle: 'Ranch', beef: 'Ranch', citrus: 'Ranch', scrap: 'Returns', compost: 'Returns', spoil: 'Returns', parts: 'Returns' };
+// The Reverse River's price table (W31): scrap trades where it's made; spoil is
+// wanted on the coast; parts are dear everywhere work is done.
+{ const RA = { nola: { scrap: 30, spoil: 90, parts: 800 }, batonrouge: { scrap: 35, parts: 750 }, lafayette: { scrap: 28, parts: 700 }, distributor: { scrap: 32 }, beaumont: { scrap: 30, spoil: 90, parts: 700 }, corpus: { scrap: 30, spoil: 90, parts: 700 }, fourchon: { spoil: 90, parts: 750 }, grandisle: { spoil: 90 }, delcambre: { spoil: 90 }, processor: { spoil: 90 }, docks: { spoil: 90 }, shipyard: { spoil: 90, parts: 500 }, refinery: { parts: 650 }, mill: { parts: 650 }, sawmill: { parts: 650 }, pulpmill: { parts: 650 }, houstonChem: { parts: 650 }, molding: { parts: 650 } };
+  for (const [id, extra] of Object.entries(RA)) if (NODES[id]) Object.assign(NODES[id].anchors, extra); }
 // The Founder (W30): the player's identity. Paints from the palette of record,
 // excluding the houses' identity colors. Player Teal is the Desk's default.
 export const PAINTS = [
@@ -1174,6 +1188,13 @@ function consume(w) {
       const avail = availOf(w, id, good); // held stock (positions) is not the world's to burn
       const use = Math.min(want, avail, dcAllowance);
       if (use > 0) { takeStock(w, id, good, use); n.flow[good].out += use; dcAllowance -= use; }
+      if (use > 0 && good === 'compost' && w.capital.soil[id] !== undefined) w.capital.soil[id] = Math.min(100, w.capital.soil[id] + use * 1.2); // the loop closes (W31): fertility, hauled back
+    }
+    // the coast's standing appetite for fill (W31): spoil in, marsh up
+    if (COASTAL.includes(id)) {
+      const want = 0.8 / HOURS_PER_DAY;
+      const use = Math.min(want, availOf(w, id, 'spoil'));
+      if (use > 0) { takeStock(w, id, 'spoil', use); n.flow.spoil.out += use; w.capital.marsh = Math.min(100, w.capital.marsh + use * 0.15); }
     }
   }
 }
@@ -1210,8 +1231,12 @@ function opCostMult(w, v) {
   if (w.skills.owned.fleetstd && w.vehicles.filter(x => x.type === v.type).length >= 3) m *= 0.9;
   return m;
 }
+// a destination also accepts whatever a unit standing there converts (W31 —
+// the Sterile Packer rule, generalized) and spoil wherever the coast is hungry
+const UNIT_CONVERT_IN = {};
+for (const u of Object.values(UNITS)) if (u.converts) (UNIT_CONVERT_IN[u.node] ??= new Set()).add(u.converts.in);
 function bestLoad(w, r) {
-  const accepts = g => NODES[r.to].consumes?.[g] || NODES[r.to].converts?.in === g;
+  const accepts = g => NODES[r.to].consumes?.[g] || NODES[r.to].converts?.in === g || UNIT_CONVERT_IN[r.to]?.has(g) || (g === 'spoil' && COASTAL.includes(r.to));
   if (r.pin && accepts(r.pin)) return stockOf(w, r.from, r.pin) > 0.01 ? r.pin : null; // a cargo order: this good or nothing (W29)
   const goods = Object.keys(GOODS).filter(g => stockOf(w, r.from, g) > 0.01 && accepts(g));
   if (!goods.length) return null;
@@ -1772,6 +1797,11 @@ function devStep(w) {
   let marshDrain = 0;
   for (const id of COASTAL) if (w.pollution[id] >= 60) marshDrain += 0.2;
   w.capital.marsh = Math.max(0, Math.min(100, w.capital.marsh - marshDrain));
+  // the Reverse River rises (W31): every appetite leaves scrap behind
+  for (const [id, def] of Object.entries(NODES)) {
+    const burns = Object.values(def.consumes ?? {}).reduce((a, b) => a + (b === 9999 ? 0 : b), 0);
+    if (burns > 0) { const amt = burns * 0.12; const room = Math.max(0, capOf(w, id, 'scrap') - stockOf(w, id, 'scrap')); const add = Math.min(amt, room); if (add > 0) { addStock(w, id, 'scrap', add, 0); w.nodes[id].flow.scrap.in += add; } }
+  }
 }
 
 // --- engagement coverage (W27): the majority rule, measured at last ---
@@ -2042,11 +2072,16 @@ function dayBoundary(w) {
     const n = w.nodes[id];
     for (const good of Object.keys(def.consumes ?? {})) n.jitter[good] = 0.9 + nextRandom(w) * 0.2;
   }
-  // breakdowns land today?
+  // breakdowns land today? parts on hand shorten the shop's hold (W31)
   for (const v of w.vehicles) {
     if (v.downFrom === w.tick) {
       w.stats.breakdowns++;
-      note(w, `A ${VEHICLES[v.type].name.toLowerCase()} is in the shop for a day — upkeep collects its debt.`, 'warn');
+      const home = v.at ?? v.leg?.from;
+      if (home && stockOf(w, home, 'parts') >= 0.5) {
+        takeStock(w, home, 'parts', 0.5);
+        v.downTo = w.tick + 8;
+        note(w, `A ${VEHICLES[v.type].name.toLowerCase()} breaks down at ${NODES[home].name} — parts on the shelf, back on the road by afternoon.`, 'warn');
+      } else note(w, `A ${VEHICLES[v.type].name.toLowerCase()} is in the shop for a day — upkeep collects its debt.`, 'warn');
     }
   }
 }

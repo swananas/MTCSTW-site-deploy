@@ -72,10 +72,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v11';
-const CURRENT_PHASE = 1.2;
+const SAVE_KEY = 'haul-save-v13';
+const CURRENT_PHASE = 1.3;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -209,6 +209,15 @@ function draw(now) {
     ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : v.type === 'barge' ? 6.5 : 4, 0, 7); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
   }
+  // rival trucks: the houses' own freight, in their paint (W27)
+  { const r0 = cv.getBoundingClientRect();
+    for (const t of w.rivalTrucks) {
+      const tp = truckPos(w, t), s = { x: (tp.x / 100) * r0.width, y: (tp.y / 100) * r0.height };
+      ctx.fillStyle = HOUSES[t.house].paint;
+      ctx.beginPath(); ctx.roundRect(s.x - 5, s.y - 3.5, 10, 7, 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.lineWidth = 1;
+      if (t.cargo > 0) { ctx.fillStyle = '#22312a'; ctx.fillRect(s.x - 2, s.y - 1.5, 4, 3); }
+    } }
   // first-run pulse: start here
   if (!w.routes.length) {
     const p = pt('caneA'), rad = 18 + 5 * Math.sin(now / 300);
@@ -366,7 +375,7 @@ function renderMarket(el) {
     if (h.delisted) return `<div class="status"><span style="color:${HOUSES[house].paint}">●</span> <b>${house}</b> — bought out entire. The name survives in the Era Report.</div>`;
     const pulse = stake >= 10 ? ` · earns ~$${Math.round(h.incomeAvg).toLocaleString()}/day` : '';
     const books = stake >= 25 ? `<br>Cash $${Math.round(h.cash).toLocaleString()} · holds ${Object.keys(UNITS).filter(u => w.units[u].owner === house || w.units[u].brand === house).map(u => UNITS[u].name).join(', ') || 'nothing'}` : '';
-    const dial = h.subOf === 'player' ? `<div style="margin:4px 0 2px">Your subsidiary — the dial: ${['handsoff', 'directed', 'integrated'].map(dn => `<button data-dial="${house}|${dn}" ${h.dial === dn ? 'class="primary"' : ''}>${{ handsoff: 'Hands-off', directed: 'Directed', integrated: 'Integrated' }[dn]}</button>`).join(' ')}</div>` : '';
+    const dial = h.subOf === 'player' ? `<div style="margin:4px 0 2px">Your subsidiary — the dial: ${['handsoff', 'directed', 'integrated'].map(dn => `<button data-dial="${house}|${dn}" ${h.dial === dn ? 'class="primary"' : ''}>${{ handsoff: 'Hands-off', directed: 'Directed', integrated: 'Integrated' }[dn]}</button>`).join(' ')} <button data-spinoff="${house}">Spin off · $${Math.round(stake / 100 * houseEquity(w, house) * 0.98).toLocaleString()}</button></div>` : '';
     return row(
       `<span style="color:${HOUSES[house].paint}">●</span> <b>${house}</b> — equity $${houseEquity(w, house).toLocaleString()} · $${price}/share · you hold <b>${stake}%</b>${pulse}${h.subOf === 'player' ? ' · <b>subsidiary</b>' : ''}${books}${dial}`,
       `<button data-buy5="${house}" ${stake >= 100 || w.money < Math.round(5 * price * 1.02) ? 'disabled' : ''}>Buy 5 · $${Math.round(5 * price * 1.02).toLocaleString()}</button><button data-sell5="${house}" ${stake <= 0 ? 'disabled' : ''}>Sell 5</button>`);
@@ -395,6 +404,7 @@ function renderMarket(el) {
   el.querySelectorAll('[data-buy5]').forEach(b => b.onclick = () => Q({ type: 'buyShares', house: b.dataset.buy5, n: 5 }));
   el.querySelectorAll('[data-sell5]').forEach(b => b.onclick = () => Q({ type: 'sellShares', house: b.dataset.sell5, n: 5 }));
   el.querySelectorAll('[data-dial]').forEach(b => b.onclick = () => { const [house, dial] = b.dataset.dial.split('|'); Q({ type: 'setDial', house, dial }); });
+  el.querySelectorAll('[data-spinoff]').forEach(b => b.onclick = () => Q({ type: 'spinoffSub', house: b.dataset.spinoff }));
   el.querySelectorAll('[data-repay]').forEach(b => b.onclick = () => Q({ type: 'repay', loanId: +b.dataset.repay }));
   el.querySelectorAll('[data-borrow]').forEach(b => b.onclick = () => Q({ type: 'borrow', unitId: b.dataset.borrow }));
   const acc = el.querySelector('[data-accept-eman]'); if (acc) acc.onclick = () => Q({ type: 'acceptEmancipation' });
@@ -420,6 +430,7 @@ function renderCrown(el) {
     ${bar(`👑 Monopoly — control at 75% on any day (now ${pct(w.crown.current)})`, w.crown.current, 0.75)}
     ${bar(`🌊 Dominance — at 60% for a season (${Math.min(w.crown.streak, 30)}/30 days held)`, Math.min(w.crown.streak, 30), 30)}
     <div class="status">🏛 Last One Standing — listed houses held or retired: <b>${housesHeld}/3</b></div>
+    <div class="status">🗺 Map engagement: <b>${Math.round(coverageOf(w) * 100)}%</b> of major places traded in the last three days ${coverageOf(w) >= 0.5 ? '— healthy' : coverageOf(w) >= 0.25 ? '— thin but alive' : '— starving; under 25% the graph calls it a map defect'} · 🌿 Marsh <b>${Math.round(w.capital.marsh)}</b> · 🌲 Standing timber <b>${Math.round(w.capital.timberStock).toLocaleString()}t</b></div>
     <div style="margin-top:6px"><button data-era="1" class="primary">${showEra ? 'Hide the Era Report' : 'Read the Era Report'}</button></div>
     ${showEra ? `<div style="margin-top:6px">${eraReport(w).map(l => `<div class="status">${l}</div>`).join('')}</div>` : ''}
     </div>`)) return;
@@ -505,6 +516,8 @@ function renderSheet() {
     <table>${goodsRows(id)}</table>
     ${PRIMARY_UNIT[id] ? `<div class="status">🏛 <b>${UNITS[PRIMARY_UNIT[id]].name}</b> — owned by ${w.units[PRIMARY_UNIT[id]].owner === 'player' ? '<b>you</b>' : w.units[PRIMARY_UNIT[id]].owner} · paid $${Math.round(w.units[PRIMARY_UNIT[id]].lastIncome).toLocaleString()} yesterday${w.units[PRIMARY_UNIT[id]].owner === 'player' ? ' · your freight loads ×0.9 faster here' : ''}</div>` : ''}
     <div class="status">🌍 People <b>${Math.round(w.population[id])}</b>${w.dev[id].archetype ? ` · a <b>${w.dev[id].archetype === 'agri' ? 'Agri' : w.dev[id].archetype[0].toUpperCase() + w.dev[id].archetype.slice(1)}</b> place` : ''} · pollution <b>${Math.round(w.pollution[id])}</b>${COASTAL.includes(id) ? ` · Gulf health rides on coasts like this` : ''}${w.parcels[id].owned ? ` · you hold <b>${w.parcels[id].owned}</b> parcel${w.parcels[id].owned > 1 ? 's' : ''} here (+10% unit income, cleaner air)` : ''}</div>
+    ${id === 'timber' ? `<div class="status">🌲 Standing timber: <b>${Math.round(w.capital.timberStock).toLocaleString()}t</b> in the ground — the cut draws it, the woods regrow 12t a day. Under 600t the cut itself slows.</div>` : ''}
+    ${w.capital.soil[id] !== undefined ? `<div class="status">🌱 Soil fertility: <b>${Math.round(w.capital.soil[id])}%</b> — a worked field tires (−0.4/day), a rested one recovers. Yields ride on it.</div>` : ''}
     <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Land: ${w.parcels[id].left} of 4 parcels unclaimed — land does not print.</span><span style="display:flex;gap:4px;flex:none">${w.parcels[id].left > 0 ? `<button data-parcel="${id}" ${w.money < parcelPrice(w, id) ? 'disabled' : ''}>Buy parcel · $${parcelPrice(w, id).toLocaleString()}</button>` : ''}${COASTAL.includes(id) && w.pollution[id] > 0 ? `<button data-marsh="${id}" ${w.money < 800 ? 'disabled' : ''}>Restore marsh · $800</button>` : ''}</span></div>
     ${Object.keys(GOODS).filter(g => positionsAt(w, id, g) > 0.01).map(g => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>📜 You hold title to <b>${positionsAt(w, id, g).toFixed(0)}t ${GOODS[g].name}</b> here — it does not burn, rot aside; storage bleeds daily.</span><span style="display:flex;gap:4px;flex:none"><button data-psell="${g}">Sell</button></span></div>`).join('')}
     ${Object.keys(GOODS).some(g => positionsAt(w, id, g) > 0.01) ? `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>⚖ The State can break every corner at this node — all your titles here sold at live prices.</span><button data-release="${id}" ${w.influence < (w.posture === 'partner' ? 5 : 6) ? 'disabled' : ''}>Release orders · ${w.posture === 'partner' ? 5 : 6}⚖</button></div>` : ''}

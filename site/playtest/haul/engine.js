@@ -440,6 +440,13 @@ export function createWorld(seed = 1, opts = {}) {
     startNode: 'caneA',
     crown: { rule: 'capped', streak: 0, achieved: {}, ending: null, current: 0, raw: 0, capped: 0, peak: 0 },
     moveLog: [],             // trailing 30 days of moved value (W23)
+    nodeFlowLog: [],         // trailing 30 days of per-node flow totals (W27 coverage)
+    capital: { timberStock: 3000, soil: { caneA: 100, caneB: 100, ricefarm: 100 }, marsh: 100 }, // natural capital (W27)
+    rivalTrucks: [
+      { house: 'Boudreaux', from: 'caneB', to: 'mill', good: 'cane', state: 'loading', hours: 0, cargo: 0, trips: 0 },
+      { house: 'Pelican', from: 'processor', to: 'distributor', good: 'packed', state: 'loading', hours: 0, cargo: 0, trips: 0 },
+      { house: 'Maison', from: 'refinery', to: 'fourchon', good: 'fuel', state: 'loading', hours: 0, cargo: 0, trips: 0 },
+    ],
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
     dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
     craneGoods: {},          // goods the cranes touched since the last boundary
@@ -704,8 +711,20 @@ function unintegrateHouse(w, house, silent = false) {
   h.cash += h.buybackFund; h.buybackFund = 0; h.integrated = false;
   if (!silent) note(w, `${house} stands on its own feet again — its units go home, its fund becomes its treasury.`, 'news');
 }
-function buyoutHouse(w, house) {
+// Spin-off (W27): The Families buy the player's whole stake at the bid; the
+// house stands on its own feet again, name and paint intact.
+function spinoffHouse(w, house) {
   const h = w.houses[house];
+  if (!h || h.subOf !== 'player' || h.delisted) return;
+  const stake = w.stakes[house] ?? 0;
+  const proceeds = Math.round(stake / 100 * houseEquity(w, house) * 0.98);
+  if (h.integrated) unintegrateHouse(w, house, true);
+  w.money += proceeds;
+  w.stakes[house] = 0;
+  h.subOf = null; h.dial = null;
+  note(w, `${house} spins off — The Families take your ${stake}% at the bid ($${proceeds.toLocaleString()}) and the house answers to itself again.`, 'buy');
+}
+function buyoutHouse(w, house) {  const h = w.houses[house];
   if (h.integrated) unintegrateHouse(w, house, true);
   for (const [unitId] of Object.entries(UNITS)) if (w.units[unitId].owner === house) w.units[unitId].owner = 'player';
   w.money += h.cash; h.cash = 0;
@@ -719,6 +738,42 @@ export function loanOwed(w, loan) {
 }
 
 // --- intents (applied at tick boundaries) ---
+// Rival trucks (W27): each listed house runs one truck on its own vertical
+// lane. Stock truly leaves and arrives; the houses earn through unit income.
+function rivalStep(w) {
+  for (const t of w.rivalTrucks) {
+    const km = distance(t.from, t.to);
+    if (t.state === 'loading') {
+      if (++t.hours >= 2) {
+        // a house truck does not haul into a full yard: it waits for room
+        const roomAtDest = capOf(w, t.to, t.good) - stockOf(w, t.to, t.good);
+        const want = roomAtDest > 2 ? Math.min(16, stockOf(w, t.from, t.good)) : 0;
+        if (want >= 0.5) { takeStock(w, t.from, t.good, want); w.nodes[t.from].flow[t.good].out += want; t.cargo = want; t.state = 'hauling'; t.hours = 0; }
+        else t.hours = 0;
+      }
+    } else if (t.state === 'hauling') {
+      if (++t.hours * 45 >= km) { t.state = 'unloading'; t.hours = 0; }
+    } else if (t.state === 'unloading') {
+      if (++t.hours >= 1) {
+        const room = Math.max(0, capOf(w, t.to, t.good) - stockOf(w, t.to, t.good));
+        const landed = Math.min(t.cargo, room);
+        if (landed > 0) { addStock(w, t.to, t.good, landed, GOODS[t.good].perishHours ? null : 0); w.nodes[t.to].flow[t.good].in += landed; t.cargo -= landed; }
+        if (t.cargo <= 0.001) { t.cargo = 0; t.trips++; t.state = 'returning'; t.hours = 0; }
+      }
+    } else if (t.state === 'returning') {
+      if (++t.hours * 45 >= km) { t.state = 'loading'; t.hours = 0; }
+    }
+  }
+}
+export function truckPos(w, t) {
+  const a = NODES[t.from], b = NODES[t.to], km = Math.max(1, distance(t.from, t.to));
+  if (t.state === 'loading') return { x: a.x, y: a.y };
+  if (t.state === 'unloading') return { x: b.x, y: b.y };
+  const p = Math.min(1, t.hours * 45 / km);
+  if (t.state === 'hauling') return { x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p };
+  return { x: b.x + (a.x - b.x) * p, y: b.y + (a.y - b.y) * p };
+}
+
 function applyIntents(w) {
   for (const it of w.intents.splice(0)) {
     const move = classifyAct(w, it);
@@ -876,7 +931,10 @@ function applyIntents(w) {
       if (!COASTAL.includes(it.nodeId) || w.money < 800) continue;
       w.money -= 800;
       w.pollution[it.nodeId] = Math.max(0, w.pollution[it.nodeId] - 15);
-      note(w, `Marsh restored at ${NODES[it.nodeId].name} — the water clears (−15 pollution) and the parish notices.`, 'buy');
+      w.capital.marsh = Math.min(100, w.capital.marsh + 3);
+      note(w, `Marsh restored at ${NODES[it.nodeId].name} — the water clears (−15 pollution, +3 marsh) and the parish notices.`, 'buy');
+    } else if (it.type === 'spinoffSub') {
+      spinoffHouse(w, it.house);
     } else if (it.type === 'setWage') {
       if (!['tight', 'fair', 'generous'].includes(it.wage)) continue;
       if (w.tick < w.crews.unionUntil && it.wage !== 'fair') { note(w, `The bargain holds: wages stay Fair until Day ${Math.floor(w.crews.unionUntil / 24) + 1}.`, 'warn'); continue; }
@@ -997,8 +1055,12 @@ function produceAndConvert(w) {
     const n = w.nodes[id];
     for (const [good, perDay] of Object.entries(def.produces ?? {})) {
       const room = capOf(w, id, good) - stockOf(w, id, good);
-      const qty = Math.min(perDay * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
-      if (qty > 0) { addStock(w, id, good, qty, GOODS[good].perishHours ? null : 0); n.flow[good].in += qty; }
+      // natural capital bites here (W27): the stand cuts a finite stock; farms farm their soil
+      let capMult = 1;
+      if (id === 'timber') capMult = w.capital.timberStock >= 600 ? 1 : 0.35 + 0.65 * Math.max(0, w.capital.timberStock) / 600;
+      if (w.capital.soil[id] !== undefined) capMult = 0.7 + 0.3 * w.capital.soil[id] / 100;
+      const qty = Math.min(perDay * capMult * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
+      if (qty > 0) { addStock(w, id, good, qty, GOODS[good].perishHours ? null : 0); n.flow[good].in += qty; if (id === 'timber') w.capital.timberStock = Math.max(0, w.capital.timberStock - qty); }
     }
     // the docks fish a shared, finite Gulf (W18): boats × yield factor
     if (id in w.boats) {
@@ -1621,6 +1683,29 @@ function devStep(w) {
       w.dev[id].archetype = top;
     }
   }
+  // natural capital drift (W27): soil tires and rests, timber regrows, the marsh keeps its own ledger
+  for (const farm of ['caneA', 'caneB', 'ricefarm']) {
+    const produced = Object.values(w.nodes[farm].flow).some(f => f.in > 0.01);
+    w.capital.soil[farm] = Math.max(0, Math.min(100, w.capital.soil[farm] + (produced ? -0.4 : 0.25)));
+  }
+  w.capital.timberStock = Math.min(3000, w.capital.timberStock + 12);
+  let marshDrain = 0;
+  for (const id of COASTAL) if (w.pollution[id] >= 60) marshDrain += 0.2;
+  w.capital.marsh = Math.max(0, Math.min(100, w.capital.marsh - marshDrain));
+}
+
+// --- engagement coverage (W27): the majority rule, measured at last ---
+export function coverageMajors() {
+  return Object.entries(NODES).filter(([, def]) => def.produces || def.converts || Object.values(def.consumes ?? {}).reduce((a, b) => a + (b === 9999 ? 0 : b), 0) >= 4).map(([id]) => id);
+}
+export function coverageOf(w) {
+  const majors = coverageMajors();
+  const rows = w.nodeFlowLog.slice(-3);
+  if (!rows.length) return 0;
+  // engaged = goods LEAVE the place (trade, burn, conversion draw) — a pile
+  // growing in a field is production, not engagement (LIVING-GRAPH §4)
+  const engaged = majors.filter(id => rows.reduce((a, r) => a + (r[id] ?? 0), 0) > 0.5).length;
+  return engaged / majors.length;
 }
 
 // --- the Crown (W23): moved value, the meter, the endings, the report ---
@@ -1687,6 +1772,7 @@ export function eraReport(w) {
     w.crown.ending ? `The era is named: ${endingNames[w.crown.ending.path]} (Day ${Math.floor(w.crown.ending.tick / 24) + 1}).` : `No ending yet — the crown is unwon, and the work continues.`,
     `It holds ${owned.length} units outright${owned.length ? ` (${owned.map(u => UNITS[u].name).join(', ')})` : ''}${subs.length ? `; subsidiaries: ${subs.join(', ')}` : ''}${gone.length ? `; retired by buyout: ${gone.join(', ')}` : ''}. Stakes: ${Object.entries(w.stakes).filter(([, s]) => s > 0).map(([h, s]) => `${h} ${s}%`).join(' · ') || 'none'}.`,
     `The ledger of dealings with power: ${w.stats.contractsDone} contracts fulfilled · ${w.stats.influenceEarned} influence earned · ${w.stats.seizures} units lost to Maison's book · ${w.stats.emancipations} emancipations granted.`,
+    `Map engagement: ${Math.round(coverageOf(w) * 100)}% of major places traded in the last three days (${coverageOf(w) >= 0.5 ? 'healthy' : coverageOf(w) >= 0.25 ? 'thin but alive' : 'starving — a map defect by the graph\u2019s own law'}). Natural capital: the marsh stands at ${Math.round(w.capital.marsh)}, standing timber at ${Math.round(w.capital.timberStock).toLocaleString()}t, the Gulf fishery at ${Math.round(w.fishery.stock)}%.`,
     `The world it worked in: the Gulf fishery stands at ${Math.round(w.fishery.stock)}% · ${w.stats.eventsSurvived} events weathered · ${arch.length ? `the map remade itself — ${arch.join(' · ')}` : 'the map is still the map it was'}.`,
     `Cash on hand: $${Math.round(w.money).toLocaleString()}. The rest is land, iron, and name.`,
   ];
@@ -1710,12 +1796,14 @@ function dayBoundary(w) {
     v.downFrom = w.tick; v.downTo = w.tick + HOURS_PER_DAY;
     note(w, `A ${VEHICLES[v.type].name.toLowerCase()} crew calls out sick — the grievance is costing days.`, 'warn');
   }
+  // the day's flows, logged before receipts reset them (W27 coverage reads this)
+  { const row = {}; for (const id of Object.keys(NODES)) { const n = w.nodes[id]; row[id] = Object.values(n.flow).reduce((a, f) => a + f.out, 0); } w.nodeFlowLog.push(row); if (w.nodeFlowLog.length > 30) w.nodeFlowLog.shift(); }
   controlStep(w);
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
   const f = w.fishery;
   const gulfHealth = 100 - COASTAL.reduce((s, id) => s + w.pollution[id], 0) / COASTAL.length;
-  f.stock = Math.max(5, Math.min(100, f.stock + 0.045 * f.stock * (1 - f.stock / 100) * (gulfHealth / 100) - f.dayCatch * 0.09));
+  f.stock = Math.max(5, Math.min(100, f.stock + 0.045 * f.stock * (1 - f.stock / 100) * (gulfHealth / 100) * (0.8 + 0.2 * w.capital.marsh / 100) - f.dayCatch * 0.09));
   f.dayCatch = 0;
   if (f.stock < 25 && w.tick >= f.closedUntil) {
     f.closedUntil = w.tick + 5 * HOURS_PER_DAY;
@@ -1812,6 +1900,7 @@ export function tick(w) {
   consume(w);
   agePerishables(w);
   for (const v of [...w.vehicles]) stepVehicle(w, v);
+  rivalStep(w);
   if (w.tick % 6 === 0) priceStep(w);
   w.tick++;
 }

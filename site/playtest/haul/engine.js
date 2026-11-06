@@ -12,6 +12,8 @@ export const TICKS_PER_SEASON = 30 * HOURS_PER_DAY;
 
 export const GOODS = {
   cane:   { name: 'Cane',    perishHours: 0 },
+  paper:  { name: 'Paper & Board', perishHours: 0 },
+  sterile:{ name: 'Sterile Packs', perishHours: 0 },
   sugar:  { name: 'Sugar',   perishHours: 0 },
   shrimp: { name: 'Shrimp',  perishHours: 72 },
   packed: { name: 'Packed seafood', perishHours: 0 },
@@ -34,7 +36,8 @@ export const NODES = {
   caneA:     { name: 'Cane Field A', x: 40, y: 64, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
   caneB:     { name: 'Cane Field B', x: 30, y: 50, produces: { cane: 24 }, anchors: { cane: 8 }, stock0: { cane: 24 } },
   mill:      { name: 'Thibodaux Mill', x: 48, y: 48, converts: { in: 'cane', out: 'sugar', inPerDay: 96, ratio: 0.125 }, anchors: { cane: 28, sugar: 290 } },
-  ricefarm:  { name: 'Rice Farm', x: 14, y: 58, produces: { rice: 14 }, anchors: { rice: 120 }, stock0: { rice: 10 } },
+  ricefarm:  { name: 'Rice Farm', x: 14, y: 58, produces: { rice: 14 }, anchors: { rice: 120, provisions: 240 }, stock0: { rice: 10 } },
+  pulpmill:  { name: 'Bogalusa', x: 66, y: 6, converts: { in: 'timber', out: 'paper', inPerDay: 30, ratio: 0.3 }, anchors: { timber: 85, paper: 340 } },
   timber:    { name: 'Piney Woods', x: 18, y: 12, produces: { timber: 30 }, anchors: { timber: 45 }, stock0: { timber: 20 } },
   sawmill:   { name: 'Sawmill', x: 24, y: 26, converts: { in: 'timber', out: 'lumber', inPerDay: 40, ratio: 0.4 }, anchors: { timber: 85, lumber: 210 } },
   docks:     { name: 'Empire Docks', x: 80, y: 86, anchors: { shrimp: 180 }, stock0: { shrimp: 3 } },
@@ -42,11 +45,11 @@ export const NODES = {
   processor: { name: 'Seafood Processor', x: 84, y: 74, converts: { in: 'shrimp', out: 'packed', inPerDay: 12, ratio: 10 / 12 }, anchors: { shrimp: 260, packed: 520 } },
   refinery:  { name: 'Refinery Row', x: 60, y: 20, produces: { crude: 120 }, converts: { in: 'crude', out: 'fuel', inPerDay: 100, ratio: 0.68 }, anchors: { crude: 190, fuel: 700 }, stock0: { crude: 60 } },
   gasplant:  { name: 'Gas Plant', x: 52, y: 12, converts: { in: 'fuel', out: 'oxygen', inPerDay: 2, ratio: 4 }, anchors: { fuel: 740, oxygen: 240 } },
-  nola:      { name: 'New Orleans', x: 78, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800 } },
-  batonrouge:{ name: 'Baton Rouge', x: 44, y: 6, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320 } },
-  distributor:{ name: 'The Distributor', x: 74, y: 24, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260 } },
-  port:      { name: 'Port of New Orleans', x: 82, y: 46, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480 }, export: true },
-  lafayette: { name: 'Lafayette', x: 6, y: 38, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790 } },
+  nola:      { name: 'New Orleans', x: 78, y: 34, consumes: { sugar: 2, packed: 1.5, rice: 2, lumber: 1, med: 3, pharma: 1, oxygen: 2, provisions: 4, fuel: 2, paper: 1, sterile: 1.5 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 800, paper: 430, sterile: 3900 } },
+  batonrouge:{ name: 'Baton Rouge', x: 44, y: 6, consumes: { sugar: 1.5, packed: 1, rice: 1.5, lumber: 0.7, fuel: 2, med: 3, pharma: 1, oxygen: 2, provisions: 4, paper: 1, sterile: 1.5 }, anchors: { sugar: 350, packed: 640, rice: 260, lumber: 340, fuel: 790, med: 1450, pharma: 3500, oxygen: 450, provisions: 320, paper: 430, sterile: 3800 } },
+  distributor:{ name: 'The Distributor', x: 74, y: 24, consumes: { sugar: 10, packed: 6, rice: 8, lumber: 4, fuel: 5, med: 5, pharma: 2, provisions: 12, paper: 2, sterile: 1 }, anchors: { sugar: 320, packed: 580, rice: 220, lumber: 300, fuel: 760, med: 1250, pharma: 3100, provisions: 260, paper: 420, sterile: 2900 } },
+  port:      { name: 'Port of New Orleans', x: 82, y: 46, consumes: { sugar: 9999, packed: 9999, rice: 9999, lumber: 9999, oxygen: 9999 }, anchors: { sugar: 330, packed: 600, rice: 240, lumber: 310, oxygen: 380, med: 900, pharma: 2400, provisions: 180, steel: 480, paper: 400, sterile: 2340 }, export: true },
+  lafayette: { name: 'Lafayette', x: 6, y: 38, consumes: { sugar: 1.5, rice: 1, lumber: 0.5, med: 1, pharma: 0.3, oxygen: 0.7, provisions: 1.5, fuel: 0.7, sterile: 0.5 }, anchors: { sugar: 350, rice: 260, lumber: 340, med: 1500, pharma: 3600, oxygen: 460, provisions: 330, fuel: 790, sterile: 3900 } },
   shipyard:  { name: 'Houma Shipyard', x: 50, y: 72, consumes: { lumber: 4, oxygen: 1, steel: 3 }, anchors: { lumber: 330, oxygen: 420, steel: 560 } },
   fourchon:  { name: 'Port Fourchon', x: 58, y: 94, consumes: { fuel: 6, provisions: 2, steel: 1 }, anchors: { fuel: 830, provisions: 380, steel: 620 } },
   grandisle: { name: 'Grand Isle', x: 92, y: 96, consumes: { packed: 1, provisions: 1.5 }, anchors: { packed: 768, provisions: 360 } },
@@ -61,6 +64,7 @@ export const EDGES = [
   ['processor', 'nola', 118], ['processor', 'port', 122], ['nola', 'grandisle', 174],
   ['docks', 'grandisle', 100], ['distributor', 'lafayette', 214],
   ['batonrouge', 'refinery', 48], ['batonrouge', 'nola', 130], ['refinery', 'nola', 88],
+  ['pulpmill', 'batonrouge', 60], ['pulpmill', 'refinery', 55], ['pulpmill', 'gasplant', 40], ['pulpmill', 'sawmill', 95], ['pulpmill', 'timber', 120],
   ['refinery', 'port', 96], ['refinery', 'gasplant', 12], ['gasplant', 'nola', 100],
   ['gasplant', 'batonrouge', 30], ['ricefarm', 'lafayette', 48], ['ricefarm', 'mill', 58],
   ['ricefarm', 'delcambre', 42], ['delcambre', 'docks', 62], ['delcambre', 'processor', 58],
@@ -206,6 +210,9 @@ export const UNITS = {
   houmaShipyard: { name: 'Houma Shipyard', node: 'shipyard', kind: 'sink', margin: 0.18, floor: 6000, owner: 'The Families' },
   fourchonServices: { name: 'Fourchon Rig Services', node: 'fourchon', kind: 'sink', margin: 0.15, floor: 6000, owner: 'Maison' },
   grandIsleHotel: { name: 'Grand Isle Hotel', node: 'grandisle', kind: 'sink', margin: 0.20, floor: 6000, owner: 'The Families' },
+  pulpLine:      { name: 'The Pulp Line', node: 'pulpmill', kind: 'converter', good: 'paper', margin: 0.30, floor: 9000, owner: 'The Families' },
+  sterilePacker: { name: 'The Sterile Packer', node: 'port', kind: 'converter', good: 'sterile', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'med', out: 'sterile', inPerDay: 4, ratio: 0.75 } },
+  groceryWorks:  { name: 'The Grocery Works', node: 'ricefarm', kind: 'converter', good: 'provisions', margin: 0.30, floor: 9000, owner: 'The Families', converts: { in: 'rice', out: 'provisions', inPerDay: 10, ratio: 0.8 } },
 };
 export const PRIMARY_UNIT = {};
 for (const [id, u] of Object.entries(UNITS)) PRIMARY_UNIT[u.node] ??= id;
@@ -214,11 +221,12 @@ export const CONTRACT_ITEMS = {
   rice: 'Rice, milled', timber: 'Timber, standing-cut', lumber: 'Lumber, graded', crude: 'Crude, sweet',
   fuel: 'Fuel, rack', oxygen: 'Oxygen, industrial', med: 'Nitrile gloves, cases', pharma: 'Vaccines & sera',
   provisions: 'Provisions, mixed', steel: 'Steel, plate',
+  paper: 'Paper & Board', sterile: 'Sterile Pack',
 };
 export function unitTradeGoods(unit) {
   const def = NODES[unit.node];
   if (unit.kind === 'producer') return [unit.good];
-  if (unit.kind === 'converter') return [def.converts.in, def.converts.out];
+  if (unit.kind === 'converter') { const c = unit.converts ?? def.converts; return [c.in, c.out]; }
   if (unit.kind === 'sink') return Object.keys(def.consumes ?? {}).filter(g => def.consumes[g] !== 9999);
   return unit.good ? [unit.good] : [];
 }
@@ -362,7 +370,7 @@ export const OPENING_PRESETS = [
   { name: 'The Broker', ground: 'port', leverage: 'credit' },
   { name: 'The Operator', ground: 'mill', leverage: 'state' },
 ];
-export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel' };
+export const TREES = { cane: 'Sugar', sugar: 'Sugar', shrimp: 'Shrimp', packed: 'Shrimp', rice: 'Rice', timber: 'Timber', lumber: 'Timber', crude: 'Fuel', fuel: 'Fuel', oxygen: 'Fuel', med: 'Care', pharma: 'Care', provisions: 'Care', steel: 'Steel', paper: 'Timber', sterile: 'Care' };
 export const treeOf = (good) => TREES[good] ?? 'Other';
 export function createWorld(seed = 1, opts = {}) {
   const w = {
@@ -967,6 +975,22 @@ function produceAndConvert(w) {
         n.flow[c.out].in += Math.min(outQty, room);
       }
     }
+    // unit-level converters (W25): the Sterile Packer, the Grocery Works — machines that live at a node whose own nature is something else
+    for (const unit of Object.values(UNITS)) {
+      if (!unit.converts || unit.node !== id || w.evMods.convertOff?.[id]) continue;
+      const c = unit.converts;
+      const want = c.inPerDay / HOURS_PER_DAY;
+      const avail = stockOf(w, id, c.in);
+      const use = Math.min(want, avail);
+      if (use > 0) {
+        takeStock(w, id, c.in, use);
+        const outQty = use * c.ratio;
+        const room = Math.max(0, capOf(w, id, c.out) - stockOf(w, id, c.out));
+        addStock(w, id, c.out, Math.min(outQty, room), GOODS[c.out].perishHours ? null : 0);
+        n.flow[c.in].out += use;
+        n.flow[c.out].in += Math.min(outQty, room);
+      }
+    }
   }
 }
 function consume(w) {
@@ -1225,6 +1249,14 @@ function generateContracts(w) {
     }
   }
   candidates.sort((a, b) => (a.stock / a.target) - (b.stock / b.target));
+  // rotation fairness: the longest-waiting want posts first — never-posted
+  // pairs lead. Without this the board's head starves its tail forever
+  // (Gate 15: sterile, last in its node's list, never posted in 8 days).
+  const lastPosted = {};
+  for (const c of w.contracts) { const k = `${c.issuer}|${c.good}`; lastPosted[k] = Math.max(lastPosted[k] ?? -Infinity, c.postedTick ?? 0); }
+  candidates.sort((a, b) => (lastPosted[`${a.id}|${a.good}`] ?? -Infinity) - (lastPosted[`${b.id}|${b.good}`] ?? -Infinity));
+  // …and rotate the list daily, so insertion order stops being destiny
+  if (candidates.length > 3) { const rot = (day * 3) % candidates.length; candidates.push(...candidates.splice(0, rot)); }
   for (const cand of candidates.slice(0, 3)) {
     const depth = 1 - cand.stock / cand.target;
     const premium = 0.4 + 0.8 * depth;
@@ -1313,10 +1345,11 @@ function unitIncomeDay(w) {
     if (unit.kind === 'producer') { gross = node.flow[unit.good].in * (node.prices[unit.good] ?? 0) * unit.margin; treeByUnit[unitId] = treeOf(unit.good); }
     else if (unit.kind === 'converter') {
       const def = NODES[unit.node];
-      const outQty = node.flow[def.converts.out].in;
-      const marginPerTon = (node.prices[def.converts.out] ?? 0) - (node.prices[def.converts.in] ?? 0) / def.converts.ratio;
+      const cdef = unit.converts ?? def.converts;
+      const outQty = node.flow[cdef.out].in;
+      const marginPerTon = (node.prices[cdef.out] ?? 0) - (node.prices[cdef.in] ?? 0) / cdef.ratio;
       gross = Math.max(0, outQty * marginPerTon) * unit.margin;
-      treeByUnit[unitId] = treeOf(def.converts.out);
+      treeByUnit[unitId] = treeOf(cdef.out);
     } else if (unit.kind === 'sink') {
       let sum = 0, bestGood = null, bestVal = -1;
       for (const [good, perDay] of Object.entries(NODES[unit.node].consumes ?? {})) {

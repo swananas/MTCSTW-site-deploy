@@ -217,12 +217,57 @@ export const UNITS = {
 export const PRIMARY_UNIT = {};
 for (const [id, u] of Object.entries(UNITS)) PRIMARY_UNIT[u.node] ??= id;
 export const CONTRACT_ITEMS = {
-  cane: 'Cane, field-run', sugar: 'Raw sugar, bulk', shrimp: 'Shrimp, heads-on', packed: 'Packed shrimp, graded',
-  rice: 'Rice, milled', timber: 'Timber, standing-cut', lumber: 'Lumber, graded', crude: 'Crude, sweet',
-  fuel: 'Fuel, rack', oxygen: 'Oxygen, industrial', med: 'Nitrile gloves, cases', pharma: 'Vaccines & sera',
-  provisions: 'Provisions, mixed', steel: 'Steel, plate',
-  paper: 'Paper & Board', sterile: 'Sterile Pack',
+  cane: [{ n: 'Cane, field-run', m: 1 }],
+  sugar: [{ n: 'Raw sugar, bulk', m: 1 }],
+  shrimp: [
+    { n: 'Shrimp, heads-on', m: 1 },
+    { n: 'Shrimp, brown, iced', m: 1.1 },
+    { n: 'Shrimp, white, fresh', m: 1.15 },
+  ],
+  packed: [
+    { n: 'Packed shrimp, graded', m: 1 },
+    { n: 'Peeled shrimp, frozen', m: 1.3 },
+    { n: 'Shrimp, peeled & deveined', m: 1.25 },
+    { n: 'Crabmeat, picked', m: 1.35 },
+    { n: 'Oysters, shucked', m: 1.2 },
+  ],
+  rice: [{ n: 'Rice, milled', m: 1 }],
+  timber: [{ n: 'Timber, standing-cut', m: 1 }],
+  lumber: [{ n: 'Lumber, graded', m: 1 }],
+  crude: [{ n: 'Crude, sweet', m: 1 }],
+  fuel: [
+    { n: 'Fuel, rack', m: 1 },
+    { n: 'Diesel, ULSD', m: 1.1 },
+    { n: 'Gasoline, 87 octane', m: 1.05 },
+    { n: 'Jet fuel, Jet A', m: 1.3 },
+    { n: 'Bunker, marine', m: 0.9 },
+    { n: 'Propane, bulk', m: 0.95 },
+  ],
+  oxygen: [{ n: 'Oxygen, industrial', m: 1 }],
+  med: [{ n: 'Nitrile gloves, cases', m: 1 }],
+  pharma: [
+    { n: 'Vaccines & sera', m: 1, w: 3 },
+    { n: 'Insulin (cold pack)', m: 1.25, w: 2 },
+  ],
+  provisions: [{ n: 'Provisions, mixed', m: 1 }],
+  steel: [{ n: 'Steel, plate', m: 1 }],
+  paper: [{ n: 'Paper & Board', m: 1 }],
+  sterile: [
+    { n: 'Sterile Pack', m: 1 },
+    { n: 'Sterile Pack, surgical', m: 1.15 },
+    { n: 'Sterile Pack, wound-care', m: 1.05 },
+  ],
 };
+// Level-2 items (W26): contracts name a FORM of the family good and settle in
+// family tons (A6); the item's mult is texture on the price, compressed well
+// inside the ±40% band so a form can flavor a lane but never break it.
+export function pickItem(w, good) {
+  const arr = CONTRACT_ITEMS[good] ?? [{ n: good, m: 1 }];
+  let total = 0; for (const it of arr) total += it.w ?? 1;
+  let roll = nextRandom(w) * total;
+  for (const it of arr) { roll -= it.w ?? 1; if (roll <= 0) return it; }
+  return arr[0];
+}
 export function unitTradeGoods(unit) {
   const def = NODES[unit.node];
   if (unit.kind === 'producer') return [unit.good];
@@ -1264,10 +1309,10 @@ function generateContracts(w) {
     const pricePerTon = Math.round(Math.min(cand.anchor * 2.2, spot * (1 + premium)));
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
-    const item = cand.good === 'pharma' && nextRandom(w) < 0.4 ? 'Insulin (cold pack)' : CONTRACT_ITEMS[cand.good];
-    const finalPrice = Math.round((item.startsWith('Insulin') ? Math.round(pricePerTon * 1.25) : pricePerTon) * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1));
-    w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, item, qty, delivered: 0, pricePerTon: finalPrice, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
-    note(w, `On the board: ${qty}t of ${item.toLowerCase()} to ${NODES[cand.id].name} at $${finalPrice}/t — ${NODES[cand.id].name} is running dry.`, 'route');
+    const item = pickItem(w, cand.good);
+    const finalPrice = Math.round(pricePerTon * item.m * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1));
+    w.contracts.push({ id: w.nextId++, issuer: cand.id, good: cand.good, item: item.n, qty, delivered: 0, pricePerTon: finalPrice, deadlineTick, postedTick: w.tick, state: 'open', standing: false });
+    note(w, `On the board: ${qty}t of ${item.n.toLowerCase()} to ${NODES[cand.id].name} at $${finalPrice}/t — ${NODES[cand.id].name} is running dry.`, 'route');
   }
   // crystallization: a lane you've run 3 times asks to become standing (K-2)
   for (const [lane, n] of Object.entries(w.laneCounts)) {
@@ -1277,7 +1322,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good], qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good][0].n, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }

@@ -228,13 +228,54 @@ export function unitValue(w, unitId) {
   const unit = UNITS[unitId], st = w.units[unitId];
   return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 240));
 }
+// --- the houses (S6: listed companies — a subsidiary is a full company
+// plus an owner field and a dial; the architecture law, S13 0.6 gate) ---
+export const HOUSES = {
+  'The Families': { paint: '#7a7a6e', listed: false },
+  'Boudreaux':    { paint: '#a03d2d', listed: true },
+  'Pelican':      { paint: '#2d5da0', listed: true },
+  'Maison':       { paint: '#b8860b', listed: true },
+};
+export const HOUSE_START_CASH = { 'Boudreaux': 6000, 'Pelican': 9000, 'Maison': 12000 };
+export const STATE_DECK = [
+  { id: 'export-subsidy', name: 'Export Subsidy', blurb: 'Port prices ×1.06 — the ships pay better this season.' },
+  { id: 'dredge-program', name: 'Dredge Program', blurb: 'The river runs +0.04 deeper every day — barge weather improves.' },
+  { id: 'clinic-funding', name: 'Clinic Funding', blurb: 'Care nodes burn med & pharma ×1.25 — the hospitals are funded and hungry.' },
+  { id: 'road-crews', name: 'Road Crews', blurb: 'Road speed ×1.10 — the parishes finally fixed the roads.' },
+];
+export function houseEquity(w, house) {  const h = w.houses[house];
+  let eq = h.cash + (h.buybackFund ?? 0);
+  for (const [unitId, unit] of Object.entries(UNITS)) {
+    if (w.units[unitId].owner === house) eq += unitValue(w, unitId);
+    else if (h.integrated && w.units[unitId].brand === house) eq += unitValue(w, unitId);
+  }
+  return Math.round(eq);
+}
+export function sharePrice(w, house) { return Math.max(1, Math.round(houseEquity(w, house) / 100)); }
+// the State's own coin flips — a separate stream, so policy never perturbs
+// the world's determinism (Gate 1's stream is sacred)
+export function drawStatePolicy(w) {
+  w.state.rngA = (Math.imul(w.state.rngA, 1103515245) + 12345) & 0x7fffffff;
+  const pool = STATE_DECK.filter(p => p.id !== w.state.policy);
+  return pool[w.state.rngA % pool.length].id;
+}
+export const STATE_MODS = {
+  'export-subsidy': { port: 1.06 },
+  'dredge-program': { river: 0.04 },
+  'clinic-funding': { care: 1.25 },
+  'road-crews': { road: 1.1 },
+};
+export const CARE_NODES = new Set(['nola', 'batonrouge', 'lafayette']);
+export function unitAskPrice(w, unitId) {
+  return Math.round(unitValue(w, unitId) * 1.04 + unitManifest(w, unitId).reduce((s, m) => s + m.qty * m.price, 0));
+}
 export function positionsAt(w, nodeId, good) { return w.positions[`${nodeId}|${good}`] ?? 0; }
 export function availOf(w, nodeId, good) { return Math.max(0, stockOf(w, nodeId, good) - positionsAt(w, nodeId, good)); }
 // The three-move grammar (S4.5): every growth act is exactly one move.
 export function classifyAct(w, it) {
   switch (it.type) {
     case 'buyVehicle': case 'buyBoat': case 'buySkill': return 'SCALE';
-    case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': return 'INTEGRATE';
+    case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': case 'buyShares': return 'INTEGRATE';
     case 'addRoute': return routeDiversifies(w, it.from, it.to) ? 'DIVERSIFY' : 'SCALE';
     default: return 'OPERATE';
   }
@@ -262,12 +303,17 @@ export function createWorld(seed = 1) {
     river: { level: 1.0, trend: 0, state: 'fair' },
     skills: { points: 0, owned: {}, milestones: {} },
     units: {},               // unitId -> { owner, incomeAvg, lastIncome }
+    houses: {},              // house -> { cash, incomeAvg, subOf, dial, integrated, buybackFund, delisted, lastTrade, emanCooldownUntil }
+    stakes: {},              // listed house -> shares held by the player (of 100)
+    loans: [],               // { id, unitId, principal, startTick, dueTick, graceUntil, state }
+    emancipation: null,      // { house, price } — a subsidiary's buyback offer, when live
+    state: { policy: null, pending: null, mods: {}, rngA: 12345 }, // State lite (W21); rngA is a private stream — policy draws never touch the world RNG
     positions: {},           // 'node|good' -> tons held in place (receipts desk)
     ledger: [],              // the three-move grammar, recorded (S4.5)
     hauledGoods: {},         // good -> true once the company has delivered it
     cranePending: 0,         // Port Cranes income accrued between ship calls
     intents: [], ticker: [],
-    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0 },
+    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0 },
     laneCounts: {},          // 'from|to|good' -> spot deliveries (crystallization, K-2)
     nextId: 1,
   };
@@ -281,6 +327,12 @@ export function createWorld(seed = 1) {
     for (const [good, qty] of Object.entries(def.stock0 ?? {})) addStock(w, id, good, qty, 0);
   }
   for (const [unitId, unit] of Object.entries(UNITS)) w.units[unitId] = { owner: unit.owner, incomeAvg: 0, lastIncome: 0 };
+  for (const house of Object.keys(HOUSES)) {
+    w.houses[house] = { cash: HOUSE_START_CASH[house] ?? 0, incomeAvg: 0, subOf: null, dial: null, integrated: false, buybackFund: 0, delisted: false, lastTrade: -9999, emanCooldownUntil: 0 };
+    if (HOUSES[house].listed) w.stakes[house] = 0;
+  }
+  w.state.rngA = (seed * 2654435761) >>> 0;
+  w.state.pending = drawStatePolicy(w);
   addVehicle(w, 'box', 'caneA');
   note(w, 'Your company opens with one box truck at Cane Field A and $750. The mill is hungry.', 'news');
   return w;
@@ -398,6 +450,7 @@ function priceStep(w) {
       const tot = f.demand + f.out + f.in;
       const pressure = Math.max(-0.18, Math.min(0.18, (f.demand + f.out - f.in) / Math.max(tot, 2) * 0.18 * Math.min(1, tot / 4 + 0.25)));
       let target = scarcity * (1 + pressure);
+      if (id === 'port' && w.state.mods.port) target *= w.state.mods.port; // Export Subsidy (State lite)
       target = Math.max(scarcity * 0.6, Math.min(scarcity * 1.4, target)); // the ±40% sanity band
       const cur = n.prices[good] || anchor;
       n.prices[good] = Math.round((cur + 0.25 * (target - cur)) * 100) / 100;
@@ -442,6 +495,46 @@ function skillGateOk(w, id) {
   const prev = Object.entries(SKILLS).find(([, x]) => x.branch === s.branch && x.tier === s.tier - 1);
   if (s.tier > 1 && prev && !w.skills.owned[prev[0]]) return false;
   return w.skills.points >= (s.cost ?? 1);
+}
+
+// --- control: thresholds, the dial, buyout, emancipation (S6 / W21) ---
+function refreshControl(w, house) {
+  const h = w.houses[house], stake = w.stakes[house] ?? 0;
+  if (stake > 50 && !h.subOf && !h.delisted) {
+    h.subOf = 'player'; h.dial = h.dial ?? 'handsoff';
+    note(w, `${house} is yours to direct — a subsidiary now, name and paint intact. The dial is set to hands-off.`, 'buy');
+  } else if (stake <= 50 && h.subOf) {
+    if (h.integrated) unintegrateHouse(w, house, true);
+    h.subOf = null; h.dial = null;
+    note(w, `Control of ${house} released — it answers to itself again.`, 'news');
+  }
+}
+function integrateHouse(w, house) {
+  const h = w.houses[house];
+  w.money += h.cash;
+  note(w, `${house} integrates: $${Math.round(h.cash).toLocaleString()} sweeps to your treasury, its units fly your flag under the ${house} brand. A quarter of their income now builds the house's buyback fund.`, 'buy');
+  h.cash = 0; h.integrated = true;
+  for (const [unitId] of Object.entries(UNITS)) if (w.units[unitId].owner === house) { w.units[unitId].owner = 'player'; w.units[unitId].brand = house; }
+  if (house === 'Maison') for (const l of w.loans) if (l.state === 'open') { l.state = 'forgiven'; note(w, `Your loan against ${UNITS[l.unitId].name} dies with the bank's independence — you own the note now.`, 'news'); }
+}
+function unintegrateHouse(w, house, silent = false) {
+  const h = w.houses[house];
+  for (const [unitId] of Object.entries(UNITS)) if (w.units[unitId].brand === house) { w.units[unitId].owner = house; delete w.units[unitId].brand; }
+  h.cash += h.buybackFund; h.buybackFund = 0; h.integrated = false;
+  if (!silent) note(w, `${house} stands on its own feet again — its units go home, its fund becomes its treasury.`, 'news');
+}
+function buyoutHouse(w, house) {
+  const h = w.houses[house];
+  if (h.integrated) unintegrateHouse(w, house, true);
+  for (const [unitId] of Object.entries(UNITS)) if (w.units[unitId].owner === house) w.units[unitId].owner = 'player';
+  w.money += h.cash; h.cash = 0;
+  h.delisted = true; h.subOf = null; h.dial = null;
+  if (house === 'Maison') for (const l of w.loans) if (l.state === 'open') l.state = 'forgiven';
+  note(w, `${house} is bought out entire — every unit yours, the name retires from the board. What it was survives in the Era Report.`, 'buy');
+}
+export function loanOwed(w, loan) {
+  const days = Math.max(0, (w.tick - loan.startTick) / HOURS_PER_DAY);
+  return Math.round(loan.principal * (1 + 0.004 * days));
 }
 
 // --- intents (applied at tick boundaries) ---
@@ -521,6 +614,73 @@ function applyIntents(w) {
       w.positions[key] -= qty;
       if (w.positions[key] < 0.01) delete w.positions[key];
       note(w, `Sold in place: ${qty.toFixed(0)}t of ${GOODS[it.good].name.toLowerCase()} at ${NODES[it.nodeId].name} for $${Math.round(qty * price).toLocaleString()}.`, 'buy');
+    } else if (it.type === 'buyShares') {
+      const h = w.houses[it.house];
+      if (!h || !HOUSES[it.house]?.listed || h.delisted) continue;
+      const n = Math.min(it.n, 100 - (w.stakes[it.house] ?? 0));
+      if (n <= 0) continue;
+      const cost = Math.round(n * sharePrice(w, it.house) * 1.02);
+      if (w.money < cost) { note(w, `${n} shares of ${it.house} would cost $${cost.toLocaleString()} — not yet.`, 'warn'); continue; }
+      w.money -= cost;
+      w.stakes[it.house] += n;
+      note(w, `${n} shares of ${it.house} bought for $${cost.toLocaleString()} — you hold ${w.stakes[it.house]}% now.`, 'buy');
+      if (w.stakes[it.house] >= 100) buyoutHouse(w, it.house);
+      else refreshControl(w, it.house);
+    } else if (it.type === 'sellShares') {
+      const h = w.houses[it.house];
+      if (!h || h.delisted) continue;
+      const n = Math.min(it.n, w.stakes[it.house] ?? 0);
+      if (n <= 0) continue;
+      const proceeds = Math.round(n * sharePrice(w, it.house) * 0.98);
+      w.money += proceeds;
+      w.stakes[it.house] -= n;
+      note(w, `${n} shares of ${it.house} sold for $${proceeds.toLocaleString()} — ${w.stakes[it.house]}% remains.`, 'buy');
+      refreshControl(w, it.house);
+    } else if (it.type === 'setDial') {
+      const h = w.houses[it.house];
+      if (!h || h.subOf !== 'player' || !['handsoff', 'directed', 'integrated'].includes(it.dial)) continue;
+      if (it.dial === 'integrated' && !h.integrated) integrateHouse(w, it.house);
+      else if (it.dial !== 'integrated' && h.integrated) unintegrateHouse(w, it.house);
+      h.dial = it.dial;
+      note(w, `${it.house}'s dial: ${it.dial === 'handsoff' ? 'hands-off — it trades on its own rules' : it.dial === 'directed' ? 'directed — trading stops, cash sweeps seasonally' : 'integrated — one company, its brand kept'}.`, 'news');
+    } else if (it.type === 'borrow') {
+      const unit = UNITS[it.unitId];
+      if (!unit || w.units[it.unitId]?.owner !== 'player') continue;
+      if (w.loans.some(l => l.unitId === it.unitId && l.state === 'open')) { note(w, `${unit.name} already carries a note. One loan per unit.`, 'warn'); continue; }
+      const maison = w.houses['Maison'];
+      if (maison.delisted) { note(w, `There is no bank left to borrow from — Maison was bought out.`, 'warn'); continue; }
+      const principal = Math.floor(unitValue(w, it.unitId) * 0.6);
+      if (maison.cash < principal) { note(w, `Maison cannot fund a $${principal.toLocaleString()} note right now — the bank is thin.`, 'warn'); continue; }
+      maison.cash -= principal;
+      w.money += principal;
+      w.loans.push({ id: w.nextId++, unitId: it.unitId, principal, startTick: w.tick, dueTick: w.tick + TICKS_PER_SEASON, graceUntil: w.tick + TICKS_PER_SEASON + 7 * HOURS_PER_DAY, state: 'open' });
+      note(w, `Maison lends you $${principal.toLocaleString()} against ${unit.name} — 60% of its value, 12% a season, due in 30 days with a week's grace. Default past grace and the unit is theirs: loan-to-own.`, 'buy');
+    } else if (it.type === 'repay') {
+      const loan = w.loans.find(l => l.id === it.loanId && l.state === 'open');
+      if (!loan) continue;
+      const owed = loanOwed(w, loan);
+      if (w.money < owed) { note(w, `Repaying the ${UNITS[loan.unitId].name} note takes $${owed.toLocaleString()} — you are short.`, 'warn'); continue; }
+      w.money -= owed;
+      w.houses['Maison'].cash += owed;
+      loan.state = 'repaid';
+      note(w, `The ${UNITS[loan.unitId].name} note is repaid — $${owed.toLocaleString()} with interest. The collateral is clean.`, 'buy');
+    } else if (it.type === 'acceptEmancipation') {
+      const offer = w.emancipation;
+      if (!offer) continue;
+      const h = w.houses[offer.house];
+      if (h.integrated) { h.buybackFund -= offer.price; unintegrateHouse(w, offer.house, true); }
+      else h.cash -= offer.price;
+      w.money += offer.price;
+      w.stakes[offer.house] = 0;
+      h.subOf = null; h.dial = null;
+      note(w, `${offer.house} buys back its independence for $${offer.price.toLocaleString()} — control flows, nobody leaves. It trades on its own again.`, 'buy');
+      w.emancipation = null;
+    } else if (it.type === 'declineEmancipation') {
+      const offer = w.emancipation;
+      if (!offer) continue;
+      w.houses[offer.house].emanCooldownUntil = w.tick + TICKS_PER_SEASON;
+      note(w, `You decline ${offer.house}'s buyback. The offer rests for a season.`, 'news');
+      w.emancipation = null;
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -614,7 +774,7 @@ function consume(w) {
     for (const [good, perDay] of Object.entries(def.consumes ?? {})) {
       if (perDay === 9999) continue; // export absorbs in deliveries, not a burn
       const jit = n.jitter[good] ?? 1;
-      const want = perDay * jit / HOURS_PER_DAY;
+      const want = perDay * jit / HOURS_PER_DAY * (CARE_NODES.has(id) && (good === 'med' || good === 'pharma') ? (w.state.mods.care ?? 1) : 1); // Clinic Funding (State lite)
       n.flow[good].demand += want;
       const avail = availOf(w, id, good); // held stock (positions) is not the world's to burn
       const use = Math.min(want, avail, dcAllowance);
@@ -800,7 +960,7 @@ function stepVehicle(w, v) {
       v.timer -= use; budget -= use;
       if (v.timer <= 1e-9) { if (v.phase === 'loading') depart(w, v); else finishUnload(w, v); }
     } else if (v.phase === 'travel') {
-      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) : 1);
+      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) : VEHICLES[v.type].mode === 'road' ? (w.state.mods.road ?? 1) : 1); // Road Crews (State lite)
       const hoursNeeded = (v.leg.km - v.leg.progress) / speed;
       const use = Math.min(budget, hoursNeeded);
       v.leg.progress += use * speed; budget -= use;
@@ -932,6 +1092,7 @@ function shipCall(w) {
 
 // --- ownership economics (W20): yesterday's flows pay today's owners ---
 function unitIncomeDay(w) {
+  const houseIncome = {};
   for (const [unitId, unit] of Object.entries(UNITS)) {
     const st = w.units[unitId], node = w.nodes[unit.node];
     let gross = 0;
@@ -954,7 +1115,27 @@ function unitIncomeDay(w) {
     if (st.owner === 'player' && w.skills.owned.tiering) income *= 1.15;
     st.lastIncome = income;
     st.incomeAvg = st.incomeAvg === 0 ? income : st.incomeAvg * 0.8 + income * 0.2;
-    if (st.owner === 'player' && income > 0) { w.money += income; w.stats.unitIncome += income; }
+    if (st.owner === 'player' && income > 0) {
+      if (st.brand && w.houses[st.brand]?.integrated) {
+        // integration pays 75%; the rest builds the subsidiary's buyback fund
+        w.money += income * 0.75; w.stats.unitIncome += income * 0.75;
+        w.houses[st.brand].buybackFund += income * 0.25;
+      } else { w.money += income; w.stats.unitIncome += income; }
+    } else if (st.owner !== 'player' && income > 0) {
+      w.houses[st.owner].cash += income;
+      houseIncome[st.owner] = (houseIncome[st.owner] ?? 0) + income;
+    }
+  }
+  // dividends: stake% of each listed house's unit income, control or not
+  for (const house of Object.keys(w.stakes)) {
+    const inc = houseIncome[house] ?? 0;
+    const h = w.houses[house];
+    h.incomeAvg = h.incomeAvg === 0 ? inc : h.incomeAvg * 0.8 + inc * 0.2;
+    const stake = w.stakes[house];
+    if (stake > 0 && inc > 0 && !h.integrated) {
+      const div = inc * stake / 100;
+      w.money += div; w.stats.dividends += div;
+    }
   }
 }
 function storageBleed(w) {
@@ -970,10 +1151,101 @@ function storageBleed(w) {
   }
 }
 
+// --- the market breathes on its own: seizures, offers, two waking desks ---
+function loanStep(w) {
+  for (const loan of w.loans) {
+    if (loan.state !== 'open' || w.tick <= loan.graceUntil) continue;
+    loan.state = 'seized';
+    w.units[loan.unitId].owner = 'Maison';
+    delete w.units[loan.unitId].brand;
+    note(w, `The grace ran out: Maison seizes ${UNITS[loan.unitId].name} against your unpaid note. Loan-to-own, as written. The bank is itself listed, remember.`, 'warn');
+  }
+}
+function emancipationStep(w) {
+  if (w.emancipation) return;
+  for (const house of Object.keys(w.stakes)) {
+    const h = w.houses[house];
+    if (!h || h.subOf !== 'player' || h.delisted || w.tick < h.emanCooldownUntil) continue;
+    const price = Math.round((w.stakes[house] ?? 0) * sharePrice(w, house) * 1.1);
+    if (price <= 0) continue;
+    const canPay = h.integrated ? h.buybackFund >= price : h.cash >= price * 1.15;
+    if (canPay) {
+      w.emancipation = { house, price };
+      note(w, `${house} offers to buy back its independence: $${price.toLocaleString()} for all your shares, at a premium. The Portfolio's Market desk holds the offer.`, 'news');
+      return;
+    }
+  }
+}
+function maisonStep(w) {
+  const m = w.houses['Maison'];
+  if (m.delisted || (m.subOf === 'player' && m.dial !== 'handsoff')) return;
+  if (w.tick - m.lastTrade < 5 * HOURS_PER_DAY) return;
+  if (m.cash > 8000) {
+    const targets = Object.keys(UNITS).filter(u => w.units[u].owner === 'The Families')
+      .sort((a, b) => w.units[b].incomeAvg - w.units[a].incomeAvg);
+    const target = targets[0];
+    if (target && w.units[target].incomeAvg > 5) {
+      const ask = unitAskPrice(w, target);
+      if (m.cash > ask * 1.3) {
+        m.cash -= ask;
+        w.units[target].owner = 'Maison';
+        m.lastTrade = w.tick;
+        note(w, `Maison buys ${UNITS[target].name} from The Families for $${ask.toLocaleString()} — the gold house is accumulating.`, 'news');
+      }
+    }
+  } else if (m.cash < 2000) {
+    const held = Object.keys(UNITS).filter(u => w.units[u].owner === 'Maison')
+      .sort((a, b) => w.units[a].incomeAvg - w.units[b].incomeAvg);
+    if (held.length > 3) {
+      const target = held[0];
+      const bid = Math.round(unitValue(w, target) * 0.96 + unitManifest(w, target).reduce((s, mm) => s + mm.qty * mm.price, 0));
+      m.cash += bid;
+      w.units[target].owner = 'The Families';
+      m.lastTrade = w.tick;
+      note(w, `Maison sells ${UNITS[target].name} back to The Families for $${bid.toLocaleString()} — the bank is shoring up its reserve.`, 'news');
+    }
+  }
+}
+function distributorDesk(w) {
+  const pelican = w.houses['Pelican'];
+  if (pelican.delisted) return;
+  const def = NODES.distributor;
+  for (const [good, burn] of Object.entries(def.consumes ?? {})) {
+    if (burn === 9999) continue;
+    const stock = stockOf(w, 'distributor', good);
+    if (stock >= burn) continue;
+    const deficit = burn - stock;
+    const sources = Object.keys(NODES).filter(id => {
+      const d = NODES[id], primary = PRIMARY_UNIT[id];
+      if (!primary || w.units[primary].owner === 'player') return false;
+      const makes = d.produces?.[good] || d.converts?.out === good;
+      return makes && stockOf(w, id, good) > 0.8 * capOf(w, id, good);
+    });
+    for (const src of sources) {
+      const room = stockOf(w, src, good) - 0.8 * capOf(w, src, good);
+      const mid = ((w.nodes[src].prices[good] ?? 0) + (w.nodes.distributor.prices[good] ?? 0)) / 2;
+      if (mid <= 0) continue;
+      const qty = Math.min(deficit, room, pelican.cash / mid);
+      if (qty < 1) continue;
+      takeStock(w, src, good, qty);
+      addStock(w, 'distributor', good, qty, w.tick);
+      pelican.cash -= qty * mid;
+      const srcOwner = w.units[PRIMARY_UNIT[src]].owner;
+      if (srcOwner !== 'player' && w.houses[srcOwner]) w.houses[srcOwner].cash += qty * (w.nodes[src].prices[good] ?? 0);
+      if (qty >= 10) note(w, `The Distributor's buyers move ${qty.toFixed(0)}t of ${GOODS[good].name.toLowerCase()} in from ${NODES[src].name} — Pelican's desk keeps its shelves from emptying.`, 'news');
+      break;
+    }
+  }
+}
+
 // --- day & season boundaries ---
 function dayBoundary(w) {
   unitIncomeDay(w);   // reads yesterday's flows before receipts reset them
   storageBleed(w);
+  loanStep(w);
+  emancipationStep(w);
+  maisonStep(w);
+  distributorDesk(w);
   dailyReceipts(w);
   // the Gulf gives back slowly and is drawn by every net (W18)
   const f = w.fishery;
@@ -986,6 +1258,7 @@ function dayBoundary(w) {
   const rv = w.river;
   rv.trend = Math.max(-0.01, Math.min(0.01, rv.trend + (nextRandom(w) - 0.5) * 0.008));
   rv.level = Math.max(0.78, Math.min(1.14, rv.level + rv.trend + (1.0 - rv.level) * 0.01));
+  if (w.state.mods.river) rv.level = Math.min(1.14, rv.level + w.state.mods.river); // Dredge Program (State lite)
   const state = rv.level < 0.90 ? 'shallows' : rv.level > 1.05 ? 'high' : 'fair';
   if (state !== rv.state) {
     rv.state = state;
@@ -1010,7 +1283,31 @@ function dayBoundary(w) {
     }
   }
 }
+// --- the State (lite): the pending policy enacts; the next is announced ---
+function stateRotation(w) {
+  const enacted = w.state.pending ?? drawStatePolicy(w);
+  w.state.policy = enacted;
+  w.state.mods = STATE_MODS[enacted] ?? {};
+  w.state.pending = drawStatePolicy(w);
+  const a = STATE_DECK.find(p => p.id === enacted), b = STATE_DECK.find(p => p.id === w.state.pending);
+  note(w, `The State enacts ${a.name} — ${a.blurb} Next season's debate: ${b.name} (you heard it here a season early).`, 'news');
+}
+// --- a directed subsidiary sweeps surplus cash to its shareholders ---
+function directedSweep(w) {
+  for (const house of Object.keys(w.stakes)) {
+    const h = w.houses[house];
+    if (!h || h.subOf !== 'player' || h.dial !== 'directed') continue;
+    const sweep = Math.max(0, (h.cash - 3000) * 0.25);
+    if (sweep <= 0) continue;
+    h.cash -= sweep;
+    const mine = sweep * (w.stakes[house] ?? 0) / 100;
+    w.money += mine; w.stats.dividends += mine;
+    note(w, `${house} (directed) sweeps $${Math.round(sweep).toLocaleString()} of surplus to shareholders — your cut $${Math.round(mine).toLocaleString()}.`, 'buy');
+  }
+}
 function seasonBoundary(w) {
+  stateRotation(w);
+  directedSweep(w);
   w.skills.points++;
   note(w, `Season ${Math.floor(w.tick / TICKS_PER_SEASON)} complete — +1 skill point (${w.skills.points} banked).`, 'buy');
   // season breakdown rolls (S7.5 base form): schedule each hit inside the new season
@@ -1045,7 +1342,7 @@ export function stateHash(w) {
     for (const g of Object.keys(GOODS)) mix(`${stockOf(w, id, g).toFixed(2)},`);
     for (const g of Object.keys(w.nodes[id].prices)) mix(`${w.nodes[id].prices[g]},`);
   }
-  mix(`|${w.vehicles.length}|${w.stats.trips}|${w.stats.deliveredTons.toFixed(1)}|${w.stats.rotTons.toFixed(1)}`);
+  mix(`|${w.vehicles.length}|${w.stats.trips}|${w.stats.deliveredTons.toFixed(1)}|${w.stats.rotTons.toFixed(1)}|${Object.values(w.stakes).join(',')}|${w.loans.length}|${Math.round(Object.values(w.houses).reduce((s, h) => s + h.cash, 0))}`);
   return (h >>> 0).toString(16);
 }
 export function snapshot(w) { return JSON.stringify(w); }

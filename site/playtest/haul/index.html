@@ -16,7 +16,7 @@
   #delta { font-weight:800; color:#b3402e; font-size:13.5px; min-width:52px; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
-  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .speeds button, .card button, #newgame, #boardbtn, #skillbtn, #portbtn, #mktbtn { border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:9px; padding:5px 9px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .speeds button.on { background:var(--teal); color:#fff; border-color:var(--teal); }
   #map { flex:1 1 auto; width:100%; touch-action:none; display:block; }
   #ticker { background:#2b3a31; color:#dfe7da; font-size:12px; padding:6px 10px; max-height:104px; overflow:hidden; }
@@ -54,6 +54,7 @@
     <button id="boardbtn" title="Contracts board">📋</button>
     <button id="skillbtn" title="Company skills">🎓</button>
     <button id="portbtn" title="Portfolio — units & titles">🏦</button>
+    <button id="mktbtn" title="The Market — shares, loans, the State">📈</button>
     <button id="viewbtn" title="Reset view" style="display:none">⤢</button>
     <button id="newgame" title="Start over">↺</button>
   </header>
@@ -64,10 +65,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, sharePrice, houseEquity, loanOwed } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v05';
-const CURRENT_PHASE = 0.5;
+const SAVE_KEY = 'haul-save-v06';
+const CURRENT_PHASE = 0.6;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -95,6 +96,7 @@ $('newgame').onclick = () => { localStorage.removeItem(SAVE_KEY); w = createWorl
 $('boardbtn').onclick = () => { panel = panel === 'board' ? null : 'board'; renderSheet(); };
 $('skillbtn').onclick = () => { panel = panel === 'skills' ? null : 'skills'; renderSheet(); };
 $('portbtn').onclick = () => { panel = panel === 'portfolio' ? null : 'portfolio'; renderSheet(); };
+$('mktbtn').onclick = () => { panel = panel === 'market' ? null : 'market'; renderSheet(); };
 $('speeds').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   speed = +b.dataset.s;
@@ -342,10 +344,49 @@ function renderPortfolio(el) {
   el.querySelectorAll('[data-sellunit]').forEach(b => b.onclick = () => Q({ type: 'sellUnit', unitId: b.dataset.sellunit }));
   el.querySelectorAll('[data-sellpos]').forEach(b => b.onclick = () => { const [nodeId, good] = b.dataset.sellpos.split('|'); Q({ type: 'sellReceipt', nodeId, good, qty: 1e9 }); });
 }
+function renderMarket(el) {
+  const row = (inner, btns) => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>${inner}</span><span style="display:flex;gap:4px;flex:none">${btns}</span></div>`;
+  const pol = id => STATE_DECK.find(p => p.id === id);
+  const offer = w.emancipation;
+  const houseRows = Object.keys(HOUSES).filter(h => HOUSES[h].listed).map(house => {
+    const h = w.houses[house], stake = w.stakes[house] ?? 0, price = sharePrice(w, house);
+    if (h.delisted) return `<div class="status"><span style="color:${HOUSES[house].paint}">●</span> <b>${house}</b> — bought out entire. The name survives in the Era Report.</div>`;
+    const pulse = stake >= 10 ? ` · earns ~$${Math.round(h.incomeAvg).toLocaleString()}/day` : '';
+    const books = stake >= 25 ? `<br>Cash $${Math.round(h.cash).toLocaleString()} · holds ${Object.keys(UNITS).filter(u => w.units[u].owner === house || w.units[u].brand === house).map(u => UNITS[u].name).join(', ') || 'nothing'}` : '';
+    const dial = h.subOf === 'player' ? `<div style="margin:4px 0 2px">Your subsidiary — the dial: ${['handsoff', 'directed', 'integrated'].map(dn => `<button data-dial="${house}|${dn}" ${h.dial === dn ? 'class="primary"' : ''}>${{ handsoff: 'Hands-off', directed: 'Directed', integrated: 'Integrated' }[dn]}</button>`).join(' ')}</div>` : '';
+    return row(
+      `<span style="color:${HOUSES[house].paint}">●</span> <b>${house}</b> — equity $${houseEquity(w, house).toLocaleString()} · $${price}/share · you hold <b>${stake}%</b>${pulse}${h.subOf === 'player' ? ' · <b>subsidiary</b>' : ''}${books}${dial}`,
+      `<button data-buy5="${house}" ${stake >= 100 || w.money < Math.round(5 * price * 1.02) ? 'disabled' : ''}>Buy 5 · $${Math.round(5 * price * 1.02).toLocaleString()}</button><button data-sell5="${house}" ${stake <= 0 ? 'disabled' : ''}>Sell 5</button>`);
+  }).join('');
+  const openLoans = w.loans.filter(l => l.state === 'open');
+  const borrowable = Object.keys(UNITS).filter(u => w.units[u].owner === 'player' && !openLoans.some(l => l.unitId === u));
+  if (!setHTML(el, `<div class="card"><h3>📈 The Market</h3>
+    <div class="sub">The houses are listed: 10% shows you their pulse, 25% opens their books, over half makes them yours to direct, all of it retires the name. Dividends paid to you so far: <b>$${Math.round(w.stats.dividends).toLocaleString()}</b>.</div>
+    <div class="status">🏛 <b>The State:</b> ${w.state.policy ? `<b>${pol(w.state.policy).name}</b> in force — ${pol(w.state.policy).blurb}` : 'no policy in force yet — the first enacts at the season turn.'} Next debate: <b>${pol(w.state.pending)?.name}</b> — ${pol(w.state.pending)?.blurb}</div>
+    ${offer ? row(`<b>${offer.house}</b> offers emancipation: <b>$${offer.price.toLocaleString()}</b> for all your shares, at a premium. Control flows; nobody leaves.`, `<button data-accept-eman="1" class="primary">Accept</button><button data-decline-eman="1">Decline</button>`) : ''}
+    <div style="font-weight:700;margin-top:6px">The listed houses</div>
+    ${houseRows}
+    <div style="font-weight:700;margin-top:6px">Maison's lending book</div>
+    ${openLoans.length ? openLoans.map(l => row(
+      `Note against <b>${UNITS[l.unitId].name}</b> — principal $${l.principal.toLocaleString()} · owed now <b>$${loanOwed(w, l).toLocaleString()}</b> · due Day ${Math.floor(l.dueTick / 24) + 1}, grace to Day ${Math.floor(l.graceUntil / 24) + 1}. Past grace, the unit is Maison's.`,
+      `<button data-repay="${l.id}" ${w.money < loanOwed(w, l) ? 'disabled' : ''}>Repay $${loanOwed(w, l).toLocaleString()}</button>`)).join('') : '<div class="status" style="opacity:.7">No open notes. Borrowing is capped at 60% of a unit\'s value — the cap is the wall that keeps the bank honest.</div>'}
+    ${borrowable.length && !w.houses['Maison'].delisted ? borrowable.map(u => row(
+      `Borrow against <b>${UNITS[u].name}</b> (worth $${unitValue(w, u).toLocaleString()})`,
+      `<button data-borrow="${u}" ${w.houses['Maison'].cash < Math.floor(unitValue(w, u) * 0.6) ? 'disabled' : ''}>Take $${Math.floor(unitValue(w, u) * 0.6).toLocaleString()} · 12%/season</button>`)).join('') : ''}
+    </div>`)) return;
+  el.querySelectorAll('[data-buy5]').forEach(b => b.onclick = () => Q({ type: 'buyShares', house: b.dataset.buy5, n: 5 }));
+  el.querySelectorAll('[data-sell5]').forEach(b => b.onclick = () => Q({ type: 'sellShares', house: b.dataset.sell5, n: 5 }));
+  el.querySelectorAll('[data-dial]').forEach(b => b.onclick = () => { const [house, dial] = b.dataset.dial.split('|'); Q({ type: 'setDial', house, dial }); });
+  el.querySelectorAll('[data-repay]').forEach(b => b.onclick = () => Q({ type: 'repay', loanId: +b.dataset.repay }));
+  el.querySelectorAll('[data-borrow]').forEach(b => b.onclick = () => Q({ type: 'borrow', unitId: b.dataset.borrow }));
+  const acc = el.querySelector('[data-accept-eman]'); if (acc) acc.onclick = () => Q({ type: 'acceptEmancipation' });
+  const dec = el.querySelector('[data-decline-eman]'); if (dec) dec.onclick = () => Q({ type: 'declineEmancipation' });
+}
 function renderSheet() {
   const el = $('sheet');
   if (panel === 'board') return renderBoard(el);
   if (panel === 'portfolio') return renderPortfolio(el);
+  if (panel === 'market') return renderMarket(el);
   if (panel === 'skills') return renderSkills(el);
   if (sel?.kind === 'route') {
     const rt = w.routes.find(x => x.id === sel.id);
@@ -555,6 +596,7 @@ function frame(now) {
   $('skillbtn').textContent = w.skills.points ? `🎓 ${w.skills.points}` : '🎓';
   const ownedUnits = Object.values(w.units).filter(u => u.owner === 'player').length;
   $('portbtn').textContent = ownedUnits ? `🏦 ${ownedUnits}` : '🏦';
+  $('mktbtn').textContent = w.emancipation ? '📈 !' : '📈';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
   draw(now); renderTicker(); renderRoutes();
   if (frame.n++ % 20 === 0 && !touched($('sheet'))) renderSheet();

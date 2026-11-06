@@ -60,9 +60,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, routeQuote, capOf, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, ICE_MULT, NODES, GOODS, VEHICLES, EDGES, SKILLS } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v02';
+const SAVE_KEY = 'haul-save-v03';
+const CURRENT_PHASE = 0.3;
 let w;
 try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : createWorld(20261106); }
 catch { w = createWorld(20261106); }
@@ -107,6 +108,7 @@ function statusText(v) {
                    : `heading back to ${NODES[v.leg.to].name} · ${left} km out`;
   }
   if (r?.paused) return `parked — route paused`;
+  if (r && VEHICLES[v.type].mode === 'water' && waterDistance(r.from, r.to) >= 999) return `beached — no water runs between these places`;
   if (r && v.at === r.from) {
     const q = routeQuote(w, r.from, r.to);
     return q && stockOf(w, r.from, q.good) > 0.05 ? `ready at ${NODES[v.at].name}` : `waiting at ${NODES[v.at].name} — nothing to carry yet`;
@@ -135,7 +137,8 @@ function draw(now) {
   for (const rt of w.routes) {
     const a = pt(rt.from), b = pt(rt.to);
     const isSel = sel?.kind === 'route' && sel.id === rt.id;
-    ctx.strokeStyle = rt.paused ? 'rgba(120,120,110,.5)' : isSel ? '#14524e' : 'rgba(31,111,107,.8)';
+    const hasBarge = w.vehicles.some(v => v.routeId === rt.id && v.type === 'barge');
+    ctx.strokeStyle = rt.paused ? 'rgba(120,120,110,.5)' : hasBarge ? 'rgba(47,95,158,.85)' : isSel ? '#14524e' : 'rgba(31,111,107,.8)';
     ctx.lineWidth = isSel ? 3.5 : 2.5;
     ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     const ang = Math.atan2(b.y - a.y, b.x - a.x);
@@ -154,7 +157,7 @@ function draw(now) {
     } else if (v.at) p = pt(v.at);
     if (!p) continue;
     ctx.fillStyle = v.cargo ? '#22312a' : '#5a6e60';
-    ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : 4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : v.type === 'barge' ? 6.5 : 4, 0, 7); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
   }
   // first-run pulse: start here
@@ -169,7 +172,7 @@ function draw(now) {
     const lots = node.lots.filter(l => l.good === 'shrimp');
     if (lots.length) {
       const oldest = lots.reduce((a, b) => a.born < b.born ? a : b);
-      const remain = Math.max(0, 1 - (w.tick - oldest.born) / GOODS.shrimp.perishHours);
+      const remain = Math.max(0, 1 - (w.tick - oldest.born) * (ICE_MULT[id] ?? 1) / GOODS.shrimp.perishHours);
       ctx.strokeStyle = remain > .5 ? '#3e9e5f' : remain > .25 ? '#b97e26' : '#b3402e';
       ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(p.x, p.y, 17, -Math.PI / 2, -Math.PI / 2 + remain * Math.PI * 2); ctx.stroke();
@@ -247,7 +250,7 @@ function renderSkills(el) {
     const prev = Object.entries(SKILLS).find(([, x]) => x.branch === branch && x.tier === s.tier - 1);
     const prevOk = s.tier === 1 || (prev && w.skills.owned[prev[0]]);
     const cost = s.cost ?? 1;
-    const lockedPhase = (s.phase ?? 0.2) > 0.2 + 1e-9;
+    const lockedPhase = (s.phase ?? 0.2) > CURRENT_PHASE + 1e-9;
     return `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
       <span>${owned ? '✓' : '·'} <b>${s.name}</b> — ${s.blurb}${lockedPhase ? ` <i>(lands Phase ${s.phase})</i>` : ''}</span>
       ${owned ? '' : `<button data-skill="${id}" ${!prevOk || lockedPhase || w.skills.points < cost ? 'disabled' : ''}>${cost} pt</button>`}</div>`;
@@ -267,17 +270,25 @@ function renderSheet() {
     if (!rt) { sel = null; return renderSheet(); }
     const q = routeQuote(w, rt.from, rt.to);
     const trucks = w.vehicles.filter(v => v.routeId === rt.id);
+    const waterKm = waterDistance(rt.from, rt.to);
+    const bargePrice = rt.from === 'shipyard' ? 15200 : VEHICLES.barge.cost;
+    const policyName = { clock: 'Full-or-clock', full: 'Full loads only', scheduled: 'Scheduled (12h)' }[rt.policy ?? 'clock'];
+    const nextPolicy = { clock: 'full', full: 'scheduled', scheduled: 'clock' }[rt.policy ?? 'clock'];
     el.innerHTML = `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
-      <div class="sub">${distance(rt.from, rt.to)} km · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}</div>
-      ${trucks.map(v => `<div class="status">🚚 ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No truck on this route yet — add one below and it starts on the next tick.</div>'}
+      <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
+      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
       <div class="row" style="margin-top:6px">
         <button class="primary" id="b-addbox" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>＋ Box truck · $${VEHICLES.box.cost}</button>
         <button class="primary" id="b-addsemi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>＋ 18-wheeler · $${VEHICLES.semi.cost}</button>
+        ${waterKm < 999 ? `<button class="primary" id="b-addbarge" ${w.money < bargePrice ? 'disabled' : ''}>＋ Barge · $${bargePrice.toLocaleString()}${rt.from === 'shipyard' ? ' (yard price)' : ''}</button>` : ''}
+        <button id="b-policy">Departure: ${policyName} ↻</button>
         <button id="b-pause">${rt.paused ? 'Resume route' : 'Pause route'}</button>
         <button id="b-rm">Remove</button>
       </div></div>`;
     $('b-addbox').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
     $('b-addsemi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
+    const bb = $('b-addbarge'); if (bb) bb.onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
+    $('b-policy').onclick = () => queueIntent(w, { type: 'setPolicy', routeId: rt.id, policy: nextPolicy });
     $('b-pause').onclick = () => queueIntent(w, { type: 'toggleRoute', routeId: rt.id });
     $('b-rm').onclick = () => { queueIntent(w, { type: 'removeRoute', routeId: rt.id }); sel = null; };
     return;
@@ -295,16 +306,20 @@ function renderSheet() {
   el.innerHTML = `<div class="card"><h3>${def.name}</h3>
     <div class="sub">The pills on the map are live quotes: tap a destination to draw the route and put a truck on it.${w.warehouses[id] ? ' <b>Your warehouse stands here</b> — deep storage, faster handling.' : ''}</div>
     <table>${goodsRows(id)}</table>
+    ${id === 'port' ? `<div class="status">🚢 Next ships: <b>Day ${shipCallDays(w)[0]}</b> and <b>Day ${shipCallDays(w)[1]}</b> — med supplies, pharma and provisions land; your exports sail.</div>` : ''}
+    ${(id in w.boats) ? `<div class="status">⛵ ${w.boats[id]} shrimp boats · Gulf stock <b>${Math.round(w.fishery.stock)}%</b> — nets yield ×${fisheryFactor(w).toFixed(2)}${ICE_MULT[id] ? ' · 🧊 the Ice House keeps shrimp ~3× longer here' : ' · no ice here — the clock runs honest'}</div>` : ''}
     ${myContracts.map(c => `<div class="status">📋 ${c.state === 'taken' ? 'Your contract' : 'Board'}: ${c.qty}t ${GOODS[c.good].name} at $${c.pricePerTon}/t · ${c.delivered.toFixed(0)}/${c.qty}t · by Day ${Math.floor(c.deadlineTick / 24) + 1}</div>`).join('')}
-    ${here.map(v => `<div class="status">🚚 ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('')}
+    ${here.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('')}
     <div class="row">
       <button id="b-box" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>Buy box truck here · $${VEHICLES.box.cost}</button>
       <button id="b-semi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>Buy 18-wheeler here · $${VEHICLES.semi.cost}</button>
       ${w.warehouses[id] ? '' : `<button id="b-wh" ${w.money < 2400 ? 'disabled' : ''}>Build warehouse · $2,400</button>`}
+      ${(id in w.boats) ? `<button id="b-boat" ${w.money < 2200 ? 'disabled' : ''}>Buy shrimp boat · $2,200</button>` : ''}
     </div></div>`;
   $('b-box').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'box', nodeId: id });
   $('b-semi').onclick = () => queueIntent(w, { type: 'buyVehicle', vehicleType: 'semi', nodeId: id });
   const wh = $('b-wh'); if (wh) wh.onclick = () => queueIntent(w, { type: 'buyWarehouse', nodeId: id });
+  const bt = $('b-boat'); if (bt) bt.onclick = () => queueIntent(w, { type: 'buyBoat', nodeId: id });
 }
 function renderRoutes() {
   const el = $('routes');

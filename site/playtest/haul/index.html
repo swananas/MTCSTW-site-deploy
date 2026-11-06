@@ -77,10 +77,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf, MAP_BOX, REFITS, WEATHERS } from './engine.js';
 
 const SAVE_KEY = 'haul-save-v19';
-const CURRENT_PHASE = 2; // Wave 12: the chart's second age (1.10 is not a float; saves migrate in restore())
+const CURRENT_PHASE = 2.1; // Wave 13: the Overhead + the Fixed Box (saves migrate in restore())
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -127,8 +127,8 @@ function fit() {
   cv.width = r.width * d; cv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0);
 }
 addEventListener('resize', fit);
-const WX0 = -70, WXSPAN = 170; // the chart's west edge (Wave 5): Texas runs to x −64, Louisiana to 100
-const WY0 = -115, WYSPAN = 225; // the chart's north edge (Wave 11): St. Louis stands at y −104
+const WX0 = MAP_BOX.cx - MAP_BOX.hw, WXSPAN = MAP_BOX.hw * 2; // the chart frame IS the Fixed Box (W36)
+const WY0 = MAP_BOX.cy - MAP_BOX.hh, WYSPAN = MAP_BOX.hh * 2;
 function ptXY(x, y) {
   const r = cv.getBoundingClientRect();
   return { x: ((x - WX0) / WXSPAN) * r.width, y: ((y - WY0) / WYSPAN) * r.height };
@@ -153,8 +153,10 @@ function segDist(px, py, a, b) {
   return Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy));
 }
 
-// what is this truck doing, in plain words
+// what is this truck doing, in plain words — and whose hands are on the wheel (W36)
 function statusText(v) {
+  if (v.downTo > w.tick && v.sickTick > w.tick - 24) return `🤒 ${v.driver} is out sick — back tomorrow`;
+  if (v.downTo > w.tick) return `in the shop till Day ${Math.floor(v.downTo / 24) + 1} (${v.driver} waits on the wrench)`;
   const r = w.routes.find(x => x.id === v.routeId);
   if (v.phase === 'loading') return `loading ${v.cargo.qty.toFixed(0)}t ${GOODS[v.cargo.good].name.toLowerCase()} at ${NODES[v.at].name}`;
   if (v.phase === 'unloading') return `unloading at ${NODES[v.at].name}`;
@@ -187,10 +189,11 @@ function draw(now) {
   // THE RING (W35): the scope of the map, drawn as one boundary — the Gulf
   // Coast and the inland river country inside it; nothing outside pretends
   { ctx.beginPath();
-    for (let k = 0; k <= 48; k++) { const a = k / 48 * Math.PI * 2, p = ptXY(18 + Math.cos(a) * 90, -4 + Math.sin(a) * 106); k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
+    for (let k = 0; k <= 48; k++) { const a = k / 48 * Math.PI * 2, p = ptXY(MAP_BOX.cx + Math.cos(a) * (MAP_BOX.hw - 4), MAP_BOX.cy + Math.sin(a) * (MAP_BOX.hh - 4)); k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
     ctx.closePath();
     ctx.fillStyle = 'rgba(247,242,222,.55)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(122,92,30,.30)'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.save(); ctx.shadowColor = 'rgba(64,62,44,.45)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4; // the Ring stands raised off the chart table (W36 2.5D)
+    ctx.strokeStyle = 'rgba(122,92,30,.30)'; ctx.lineWidth = 5; ctx.stroke(); ctx.restore();
     ctx.strokeStyle = 'rgba(122,92,30,.8)'; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1; }
   ctx.strokeStyle = 'rgba(110,150,160,.35)'; ctx.lineWidth = 16; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(r.width * .68, -10); ctx.bezierCurveTo(r.width * .60, r.height * .35, r.width * .78, r.height * .6, r.width * .74, r.height + 10); ctx.stroke();
@@ -236,6 +239,8 @@ function draw(now) {
       p = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
     } else if (v.at) p = pt(v.at);
     if (!p) continue;
+    ctx.fillStyle = 'rgba(64,62,44,.30)'; // the rig's contact shadow (W36 2.5D)
+    ctx.beginPath(); ctx.ellipse(p.x + 1.5, p.y + 3.5, 6, 2.2, 0, 0, 7); ctx.fill();
     ctx.fillStyle = companyOf(w).paint;
     ctx.beginPath(); ctx.arc(p.x, p.y, v.type === 'semi' ? 5 : v.type === 'barge' ? 6.5 : 4, 0, 7); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
@@ -270,6 +275,11 @@ function draw(now) {
     }
     const isSel = sel?.kind === 'node' && sel.id === id;
     const R = CITIES.has(id) ? 15 : 13;
+    const lift = CITIES.has(id) ? 5 : 3; // places stand raised off the chart (W36 2.5D): cities tallest
+    ctx.fillStyle = 'rgba(64,62,44,.35)'; // contact shadow, Bayou Deep at alpha
+    ctx.beginPath(); ctx.ellipse(p.x + 3, p.y + R * 0.8 + lift, R * 0.98, R * 0.36, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#54513D'; // the extrusion band, Wet Earth
+    ctx.beginPath(); ctx.arc(p.x, p.y + lift, R, 0, 7); ctx.fill();
     const st = nodeState(id); // the state ring (W35): read the place without opening it
     if (st) { ctx.strokeStyle = st; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(p.x, p.y, R + 3.5, 0, 7); ctx.stroke(); ctx.lineWidth = 1; }
     if (PRIMARY_UNIT[id] && w.units[PRIMARY_UNIT[id]].owner === 'player') { // your ground wears your paint (W30)
@@ -441,7 +451,7 @@ function renderMarket(el) {
     <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>State actions — favors the government can do a hauler:</span><span style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end"><button data-saction="dredge" ${w.influence < (w.posture === 'partner' ? 3 : 4) ? 'disabled' : ''}>Emergency dredge · ${w.posture === 'partner' ? 3 : 4}⚖</button><button data-saction="stockpile" ${w.influence < (w.posture === 'partner' ? 4 : 5) ? 'disabled' : ''}>Stockpile release · ${w.posture === 'partner' ? 4 : 5}⚖</button></span></div>
     <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Charter next season's debate (${w.posture === 'partner' ? 7 : 8}⚖):</span><span style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end">${STATE_DECK.map(p => `<button data-charter="${p.id}" ${w.influence < (w.posture === 'partner' ? 7 : 8) || w.state.pending === p.id ? 'disabled' : ''}>${p.name}</button>`).join('')}</span></div>
     ${w.crews.unionOffer ? row(`<b>Your crews have organized.</b> Their bargain: Fair wages locked two seasons, breakdowns down a fifth — a stability contract, not a surrender. Refuse, and a season of grievance follows.`, `<button data-accept-union="1" class="primary">Sign the bargain</button><button data-decline-union="1">Refuse</button>`) : ''}
-    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>🚚 <b>Crews</b> — wages: <b>${w.crews.wage}</b>${w.tick < w.crews.unionUntil ? ` · bargain holds to Day ${Math.floor(w.crews.unionUntil / 24) + 1}` : ''}${w.tick < w.crews.grievanceUntil ? ' · <b>grievance active</b>' : ''} · Tight miles cost ×0.9 but hands tire (handling ×1.1, breakdowns ×1.5); Generous costs ×1.12 with steadier hands.</span><span style="display:flex;gap:4px;flex:none">${['tight', 'fair', 'generous'].map(wg => `<button data-wage="${wg}" ${w.crews.wage === wg ? 'class="primary"' : ''}>${wg[0].toUpperCase() + wg.slice(1)}</button>`).join('')}</span></div>
+    <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>🚚 <b>Crews</b> — wages: <b>${w.crews.wage}</b> ($${{ tight: 22, fair: 28, generous: 36 }[w.crews.wage]} a driver-day, paid at dawn with upkeep and yard costs)${w.tick < w.crews.unionUntil ? ` · bargain holds to Day ${Math.floor(w.crews.unionUntil / 24) + 1}` : ''}${w.tick < w.crews.grievanceUntil ? ' · <b>grievance active</b>' : ''} · Tight miles cost ×0.9 but hands tire (handling ×1.1, breakdowns ×1.5); Generous costs ×1.12 with steadier hands.</span><span style="display:flex;gap:4px;flex:none">${['tight', 'fair', 'generous'].map(wg => `<button data-wage="${wg}" ${w.crews.wage === wg ? 'class="primary"' : ''}>${wg[0].toUpperCase() + wg.slice(1)}</button>`).join('')}</span></div>
     ${offer ? row(`<b>${offer.house}</b> offers emancipation: <b>$${offer.price.toLocaleString()}</b> for all your shares, at a premium. Control flows; nobody leaves.`, `<button data-accept-eman="1" class="primary">Accept</button><button data-decline-eman="1">Decline</button>`) : ''}
     <div style="font-weight:700;margin-top:6px">The listed houses</div>
     ${houseRows}
@@ -484,6 +494,8 @@ function renderCrown(el) {
   const bar = (label, val, target) => `<div class="status">${label}<div style="height:8px;background:#eee;border-radius:4px;margin-top:3px"><div style="height:8px;width:${Math.min(100, val / target * 100)}%;background:#c9a44e;border-radius:4px"></div></div></div>`;
   if (!setHTML(el, `<div class="card"><h3>👑 The Crown — Regional Control</h3>
     <div class="status" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="background:${companyOf(w).paint};color:#fff;border-radius:6px;padding:2px 8px;font-weight:700">${companyOf(w).name}</span><span>${w.vehicles.length} vehicles · ${Object.keys(UNITS).filter(u => w.units[u].owner === 'player').length} units held · ${Object.keys(w.stakes).filter(h => w.houses[h].subOf === 'player').length} subsidiaries</span>${PAINTS.map(p => `<button data-repaint="${p.hex}" title="${p.name}" style="background:${p.hex};width:20px;height:20px;border-radius:50%;border:${companyOf(w).paint === p.hex ? '3px solid #22312a' : '2px solid #fff'};padding:0"></button>`).join('')}</div>
+    <div class="status" style="margin-top:6px">🔧 <b>Refits</b> — the shop's catalog. Money slows down here because there's finally somewhere good for it to go:</div>
+    ${Object.entries(REFITS).map(([id, rf]) => `<div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span><b>${rf.name}</b> — ${rf.blurb}</span><span style="flex:none">${w.refits[id] ? '<b>fitted ✓</b>' : `<button data-refit="${id}" ${w.money < rf.cost ? 'disabled' : ''}>Fit · $${rf.cost.toLocaleString()}</button>`}</span></div>`).join('')}
     <div class="sub">${w.mode === 'sandbox' ? 'Sandbox: the meter runs and no era is judged.' : 'Campaign: three roads to the crown. An ending is recorded, never a stop.'} Control is your share of the region's moved value, trailing 30 days.</div>
     ${w.crown.ending ? `<div class="status" style="background:#f7ecd0;border-color:#c9a44e">👑 <b>${endingNames[w.crown.ending.path]}</b> — the era was named on Day ${Math.floor(w.crown.ending.tick / 24) + 1}.${Object.keys(w.crown.achieved).length > 1 ? ` Also achieved: ${Object.keys(w.crown.achieved).filter(k => k !== w.crown.ending.path).map(k => endingNames[k]).join(' · ')}.` : ''} The work continues.</div>` : ''}
     <div class="status" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>Control now: <b>${pct(w.crown.current)}</b> · peak ${pct(w.crown.peak)} · reading: <b>${w.crown.rule}</b> (raw ${pct(w.crown.raw)} · capped ${pct(w.crown.capped)})</span><button data-crownrule="${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}">Read ${w.crown.rule === 'capped' ? 'uncapped' : 'capped'}</button></div>
@@ -498,6 +510,7 @@ function renderCrown(el) {
     </div>`)) return;
   el.querySelector('[data-crownrule]').onclick = (e) => Q({ type: 'setCrownRule', rule: e.target.dataset.crownrule });
   el.querySelectorAll('[data-repaint]').forEach(b => b.onclick = () => Q({ type: 'setCompany', paint: b.dataset.repaint }));
+  el.querySelectorAll('[data-refit]').forEach(b => b.onclick = () => Q({ type: 'buyRefit', refitId: b.dataset.refit }));
   el.querySelectorAll('[data-project]').forEach(b => b.onclick = () => Q({ type: 'fundProject', part: b.dataset.project }));
   el.querySelector('[data-era]').onclick = () => { showEra = !showEra; renderSheet(); };
 }
@@ -553,7 +566,7 @@ function renderSheet() {
     const nextPolicy = { clock: 'full', full: 'scheduled', scheduled: 'clock' }[rt.policy ?? 'clock'];
     if (!setHTML(el, `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
       <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
-      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
+      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} · ${v.driver ?? ''} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
       <div class="row" style="margin-top:6px">
         <button class="primary" id="b-addbox" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>＋ Box truck · $${VEHICLES.box.cost}</button>
         <button class="primary" id="b-addsemi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>＋ 18-wheeler · $${VEHICLES.semi.cost}</button>
@@ -608,7 +621,7 @@ function renderSheet() {
     ${w.yards[id] ? `<div class="status">🛤 <b>Rail yard here.</b> ${trackMode ? 'The map is quoting iron: tap a neighbor to lay track to it.' : 'Open track mode to lay iron from here.'}</div>` : ''}
     ${(id in w.boats) ? `<div class="status">⛵ ${w.boats[id]} shrimp boats · Gulf stock <b>${Math.round(w.fishery.stock)}%</b> — nets yield ×${fisheryFactor(w).toFixed(2)}${ICE_MULT[id] ? ' · 🧊 the Ice House keeps shrimp ~3× longer here' : ' · no ice here — the clock runs honest'}</div>` : ''}
     ${myContracts.map(c => `<div class="status">📋 ${c.state === 'taken' ? 'Your contract' : 'Board'}: ${c.qty}t ${GOODS[c.good].name} at $${c.pricePerTon}/t · ${c.delivered.toFixed(0)}/${c.qty}t · by Day ${Math.floor(c.deadlineTick / 24) + 1}</div>`).join('')}
-    ${here.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} — ${statusText(v)}</div>`).join('')}
+    ${here.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : '🚚'} ${VEHICLES[v.type].name} · ${v.driver ?? ''} — ${statusText(v)}</div>`).join('')}
     <div class="row">
       <button id="b-box" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>Buy box truck here · $${VEHICLES.box.cost}</button>
       <button id="b-semi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>Buy 18-wheeler here · $${VEHICLES.semi.cost}</button>
@@ -682,22 +695,23 @@ function toWorld(e) {
 }
 function clampView() {
   const r = cv.getBoundingClientRect();
-  view.s = Math.max(1, Math.min(3.5, view.s));
-  const mx = (view.s - 1) * r.width + 70, my = (view.s - 1) * r.height + 70;
-  view.ox = Math.max(-mx, Math.min(70, view.ox));
-  view.oy = Math.max(-my, Math.min(70, view.oy));
+  view.s = Math.max(0.7, Math.min(3.5, view.s)); // the chart can pull back past the Ring now — scroll room is the point (W36)
+  const mx = Math.max(0, view.s - 1) * r.width + 170, my = Math.max(0, view.s - 1) * r.height + 170;
+  view.ox = Math.max(-mx, Math.min(170, view.ox));
+  view.oy = Math.max(-my, Math.min(170, view.oy));
   $('viewbtn').style.display = view.s > 1.02 ? '' : 'none';
 }
 function zoomAt(sx, sy, ns) {
   const r = cv.getBoundingClientRect();
   const wx = (sx - view.ox) / view.s, wy = (sy - view.oy) / view.s;
-  view.s = Math.max(1, Math.min(3.5, ns));
+  view.s = Math.max(0.7, Math.min(3.5, ns));
   view.ox = sx - wx * view.s; view.oy = sy - wy * view.s;
   clampView();
 }
-$('viewbtn').onclick = () => { view.s = 1; view.ox = 0; view.oy = 0; clampView(); };
+$('viewbtn').onclick = () => homeView();
 // chart pages (W31 · E1): framed views over the one chart — growth stops squeezing it
-const CHARTS = { la: { x: [-8, 102], y: [-4, 104] }, tx: { x: [-70, 10], y: [6, 104] }, river: { x: [2, 78], y: [-114, 6] } };
+const CHARTS = { la: { x: [-6, 123], y: [0, 135] }, tx: { x: [-74, 11], y: [16, 132] }, river: { x: [15, 71], y: [-142, 18] } }; // frames measured off the boxed layout (W36)
+function homeView() { setChart(CHARTS.la); } // the chart opens Louisiana-first, with scroll room on every side (W36)
 function setChart(range) {
   const r = cv.getBoundingClientRect();
   if (!range) { view.s = 1; view.ox = 0; view.oy = 0; }
@@ -812,7 +826,7 @@ function frame(now) {
   $('mktbtn').textContent = w.emancipation ? '📈 !' : '📈';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
-  setHTML($('clock'), `${calendarOf(w).name} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
+  setHTML($('clock'), `${calendarOf(w).name} · Day ${day}<br>${String(hour).padStart(2, '0')}:00 ${WEATHERS[w.weather].icon}${w.refits.wire ? ` → ${WEATHERS[w.weatherNext].icon}` : ''}`);
   draw(now); renderTicker(); renderRoutes(); renderEvents(); renderOffer();
   { // the clock ring (kit sheet LT-02): outer arc the season, inner arc the day
     const rc = $('ring').getContext('2d');
@@ -829,7 +843,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 frame.n = 0;
-fit(); renderSheet();
+fit(); homeView(); renderSheet();
 requestAnimationFrame(frame);
 addEventListener('beforeunload', save);
 </script>

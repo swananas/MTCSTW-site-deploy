@@ -88,6 +88,11 @@ export const NODES = {
 
 // Corridor edges with freight kilometres (FULL-SCHEME S1.4 + W17 placements).
 // Hauls travel the shortest path over this graph — no crow-flies freight.
+// THE FIXED BOX (W36): the map's balance, set mathematically before it grows —
+// every place's position is the authored layout carried into the box by one
+// transform about its center. Distances are authored kilometers and never move.
+export const MAP_BOX = { cx: 18, cy: -4, hw: 112, hh: 136, k: 1.3 }; // sized to the ×1.3 spread of the authored layout plus margin; from here the box is law — new ground fits inside it or the box is re-ruled on its face
+for (const n of Object.values(NODES)) { n.x = MAP_BOX.cx + (n.x - MAP_BOX.cx) * MAP_BOX.k; n.y = MAP_BOX.cy + (n.y - MAP_BOX.cy) * MAP_BOX.k; }
 export const EDGES = [
   ['caneA', 'mill', 22], ['caneB', 'mill', 22], ['caneA', 'caneB', 15],
   ['port', 'distributor', 14], ['distributor', 'nola', 10], ['nola', 'mill', 92],
@@ -221,6 +226,31 @@ function nextRandom(w) {
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
+// --- W36: the weather-and-wear stream. Every new chance in the overhead wave
+// rides wxState, never the main stream — the economy's proven arithmetic does
+// not re-roll because the sky learned to move.
+function nextWx(w) {
+  w.wxState = (w.wxState + 0x6D2B79F5) | 0;
+  let t = Math.imul(w.wxState ^ (w.wxState >>> 15), 1 | w.wxState);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+export const WEATHERS = { clear: { icon: '☀️', name: 'Clear' }, rain: { icon: '🌧️', name: 'Rain' }, heat: { icon: '🥵', name: 'Heat' }, storm: { icon: '⛈️', name: 'Storm' } };
+export function weatherRoadMult(w) { return w.weather === 'rain' ? 0.92 : w.weather === 'storm' ? 0.78 : 1; }
+export function weatherCropMult(w, good) { return w.weather === 'rain' && ['cane', 'rice', 'citrus', 'soy', 'bolls'].includes(good) ? 1.06 : 1; }
+const DRIVERS = ['Bo Thibodeaux', 'Mae Landry', 'Odile Boudreaux', 'Remy Fontenot', 'Célia Guidry', 'Amos Breaux', 'Pearl Hebert', 'Silas Romero', 'Ines Duarte', 'Hollis Poche', 'Vera Mire', 'Toussaint Reed', 'Alma Joseph', 'Cyprien Noel', 'Ruth Baptiste', 'Elias Grant', 'Nola Freeman', 'Percy Wells', 'Odette Charles', 'Moses King'];
+export const REFITS = {
+  turbo: { name: 'Turbo Fleet', cost: 3500, blurb: 'Every road engine tuned: road speed ×1.08.' },
+  tanks: { name: 'Big Tanks', cost: 2800, blurb: 'Fewer fuel stops, fuller runs: road operating cost ×0.9.' },
+  depot: { name: 'Depot Mechanics', cost: 4200, blurb: 'Your own shop: repair bills ×½, shop days ×0.75.' },
+  boss: { name: 'The Good Boss', cost: 3000, blurb: 'Wages ×1.1 — and sick days halve. People show up for a good boss.' },
+  wire: { name: 'Weather Wire', cost: 1500, blurb: "Tomorrow's sky, in the header, every dawn." },
+  spare: { name: 'Spare Rig', cost: 6500, blurb: 'One spare truck and a rested driver: the first breakdown or sick day each day is covered.' },
+};
+const UPKEEP = { box: 6, semi: 14, barge: 40, train: 85 };
+const WAGE = { tight: 22, fair: 28, generous: 36 };
+const REPAIR = { box: [0.05, 30, 90], semi: [0.06, 60, 160], barge: [0.04, 150, 380], train: [0.04, 220, 520] };
+const UNIT_OPEX = { producer: 9, converter: 16, sink: 12, infra: 10 };
 
 // --- world construction ---
 // --- the units (S4: the atoms of ownership) + the receipts desk (S5 L-6/L-7) ---
@@ -343,7 +373,7 @@ export function unitManifest(w, unitId) {
 }
 export function unitValue(w, unitId) {
   const unit = UNITS[unitId], st = w.units[unitId];
-  return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 150)); // W35: the book multiplier — money slows (was ×240)
+  return Math.max(unit.floor, Math.round((st?.incomeAvg ?? 0) * 240)); // W36 strikes W35's ×150: the book is ×240 again — velocity is the drains' job now
 }
 // --- the houses (S6: listed companies — a subsidiary is a full company
 // plus an owner field and a dial; the architecture law, S13 0.6 gate) ---
@@ -391,7 +421,7 @@ export function availOf(w, nodeId, good) { return Math.max(0, stockOf(w, nodeId,
 // The three-move grammar (S4.5): every growth act is exactly one move.
 export function classifyAct(w, it) {
   switch (it.type) {
-    case 'buyVehicle': case 'buyBoat': case 'buySkill': return 'SCALE';
+    case 'buyVehicle': case 'buyBoat': case 'buySkill': case 'buyRefit': return 'SCALE';
     case 'buyUnit': case 'buyWarehouse': case 'buildYard': case 'layTrack': case 'buyReceipt': case 'buyShares': case 'buyParcel': return 'INTEGRATE';
     case 'addRoute': return routeDiversifies(w, it.from, it.to) ? 'DIVERSIFY' : 'SCALE';
     default: return 'OPERATE';
@@ -494,8 +524,7 @@ export const PAINTS = [
 export function companyOf(w) { return w.company ?? { name: 'Bayou Freight Co.', paint: '#2F7E79' }; }
 // The Ladder (W35): the progression queue, derived from the world — the road the
 // player was already walking, with the miles marked. No objectives are imposed.
-export function ladderOf(w) {
-  const ownedUnits = Object.keys(UNITS).filter(u => w.units[u].owner === 'player').length;
+export function ladderOf(w) {  const ownedUnits = Object.keys(UNITS).filter(u => w.units[u].owner === 'player').length;
   const skillsSpent = Object.values(w.skills.owned).filter(Boolean).length;
   const txNodes = ['houstonPort', 'houstonChem', 'molding', 'beaumont', 'corpus', 'victoria', 'kingsville', 'valley'];
   const riverNodes = ['natchez', 'vicksburg', 'deltaFarms', 'westHelena', 'memphis', 'cairo', 'stLouis'];
@@ -536,6 +565,10 @@ export function createWorld(seed = 1, opts = {}) {
     influence: 0,            // the second currency (State full, W22)
     posture: 'independent',  // partner | independent | adversarial
     crews: { wage: 'fair', tightDays: 0, unionUntil: 0, grievanceUntil: 0, unionOffer: false },
+    wxState: (seed ^ 0x9e3779b9) | 0, // the weather-and-wear stream (W36)
+    weather: 'clear', weatherNext: 'clear', // today's sky, and tomorrow's (W36)
+    refits: {},              // company refits owned (W36)
+    driverSeq: 0, spareDay: -1,
     events: [],              // the conflict deck, live + forecast (W22)
     evMods: {},              // today's event weather, recomputed at the boundary
     pollution: {},           // nodeId -> 0..100
@@ -583,7 +616,7 @@ export function createWorld(seed = 1, opts = {}) {
     cranePendingH: 0,        // Houston Cranes, same rates, its own ledger (W28)
     cranePendingS: 0,        // Gateway Cranes at St. Louis, third ledger (W34)
     intents: [], ticker: [],
-    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0, eventsSurvived: 0, influenceEarned: 0, seizures: 0, emancipations: 0, biggestDelivery: 0 },
+    stats: { trips: 0, deliveredTons: 0, earned: 0, rotTons: 0, rotEvents: 0, breakdowns: 0, contractsDone: 0, byGood: {}, unitIncome: 0, storagePaid: 0, dividends: 0, eventsSurvived: 0, influenceEarned: 0, seizures: 0, emancipations: 0, biggestDelivery: 0, wagesPaid: 0, upkeepPaid: 0, repairsPaid: 0, opexPaid: 0, sickDays: 0 },
     laneCounts: {},          // 'from|to|good' -> spot deliveries (crystallization, K-2)
     nextId: 1,
   };
@@ -642,7 +675,8 @@ function applyOpening(w, opts) {
 }
 function freshFlow() { return { in: 0, out: 0, demand: 0, playerIn: 0 }; }
 function addVehicle(w, type, nodeId) {
-  const v = { id: w.nextId++, type, at: nodeId, routeId: null, phase: 'idle', timer: 0, cargo: null, leg: null, downFrom: -1, downTo: -1 };
+  const v = { id: w.nextId++, type, at: nodeId, routeId: null, phase: 'idle', timer: 0, cargo: null, leg: null, downFrom: -1, downTo: -1, driver: DRIVERS[(w.driverSeq ?? 0) % DRIVERS.length], sickTick: -1 };
+  w.driverSeq = (w.driverSeq ?? 0) + 1;
   w.vehicles.push(v);
   return v;
 }
@@ -1176,6 +1210,12 @@ function applyIntents(w) {
         w.skills.owned[it.skillId] = true;
         note(w, `Skill learned: ${SKILLS[it.skillId].name} — ${SKILLS[it.skillId].blurb}`, 'buy');
       }
+    } else if (it.type === 'buyRefit') { // company refits, bought with cash (W36)
+      const rf = REFITS[it.refitId];
+      if (rf && !w.refits[it.refitId] && w.money >= rf.cost) {
+        w.money -= rf.cost; w.refits[it.refitId] = true;
+        note(w, `🔧 Refit fitted: ${rf.name} — ${rf.blurb}`, 'buy');
+      } else if (rf && !w.refits[it.refitId]) note(w, `Not enough cash for ${rf.name} ($${rf.cost.toLocaleString()}).`, 'warn');
     }
   }
 }
@@ -1194,7 +1234,7 @@ function produceAndConvert(w) {
       let capMult = 1;
       if (id === 'timber') capMult = w.capital.timberStock >= 600 ? 1 : 0.35 + 0.65 * Math.max(0, w.capital.timberStock) / 600;
       if (w.capital.soil[id] !== undefined) capMult = 0.7 + 0.3 * w.capital.soil[id] / 100;
-      const qty = Math.min(perDay * capMult * calendarMult(w, good) * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
+      const qty = Math.min(perDay * capMult * calendarMult(w, good) * weatherCropMult(w, good) * (w.evMods.produce?.[id] ?? 1) * (w.evMods.produceGood?.[good] ?? 1) * (w.dev[id]?.archetype === 'agri' ? 1.1 : 1) / HOURS_PER_DAY, Math.max(0, room));
       if (qty > 0) { addStock(w, id, good, qty, GOODS[good].perishHours ? null : 0); n.flow[good].in += qty; if (id === 'timber') w.capital.timberStock = Math.max(0, w.capital.timberStock - qty); }
     }
     // the docks fish a shared, finite Gulf (W18): boats × yield factor
@@ -1271,7 +1311,7 @@ function agePerishables(w) {
     for (const lot of n.lots) before[lot.good] = (before[lot.good] ?? 0) + lot.qty;
     for (let i = n.lots.length - 1; i >= 0; i--) {
       const lot = n.lots[i];
-      const age = (w.tick - lot.born) * (lot.clockMult ?? 1) * (ICE_MULT[id] ?? 1);
+      const age = (w.tick - lot.born) * (lot.clockMult ?? 1) * (ICE_MULT[id] ?? 1) * (w.weather === 'heat' ? 1.12 : 1); // heat hurries every clock (W36)
       if (age >= GOODS[lot.good].perishHours) {
         n.lots.splice(i, 1);
         w.stats.rotTons += lot.qty; w.stats.rotEvents++;
@@ -1294,6 +1334,7 @@ function agePerishables(w) {
 // --- vehicles (SIM-CORE physics: continuous 1-hour budget per tick) ---
 function opCostMult(w, v) {
   let m = w.crews.wage === 'tight' ? 0.9 : w.crews.wage === 'generous' ? 1.12 : 1; // the wage bill rides every ton-km (W22)
+  if (w.refits.tanks && VEHICLES[v.type].mode === 'road') m *= 0.9; // Big Tanks (W36)
   if (w.skills.owned.fleetstd && w.vehicles.filter(x => x.type === v.type).length >= 3) m *= 0.9;
   return m;
 }
@@ -1463,7 +1504,7 @@ function stepVehicle(w, v) {
       v.timer -= use; budget -= use;
       if (v.timer <= 1e-9) { if (v.phase === 'loading') depart(w, v); else finishUnload(w, v); }
     } else if (v.phase === 'travel') {
-      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) : VEHICLES[v.type].mode === 'road' ? (w.state.mods.road ?? 1) : 1); // Road Crews (State lite)
+      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) * (w.weather === 'storm' ? 0.85 : 1) : VEHICLES[v.type].mode === 'road' ? (w.state.mods.road ?? 1) * weatherRoadMult(w) * (w.refits.turbo ? 1.08 : 1) : 1); // Road Crews · the sky (W36) · Turbo Fleet (W36)
       const hoursNeeded = (v.leg.km - v.leg.progress) / speed;
       const use = Math.min(budget, hoursNeeded);
       v.leg.progress += use * speed; budget -= use;
@@ -1530,9 +1571,9 @@ function generateContracts(w) {
   if (candidates.length > 3) { const rot = (day * 3) % candidates.length; candidates.push(...candidates.splice(0, rot)); }
   for (const cand of candidates.slice(0, 3)) {
     const depth = 1 - cand.stock / cand.target;
-    const premium = 0.25 + 0.55 * depth; // W35: softer premiums (was 0.4 + 0.8)
+    const premium = 0.4 + 0.8 * depth; // W36 strikes W35's softening — premiums restored; the overhead carries the pacing
     const spot = w.nodes[cand.id].prices[cand.good];
-    const pricePerTon = Math.round(Math.min(cand.anchor * 1.8, spot * (1 + premium))); // W35: cap ×1.8 (was ×2.2)
+    const pricePerTon = Math.round(Math.min(cand.anchor * 2.2, spot * (1 + premium))); // cap ×2.2 restored (W36)
     const qty = Math.round(Math.max(4, Math.min(40, cand.target - cand.stock)));
     const deadlineTick = w.tick + (2 + Math.floor(nextRandom(w) * 3)) * HOURS_PER_DAY;
     const item = pickItem(w, cand.good);
@@ -1548,7 +1589,7 @@ function generateContracts(w) {
     const anchor = NODES[to].anchors?.[good];
     if (!anchor) continue;
     const spot = w.nodes[to].prices[good];
-    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good][0].n, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.25 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
+    w.contracts.push({ id: w.nextId++, issuer: to, good, item: CONTRACT_ITEMS[good][0].n, qty: 12, delivered: 0, pricePerTon: Math.round(spot * 1.4 * (w.posture === 'adversarial' ? 1.15 : 1) * (w.leverage === 'reputation' ? 1.05 : 1)), deadlineTick: w.tick + 5 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: true, laneFrom: from });
     note(w, `Your ${NODES[from].name} → ${NODES[to].name} run has a rhythm — the board offers it as a standing contract at +40%.`, 'route');
     w.laneCounts[lane] = 0;
   }
@@ -1995,6 +2036,7 @@ export function eraReport(w) {
     `Cash on hand: $${Math.round(w.money).toLocaleString()}. The rest is land, iron, and name.`,
   ];
   if (w.project?.stage === 2) lines.push('It built the Gulf Line — through rail from the Sabine to Houston, its name on the chart in iron.');
+  if ((w.stats.wagesPaid ?? 0) + (w.stats.upkeepPaid ?? 0) + (w.stats.repairsPaid ?? 0) > 0) lines.push(`The cost of doing business, all told: wages $${(w.stats.wagesPaid ?? 0).toLocaleString()} · upkeep $${(w.stats.upkeepPaid ?? 0).toLocaleString()} · yard $${(w.stats.opexPaid ?? 0).toLocaleString()} · repairs $${(w.stats.repairsPaid ?? 0).toLocaleString()} — and ${w.stats.sickDays ?? 0} sick days weathered.`);
   return lines;
 }
 
@@ -2134,10 +2176,49 @@ function houseMarketStep(w) {
   note(w, `${buyer} buys ${UNITS[unitId].name} (${NODES[UNITS[unitId].node].name}) from ${seller} for $${price.toLocaleString()} — the houses trade among themselves now.`, 'news');
 }
 
+// --- W36: the cost of doing business posts at dawn — wages, upkeep, yard
+// costs, repairs, sick days. Player only; the houses carry theirs inside
+// their smoothed income. The till rule: never below $0 (zen holds), and
+// the crew is paid first.
+function overheadStep(w) {
+  w.weather = w.weatherNext ?? 'clear'; // yesterday's forecast is today's sky
+  { const r = nextWx(w); w.weatherNext = r < 0.60 ? 'clear' : r < 0.80 ? 'rain' : r < 0.93 ? 'heat' : 'storm'; }
+  const day = Math.floor(w.tick / HOURS_PER_DAY);
+  const firstDawn = w.tick === 0; // the company opened this morning: wages and upkeep post, but nothing has worn and no one is sick yet
+  let wages = 0, upkeep = 0, repairs = 0, opex = 0;
+  const wageRate = Math.round(WAGE[w.crews.wage] * (w.refits.boss ? 1.1 : 1));
+  const sickP = 0.022 * (w.crews.wage === 'tight' ? 1.6 : w.crews.wage === 'generous' ? 0.6 : 1) * (w.refits.boss ? 0.5 : 1);
+  for (const v of w.vehicles) {
+    wages += wageRate; upkeep += UPKEEP[v.type] ?? 6;
+    if (!firstDawn && v.downTo <= w.tick && nextWx(w) < sickP) { // the driver is a person
+      if (w.refits.spare && w.spareDay !== day) { w.spareDay = day; note(w, `🤒 ${v.driver} calls in sick — the spare rig rolls in their place.`, 'news'); }
+      else { v.downFrom = w.tick; v.downTo = w.tick + (w.refits.depot ? 18 : HOURS_PER_DAY); v.sickTick = w.tick; w.stats.sickDays++; note(w, `🤒 ${v.driver} is out sick today — their ${VEHICLES[v.type].name.toLowerCase()} sits quiet.`, 'warn'); }
+    }
+    const rp = REPAIR[v.type]; // repairs: the money face of wear
+    if (!firstDawn && rp && nextWx(w) < rp[0] * (w.skills.owned.preventive ? 0.5 : 1)) {
+      const bill = Math.round((rp[1] + nextWx(w) * (rp[2] - rp[1])) * (w.refits.depot ? 0.5 : 1));
+      repairs += bill;
+      if (bill >= 150) note(w, `🔧 ${v.driver}'s ${VEHICLES[v.type].name.toLowerCase()} throws a repair — $${bill}.`, 'warn');
+    }
+  }
+  for (const n of Object.values(w.boats)) upkeep += 8 * Math.max(0, n - 3); // the docks keep a baseline fleet of 3 (the world's, inside the fishery's economics); only boats you bought ride your upkeep
+  upkeep += 4 * Object.values(w.warehouses).reduce((a, b) => a + b, 0);
+  for (const [unitId, st] of Object.entries(w.units)) if (st.owner === 'player') opex += UNIT_OPEX[UNITS[unitId].kind] ?? 10;
+  const total = wages + upkeep + repairs + opex;
+  if (total <= 0) return;
+  let till = Math.max(0, Math.floor(w.money));
+  const due = [['wagesPaid', wages], ['upkeepPaid', upkeep], ['opexPaid', opex], ['repairsPaid', repairs]];
+  let paidSum = 0;
+  for (const [key, amt] of due) { const p = Math.min(amt, till); w.stats[key] += p; till -= p; paidSum += p; }
+  w.money -= paidSum;
+  if (paidSum < total) note(w, `⚠️ Overhead came to $${total.toLocaleString()} and the till held less — the crew is paid first, the rest is forgiven and noted. No debts in this company.`, 'warn');
+  else note(w, `🌅 Dawn settlement — wages $${wages.toLocaleString()} · upkeep $${upkeep.toLocaleString()}${opex ? ` · yard $${opex.toLocaleString()}` : ''}${repairs ? ` · repairs $${repairs.toLocaleString()}` : ''}.`, 'news');
+}
 function dayBoundary(w) {
   eventStep(w);
   unitIncomeDay(w);   // reads yesterday's flows before receipts reset them
   storageBleed(w);
+  overheadStep(w);    // then the cost of doing business posts (W36)
   loanStep(w);
   emancipationStep(w);
   maisonStep(w);
@@ -2213,16 +2294,19 @@ function dayBoundary(w) {
     const n = w.nodes[id];
     for (const good of Object.keys(def.consumes ?? {})) n.jitter[good] = 0.9 + nextRandom(w) * 0.2;
   }
-  // breakdowns land today? parts on hand shorten the shop's hold (W31)
+  // breakdowns land today? parts on hand shorten the shop's hold (W31);
+  // a sick day is not a breakdown, and the Spare Rig covers the day's first (W36)
   for (const v of w.vehicles) {
-    if (v.downFrom === w.tick) {
+    if (v.downFrom === w.tick && v.sickTick !== w.tick) {
       w.stats.breakdowns++;
+      const day = Math.floor(w.tick / HOURS_PER_DAY);
+      if (w.refits.spare && w.spareDay !== day) { w.spareDay = day; v.downTo = w.tick; note(w, `🔧 A ${VEHICLES[v.type].name.toLowerCase()} breaks down — the spare rig covers the run.`, 'news'); continue; }
       const home = v.at ?? v.leg?.from;
       if (home && stockOf(w, home, 'parts') >= 0.5) {
         takeStock(w, home, 'parts', 0.5);
         v.downTo = w.tick + 8;
         note(w, `A ${VEHICLES[v.type].name.toLowerCase()} breaks down at ${NODES[home].name} — parts on the shelf, back on the road by afternoon.`, 'warn');
-      } else note(w, `A ${VEHICLES[v.type].name.toLowerCase()} is in the shop for a day — upkeep collects its debt.`, 'warn');
+      } else { v.downTo = w.tick + (w.refits.depot ? 18 : HOURS_PER_DAY); note(w, `A ${VEHICLES[v.type].name.toLowerCase()} is in the shop ${w.refits.depot ? 'till evening' : 'for a day'} — upkeep collects its debt.`, 'warn'); }
     }
   }
 }
@@ -2346,5 +2430,14 @@ export function restore(json) {
   for (const [unitId, unit] of Object.entries(UNITS)) if (!w.units[unitId]) w.units[unitId] = { owner: unit.owner, incomeAvg: 0, lastIncome: 0 };
   for (const n of Object.values(w.nodes)) for (const g of Object.keys(GOODS)) if (!n.flow[g]) n.flow[g] = freshFlow(); // goods the world gained (W31–W34)
   if (w.rivalTrucks && w.rivalTrucks.length < 6) w.rivalTrucks.push({ house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', state: 'loading', hours: 0, cargo: 0, trips: 0 });
+  // saves from before the Overhead (W36): the sky, the refits, the drivers arrive
+  if (w.wxState === undefined) w.wxState = ((w.seed ?? 20261106) ^ 0x9e3779b9) | 0;
+  if (!w.weather) w.weather = 'clear';
+  if (!w.weatherNext) w.weatherNext = 'clear';
+  if (!w.refits) w.refits = {};
+  if (w.spareDay === undefined) w.spareDay = -1;
+  if (w.driverSeq === undefined) w.driverSeq = 0;
+  for (const v of w.vehicles) { if (!v.driver) { v.driver = DRIVERS[w.driverSeq % DRIVERS.length]; w.driverSeq++; } if (v.sickTick === undefined) v.sickTick = -1; }
+  for (const k of ['wagesPaid', 'upkeepPaid', 'repairsPaid', 'opexPaid', 'sickDays']) if (w.stats[k] === undefined) w.stats[k] = 0;
   return w;
 }

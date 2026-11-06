@@ -480,6 +480,7 @@ export function createWorld(seed = 1, opts = {}) {
       { house: 'Maison', from: 'houstonChem', to: 'molding', good: 'pellets', state: 'loading', hours: 0, cargo: 0, trips: 0 },
     ],
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
+    offer: null, offerCount: 0, // the Living Graph's first generator (W29)
     dayUnit: null,           // yesterday's unit income attribution (set by unitIncomeDay)
     craneGoods: {},          // goods the cranes touched since the last boundary
     boats: { docks: 3, delcambre: 3 },
@@ -968,6 +969,8 @@ function applyIntents(w) {
       note(w, `Marsh restored at ${NODES[it.nodeId].name} — the water clears (−15 pollution, +3 marsh) and the parish notices.`, 'buy');
     } else if (it.type === 'spinoffSub') {
       spinoffHouse(w, it.house);
+    } else if (it.type === 'offerAnswer') {
+      answerOffer(w, !!it.accept);
     } else if (it.type === 'setWage') {
       if (!['tight', 'fair', 'generous'].includes(it.wage)) continue;
       if (w.tick < w.crews.unionUntil && it.wage !== 'fair') { note(w, `The bargain holds: wages stay Fair until Day ${Math.floor(w.crews.unionUntil / 24) + 1}.`, 'warn'); continue; }
@@ -1026,6 +1029,9 @@ function applyIntents(w) {
       if (!['capped', 'uncapped'].includes(it.rule)) continue;
       w.crown.rule = it.rule;
       note(w, `The Crown reads ${it.rule === 'capped' ? 'capped — no tree counts past 35% of your movement' : 'uncapped — every dollar of movement counts whole'}. The R3 house rule stands as the house sets it.`, 'news');
+    } else if (it.type === 'setRoutePin') {
+      const r = w.routes.find(x => x.id === it.routeId);
+      if (r) { r.pin = it.good || null; note(w, `Cargo order on ${NODES[r.from].name} → ${NODES[r.to].name}: ${r.pin ? `haul ${GOODS[r.pin].name} only` : 'haul the best spread (auto)'}.`, 'route'); }
     } else if (it.type === 'setPolicy') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r && ['clock', 'full', 'scheduled'].includes(it.policy)) {
@@ -1040,7 +1046,7 @@ function applyIntents(w) {
         if (idle) assign(w, existing.id, idle.id);
         continue;
       }
-      const r = { id: w.nextId++, from: it.from, to: it.to, paused: false, trips: 0, earned: 0, policy: 'clock' };
+      const r = { id: w.nextId++, from: it.from, to: it.to, paused: false, trips: 0, earned: 0, policy: 'clock', pin: null };
       w.routes.push(r);
       const idle = w.vehicles.find(v => !v.routeId && v.at === it.from && v.phase === 'idle');
       if (idle) assign(w, r.id, idle.id);
@@ -1189,7 +1195,9 @@ function opCostMult(w, v) {
   return m;
 }
 function bestLoad(w, r) {
-  const goods = Object.keys(GOODS).filter(g => stockOf(w, r.from, g) > 0.01 && (NODES[r.to].consumes?.[g] || NODES[r.to].converts?.in === g));
+  const accepts = g => NODES[r.to].consumes?.[g] || NODES[r.to].converts?.in === g;
+  if (r.pin && accepts(r.pin)) return stockOf(w, r.from, r.pin) > 0.01 ? r.pin : null; // a cargo order: this good or nothing (W29)
+  const goods = Object.keys(GOODS).filter(g => stockOf(w, r.from, g) > 0.01 && accepts(g));
   if (!goods.length) return null;
   goods.sort((a, b) => {
     const pa = GOODS[a].perishHours ? 0 : 1, pb = GOODS[b].perishHours ? 0 : 1;
@@ -1836,6 +1844,80 @@ export function eraReport(w) {
 }
 
 // --- day & season boundaries ---
+// --- The Offers engine (W29): the Living Graph's first generator ---
+// One live offer at a time, drawn at most days from Day 2, kinds rotating. Every
+// offer is a decision whose consequences leave the offer: a unit changes hands,
+// a rush contract posts, a house grows or shrinks. Expiry is printed, never silent.
+export function maybeOffer(w, forceKind = null) {
+  if (w.offer) return w.offer;
+  const day = Math.floor(w.tick / HOURS_PER_DAY) + 1;
+  if (day < 2) return null;
+  if (!forceKind && nextRandom(w) > 0.6) return null;
+  const kinds = [];
+  const foreignUnits = Object.keys(UNITS).filter(id => w.units[id].owner !== 'player');
+  if (foreignUnits.length) kinds.push('unit-deal');
+  const myUnits = Object.keys(UNITS).filter(id => w.units[id].owner === 'player');
+  if (myUnits.length) kinds.push('house-bid');
+  const dry = [];
+  for (const [id, def] of Object.entries(NODES)) for (const good of Object.keys(def.consumes ?? {})) {
+    if (def.consumes[good] === 9999) continue;
+    if (stockOf(w, id, good) < 2 && def.anchors[good] && w.nodes[id].prices[good] > def.anchors[good] * 1.05) dry.push({ id, good });
+  }
+  if (dry.length) kinds.push('quest');
+  if (!kinds.length) return null;
+  const kind = forceKind && kinds.includes(forceKind) ? forceKind : kinds[(w.offerCount ?? 0) % kinds.length];
+  let offer = null;
+  if (kind === 'unit-deal') {
+    const unitId = foreignUnits[Math.floor(nextRandom(w) * foreignUnits.length)];
+    const price = Math.max(500, Math.round(unitValue(w, unitId) * (0.88 + nextRandom(w) * 0.17)));
+    offer = { kind, unitId, house: w.units[unitId].owner, price, text: `${w.units[unitId].owner} offers you ${UNITS[unitId].name} (${NODES[UNITS[unitId].node].name}) for $${price.toLocaleString()} — as-is, at ${Math.round(price / Math.max(1, unitValue(w, unitId)) * 100)}% of its book value.` };
+  } else if (kind === 'house-bid') {
+    const unitId = myUnits[Math.floor(nextRandom(w) * myUnits.length)];
+    const houses = Object.keys(HOUSES).filter(h => !w.houses[h].delisted && w.houses[h].subOf !== 'player');
+    const house = houses[Math.floor(nextRandom(w) * houses.length)] ?? 'The Families';
+    const manifest = unitManifest(w, unitId).reduce((s, m) => s + m.value, 0);
+    const price = Math.round(unitValue(w, unitId) * (1.10 + nextRandom(w) * 0.15)) + Math.round(manifest);
+    offer = { kind, unitId, house, price, text: `${house} bids $${price.toLocaleString()} for your ${UNITS[unitId].name} (${NODES[UNITS[unitId].node].name}) — book value plus the manifest at live prices. They want your ground.` };
+  } else {
+    const d = dry[Math.floor(nextRandom(w) * dry.length)];
+    const spot = w.nodes[d.id].prices[d.good];
+    const qty = Math.round(Math.min(24, Math.max(6, (NODES[d.id].consumes[d.good] ?? 6) * 2)));
+    offer = { kind, nodeId: d.id, good: d.good, qty, pricePerTon: Math.round(spot * 1.5), text: `${NODES[d.id].name} is bone-dry of ${GOODS[d.good].name} and posting a RUSH: ${qty}t at $${Math.round(spot * 1.5).toLocaleString()}/t (spot × 1.5), three days. Accept and the contract is on your board.` };
+  }
+  offer.postedTick = w.tick;
+  offer.expiresTick = w.tick + 2 * HOURS_PER_DAY;
+  w.offer = offer;
+  w.offerCount = (w.offerCount ?? 0) + 1;
+  note(w, `An offer lands: ${offer.text}`, 'news');
+  return offer;
+}
+function answerOffer(w, accept) {
+  const o = w.offer;
+  if (!o) return;
+  w.offer = null;
+  if (!accept) { note(w, 'The offer lapses, declined.', 'news'); return; }
+  if (o.kind === 'unit-deal') {
+    if (w.money < o.price) { note(w, `The ${UNITS[o.unitId].name} deal falls through — the cash is not there.`, 'warn'); return; }
+    w.money -= o.price;
+    const prev = w.units[o.unitId].owner;
+    if (prev !== 'player' && HOUSES[prev]) w.houses[prev].cash += o.price;
+    w.units[o.unitId].owner = 'player';
+    note(w, `${UNITS[o.unitId].name} is yours — bought from ${prev} at the offered price. The ground changed hands; what moves on it is now your question.`, 'good');
+  } else if (o.kind === 'house-bid') {
+    if (w.units[o.unitId].owner !== 'player') return;
+    w.money += o.price;
+    if (HOUSES[o.house]) w.houses[o.house].cash = Math.max(0, w.houses[o.house].cash - o.price);
+    w.units[o.unitId].owner = o.house;
+    const nid = UNITS[o.unitId].node;
+    for (const g of Object.keys(w.positions[nid] ?? {})) delete w.positions[nid][g]; // the manifest walks with the unit (S4.9)
+    note(w, `${UNITS[o.unitId].name} sold to ${o.house} at their bid. Their flag flies over your old ground now.`, 'news');
+  } else if (o.kind === 'quest') {
+    const item = pickItem(w, o.good);
+    w.contracts.push({ id: w.nextId++, issuer: o.nodeId, good: o.good, item: item.n, qty: o.qty, delivered: 0, pricePerTon: Math.round(o.pricePerTon * (item.m ?? 1)), deadlineTick: w.tick + 3 * HOURS_PER_DAY, postedTick: w.tick, state: 'open', standing: false, quest: true });
+    note(w, `The rush is yours: ${o.qty}t of ${GOODS[o.good].name} to ${NODES[o.nodeId].name} inside three days. The board carries it.`, 'good');
+  }
+}
+
 function dayBoundary(w) {
   eventStep(w);
   unitIncomeDay(w);   // reads yesterday's flows before receipts reset them
@@ -1887,6 +1969,8 @@ function dayBoundary(w) {
     if (seg.doneTick === w.tick) { const [a, b] = key.split('|'); note(w, `Track complete: ${NODES[a].name} ↔ ${NODES[b].name}. The iron is down.`, 'news'); }
   }
   generateContracts(w);
+  if (w.offer && w.tick > w.offer.expiresTick) { note(w, `The offer from ${w.offer.house ?? 'the market'} expired unanswered.`, 'news'); w.offer = null; }
+  maybeOffer(w);
   // burn jitter: every sink's appetite breathes ±10% a day (seeded)
   for (const [id, def] of Object.entries(NODES)) {
     const n = w.nodes[id];

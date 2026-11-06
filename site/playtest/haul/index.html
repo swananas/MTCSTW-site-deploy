@@ -16,6 +16,8 @@
   #delta { font-weight:800; color:#b3402e; font-size:13.5px; min-width:52px; }
   #infl { font-weight:700; color:#5b4a8a; font-size:13.5px; }
   #events { display:none; padding:4px 10px; background:#f3e9d2; border-bottom:1px solid var(--line); font-size:12.5px; }
+  #offer { display:none; padding:6px 10px; background:#fdf6e0; border-bottom:2px solid var(--gold); font-size:13px; }
+  #offer button { margin-left:6px; }
   #events div { padding:1px 0; }
   header .clock { margin-left:auto; font-size:12.5px; opacity:.85; text-align:right; line-height:1.25; }
   .speeds { display:flex; gap:4px; }
@@ -66,6 +68,7 @@
   </header>
   <canvas id="map"></canvas>
   <div id="events"></div>
+  <div id="offer"></div>
   <div id="routes"></div>
   <div id="ticker"></div>
   <div id="sheet"></div>
@@ -74,8 +77,8 @@
 <script type="module">
 import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v14';
-const CURRENT_PHASE = 1.4;
+const SAVE_KEY = 'haul-save-v15';
+const CURRENT_PHASE = 1.5;
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -492,12 +495,14 @@ function renderSheet() {
         <button id="b-policy">Departure: ${policyName} ↻</button>
         <button id="b-pause">${rt.paused ? 'Resume route' : 'Pause route'}</button>
         <button id="b-rm">Remove</button>
-      </div></div>`)) return;
+      </div>
+      <div class="row" style="margin-top:4px"><span class="status">Cargo order:</span> <button data-pin="" class="${!rt.pin ? 'on' : ''}">Auto (best spread)</button>${Object.keys(NODES[rt.from].anchors).map(g => `<button data-pin="${g}" class="${rt.pin === g ? 'on' : ''}">${GOODS[g].name} only</button>`).join('')}</div></div>`)) return;
     $('b-addbox').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'box', nodeId: rt.from, routeId: rt.id });
     $('b-addsemi').onclick = () => Q({ type: 'buyVehicle', vehicleType: 'semi', nodeId: rt.from, routeId: rt.id });
     const bb = $('b-addbarge'); if (bb) bb.onclick = () => Q({ type: 'buyVehicle', vehicleType: 'barge', nodeId: rt.from, routeId: rt.id });
     const bt2 = $('b-addtrain'); if (bt2) bt2.onclick = () => Q({ type: 'buyVehicle', vehicleType: 'train', nodeId: rt.from, routeId: rt.id });
     $('b-policy').onclick = () => Q({ type: 'setPolicy', routeId: rt.id, policy: nextPolicy });
+    el.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => Q({ type: 'setRoutePin', routeId: rt.id, good: b.dataset.pin || null }));
     $('b-pause').onclick = () => Q({ type: 'toggleRoute', routeId: rt.id });
     $('b-rm').onclick = () => { Q({ type: 'removeRoute', routeId: rt.id }); sel = null; };
     return;
@@ -564,6 +569,18 @@ function renderRoutes() {
   });
   el.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => Q({ type: 'removeRoute', routeId: +b.dataset.rm }));
 }
+function renderOffer() {
+  const el = $('offer');
+  const o = w.offer;
+  if (!o) { el.style.display = 'none'; setHTML(el, ''); return; }
+  el.style.display = 'block';
+  const days = Math.max(1, Math.ceil((o.expiresTick - w.tick) / 24));
+  setHTML(el, `🤝 <b>An offer:</b> ${o.text} <span class="status">(expires in ${days}d)</span><button class="primary" data-offer="1">Accept</button><button data-offer="0">Decline</button>`);
+}
+$('offer').addEventListener('click', e => {
+  const b = e.target.closest('[data-offer]');
+  if (b) Q({ type: 'offerAnswer', accept: b.dataset.offer === '1' });
+});
 function renderEvents() {
   const el = $('events');
   if (!w.events.length) { el.style.display = 'none'; return; }
@@ -702,7 +719,7 @@ function frame(now) {
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   $('crownbtn').textContent = w.crown.ending ? '👑 !' : '👑';
   setHTML($('clock'), `Season ${Math.floor((day - 1) / 30) + 1} · Day ${day}<br>${String(hour).padStart(2, '0')}:00`);
-  draw(now); renderTicker(); renderRoutes(); renderEvents();
+  draw(now); renderTicker(); renderRoutes(); renderEvents(); renderOffer();
   { // the clock ring (kit sheet LT-02): outer arc the season, inner arc the day
     const rc = $('ring').getContext('2d');
     rc.clearRect(0, 0, 36, 36);

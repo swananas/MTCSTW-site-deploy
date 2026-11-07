@@ -78,10 +78,10 @@
 </div>
 
 <script type="module">
-import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, truckPos, companyOf, PAINTS, calendarOf, ladderOf, MAP_BOX, REFITS, WEATHERS } from './engine.js';
+import { createWorld, restore, snapshot, queueIntent, flushIntents, tick, stockOf, distance, routeQuote, capOf, waterDistance, shipCallDays, riverCallDays, fisheryFactor, railDistance, ICE_MULT, TRACK_COST_PER_KM, YARD_COST, WATER_NODES, NODES, GOODS, VEHICLES, EDGES, SKILLS, UNITS, PRIMARY_UNIT, unitValue, unitManifest, positionsAt, availOf, HOUSES, STATE_DECK, EVENT_DECK, COASTAL, sharePrice, houseEquity, loanOwed, parcelPrice, eraReport, GROUNDS, LEVERAGES, OPENING_PRESETS, coverageOf, routeFlowOf, companyOf, PAINTS, calendarOf, ladderOf, MAP_BOX, REFITS, WEATHERS } from './engine.js';
 
-const SAVE_KEY = 'haul-save-v19';
-const CURRENT_PHASE = 2.4; // Wave 16: THE SEAM + DORMANCY (LT-08 section 9) (saves migrate in restore())
+const SAVE_KEY = 'haul-save-v20'; // W40: the flow save; v19 still reads once and migrates
+const CURRENT_PHASE = 2.5; // Wave 17: THE FLOW MODEL (W40) — movement is accounting (saves migrate in restore())
 // Purchases apply the moment they're tapped — money moves NOW, even paused.
 const Q = it => { queueIntent(w, it); flushIntents(w); renderSheet(); };
 // Map view: pinch / double-tap zoom, drag to pan (world CSS px -> screen CSS px)
@@ -93,7 +93,7 @@ function bootWorld() {
   return createWorld(20261106, { mode: start.mode === 'sandbox' ? 'sandbox' : 'campaign', ground: start.ground, leverage: start.leverage, companyName: start.companyName, paint: start.paint });
 }
 let freshRun = false;
-try { const s = localStorage.getItem(SAVE_KEY); freshRun = !s && !localStorage.getItem('haul-start'); w = s ? restore(s) : bootWorld(); }
+try { const s = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem('haul-save-v19'); freshRun = !s && !localStorage.getItem('haul-start'); w = s ? restore(s) : bootWorld(); }
 catch { w = createWorld(20261106); }
 
 let speed = 0, sel = null, pendingRoute = null, panel = freshRun ? 'start' : null, trackMode = false, lastTickAt = performance.now(), acc = 0; // the clock never runs before the player says so (Hotfix 16.3); a first run opens at the two picks
@@ -171,22 +171,11 @@ function statusText(v) {
   if (v.downTo > w.tick && v.sickTick > w.tick - 24) return `🤒 ${v.driver} is out sick — back tomorrow`;
   if (v.downTo > w.tick) return `in the shop till Day ${Math.floor(v.downTo / 24) + 1} (${v.driver} waits on the wrench)`;
   const r = w.routes.find(x => x.id === v.routeId);
-  if (v.phase === 'loading') return `loading ${v.cargo.qty.toFixed(0)}t ${GOODS[v.cargo.good].name.toLowerCase()} at ${NODES[v.at].name}`;
-  if (v.phase === 'unloading') return `unloading at ${NODES[v.at].name}`;
-  if (v.phase === 'travel' && v.leg) {
-    const left = Math.max(0, Math.round(v.leg.km - v.leg.progress));
-    return v.cargo ? `hauling ${v.cargo.qty.toFixed(0)}t ${GOODS[v.cargo.good].name.toLowerCase()} → ${NODES[v.leg.to].name} · ${left} km out`
-                   : `heading back to ${NODES[v.leg.to].name} · ${left} km out`;
-  }
-  if (r?.paused) return `parked — route paused`;
+  if (r?.paused) return `posted — route paused`;
   if (r && VEHICLES[v.type].mode === 'water' && waterDistance(r.from, r.to) >= 999) return `beached — no water runs between these places`;
   if (r && VEHICLES[v.type].mode === 'rail' && railDistance(w, r.from, r.to) >= 999) return `no iron — trains need yards at both ends and laid track between them`;
-  if (r && v.at === r.from) {
-    const q = routeQuote(w, r.from, r.to);
-    return q && stockOf(w, r.from, q.good) > 0.05 ? `ready at ${NODES[v.at].name}` : `waiting at ${NODES[v.at].name} — nothing to carry yet`;
-  }
-  if (r) return `repositioning to ${NODES[r.from].name}`;
-  return `idle at ${NODES[v.at].name} — no route`;
+  if (r) { const q = routeQuote(w, r.from, r.to); return q && stockOf(w, r.from, q.good) > 0.05 ? `on the ${NODES[r.to].name} run — freight is flowing` : `on the ${NODES[r.to].name} run — waiting on freight at ${NODES[r.from].name}`; }
+  return `resting at ${NODES[v.at].name} — no route`;
 }
 
 // --- drawing ---
@@ -370,33 +359,8 @@ function draw(now) {
       }
     }
   }
-  // vehicles — after the places (spec draw order §1): traffic sits ON the world
-  for (const v of w.vehicles) {
-    let p = null;
-    if (v.phase === 'travel' && v.leg) {
-      const a = pt(v.leg.from), b = pt(v.leg.to), f = v.leg.km ? v.leg.progress / v.leg.km : 0;
-      p = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
-    } else if (v.at) p = pt(v.at);
-    if (!p) continue;
-    if (v.type === 'barge' && v.phase === 'travel') { ctx.fillStyle = 'rgba(245,241,228,.16)'; ctx.beginPath(); ctx.ellipse(p.x - 5, p.y + 2.5, 9, 2, 0, 0, 7); ctx.fill(); } // the wake (§6)
-    ctx.fillStyle = 'rgba(64,62,44,.30)'; // contact shadow (§6)
-    ctx.beginPath(); ctx.ellipse(p.x + 1.5, p.y + 3.5, 6, 2.2, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = companyOf(w).paint;
-    ctx.beginPath(); ctx.arc(p.x, p.y + (v.cargo ? 1.5 : 0), v.type === 'semi' ? 5 : v.type === 'barge' ? 6.5 : 4, 0, 7); ctx.fill(); // loaded rides lower (LT-03)
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
-    if (v.cargo) { ctx.fillStyle = '#22312a'; ctx.fillRect(p.x - 2, p.y + (v.cargo ? 0 : -1.5), 4, 3); }
-  }
-  // rival trucks: the houses' own freight, in their paint (W27)
-  { const r0 = cv.getBoundingClientRect();
-    for (const t of w.rivalTrucks) {
-      const tp = truckPos(w, t), s = ptXY(tp.x, tp.y);
-      ctx.fillStyle = 'rgba(64,62,44,.25)';
-      ctx.beginPath(); ctx.ellipse(s.x + 1, s.y + 3, 6, 2, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = HOUSES[t.house].paint;
-      ctx.beginPath(); ctx.roundRect(s.x - 5, s.y - 3.5, 10, 7, 2); ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.lineWidth = 1;
-      if (t.cargo > 0) { ctx.fillStyle = '#22312a'; ctx.fillRect(s.x - 2, s.y - 1.5, 4, 3); }
-    } }
+  // W40 (Wave 17): traffic is no longer drawn — movement is accounting.
+  // What a route is doing reads on its face (flow figures), not in a crawl.
   // THE MAP QUOTES YOU: with a place selected, every destination shows its money
   // (in track mode, it quotes iron instead)
   if (sel?.kind === 'node' && view.level >= 2) { // price pills live at Region and Ground (W38)
@@ -635,7 +599,7 @@ function renderStart(el) {
   el.querySelector('[data-launch]').onclick = () => {
     const liveName = el.querySelector('#start-name')?.value.trim() ?? startName;
     localStorage.setItem('haul-start', JSON.stringify({ ground: startGround, leverage: startLeverage, mode: startMode, companyName: liveName, paint: startPaint }));
-    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(SAVE_KEY); localStorage.removeItem('haul-save-v19');
     location.reload();
   };
 }
@@ -703,13 +667,15 @@ function renderSheet() {
     if (!rt) { sel = null; return renderSheet(); }
     const q = routeQuote(w, rt.from, rt.to);
     const trucks = w.vehicles.filter(v => v.routeId === rt.id);
+    const fl = routeFlowOf(w, rt);
+    const resting = w.vehicles.filter(v => !v.routeId && v.at === rt.from);
     const waterKm = waterDistance(rt.from, rt.to);
     const bargePrice = rt.from === 'shipyard' ? 15200 : VEHICLES.barge.cost;
     const policyName = { clock: 'Full-or-clock', full: 'Full loads only', scheduled: 'Scheduled (12h)' }[rt.policy ?? 'clock'];
     const nextPolicy = { clock: 'full', full: 'scheduled', scheduled: 'clock' }[rt.policy ?? 'clock'];
     if (!setHTML(el, `<div class="card"><h3>${NODES[rt.from].name} → ${NODES[rt.to].name}</h3>
-      <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
-      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} · ${v.driver ?? ''} — ${statusText(v)}</div>`).join('') || '<div class="status">No vehicle on this route yet — add one below and it starts on the next tick.</div>'}
+      <div class="sub">${distance(rt.from, rt.to)} km by road${waterKm < 999 ? ` · ${waterKm} km by water` : ''} · ${rt.trips} trips · <b>$${rt.earned.toLocaleString()} earned</b>${q ? ` · now paying ~$${q.spreadPerTon.toFixed(0)}/t for ${GOODS[q.good].name.toLowerCase()}` : ''}${rt.paused ? ' · <b>PAUSED</b>' : ''}<br>⇢ Flow: <b>${fl.perDay.toFixed(0)} t/day</b> · ${fl.inTransit.toFixed(0)}t on the way · ≈ <b>$${Math.round(fl.marginPerDay).toLocaleString()}/day</b> at today's prices<br>Departure: <b>${policyName}</b>${trucks.some(v => v.type === 'barge') && rt.policy !== 'full' ? ' — barges lean <i>Full loads only</i>' : ''}</div>
+      ${trucks.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} · ${v.driver ?? ''} — ${statusText(v)} <button data-unassign="${v.id}" style="float:right">Rest</button></div>`).join('') || '<div class="status">No vehicle posted to this route yet — buy one below, or post a resting one.</div>'}${resting.map(v => `<div class="status">${v.type === 'barge' ? '⛴' : v.type === 'train' ? '🚂' : '🚚'} ${VEHICLES[v.type].name} · ${v.driver ?? ''} — resting at ${NODES[rt.from].name} <button data-assign="${v.id}" style="float:right">Post to this route</button></div>`).join('')}
       <div class="row" style="margin-top:6px">
         <button class="primary" id="b-addbox" ${w.money < VEHICLES.box.cost ? 'disabled' : ''}>＋ Box truck · $${VEHICLES.box.cost}</button>
         <button class="primary" id="b-addsemi" ${w.money < VEHICLES.semi.cost ? 'disabled' : ''}>＋ 18-wheeler · $${VEHICLES.semi.cost}</button>
@@ -728,6 +694,8 @@ function renderSheet() {
     el.querySelectorAll('[data-pin]').forEach(b => b.onclick = () => Q({ type: 'setRoutePin', routeId: rt.id, good: b.dataset.pin || null }));
     $('b-pause').onclick = () => Q({ type: 'toggleRoute', routeId: rt.id });
     $('b-rm').onclick = () => { Q({ type: 'removeRoute', routeId: rt.id }); sel = null; };
+    el.querySelectorAll('[data-unassign]').forEach(b => b.onclick = () => Q({ type: 'assignVehicle', vehicleId: +b.dataset.unassign, routeId: null }));
+    el.querySelectorAll('[data-assign]').forEach(b => b.onclick = () => Q({ type: 'assignVehicle', vehicleId: +b.dataset.assign, routeId: rt.id }));
     return;
   }
   if (!sel) {

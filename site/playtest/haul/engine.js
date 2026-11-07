@@ -589,11 +589,11 @@ export function createWorld(seed = 1, opts = {}) {
     dormancy: {},            // per-place sleep class (W39): 0 dormant · 1 stirring · 2 awake; unmeasured = awake
     capital: { timberStock: 3000, soil: { caneA: 100, caneB: 100, ricefarm: 100 }, marsh: 100 }, // natural capital (W27)
     rivalTrucks: [
-      { house: 'Boudreaux', from: 'caneB', to: 'mill', good: 'cane', state: 'loading', hours: 0, cargo: 0, trips: 0 },
-      { house: 'Pelican', from: 'processor', to: 'distributor', good: 'packed', state: 'loading', hours: 0, cargo: 0, trips: 0 },
-      { house: 'Maison', from: 'refinery', to: 'fourchon', good: 'fuel', state: 'loading', hours: 0, cargo: 0, trips: 0 },
-      { house: 'Maison', from: 'houstonChem', to: 'molding', good: 'pellets', state: 'loading', hours: 0, cargo: 0, trips: 0 },
-      { house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', state: 'loading', hours: 0, cargo: 0, trips: 0 },
+      { house: 'Boudreaux', from: 'caneB', to: 'mill', good: 'cane', acc: 0, pipe: [], trips: 0 },
+      { house: 'Pelican', from: 'processor', to: 'distributor', good: 'packed', acc: 0, pipe: [], trips: 0 },
+      { house: 'Maison', from: 'refinery', to: 'fourchon', good: 'fuel', acc: 0, pipe: [], trips: 0 },
+      { house: 'Maison', from: 'houstonChem', to: 'molding', good: 'pellets', acc: 0, pipe: [], trips: 0 },
+      { house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', acc: 0, pipe: [], trips: 0 },
     ],
     daySettle: {},           // today's delivered value by tree (reset at the boundary)
     offer: null, offerCount: 0, // the Living Graph's first generator (W29)
@@ -659,7 +659,7 @@ function applyOpening(w, opts) {
   else if (g.vehicle === 'boat') w.boats[g.node] = (w.boats[g.node] ?? 0) + 1;
   if (g.unit) w.units[g.unit].owner = 'player';
   if (g.route && vehicle) {
-    const r = { id: w.nextId++, from: g.route[0], to: g.route[1], paused: false, trips: 0, earned: 0, policy: 'clock' };
+    const r = { id: w.nextId++, from: g.route[0], to: g.route[1], paused: false, trips: 0, earned: 0, policy: 'clock', acc: 0, pipe: [] };
     w.routes.push(r);
     vehicle.routeId = r.id;
   }
@@ -900,37 +900,35 @@ export function loanOwed(w, loan) {
 // Rival trucks (W27): each listed house runs one truck on its own vertical
 // lane. Stock truly leaves and arrives; the houses earn through unit income.
 function rivalStep(w) {
+  // W40 (Wave 17): a rival truck is a rival FLOW on its lane — the same pipe
+  // the player's routes run, at house scale (16t, box speed, 2h/1h handling
+  // in its cycle). Stock truly leaves and arrives; the houses earn through
+  // unit income, as before.
   for (const t of w.rivalTrucks) {
-    const km = distance(t.from, t.to);
-    if (t.state === 'loading') {
-      if (++t.hours >= 2) {
-        // a house truck does not haul into a full yard: it waits for room
-        const roomAtDest = capOf(w, t.to, t.good) - stockOf(w, t.to, t.good);
-        const want = roomAtDest > 2 ? Math.min(16, stockOf(w, t.from, t.good)) : 0;
-        if (want >= 0.5) { takeStock(w, t.from, t.good, want); w.nodes[t.from].flow[t.good].out += want; t.cargo = want; t.state = 'hauling'; t.hours = 0; }
-        else t.hours = 0;
+    if (!t.pipe) t.pipe = [];
+    for (let k = t.pipe.length - 1; k >= 0; k--) {
+      const lot = t.pipe[k];
+      if (lot.arriveTick > w.tick) continue;
+      const room = Math.max(0, capOf(w, t.to, t.good) - stockOf(w, t.to, t.good));
+      const landed = Math.min(lot.qty, room);
+      if (landed > 0) { addStock(w, t.to, t.good, landed, GOODS[t.good].perishHours ? null : 0); w.nodes[t.to].flow[t.good].in += landed; lot.qty -= landed; }
+      t.pipe.splice(k, 1);
+      if (lot.qty <= 0.001) t.trips++;
+      else addStock(w, t.from, t.good, lot.qty, GOODS[t.good].perishHours ? null : 0); // no room at the far end: the load turns back
+    }
+    const km = Math.max(1, distance(t.from, t.to));
+    const cycle = 2 + km / 45 + 1 + km / 45; // load · haul · unload · return
+    t.acc = Math.min((t.acc ?? 0) + 16 * 24 / cycle / HOURS_PER_DAY, 32);
+    if (t.acc >= 4) {
+      const roomAtDest = capOf(w, t.to, t.good) - stockOf(w, t.to, t.good);
+      const want = roomAtDest > 2 ? Math.min(16, t.acc, stockOf(w, t.from, t.good)) : 0;
+      if (want >= 0.5) {
+        const portions = takeStock(w, t.from, t.good, want);
+        const sum = portions.reduce((x, p) => x + p.qty, 0);
+        if (sum >= 0.5) { w.nodes[t.from].flow[t.good].out += sum; t.pipe.push({ qty: sum, arriveTick: w.tick + Math.max(1, Math.ceil(km / 45)) }); t.acc -= sum; }
       }
-    } else if (t.state === 'hauling') {
-      if (++t.hours * 45 >= km) { t.state = 'unloading'; t.hours = 0; }
-    } else if (t.state === 'unloading') {
-      if (++t.hours >= 1) {
-        const room = Math.max(0, capOf(w, t.to, t.good) - stockOf(w, t.to, t.good));
-        const landed = Math.min(t.cargo, room);
-        if (landed > 0) { addStock(w, t.to, t.good, landed, GOODS[t.good].perishHours ? null : 0); w.nodes[t.to].flow[t.good].in += landed; t.cargo -= landed; }
-        if (t.cargo <= 0.001) { t.cargo = 0; t.trips++; t.state = 'returning'; t.hours = 0; }
-      }
-    } else if (t.state === 'returning') {
-      if (++t.hours * 45 >= km) { t.state = 'loading'; t.hours = 0; }
     }
   }
-}
-export function truckPos(w, t) {
-  const a = NODES[t.from], b = NODES[t.to], km = Math.max(1, distance(t.from, t.to));
-  if (t.state === 'loading') return { x: a.x, y: a.y };
-  if (t.state === 'unloading') return { x: b.x, y: b.y };
-  const p = Math.min(1, t.hours * 45 / km);
-  if (t.state === 'hauling') return { x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p };
-  return { x: b.x + (a.x - b.x) * p, y: b.y + (a.y - b.y) * p };
 }
 
 function applyIntents(w) {
@@ -1179,13 +1177,13 @@ function applyIntents(w) {
       if (it.from === it.to) continue;
       const existing = w.routes.find(r => r.from === it.from && r.to === it.to);
       if (existing) {
-        const idle = w.vehicles.find(v => !v.routeId && v.at === it.from && v.phase === 'idle');
+        const idle = w.vehicles.find(v => !v.routeId && v.at === it.from);
         if (idle) assign(w, existing.id, idle.id);
         continue;
       }
-      const r = { id: w.nextId++, from: it.from, to: it.to, paused: false, trips: 0, earned: 0, policy: 'clock', pin: null };
+      const r = { id: w.nextId++, from: it.from, to: it.to, paused: false, trips: 0, earned: 0, policy: 'clock', pin: null, acc: 0, pipe: [] };
       w.routes.push(r);
-      const idle = w.vehicles.find(v => !v.routeId && v.at === it.from && v.phase === 'idle');
+      const idle = w.vehicles.find(v => !v.routeId && v.at === it.from);
       if (idle) assign(w, r.id, idle.id);
       note(w, `Route drawn: ${NODES[it.from].name} → ${NODES[it.to].name} (${distance(it.from, it.to)} km).`, 'route');
     } else if (it.type === 'toggleRoute') {
@@ -1194,9 +1192,17 @@ function applyIntents(w) {
     } else if (it.type === 'removeRoute') {
       const r = w.routes.find(x => x.id === it.routeId);
       if (r) {
-        for (const v of w.vehicles) if (v.routeId === r.id && v.phase === 'idle') v.routeId = null;
+        for (const v of w.vehicles) if (v.routeId === r.id) v.routeId = null;
+        for (const lot of [...(r.pipe ?? [])]) settleArrival(w, r, lot); // the pipe lands before the line closes (W40)
+        r.pipe = [];
         w.routes = w.routes.filter(x => x.id !== it.routeId);
         note(w, `Route ${NODES[r.from].name} → ${NODES[r.to].name} removed.`, 'route');
+      }
+    } else if (it.type === 'assignVehicle') {
+      const v = w.vehicles.find(x => x.id === it.vehicleId);
+      if (v) {
+        if (it.routeId) { assign(w, it.routeId, v.id); const r = w.routes.find(x => x.id === it.routeId); if (r) note(w, `${VEHICLES[v.type].name} (${v.driver}) posted to ${NODES[r.from].name} → ${NODES[r.to].name}.`, 'route'); }
+        else { v.routeId = null; note(w, `${VEHICLES[v.type].name} (${v.driver}) rests at ${NODES[v.at].name}.`, 'route'); }
       }
     } else if (it.type === 'buyWarehouse') {
       const count = w.warehouses[it.nodeId] ?? 0;
@@ -1228,7 +1234,8 @@ function applyIntents(w) {
 }
 function assign(w, routeId, vehicleId) {
   const v = w.vehicles.find(x => x.id === vehicleId);
-  if (v && v.phase === 'idle') v.routeId = routeId;
+  const r = w.routes.find(x => x.id === routeId);
+  if (v && r) { v.routeId = routeId; v.at = r.from; }
 }
 
 // --- production, conversion, consumption (hourly rates, S3 order) ---
@@ -1379,17 +1386,52 @@ function loadAllowed(w, v, r, good) {
   if (r.policy === 'scheduled') return w.tick % 12 === 0;
   return true; // full-or-clock
 }
-function tryLoad(w, v, r) {
-  const good = bestLoad(w, r);
-  if (!good) return;
-  if (!loadAllowed(w, v, r, good)) return;
-  const spec = VEHICLES[v.type];
-  const effCap = spec.mode === 'water' ? spec.cap * bargeCapMult(w, true) : spec.cap;
-  const qty = Math.min(effCap, stockOf(w, r.from, good));
-  if (qty <= 0.01) return;
+// --- transport, the flow model (W40, Wave 17): movement is accounting ---
+// A vehicle is an ASSIGNMENT: it belongs to a route or rests at a node.
+// A route is a pipe: throughput from its assigned fleet's cycles, goods in
+// a pipeline with true transit times, arrivals settling exactly as the old
+// unload did. Availability is a window, as the workbook always wrote it
+// (W17: a hit schedules a 24h outage ON that day): offline iff
+// downFrom <= tick < downTo. (The travel build's stepVehicle guard read
+// downTo alone and grounded a vehicle from the day its breakdown was
+// SCHEDULED — up to 29 days early. The conversion restores the window.)
+function vehicleAvailable(w, v) { return !(v.downFrom <= w.tick && w.tick < v.downTo); }
+function speedNow(w, type) {
+  const spec = VEHICLES[type];
+  return spec.speed * (spec.mode === 'water' ? bargeSpeedMult(w) * (w.weather === 'storm' ? 0.85 : 1) : spec.mode === 'road' ? (w.state.mods.road ?? 1) * weatherRoadMult(w) * (w.refits.turbo ? 1.08 : 1) : 1); // Road Crews · the sky (W36) · Turbo Fleet (W36)
+}
+function effCapOf(w, v) { const spec = VEHICLES[v.type]; return spec.mode === 'water' ? spec.cap * bargeCapMult(w, true) : spec.cap; }
+function cycleHours(w, r, v) {
+  const spec = VEHICLES[v.type], km = legKm(w, v, r.from, r.to), sp = Math.max(0.01, speedNow(w, v.type)), cap = effCapOf(w, v), hpt = spec.handlingPerTon ?? 0.08;
+  return (0.5 + hpt * cap) * handlingMult(w, r.from) + km / sp + (0.5 + hpt * cap) * handlingMult(w, r.to) + km / sp;
+}
+export function routeDailyThroughput(w, r) {
+  let t = 0;
+  for (const v of w.vehicles) if (v.routeId === r.id && vehicleAvailable(w, v)) t += effCapOf(w, v) * 24 / cycleHours(w, r, v);
+  return t;
+}
+export function routeFlowOf(w, r) { // the route's face (W40's counterweight: legibility)
+  const perDay = routeDailyThroughput(w, r);
+  const inTransit = (r.pipe ?? []).reduce((s, l) => s + l.qty, 0);
+  let marginPerDay = 0;
+  const good = perDay > 0 ? bestLoad(w, r) : null;
+  if (good) {
+    const rep = w.vehicles.find(v => v.routeId === r.id);
+    const km = rep ? legKm(w, rep, r.from, r.to) : distance(r.from, r.to);
+    const op = (rep ? VEHICLES[rep.type].opPerTKm : 0.36) * km * (rep ? opCostMult(w, rep) : 1);
+    marginPerDay = perDay * Math.max(0, (marginalPrice(w, r.to, good, 1) - marginalPrice(w, r.from, good, -1)) - op);
+  }
+  return { perDay, inTransit, marginPerDay };
+}
+function perishPressure(w, r, good) {
+  if (!GOODS[good].perishHours) return false;
+  const lots = w.nodes[r.from].lots.filter(l => l.good === good);
+  return lots.length > 0 && w.tick - Math.min(...lots.map(l => l.born)) >= 48;
+}
+function departLot(w, r, good, qty, vType) {
   const portions = takeStock(w, r.from, good, qty);
   const sum = portions.reduce((s, p) => s + p.qty, 0);
-  if (sum <= 0.01) return;
+  if (sum <= 0.01) return 0;
   // loading your own held stock releases the position (the title merges back)
   const posKey = `${r.from}|${good}`;
   if (w.positions[posKey]) {
@@ -1399,21 +1441,38 @@ function tryLoad(w, v, r) {
   // cold chain: your carried clocks run slow once you're certified
   if (w.skills.owned.coldchain && GOODS[good].perishHours) for (const p of portions) p.clockMult = Math.min(p.clockMult ?? 1, 2 / 3);
   const born = portions.find(p => p.born !== null)?.born ?? null;
-  v.cargo = { good, qty: sum, portions, born };
-  v.phase = 'loading';
-  v.timer = (0.5 + (spec.handlingPerTon ?? 0.08) * sum) * handlingMult(w, r.from);
+  const spec = VEHICLES[vType];
+  const km = legKm(w, { type: vType }, r.from, r.to);
+  const transit = Math.max(1, Math.ceil((0.5 + (spec.handlingPerTon ?? 0.08) * sum) * handlingMult(w, r.from) + km / Math.max(0.01, speedNow(w, vType))));
+  r.pipe.push({ good, qty: sum, portions, born, vType, arriveTick: w.tick + transit });
   w.nodes[r.from].flow[good].out += sum;
+  return sum;
 }
-function startLeg(w, v, from, to, cargo) {
-  v.phase = 'travel';
-  v.leg = { from, to, km: legKm(w, v, from, to), progress: 0 };
-  v.at = null;
-  v.cargo = cargo;
-}
-function depart(w, v) {
-  const r = w.routes.find(x => x.id === v.routeId);
-  if (!r || !v.cargo) { v.phase = 'idle'; return; }
-  startLeg(w, v, r.from, r.to, v.cargo);
+function stepFlow(w, r) {
+  if (!r.pipe) r.pipe = [];
+  for (let i = r.pipe.length - 1; i >= 0; i--) if (r.pipe[i].arriveTick <= w.tick) { const lot = r.pipe[i]; r.pipe.splice(i, 1); settleArrival(w, r, lot); }
+  if (r.paused) return;
+  const assigned = w.vehicles.filter(v => v.routeId === r.id);
+  if (!assigned.length) return;
+  const mode = VEHICLES[assigned[0].type].mode;
+  if (mode === 'water' && waterDistance(r.from, r.to) >= 999) return; // mode honesty: no water, no work
+  if (mode === 'rail' && railDistance(w, r.from, r.to) >= 999) return; // no iron, no train
+  const perDay = routeDailyThroughput(w, r);
+  if (perDay <= 0) return; // the whole fleet is in the shop or out sick: the pipe rests
+  const rep = assigned.filter(v => vehicleAvailable(w, v)).sort((a, b) => effCapOf(w, b) - effCapOf(w, a))[0];
+  r.acc = Math.min((r.acc ?? 0) + perDay / HOURS_PER_DAY, 2 * effCapOf(w, rep)); // the yard stages at most two loads deep
+  let guard = 0;
+  while (guard++ < 8) {
+    const good = bestLoad(w, r);
+    if (!good) break;
+    if (!loadAllowed(w, rep, r, good)) break; // the departure policies, as built (W18)
+    if (r.policy === 'clock' && r.acc < Math.max(0.5, perDay * 0.05) && !perishPressure(w, r, good)) break; // full-or-clock batches on the accumulator (W40)
+    const qty = Math.min(effCapOf(w, rep), r.acc, stockOf(w, r.from, good));
+    if (qty < 0.5) break;
+    const sent = departLot(w, r, good, qty, rep.type);
+    if (sent <= 0) break;
+    r.acc -= sent;
+  }
 }
 function legKm(w, v, from, to) {
   const mode = VEHICLES[v.type].mode;
@@ -1421,17 +1480,9 @@ function legKm(w, v, from, to) {
   if (mode === 'rail') return railDistance(w, from, to);
   return distance(from, to);
 }
-function arrive(w, v) {
-  v.at = v.leg.to;
-  v.leg = null;
-  if (v.cargo) { v.phase = 'unloading'; v.timer = (0.5 + (VEHICLES[v.type].handlingPerTon ?? 0.08) * v.cargo.qty) * handlingMult(w, v.at); }
-  else v.phase = 'idle';
-}
-function finishUnload(w, v) {
-  const r = w.routes.find(x => x.id === v.routeId);
-  const dest = v.at, cargo = v.cargo;
-  v.cargo = null; v.phase = 'idle';
-  if (!r || !cargo) return;
+function settleArrival(w, r, lot) {
+  const v = { type: lot.vType, at: r.to };
+  const dest = r.to, cargo = lot;
   const { good, qty } = cargo;
   const dn = w.nodes[dest];
   // storage cap: what fits lands; the overflow sells cheap on the dock (S5.6)
@@ -1501,37 +1552,6 @@ function finishUnload(w, v) {
   if (pay > 0) note(w, `${VEHICLES[v.type].name} delivered ${qty.toFixed(1)}t of ${GOODS[good].name.toLowerCase()} to ${NODES[dest].name} — +$${pay}.`, 'pay');
   if (w.stats.deliveredTons >= 100) awardMilestone(w, 'tons100', '100 tons delivered');
   if (w.stats.earned >= 5000) awardMilestone(w, 'earned5000', '$5,000 earned');
-}
-function stepVehicle(w, v) {
-  if (v.downTo > w.tick) return; // in the shop
-  let budget = 1, guard = 0;
-  while (budget > 1e-9 && guard++ < 8) {
-    if (v.phase === 'loading' || v.phase === 'unloading') {
-      const use = Math.min(budget, v.timer);
-      v.timer -= use; budget -= use;
-      if (v.timer <= 1e-9) { if (v.phase === 'loading') depart(w, v); else finishUnload(w, v); }
-    } else if (v.phase === 'travel') {
-      const speed = VEHICLES[v.type].speed * (VEHICLES[v.type].mode === 'water' ? bargeSpeedMult(w) * (w.weather === 'storm' ? 0.85 : 1) : VEHICLES[v.type].mode === 'road' ? (w.state.mods.road ?? 1) * weatherRoadMult(w) * (w.refits.turbo ? 1.08 : 1) : 1); // Road Crews · the sky (W36) · Turbo Fleet (W36)
-      const hoursNeeded = (v.leg.km - v.leg.progress) / speed;
-      const use = Math.min(budget, hoursNeeded);
-      v.leg.progress += use * speed; budget -= use;
-      if (v.leg.progress >= v.leg.km - 1e-9) arrive(w, v);
-    } else {
-      idleAct(w, v);
-      if (v.phase === 'idle') break;
-    }
-  }
-}
-function idleAct(w, v) {
-  if (!v.routeId) return;
-  const r = w.routes.find(x => x.id === v.routeId);
-  if (!r) { v.routeId = null; return; }
-  if (r.paused) return;
-  if (VEHICLES[v.type].mode === 'water' && waterDistance(r.from, r.to) >= 999) return; // mode honesty: no water, no work
-  if (VEHICLES[v.type].mode === 'rail' && railDistance(w, r.from, r.to) >= 999) return; // no iron, no train
-  if (v.at === r.from) tryLoad(w, v, r);
-  else if (v.at === r.to) startLeg(w, v, r.to, r.from, null);
-  else startLeg(w, v, v.at, r.from, null);
 }
 
 // --- contracts: born from real deficits only (K-2) ---
@@ -2413,7 +2433,7 @@ export function tick(w) {
   produceAndConvert(w);
   consume(w);
   agePerishables(w);
-  for (const v of [...w.vehicles]) stepVehicle(w, v);
+  for (const r of [...w.routes]) stepFlow(w, r);
   rivalStep(w);
   if (w.tick % 6 === 0) priceStep(w);
   w.tick++;
@@ -2448,7 +2468,7 @@ export function restore(json) {
   }
   for (const [unitId, unit] of Object.entries(UNITS)) if (!w.units[unitId]) w.units[unitId] = { owner: unit.owner, incomeAvg: 0, lastIncome: 0 };
   for (const n of Object.values(w.nodes)) for (const g of Object.keys(GOODS)) if (!n.flow[g]) n.flow[g] = freshFlow(); // goods the world gained (W31–W34)
-  if (w.rivalTrucks && w.rivalTrucks.length < 6) w.rivalTrucks.push({ house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', state: 'loading', hours: 0, cargo: 0, trips: 0 });
+  if (w.rivalTrucks && w.rivalTrucks.length < 6) w.rivalTrucks.push({ house: 'Boudreaux', from: 'deltaFarms', to: 'memphis', good: 'bolls', acc: 0, pipe: [], trips: 0 });
   // saves from before the Overhead (W36): the sky, the refits, the drivers arrive
   if (w.wxState === undefined) w.wxState = ((w.seed ?? 20261106) ^ 0x9e3779b9) | 0;
   if (!w.weather) w.weather = 'clear';
@@ -2459,6 +2479,21 @@ export function restore(json) {
   for (const v of w.vehicles) { if (!v.driver) { v.driver = DRIVERS[w.driverSeq % DRIVERS.length]; w.driverSeq++; } if (v.sickTick === undefined) v.sickTick = -1; }
   for (const [nid, pc] of Object.entries(w.parcels)) { const pu = PRIMARY_UNIT[nid]; if (pu && w.units[pu]?.owner === 'player' && pc.owned >= 4 && pc.left === 0) pc.left = 1; } // the Home Quarter, for saves that earned it before it was named (W37)
   if (!w.dormancy) w.dormancy = {}; // W39: dormancy arrives; unmeasured places stand awake
+  // W40 (Wave 17): movement is flow now. Routes gain their pipe and stage
+  // accumulator; a vehicle caught mid-haul lands its cargo in the pipe; a
+  // rival's carried load does the same; positions become postings.
+  for (const r of w.routes) { if (r.acc === undefined) r.acc = 0; if (!r.pipe) r.pipe = []; }
+  for (const v of w.vehicles) {
+    if (v.cargo && v.routeId) { const r = w.routes.find(x => x.id === v.routeId); if (r) r.pipe.push({ good: v.cargo.good, qty: v.cargo.qty, portions: v.cargo.portions, born: v.cargo.born, vType: v.type, arriveTick: w.tick + 2 }); }
+    if (v.leg) v.at = v.leg.from;
+    v.cargo = null; v.leg = null; v.phase = 'idle'; v.timer = 0;
+  }
+  for (const t of w.rivalTrucks) {
+    if (t.acc === undefined) t.acc = 0;
+    if (!t.pipe) t.pipe = [];
+    if (t.cargo > 0) { t.pipe.push({ qty: t.cargo, arriveTick: w.tick + 2 }); t.cargo = 0; }
+    delete t.state; delete t.hours;
+  }
   for (const k of ['wagesPaid', 'upkeepPaid', 'repairsPaid', 'opexPaid', 'sickDays']) if (w.stats[k] === undefined) w.stats[k] = 0;
   return w;
 }

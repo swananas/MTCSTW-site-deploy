@@ -54,7 +54,7 @@
     <span id="delta"></span>
     <span id="infl" title="Influence with the State"></span>
     <div class="speeds" id="speeds">
-      <button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
+      <button data-s="0" class="on">⏸</button><button data-s="1">1×</button><button data-s="2">2×</button><button data-s="4">4×</button>
     </div>
     <canvas id="ring" width="36" height="36" style="flex:none" title="Outer arc: the season · inner arc: the day"></canvas>
     <div class="clock" id="clock">Day 1 · 00:00</div>
@@ -92,10 +92,11 @@ function bootWorld() {
   try { start = JSON.parse(localStorage.getItem('haul-start') ?? '{}'); } catch { /* a bad start note never bricks the dock */ }
   return createWorld(20261106, { mode: start.mode === 'sandbox' ? 'sandbox' : 'campaign', ground: start.ground, leverage: start.leverage, companyName: start.companyName, paint: start.paint });
 }
-try { const s = localStorage.getItem(SAVE_KEY); w = s ? restore(s) : bootWorld(); }
+let freshRun = false;
+try { const s = localStorage.getItem(SAVE_KEY); freshRun = !s && !localStorage.getItem('haul-start'); w = s ? restore(s) : bootWorld(); }
 catch { w = createWorld(20261106); }
 
-let speed = 1, sel = null, pendingRoute = null, panel = null, trackMode = false, lastTickAt = performance.now(), acc = 0;
+let speed = 0, sel = null, pendingRoute = null, panel = freshRun ? 'start' : null, trackMode = false, lastTickAt = performance.now(), acc = 0; // the clock never runs before the player says so (Hotfix 16.3); a first run opens at the two picks
 const cv = document.getElementById('map'), ctx = cv.getContext('2d');
 const $ = id => document.getElementById(id);
 

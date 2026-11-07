@@ -28,7 +28,7 @@
   #ticker div { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:1.5px 0; opacity:.92; }
   #ticker .pay { color:#9fd6a4; } #ticker .rot { color:#f0a08e; } #ticker .warn { color:#f2cd7e; }
   #ticker .route { color:#a8cdea; } #ticker .buy { color:#d3b8ec; }
-  #sheet { background:var(--paper); border-top:1px solid var(--line); padding:10px; min-height:118px; }
+  #sheet { background:var(--paper); border-top:1px solid var(--line); padding:10px; min-height:118px; max-height:44dvh; overflow-y:auto; }
   .hint { font-size:13px; opacity:.85; line-height:1.5; }
   .card h3 { margin:0 0 4px; font-size:16px; }
   .card .sub { font-size:12px; opacity:.75; margin-bottom:6px; line-height:1.4; }
@@ -69,7 +69,7 @@
     <button id="newgame" title="Start over">↺</button>
   </header>
   <canvas id="map"></canvas>
-  <div id="chartbar" style="display:flex;gap:4px;padding:3px 10px;background:#f3e9d2;border-bottom:1px solid var(--line);font-size:12px;align-items:center"><span style="opacity:.75">Chart:</span><button data-chart="all">🌎 All</button><button data-chart="la">⚜ Louisiana</button><button data-chart="tx">★ Texas</button><button data-chart="river">🌊 The River</button><button id="duskbtn" title="Dusk — one overlay pass; Day stays the default light">🌗 Dusk</button></div>
+  <div id="chartbar" style="display:flex;gap:4px;padding:3px 10px;background:#f3e9d2;border-bottom:1px solid var(--line);font-size:12px;align-items:center"><span style="opacity:.75">Chart:</span><button data-chart="all">🌎 All</button><button data-chart="la">⚜ Louisiana</button><button data-chart="tx">★ Texas</button><button data-chart="river">🌊 The River</button><button id="duskbtn" title="Dusk — one overlay pass; Day stays the default light">🌗 Dusk</button><button id="zoomin" title="Step in — toward the selected place, else the chart's heart">⌕ Step in</button></div>
   <div id="events"></div>
   <div id="offer"></div>
   <div id="routes"></div>
@@ -274,10 +274,11 @@ function draw(now) {
   // places, in the Desk's five moves (INTEGRATION-2.5D): shadow -> skirt -> top
   // face, then rim -> emblem -> label. Pass 1 grounds every place; the Dusk
   // overlay falls between the passes; pass 2 speaks (state never dims).
+  const U = cv.width / (MAP_BOX.hw * 2); // backing px per data unit - place sizes belong to the geography now, not the screen
   const placeGeom = {};
   for (const [id, def] of Object.entries(NODES)) {
     const p = pt(id);
-    const R = CITIES.has(id) ? 15 : 13;
+    const R = (CITIES.has(id) ? 6.3 : 5.4) * U;
     // dormancy (W39, LT-08 section 9): the lift eases toward the place's class
     const dorm = w.dormancy[id] ?? 2, dTarget = dorm === 0 ? (view.level === 1 ? 0 : 0.4) : dorm === 1 ? 0.4 : 1; // the dot is the CHART-distance form (LT-08 section 9): at Region and Ground a dormant place keeps a low grey silhouette - asleep, still a place
     liftEase[id] = liftEase[id] === undefined ? dTarget : liftEase[id] + (dTarget - liftEase[id]) * 0.04;
@@ -313,6 +314,7 @@ function draw(now) {
     ctx.fillStyle = 'rgba(35,37,25,.28)';
     ctx.fillRect((0 - view.ox) / view.s - 80, (0 - view.oy) / view.s - 80, r.width / view.s + 160, r.height / view.s + 160);
   }
+  const labelsDrawn = [];
   for (const [id, def] of Object.entries(NODES)) {
     const { p, R, H, topY } = placeGeom[id], node = w.nodes[id];
     const st = nodeState(id); // 5 - the rim carries state, with its relief light copy
@@ -338,7 +340,7 @@ function draw(now) {
     }
     if (PRIMARY_UNIT[id] && w.units[PRIMARY_UNIT[id]].owner === 'player') { // your ground wears your paint, on the rim
       ctx.strokeStyle = companyOf(w).paint; ctx.lineWidth = 2.2;
-      ctx.beginPath(); ctx.ellipse(p.x, topY, R + 3.5, (R + 3.5) * .36, 0, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(p.x, topY, R * 1.32, (R * 1.32) * .36, 0, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
     }
     const lots = node.lots.filter(l => l.good === 'shrimp'); // the clock, riding the rim
     if (lots.length) {
@@ -346,7 +348,7 @@ function draw(now) {
       const remain = Math.max(0, 1 - (w.tick - oldest.born) * (ICE_MULT[id] ?? 1) / GOODS.shrimp.perishHours);
       ctx.strokeStyle = remain > .5 ? '#3e9e5f' : remain > .25 ? '#b97e26' : '#b3402e';
       ctx.lineWidth = 2.4;
-      ctx.beginPath(); ctx.ellipse(p.x, topY, R + 3.5, (R + 3.5) * .36, 0, -Math.PI / 2, -Math.PI / 2 + remain * Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(p.x, topY, R * 1.32, (R * 1.32) * .36, 0, -Math.PI / 2, -Math.PI / 2 + remain * Math.PI * 2); ctx.stroke();
       ctx.lineWidth = 1;
     }
     ctx.fillStyle = '#22312a'; ctx.font = `${Math.round(R * .78)}px system-ui`; ctx.textAlign = 'center';
@@ -356,13 +358,13 @@ function draw(now) {
       for (const [dx, dy] of [[-.38, -.06], [.3, .1], [.02, -.2]]) { ctx.beginPath(); ctx.arc(p.x + dx * R, topY + dy * R, 1.3, 0, 7); ctx.fill(); }
     }
     ctx.font = '9.5px system-ui'; ctx.fillStyle = 'rgba(34,49,42,.85)';
-    if (view.level > 1 || CITIES.has(id) || sel?.id === id) ctx.fillText(def.name, p.x, p.y + R * .36 + 12); // Chart level names cities only (W38)
+    if (view.level > 1 || CITIES.has(id) || sel?.id === id) { let ly = p.y + R * .36 + 12; if (labelsDrawn.some(a => Math.abs(a[0] - p.x) < 15 * U && Math.abs(a[1] - ly) < 11)) ly = topY - R * .36 - 5; labelsDrawn.push([p.x, ly]); ctx.fillText(def.name, p.x, ly); } // Chart level names cities only (W38); a crowded name flips above its place instead of colliding
     let i = 0;
     if (view.level >= 3) for (const good of Object.keys(GOODS)) { // stock pips are Ground detail (W38)
       const q = stockOf(w, id, good);
       if (q >= 1) {
         ctx.fillStyle = 'rgba(31,111,107,.8)';
-        ctx.fillRect(p.x - 14 + i * 7, topY - R * .36 - 8, Math.min(6, 1 + q / 12), 3.5);
+        ctx.fillRect(p.x - R * .95 + i * (R * .5), topY - R * .36 - 8, Math.min(R * .45, 1 + q / 12), 3.5);
         i++;
       }
     }
@@ -883,6 +885,7 @@ function pinchZoom(cx, cy, ns) { // live stretch during the gesture; the level s
   pinchCenter = { x: WX0 + (cx - view.ox) / view.s / cv.getBoundingClientRect().width * WXSPAN, y: WY0 + (cy - view.oy) / view.s / cv.getBoundingClientRect().height * WYSPAN };
 }
 $('viewbtn').onclick = () => stepOut();
+$('zoomin').onclick = () => { const d = Math.min(2, devicePixelRatio || 1); if (sel?.kind === 'node') { const p = pt(sel.id); stepIn(p.x / d, p.y / d); } else { const r = cv.getBoundingClientRect(); stepIn(r.width / 2, r.height / 2); } };
 // chart pages (W31 - E1) are Level 2's regions now (W38)
 const CHARTS = { la: { x: [-11, 146], y: [2, 166] }, tx: { x: [-94, 9], y: [21, 163] }, river: { x: [14, 82], y: [-174, 22] } }; // frames measured off the boxed layout (W37 spread)
 document.querySelectorAll('[data-chart]').forEach(b => b.onclick = () => { const k = b.dataset.chart; if (!k) goLevel(1); else goLevel(2, { region: k }); });
@@ -940,7 +943,7 @@ cv.addEventListener('pointerup', e => {
 cv.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); downAt = null; });
 function handleTap(x, y) {
   panel = null;
-  let hit = null, best = 32 / view.s;
+  let hit = null, best = 27 / view.s;
   for (const id of Object.keys(NODES)) {
     const p = pt(id), d = Math.hypot(p.x - x, p.y - y);
     if (d < best) { best = d; hit = id; }

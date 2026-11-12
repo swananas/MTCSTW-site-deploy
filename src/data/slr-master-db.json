@@ -1,9 +1,9 @@
 {
   "meta": {
     "version": "2026-10-02",
-    "total_members": 62,
+    "total_members": 63,
     "existing": 41,
-    "new": 21,
+    "new": 22,
     "source": "creators-db.json (41, group C enriched) + slr-missing-candidates.json (21 approved)",
     "catalog_scrape_applied": true,
     "rules": [
@@ -3406,6 +3406,49 @@
       "image_alt": "worlds_strongest_mayo, anti-MAGA political satirist, disproportionate engagement for size \u2014 Sick Left Radicals",
       "content_updated": "2026-10-02",
       "platforms_updated": "2026-10-07"
+    },
+    {
+      "slug": "danielles-olive-branch",
+      "name": "Danielle's Olive Branch",
+      "handles": {
+        "tiktok": "@danielles_olive_branch"
+      },
+      "primary_platform": "TikTok",
+      "propaganda_score": 7.6,
+      "score_provisional": true,
+      "followers_total": 16200,
+      "followers_display": "16.2K",
+      "followers_by_platform": {
+        "tiktok": 16200
+      },
+      "followers_as_of": "2026-11-12",
+      "picture": "https://www.mtcstw.com/assets/roster-photos/danielles-olive-branch.jpg",
+      "catalog_path": "/danielles-olive-branch",
+      "links": [
+        {
+          "platform": "Tiktok",
+          "url": "https://www.tiktok.com/@danielles_olive_branch",
+          "status": "confirmed"
+        }
+      ],
+      "key_strengths": [
+        "16.2K combined audience (verified 2026-11-12)",
+        "TikTok creator and livestreamer \u2014 'The life of Olive the Rottweiler and her siblings'",
+        "Added to the roster 2026-11-12 at Shane's direction. Provisional entry: bio and counts verified from her public TikTok header; content review pending"
+      ],
+      "offer": [
+        "TikTok creator and livestreamer \u2014 'The life of Olive the Rottweiler and her siblings'",
+        "Added to the roster 2026-11-12 at Shane's direction. Provisional entry: bio and counts verified from her public TikTok header; content review pending",
+        "16.2K audience in the Sick Left Radicals amplifier \u2014 Tiktok native"
+      ],
+      "bio": "TikTok creator Danielle (@danielles_olive_branch, 16.2K followers, 17.3K likes, verified 2026-11-12); her bio reads: 'The life of Olive the Rottweiler and her siblings.' She also streams live on TikTok. Added to the Sick Left Radicals roster 2026-11-12 at Shane's direction; roster photo is a placeholder tile until her profile photo is supplied.",
+      "content_focus": "The life of Olive the Rottweiler and her siblings (per TikTok bio)",
+      "is_new": true,
+      "content_updated": "2026-11-12",
+      "platforms_updated": "2026-11-12",
+      "seo_title": "Danielle's Olive Branch | Sick Left Radicals | MTCSTW",
+      "seo_description": "Danielle's Olive Branch (@danielles_olive_branch): TikTok creator and livestreamer \u2014 the life of Olive the Rottweiler and her siblings. 16.2K followers. Propaganda score 7.6 (provisional). Sick Left Radicals, MTCSTW.",
+      "image_alt": "Danielle's Olive Branch, TikTok creator \u2014 Sick Left Radicals (placeholder roster tile)"
     }
   ]
 }

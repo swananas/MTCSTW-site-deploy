@@ -78,7 +78,7 @@ var PF_CARD_RULES = {
     desc: 'The network runs on cells. Lone wolves get picked off. Find your people.'
   },
   '/sick-left-radicals': {
-    title: 'Sick Left Radicals — 62 Creators, 8M+ Reach.',
+    title: 'Sick Left Radicals — 63 Creators, 8M+ Reach.',
     desc: 'The leftist creator network. Vetted propagandists, ranked by propaganda score. Find your match.'
   },
   '/data-bounties': {

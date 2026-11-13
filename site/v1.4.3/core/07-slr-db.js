@@ -60,7 +60,7 @@
   function fetchFallback() {
     var b = ownBase();
     var url = b ? b + '/src/data/slr-master-db.json'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@035f47220120171fa50e70c1e75f0e94c0a7ebff/src/data/slr-master-db.json';
     return fetch(url, { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('slr-db HTTP ' + r.status); return r.json(); })
       .then(function (d) {
@@ -94,7 +94,7 @@
      bump in LIVE_DB_URL to propagate. On any failure the bundled snapshot
      path runs unchanged. */
   var _slrPending = null;
-  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/src/data/slr-master-db.json';
+  var LIVE_DB_URL = 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@035f47220120171fa50e70c1e75f0e94c0a7ebff/src/data/slr-master-db.json';
   var LIVE_TIMEOUT_MS = 3000;
   function fetchLive() {
     return new Promise(function (resolve) {
@@ -122,7 +122,7 @@
   function dataUrl() {
     var b = ownBase();
     return (b ? b + '/v1.4.3/core/07-slr-db-data.js'
-      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@4f896b0e9b3033a1b21317d4386e215339ff6455/v1.4.3/core/07-slr-db-data.js');
+      : 'https://cdn.jsdelivr.net/gh/swananas/MTCSTW-site-deploy@035f47220120171fa50e70c1e75f0e94c0a7ebff/v1.4.3/core/07-slr-db-data.js');
   }
   PF.ensureSLRDB = function () {
     var s0 = window.PF_SLR_DB_SNAPSHOT;

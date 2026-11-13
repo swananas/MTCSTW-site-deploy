@@ -257,10 +257,10 @@ def main():
 </body>
 </html>''' % (BLACK, RED, RED, MUTED, NAV, CREAM, ''.join(cards), MUTED, RED)
     # NOTE: site/sick-left-radicals/index.html is currently a JS app shell.
-    # Write the static roster to a sibling file so the parent can decide; do NOT overwrite the shell.
-    with open(os.path.join(SITE, 'sick-left-radicals', 'roster-static.html'), 'w') as f:
-        f.write(idx)
-    print('roster static index written (roster-static.html, shell preserved)')
+    # roster-static.html was a full duplicate of the roster page — REMOVED by CEO
+    # order 2026-11-13 (duplicates cut) and the write is parked: do NOT regenerate
+    # it. The idx HTML is built but intentionally not written.
+    print('roster static index SKIPPED (roster-static.html removed 2026-11-13, duplicates cut)')
 
 if __name__ == '__main__':
     main()

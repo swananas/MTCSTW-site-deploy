@@ -410,7 +410,7 @@ def build(member, members_sorted, network_total):
         lost_band = ''
     latest = build_latest(member)
     css_page = CSS + (AGG_CSS if latest else '') + (LOST_CSS if st else '')
-    page_url = 'https://www.mtcstw.com/@%s' % slug
+    page_url = 'https://www.mtcstw.com/@%s/' % slug
     title = '%s — Portfolio | Sick Left Radicals | MTCSTW' % name
     desc = member.get('seo_description') or name
 

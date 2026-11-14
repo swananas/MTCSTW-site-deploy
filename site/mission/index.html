@@ -72,6 +72,11 @@
     <p id="bMsg" class="muted"></p>
   </div>
 
+  <div class="card" id="opsCard">
+    <div class="kicker">Operations feed</div>
+    <div id="opsBody"><p class="muted">No operations yet — this feed fills when the first mission is scheduled. It carries what the network did, never another content feed.</p></div>
+  </div>
+
   <div class="card">
     <div class="nums">
       <div><div class="n" id="pReach">—</div><div class="t">Network reach</div></div>
@@ -81,7 +86,8 @@
     </div>
   </div>
   <p class="muted">Every number on this board traces to a counted action or a
-  public reading. Nothing here is estimated. <a href="/sick-left-radicals/">Meet the network</a>.</p>
+  public reading. Nothing here is estimated. <a href="/sick-left-radicals/">Meet the network</a> ·
+  <a href="/create/">The Armory — make ammunition</a>.</p>
 </div>
 <script>
 (function(){
@@ -109,6 +115,13 @@
     $('pMissions').textContent = fmt(b.pulse.missions_run);
     $('pTurnout').textContent = fmt(b.pulse.cumulative_turnout);
     if (b.last_report) showReport(b.last_report);
+    if (b.ops && b.ops.length) {
+      $('opsBody').innerHTML = b.ops.map(function(o){
+        var when = String(o.at || '').replace('T', ' ').slice(0, 16);
+        return '<p style="margin:6px 0"><b>' + o.kind + '</b> <span class="muted">' +
+          when + (o.ref ? ' · ' + o.ref : '') + '</span></p>';
+      }).join('');
+    }
   }).catch(function(){});
 
   function showReport(rep){

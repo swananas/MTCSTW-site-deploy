@@ -1,9 +1,10 @@
 {
- "generated_at": "2026-11-13T22:37:06.917271-06:00",
+ "generated_at": "2026-11-14T17:42:38.076504-06:00",
  "state": "idle",
  "mission": null,
  "turnout": 0,
  "last_report": null,
+ "ops": [],
  "pulse": {
   "missions_run": 0,
   "cumulative_turnout": 0,

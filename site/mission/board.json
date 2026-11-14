@@ -1,0 +1,13 @@
+{
+ "generated_at": "2026-11-13T22:32:42.706090-06:00",
+ "state": "idle",
+ "mission": null,
+ "turnout": 0,
+ "last_report": null,
+ "pulse": {
+  "missions_run": 0,
+  "cumulative_turnout": 0,
+  "network_reach": 8293752,
+  "creators": 63
+ }
+}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today's Mission — MTCSTW</title>
+<meta name="description" content="The daily mission board of the Propaganda Factory Network: one target, one window, one war report. Vote for tomorrow's target, run today's.">
+<link rel="canonical" href="https://www.mtcstw.com/mission/">
+<style>
+  :root{--ink:#141310;--paper:#f4efe4;--red:#c8102e;--gold:#d9a441;--panel:#1d1b16}
+  *{box-sizing:border-box} body{margin:0;background:var(--ink);color:var(--paper);
+    font-family:Georgia,'Times New Roman',serif}
+  .wrap{max-width:880px;margin:0 auto;padding:20px 16px 56px}
+  h1,h2,.kicker{font-family:'Arial Narrow',Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em}
+  .kicker{color:var(--gold);font-size:13px;margin:18px 0 4px}
+  h1{font-size:42px;line-height:1.02;margin:0 0 6px}
+  h2{font-size:20px;margin:0 0 8px}
+  .state{display:inline-block;background:var(--red);color:#fff;padding:3px 10px;
+    font-family:'Arial Narrow',Arial,sans-serif;text-transform:uppercase;letter-spacing:.08em;font-size:13px}
+  .card{background:var(--panel);border:1px solid #3a362b;padding:18px;margin:16px 0}
+  .big{font-size:30px;font-family:'Arial Narrow',Arial,sans-serif}
+  .nums{display:flex;gap:28px;flex-wrap:wrap;margin:10px 0}
+  .nums .n{font-size:34px;font-family:'Arial Narrow',Arial,sans-serif;color:#fff}
+  .nums .t{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#bdb49c}
+  button{background:var(--red);color:#fff;border:0;padding:12px 22px;font-size:16px;
+    font-family:'Arial Narrow',Arial,sans-serif;text-transform:uppercase;letter-spacing:.06em;cursor:pointer}
+  button:disabled{background:#555;cursor:default}
+  input{background:#0f0e0b;color:var(--paper);border:1px solid #4a463a;padding:11px;font-size:16px;width:220px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .cand{display:flex;justify-content:space-between;border-top:1px solid #33301f;padding:9px 2px}
+  .cand button{padding:6px 14px;font-size:13px}
+  .muted{color:#bdb49c;font-size:14px}
+  a{color:var(--gold)}
+  .receipt{border-left:4px solid var(--gold);padding-left:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Propaganda Factory Network — Daily Operations</div>
+  <h1>The Mission Board</h1>
+  <p class="muted">One target. One window. Everyone at once. Vote for who gets
+  tomorrow's mission — then go run today's.</p>
+
+  <div class="card" id="missionCard">
+    <span class="state" id="mState">Loading</span>
+    <h2 id="mTitle" style="margin-top:10px">Reading the board…</h2>
+    <p id="mBrief" class="muted"></p>
+    <div class="nums" id="mNums" style="display:none">
+      <div><div class="n" id="nDoor">0</div><div class="t">Went through the door</div></div>
+      <div><div class="n" id="nProven">0</div><div class="t">Proved it with the code</div></div>
+    </div>
+    <div class="row">
+      <button id="doorBtn" disabled>Go to the target</button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <input id="codeIn" placeholder="Post code from the caption" autocomplete="off">
+      <button id="proveBtn" disabled>Enter the code</button>
+    </div>
+    <p id="mMsg" class="muted"></p>
+  </div>
+
+  <div class="card" id="reportCard" style="display:none">
+    <div class="kicker">Yesterday's war report</div>
+    <div class="receipt" id="reportBody"></div>
+  </div>
+
+  <div class="card" id="ballotCard" style="display:none">
+    <h2>Today's ballot — tomorrow's target</h2>
+    <p class="muted">One vote per person per day. The top of the ballot
+    gets the mission.</p>
+    <div id="slate"></div>
+    <p id="bMsg" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <div class="nums">
+      <div><div class="n" id="pReach">—</div><div class="t">Network reach</div></div>
+      <div><div class="n" id="pCreators">—</div><div class="t">Creators</div></div>
+      <div><div class="n" id="pMissions">0</div><div class="t">Missions run</div></div>
+      <div><div class="n" id="pTurnout">0</div><div class="t">All-time turnout</div></div>
+    </div>
+  </div>
+  <p class="muted">Every number on this board traces to a counted action or a
+  public reading. Nothing here is estimated. <a href="/sick-left-radicals/">Meet the network</a>.</p>
+</div>
+<script>
+(function(){
+  var API = 'https://api.mtcstw.com';
+  function device(){
+    var k = 'pf_device', v = null;
+    try { v = localStorage.getItem(k); } catch(e){}
+    if (!v) { v = 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      try { localStorage.setItem(k, v); } catch(e){} }
+    return v;
+  }
+  function post(body){
+    return fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body) }).then(function(r){ return r.json(); });
+  }
+  function fmt(n){ return Number(n||0).toLocaleString('en-US'); }
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* Pulse comes from the generated board.json — true numbers even
+     before the first mission exists. */
+  fetch('/mission/board.json').then(function(r){ return r.json(); }).then(function(b){
+    if (!b || !b.pulse) return;
+    $('pReach').textContent = fmt(b.pulse.network_reach);
+    $('pCreators').textContent = fmt(b.pulse.creators);
+    $('pMissions').textContent = fmt(b.pulse.missions_run);
+    $('pTurnout').textContent = fmt(b.pulse.cumulative_turnout);
+    if (b.last_report) showReport(b.last_report);
+  }).catch(function(){});
+
+  function showReport(rep){
+    if (!rep) return;
+    $('reportCard').style.display = 'block';
+    var d = function(a,b){ var x = (b||0)-(a||0); return (x>=0?'+':'') + fmt(x); };
+    $('reportBody').innerHTML =
+      '<div class="big">Turnout: ' + fmt(rep.turnout) + '</div>' +
+      '<p>Likes ' + fmt(rep.open_likes) + ' → ' + fmt(rep.close_likes) + ' (' + d(rep.open_likes, rep.close_likes) + ')' +
+      ' · Comments ' + fmt(rep.open_comments) + ' → ' + fmt(rep.close_comments) + ' (' + d(rep.open_comments, rep.close_comments) + ')' +
+      ' · Shares ' + fmt(rep.open_shares) + ' → ' + fmt(rep.close_shares) + ' (' + d(rep.open_shares, rep.close_shares) + ')</p>' +
+      (rep.narrative ? '<p>' + rep.narrative + '</p>' : '');
+  }
+
+  post({ type:'farm', f_action:'today' }).then(function(res){
+    if (!res || !res.ok) { idle('The first mission has not been scheduled yet.'); return; }
+    var m = res.mission;
+    if (res.last_report) showReport(res.last_report);
+    if (!m) { idle('The first mission has not been scheduled yet.'); }
+    else {
+      $('mState').textContent = res.state === 'during' ? 'Mission open' :
+        res.state === 'before' ? 'Mission scheduled' : 'Mission closed';
+      $('mTitle').textContent = 'Target: ' + (m.creator_id || '');
+      $('mBrief').textContent = m.brief || '';
+      if (res.turnout) {
+        $('mNums').style.display = 'flex';
+        $('nDoor').textContent = fmt(res.turnout.door);
+        $('nProven').textContent = fmt(res.turnout.proven);
+      }
+      if (res.state === 'during') { $('doorBtn').disabled = false; $('proveBtn').disabled = false; }
+    }
+    if (res.ballot && res.ballot.slate && res.ballot.slate.length) {
+      $('ballotCard').style.display = 'block';
+      var votes = {};
+      (res.ballot.standings || []).forEach(function(s){ votes[s.slug] = s.votes; });
+      $('slate').innerHTML = res.ballot.slate.map(function(slug){
+        return '<div class="cand"><span>' + slug + ' — ' + fmt(votes[slug] || 0) + ' votes</span>' +
+          '<button data-slug="' + slug + '">Vote</button></div>';
+      }).join('');
+      Array.prototype.forEach.call($('slate').querySelectorAll('button'), function(b){
+        b.addEventListener('click', function(){
+          post({ type:'vote', v_action:'vote_cast', slug: b.getAttribute('data-slug'),
+                 device: device(), weight: 1 }).then(function(r){
+            $('bMsg').textContent = r && r.ok ? 'Vote counted. One per day — see you tomorrow.' :
+              (r && r.err) ? r.err : 'Vote not counted.';
+          });
+        });
+      });
+    }
+  }).catch(function(){ idle('The first mission has not been scheduled yet.'); });
+
+  function idle(msg){
+    $('mState').textContent = 'Standing by';
+    $('mTitle').textContent = msg;
+  }
+  $('doorBtn').addEventListener('click', function(){
+    post({ type:'farm', f_action:'click', device: device() }).then(function(r){
+      if (r && r.ok && r.url) { window.open(r.url, '_blank'); $('mMsg').textContent =
+        'You are counted at the door. Do the work there, find the post code in the caption, and bring it back.'; }
+      else $('mMsg').textContent = (r && r.err) || 'The door is not open.';
+    });
+  });
+  $('proveBtn').addEventListener('click', function(){
+    post({ type:'farm', f_action:'prove', device: device(), code: $('codeIn').value }).then(function(r){
+      $('mMsg').textContent = r && r.ok ?
+        (r.already ? 'Already proven — you are on the board.' : 'Proven. Your name is on this mission.') :
+        ((r && r.err) || 'That code was not recognized.');
+    });
+  });
+})();
+</script>
+</body>
+</html>

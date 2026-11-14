@@ -783,6 +783,14 @@ if('__pfCampaignRes' in window) boot(window.__pfCampaignRes);
 .pf-hero-note{font-size:12.5px;color:var(--pf-text-faint,#8a8a8a);margin:0 0 24px}
 .pf-hero-steps{display:grid;grid-template-columns:1fr;gap:10px;margin:0}
 @media(min-width:700px){.pf-hero-steps{grid-template-columns:1fr 1fr 1fr}}
+.pf-mission-strip{max-width:1080px;margin:0 auto 8px;padding:0 16px;box-sizing:border-box}
+.pf-mission-card{border:1px solid var(--pf-accent);border-radius:14px;padding:18px 20px;background:rgba(255,255,255,.03)}
+.pf-mission-kicker{font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--pf-accent);text-transform:uppercase;margin:0 0 8px}
+.pf-mission-line{font-size:clamp(16px,4.4vw,21px);font-weight:800;line-height:1.3;margin:0 0 8px;color:var(--pf-text)}
+.pf-mission-sub{font-size:13.5px;line-height:1.5;color:var(--pf-text-dim,#bdbdbd);margin:0 0 12px;max-width:640px}
+.pf-mission-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.pf-mission-chip{font-size:12px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 12px;color:var(--pf-text)}
+.pf-mission-cta{display:inline-flex;align-items:center;min-height:44px;padding:10px 20px;border-radius:999px;background:var(--pf-accent);color:#fff !important;font-weight:900;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}
 .pf-hero-step{display:block;background:var(--pf-surface,#16161a);border:1px solid var(--pf-border,#2a2a2a);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--pf-text)}
 .pf-hero-step b{display:block;font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin:0 0 5px}
 .pf-hero-step b span{color:var(--pf-accent)}
@@ -802,6 +810,34 @@ if('__pfCampaignRes' in window) boot(window.__pfCampaignRes);
     <a class="pf-hero-step" href="/sick-left-radicals/"><b><span>02</span> · Meet the network</b><p>The Sick Left Radicals: 63 creators, one roster, 8M+ combined reach. Find your people.</p></a>
     <a class="pf-hero-step" href="#kh-feed"><b><span>03</span> · Scroll the feed</b><p>The work itself — memes, posts, and designs from across the network, right below this.</p></a>
   </div>
+</section>
+<section class="pf-mission-strip" aria-label="Today's mission">
+  <div class="pf-mission-card">
+    <p class="pf-mission-kicker">The Engagement Farm · Today's Target</p>
+    <p class="pf-mission-line" id="pf-mission-line">The board is standing by.</p>
+    <p class="pf-mission-sub" id="pf-mission-sub">One post a day gets the whole network behind it. You go engage it where it lives — the board counts the turnout and reads the score before and after, then publishes the war report. The first mission has not been scheduled yet.</p>
+    <div class="pf-mission-chips">
+      <span class="pf-mission-chip" id="pf-mission-chip-creators">63 creators</span>
+      <span class="pf-mission-chip" id="pf-mission-chip-reach">8,293,752 combined reach</span>
+      <span class="pf-mission-chip" id="pf-mission-chip-missions">0 missions run</span>
+    </div>
+    <a class="pf-mission-cta" href="/mission/">Open the Mission Board →</a>
+  </div>
+  <script>
+  (function(){
+    function fmt(n){return Number(n||0).toLocaleString('en-US');}
+    fetch('/mission/board.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(b){
+      var p=b.pulse||{};
+      document.getElementById('pf-mission-chip-creators').textContent=fmt(p.creators)+' creators';
+      document.getElementById('pf-mission-chip-reach').textContent=fmt(p.network_reach)+' combined reach';
+      document.getElementById('pf-mission-chip-missions').textContent=fmt(p.missions_run)+' missions run';
+      var line=document.getElementById('pf-mission-line'), sub=document.getElementById('pf-mission-sub');
+      if(b.state==='during'&&b.mission){line.textContent='A mission is LIVE right now.';sub.textContent='Today\u2019s target is up on the board. Go through the door, engage the post where it lives, and bring the post code back.';}
+      else if(b.state==='before'&&b.mission){line.textContent='Today\u2019s target is posted.';sub.textContent='The mission window opens at noon Chicago time. Yesterday\u2019s war report is on the board.';}
+      else if(b.state==='after'){line.textContent='Today\u2019s mission is complete.';sub.textContent='The war report is on the board \u2014 the opening number, the closing number, and how many of you went through the door.';}
+    }).catch(function(){});
+  })();
+  </script>
 </section>
 <div id="pf-home-feed">
   <!-- Feed leads for returning visitors; cold visitors get the hero above first. -->

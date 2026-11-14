@@ -1,0 +1,16 @@
+# mtcstw-staging — the mirror/test environment for mtcstw.com (SRE, 2026-11-13)
+# Same worker code + same assets tree as production (mtcstw-app), deployed as a
+# SEPARATE Worker with NO custom-domain route. Reachable only at:
+#   https://mtcstw-staging.mtcstw.workers.dev
+# Deploy test builds here first, verify, then promote the SAME commit to
+# production through the Engels gate (deploy.sh mtcstw-app). Never attach a
+# production route or domain to this Worker. See the staging runbook:
+# ~/workspace/hidden/runbooks/staging-mirror.md
+name = "mtcstw-staging"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+[assets]
+directory = "../site"
+not_found_handling = "404-page"
